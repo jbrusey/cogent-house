@@ -39,12 +39,13 @@
 #  include "printf.h"
 #endif
 #include "msp430usart.h"
+#include "cc_struct.h"
 
 module CurrentCostM @safe()
 {
   provides 
     {
-      interface Read<float> as ReadWattage;
+      interface Read<ccStruct> as ReadWattage;
       interface SplitControl as CurrentCostControl;
     }
   uses
@@ -70,6 +71,7 @@ implementation
   /* shared variables */
   uint32_t totalWatts;
   uint16_t sampleCount;
+  uint16_t max;
   bool shared_reset_state = FALSE;
 
   /* non-shared */
@@ -182,18 +184,27 @@ implementation
   {
     uint32_t tw;
     uint16_t sc;
+    uint16_t m;
+    ccStruct results;
+    
     atomic {
       tw = totalWatts;
       sc = sampleCount;
+      m = max;
       totalWatts = 0;
       sampleCount = 0;
+      max = 0;
     }
 
     if (sc != 0) {
-      signal ReadWattage.readDone(SUCCESS, ((float) tw) / sc);
+      results.average=(((float) tw) / sc);
+      results.max=((float) m);
+      signal ReadWattage.readDone(SUCCESS, results);
     }
     else {
-      signal ReadWattage.readDone(FAIL, 0.0);
+      results.average=0.0;
+      results.max=0.0;
+      signal ReadWattage.readDone(FAIL, results);
     }
 
 #ifdef DEBUG
@@ -368,6 +379,7 @@ implementation
 	if (inNumber(byte, &watts) == NUM_END) {
 	  atomic { 
 	    totalWatts += watts;
+	    if (watts>max) {max=watts;}
 	    sampleCount ++;
 	  }
 	}
