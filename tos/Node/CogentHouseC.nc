@@ -2,6 +2,7 @@
 #include "Packets.h"
 #include "Collection.h"
 #include "PolyClass/horner.c"
+#include "CurrentCost/cc_struct.h"
 #include <stdio.h>
 #include <stdint.h>
 #ifdef DEBUG

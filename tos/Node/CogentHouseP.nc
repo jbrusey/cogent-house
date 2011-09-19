@@ -37,7 +37,7 @@ module CogentHouseP
     interface Read<float> as ReadVOC;
     interface Read<float> as ReadAQ;
     interface SplitControl as CurrentCostControl;
-    interface Read<float> as ReadWattage;
+    interface Read<ccStruct> as ReadWattage;
 
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -343,9 +343,10 @@ implementation
     post checkDataGathered();
   }
 
-  event void ReadWattage.readDone(error_t result, float data) {
+  event void ReadWattage.readDone(error_t result, ccStruct data) {
     if (result == SUCCESS)
-      call PackState.add(SC_POWER, data);
+      call PackState.add(SC_POWER, data.average);
+      call PackState.add(SC_POWER_MAX, data.max);
     call ExpectReadDone.clear(RS_POWER);
     post checkDataGathered();
   }

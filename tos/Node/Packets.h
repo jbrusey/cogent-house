@@ -49,10 +49,11 @@ enum {
   SC_AQ = 9,
   SC_VOC = 10,
   SC_POWER = 11,
-  SC_HEAT = 12,
-  SC_DUTY_TIME= 13,
-  SC_ERRNO = 14,
-  SC_SIZE = 15 // SC_SIZE must be 1 greater than last entry
+  SC_POWER_MAX = 12,
+  SC_HEAT = 13,
+  SC_DUTY_TIME= 14,
+  SC_ERRNO = 15,
+  SC_SIZE = 16 // SC_SIZE must be 1 greater than last entry
 };
 
 #include "PackState/packstate.h"
@@ -106,7 +107,6 @@ typedef nx_struct ConfigMsg {
   ConfigPerType byType [NODE_TYPE_MAX];
   nx_uint8_t special;
 } ConfigMsg;
-
 
 
 #endif
