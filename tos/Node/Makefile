@@ -22,11 +22,11 @@ CFLAGS += -DDELAY_AFTER_RECEIVE=20
 include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(basename $@) $< StateMsg -o $@
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(basename $@) $< ConfigMsg -o $@
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
 
 $(PYTHON_TARGET_DIR)/Packets.py: Packets.h PackState/packstate.h
-	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(basename $@) $< Packets.h -o $@
+	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
 
