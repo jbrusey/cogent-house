@@ -7,5 +7,8 @@ setup(name='ch-base',
       author_email='james.brusey@gmail.com',
       packages=['cogent.base', 'cogent.base.model', 'cogent.node'],
       data_files=[('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf']),
-                  ('/etc/cron.daily', ['etc/yieldSender'])]
+                  ('/etc/cron.daily', ['etc/yieldSender']),
+                  ('/etc/apache2/sites-available', ['etc/cogent-house']),
+                  ('/var/www/cogent-house', ['www/index.py'])
+                  ]
       )
