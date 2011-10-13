@@ -9,6 +9,8 @@ setup(name='ch-base',
       data_files=[('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf']),
                   ('/etc/cron.daily', ['etc/yieldSender']),
                   ('/etc/apache2/sites-available', ['etc/cogent-house']),
-                  ('/var/www/cogent-house', ['www/index.py'])
+                  ('/var/www/cogent-house', ['www/index.py']),
+                  ('/var/www/scripts', ['www/scripts/datePicker.js']),
+                  ('/var/www/style', ['www/style/ccarc.css'])
                   ]
       )
