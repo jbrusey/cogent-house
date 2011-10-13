@@ -18,7 +18,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from base.model import *
+from cogent.base.model import *
 from sqlalchemy import create_engine, and_, or_, distinct, func
 from sqlalchemy.orm import sessionmaker
 
@@ -37,16 +37,13 @@ _periods = {
     "week" : 1440*7,
     "month" : 1440 * 7 * 52 / 12}
 
-def test1():
-    colheads = ["Node id", "House", "Room", "Type"]
-    s = ["<!doctype html><html><body><h2>CogentHouse: List of nodes</h2>"]
-    s.append("<table border=\"0\"><tr>")
-    s.extend(["<td>" + c + "</td>" for c in colheads])
-    s.append("</tr>")
-    for n in session.query(Node):
-        s.append("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" %
-                 (n.id, houseId, roomId, nodeType.name))
-    s.append("</body></html>")
+def _head():
+    return '<!doctype html><html><head><title>CogentHouse Maintenance Portal</title></head><div id="head"><a href="index.py"><h3>CogentHouse</h3></a>';
+
+def _redirect(url=""):
+        return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
+    
+
         
 
 def tree(req):
@@ -109,13 +106,21 @@ def allGraphs(typ="0",period="day"):
             mins = _periods[period]
         except:
             mins = 1440
-        s = ["<!doctype html><html><body><h2>CogentHouse</h2>"]
+        s = ["<!doctype html><html><body><h3>CogentHouse</h3>"]
+        s.append("<p>")
+        for k in sorted(_periods, key=lambda k: _periods[k]):
+            if k == period:
+                s.append(" %s " % k)
+            else:
+                s.append(" <a href=\"allGraphs?typ=%s&period=%s\">%s</a> " % (typ, k, k))
+        s.append("</p>")
+        
         is_empty = True
         for nid in session.query(Node.id).filter(Node.houseId != None).order_by(Node.houseId, Node.roomId):
             is_empty = False
             i = nid[0]
             #s.append("<p>%s, %s</p>" % ( i, repr(i)))
-            s.append("<p><img src=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %d\" width=\"700\" height=\"400\"></p>" % (i,typ,mins,mins,i))
+            s.append("<p><a href=\"nodeGraph?node=%d&typ=%s&period=%s\"><img src=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>" % (i,typ,period,i,typ,mins,mins,i))
 
         if is_empty:
             s.append("<p>No nodes have reported yet.</p>")
@@ -125,6 +130,34 @@ def allGraphs(typ="0",period="day"):
         return ''.join(s)
     finally:
         session.close()
+
+
+def nodeGraph(node=None, typ="0", period="day"):
+    try:
+        session = Session()
+
+        try:
+            mins = _periods[period]
+        except:
+            mins = 1440
+        s = ["<!doctype html><html><body><h3>CogentHouse</h3>"]
+        s.append("<p>")
+        for k in sorted(_periods, key=lambda k: _periods[k]):
+            if k == period:
+                s.append(" %s " % k)
+            else:
+                s.append(" <a href=\"nodeGraph?node=%s&typ=%s&period=%s\">%s</a> " % (node, typ, k, k))
+        s.append("</p>")
+        
+        s.append("<p><img src=\"graph?node=%s&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %s\" width=\"700\" height=\"400\"></p>" % (node,typ,mins,mins,node))
+
+        s.append("</body></html>")
+
+        return ''.join(s)
+    finally:
+        session.close()
+
+
 
 
 def viewLog(req):
@@ -322,14 +355,16 @@ def registerNode(node=None):
 
         s.append("<form action=\"registerNodeSubmit\">")
         s.append("<p>Node id: %d<input type=\"hidden\" name=\"node\" value=\"%d\"/></p>" % (node, node))
-        s.append("<p>House: <select name=\"house\">")
+        s.append("<p>House: <select name=\"house\">")        
         for h in session.query(House):
             s.append("<option value=\"%d\">%s</option>" % (h.id, h.address))
-        s.append("</select></p>")
+        s.append("</select>")
+        s.append('<a href="addNewHouse">(add new house)</a></p>')
         s.append("<p>Room: <select name=\"room\">")
         for r in session.query(Room):
             s.append("<option value=\"%d\">%s</option>" % (r.id, r.name))
-        s.append("</select></p>")
+        s.append("</select>")
+        s.append('<a href="addNewRoom">(add new room)</a></p>')
         s.append("<p><input type=\"submit\" value=\"Register\"></p>")
         
         s.append("</form>")
@@ -354,7 +389,8 @@ def unregisterNode(node=None):
         n.houseId = None
         n.roomId = None
         session.commit()
-        return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=missing\"></head><body><p>Done</p></body></html>"
+        return _redirect("missing")
+    
     except:
         session.rollback()
         
@@ -379,7 +415,8 @@ def registerNodeSubmit(node=None, house=None, room=None):
         n.houseId = int(house)
         n.roomId = int(room)
         session.commit()
-        return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=missing\"></head><body><p>Done</p></body></html>"
+        return _redirect("missing")
+    
     except:
         session.rollback()
     finally:
@@ -397,13 +434,61 @@ def unregisterNodeSubmit(node=None):
         n.houseId = None
         n.roomId = None
         session.commit()
-        return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=missing\"></head><body><p>Done</p></body></html>"
+        return _redirect("missing")
+    
     except:
         session.rollback()
     finally:
         session.close()
     
+def addNewHouse(regnode=None):
+    try:
+        session = Session()
+        s = ["<!doctype html><html><body><h3>CogentHouse: Add New House</h3>"]
 
+        s.append("<form action=\"addNewHouseSubmit\">")
+        s.append('<input type="hidden" name="regnode" value="%s" />' % (regnode))
+
+        s.append('<p>Address: <input type="text" name="address" /></p>')
+        
+
+        s.append('<p>Deployment: <select name="deployment">')
+        for d in session.query(Deployment):
+            s.append('<option value="%d">%s</option>' % (d.id, d.name))
+        s.append('</select>')
+        
+        s.append("<p><input type=\"submit\" value=\"Register\"></p>")
+        
+        s.append("</form>")
+        s.append("</body></html>")
+
+        return ''.join(s)
+    finally:
+        session.close()
+
+def addNewHouseSubmit(regnode=None, address=None, deployment=None ):
+    try:
+        session = Session()
+
+        if address is None:
+            raise Exception("no address specified")
+
+        address = address.strip().lower()
+
+        h = session.query(House).filter(House.address==address).first()
+        if h is not None:
+            return _redirect("error")
+
+        h = House(address=address, deploymentId=deployment)
+        session.add(h)
+        session.commit()
+        return _redirect("registerNode?node=%s&house=%d" % (regnode,h.id))
+    except Exception, e:
+        session.rollback()
+        return "<!doctype html><html><body><p>%s</p></body></html>" % str(e)
+    finally:
+        session.close()
+        
 
 def lowbat(bat="2.6"):
     try:
