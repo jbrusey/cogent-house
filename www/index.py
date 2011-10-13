@@ -41,10 +41,13 @@ def _page(title='No title', html=''):
     return _head(title) + html + _foot()
 
 def _head(title='No title'):
-    return '<!doctype html><html><head><title>CogentHouse Maintenance Portal - %s</title></head><body><div id="head"><a href="index.py">CogentHouse</a>: %s</div>' % (title, title);
+    return ('<!doctype html><html><head><title>CogentHouse Maintenance Portal - %s</title></head>' % title +
+            '<link rel="stylesheet" type="text/css" href="../style/ccarc.css" />'
+            '<script type="text/javascript" src="../scripts/datePicker.js"></script>' +
+            '<body><h1><a href="index.py">CogentHouse</a>: %s</h1>' % (title));
 
 def _foot():
-    return '<div id="foot"></div></body></html>';
+    return '<div id="foot">&copy; Cogent Computing Applied Research Centre</div></body></html>';
 
 def _redirect(url=""):
         return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
@@ -115,7 +118,7 @@ def index():
     s.append('<p><a href="dataYield">Yield since first heard</a></p>')
     s.append('<p><a href="lowbat">Low Battery</a></p>')
     s.append('<p><a href="viewLog">View log</a></p>')
-    s.append('<p><a href="extractDataForm">Extract data</a></p>')    
+    s.append('<p><a href="exportDataForm">Export data</a></p>')    
     return _page('Home page', ''.join(s))
 
 
@@ -152,17 +155,10 @@ def allGraphs(typ="0",period="day"):
     finally:
         session.close()
 
-def extractDataForm():
+def exportDataForm():
     try:
         session = Session()
-        s = ["<!doctype html><html><head><script>"]
-
-        #horrible way of doing but read in JS from .js file
-        for f in  open("/var/www/cogent-house/scripts/datePicker.js"):
-            s.append(f)
-        
-        s.append("</script></head><body><h3>CogentHouse: Extract Data</h3>")
-
+        s = []
         s.append("<form action=\"getData\">")
 
         s.append("<p>Sensor Type: <select name=\"sensorType\">")
@@ -180,9 +176,8 @@ def extractDataForm():
         s.append("<p><input type=\"submit\" value=\"Get Data\"></p>")
 
         s.append("</form>")
-        s.append("</body></html>")
 
-        return ''.join(s)
+        return _page('Export data', ''.join(s))
         
     finally:
         session.close()
@@ -214,11 +209,11 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
 
 
         #construct query
-        extractData=session.query(Reading.nodeId,Reading.time,Reading.value).filter(and_(Reading.typeId==st,
+        exportData = session.query(Reading.nodeId,Reading.time,Reading.value).filter(and_(Reading.typeId==st,
                                                                                          Reading.time>sd,
                                                                                          Reading.time<ed)).order_by(Reading.nodeId,Reading.time);
         csvStr=""
-        for rn,rt,rv in extractData:
+        for rn,rt,rv in exportData:
             csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
         return csvStr
     finally:
