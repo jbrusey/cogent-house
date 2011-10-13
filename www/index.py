@@ -37,8 +37,14 @@ _periods = {
     "week" : 1440*7,
     "month" : 1440 * 7 * 52 / 12}
 
-def _head():
-    return '<!doctype html><html><head><title>CogentHouse Maintenance Portal</title></head><div id="head"><a href="index.py"><h3>CogentHouse</h3></a>';
+def _page(title='No title', html=''):
+    return _head(title) + html + _foot()
+
+def _head(title='No title'):
+    return '<!doctype html><html><head><title>CogentHouse Maintenance Portal - %s</title></head><body><div id="head"><a href="index.py">CogentHouse</a>: %s</div>' % (title, title);
+
+def _foot():
+    return '<div id="foot"></div></body></html>';
 
 def _redirect(url=""):
         return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
@@ -46,14 +52,19 @@ def _redirect(url=""):
 
         
 
-def tree(req):
+def tree(req, period='hour'):
+    try:
+        mins = _periods[period]
+    except:
+        mins = 60
+    
     try:
         session = Session()
         from subprocess import Popen, PIPE
         req.content_type = "image/svg+xml"
 #        req.content_type = "text/plain"
 
-        t = datetime.now() - timedelta(hours=1)
+        t = datetime.now() - timedelta(minutes=mins)
 
         p = Popen("dot -Tsvg", shell=True, bufsize=4096,
 #        p = Popen("cat", shell=True, bufsize=4096,
@@ -75,10 +86,21 @@ def tree(req):
         session.close()
 
 
+def treePage(period='hour'):
+    s = ['<p>']
+    for k in sorted(_periods, key=lambda k: _periods[k]):
+        if k == period:
+            s.append(" %s " % k)
+        else:
+            s.append(" <a href=\"treePage?period=%s\">%s</a> " % (k, k))
+
+    s.append('<p>')
+    s.append('<img src="tree?period=%s" alt="network tree diagram"></a></p>' % (period))
+
+    return _page('Network tree diagram', ''.join(s))
 
 def index():
-    s=['<!doctype html><html><body><h1>Useful Links</h1>']
-    s.append('<p>This just provides some links to pages that will be useful during deployment and for monitoring</p>')
+    s=['']
     s.append('<p><a href="allGraphs?typ=0">Temperature Data</a></p>')
     s.append('<p><a href="allGraphs?typ=2">Humidity Data</a></p>')
     s.append('<p><a href="allGraphs?typ=6">Battery Data</a></p>')
@@ -86,15 +108,15 @@ def index():
     s.append('<p><a href="allGraphs?typ=9">AQ Data</a></p>')
     s.append('<p><a href="allGraphs?typ=10">VOC Data</a></p>')
     s.append('<p><a href="allGraphs?typ=11">Current Cost Data</a></p>')
-    s.append('<br><br><p><a href="tree">Tree</a></p>')
+    s.append('<p><a href="treePage">Tree</a></p>')
     s.append('<p><a href="missing">Missing Nodes</a></p>')
     s.append('<p><a href="lastreport">Last Report</a></p>')
     s.append('<p><a href="yield24">Yield over the last 24 hours</a></p>')
     s.append('<p><a href="dataYield">Yield since first heard</a></p>')
     s.append('<p><a href="lowbat">Low Battery</a></p>')
     s.append('<p><a href="viewLog">View log</a></p>')
-    s.append('</body></html>')
-    return ''.join(s)
+    s.append('<p><a href="extractDataForm">Extract data</a></p>')    
+    return _page('Home page', ''.join(s))
 
 
 
@@ -106,8 +128,8 @@ def allGraphs(typ="0",period="day"):
             mins = _periods[period]
         except:
             mins = 1440
-        s = ["<!doctype html><html><body><h3>CogentHouse</h3>"]
-        s.append("<p>")
+
+        s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
             if k == period:
                 s.append(" %s " % k)
@@ -116,18 +138,89 @@ def allGraphs(typ="0",period="day"):
         s.append("</p>")
         
         is_empty = True
-        for nid in session.query(Node.id).filter(Node.houseId != None).order_by(Node.houseId, Node.roomId):
+        for (i, h, r) in session.query(Node.id, House.address, Room.name).join(House, Room).order_by(House.address, Room.name):
             is_empty = False
-            i = nid[0]
+            
             #s.append("<p>%s, %s</p>" % ( i, repr(i)))
-            s.append("<p><a href=\"nodeGraph?node=%d&typ=%s&period=%s\"><img src=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>" % (i,typ,period,i,typ,mins,mins,i))
+            s.append('<p><a href=\"nodeGraph?node=%d&typ=%s&period=%s\"><div id="grphtitle">%s</div><img src=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>' % (i,typ,period,h + ": " + r + " (" + str(i) + ")", i,typ,mins,mins,i))
 
         if is_empty:
             s.append("<p>No nodes have reported yet.</p>")
 
+
+        return _page('Time series graphs', ''.join(s))
+    finally:
+        session.close()
+
+def extractDataForm():
+    try:
+        session = Session()
+        s = ["<!doctype html><html><head><script>"]
+
+        #horrible way of doing but read in JS from .js file
+        for f in  open("/var/www/cogent-house/scripts/datePicker.js"):
+            s.append(f)
+        
+        s.append("</script></head><body><h3>CogentHouse: Extract Data</h3>")
+
+        s.append("<form action=\"getData\">")
+
+        s.append("<p>Sensor Type: <select name=\"sensorType\">")
+        for st in session.query(SensorType):
+            s.append("<option value=\"%d\">%s</option>" % (st.id, st.name))
+        s.append("</select></p>")
+
+        s.append("<table border=\"0\" width=\"650\" CELLPADDING=\"5\"><tr><td>")
+        s.append("Start Date: <input type=\"text\" name=\"StartDate\" value=\"\" />")
+        s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('StartDate');\"></td><td>") 
+
+        s.append("End Date: <input type=\"text\" name=\"EndDate\" value=\""+(datetime.now()).strftime("%d/%m/%Y")+"\" />")
+        s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('EndDate');\"><br/></td><tr></table>") 
+
+        s.append("<p><input type=\"submit\" value=\"Get Data\"></p>")
+
+        s.append("</form>")
         s.append("</body></html>")
 
         return ''.join(s)
+        
+    finally:
+        session.close()
+
+def getData(req,sensorType=None, StartDate=None, EndDate=None):
+	 
+    req.content_type = "text/csv"
+    try:
+        session = Session()
+        time_format = "%d/%m/%Y"	 
+ 
+
+        #Param validation
+        if sensorType==None:
+            raise Exception("No sensor type specified")
+        st=int(sensorType)
+        if StartDate==None:
+            raise Exception("No Start Date specified")
+        try:
+            sd=datetime.fromtimestamp(time.mktime(time.strptime(StartDate, time_format)))
+        except:
+            raise Exception("Start date is not in correct format")
+        if EndDate==None:
+            raise Exception("No End Date specified")
+        try:
+            ed=datetime.fromtimestamp(time.mktime(time.strptime(EndDate, time_format)))  
+        except:
+            raise Exception("End date is not in correct format")
+
+
+        #construct query
+        extractData=session.query(Reading.nodeId,Reading.time,Reading.value).filter(and_(Reading.typeId==st,
+                                                                                         Reading.time>sd,
+                                                                                         Reading.time<ed)).order_by(Reading.nodeId,Reading.time);
+        csvStr=""
+        for rn,rt,rv in extractData:
+            csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
+        return csvStr
     finally:
         session.close()
 
@@ -140,8 +233,8 @@ def nodeGraph(node=None, typ="0", period="day"):
             mins = _periods[period]
         except:
             mins = 1440
-        s = ["<!doctype html><html><body><h3>CogentHouse</h3>"]
-        s.append("<p>")
+            
+        s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
             if k == period:
                 s.append(" %s " % k)
@@ -151,9 +244,7 @@ def nodeGraph(node=None, typ="0", period="day"):
         
         s.append("<p><img src=\"graph?node=%s&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %s\" width=\"700\" height=\"400\"></p>" % (node,typ,mins,mins,node))
 
-        s.append("</body></html>")
-
-        return ''.join(s)
+        return _page('Time series graph', ''.join(s))
     finally:
         session.close()
 
@@ -169,7 +260,7 @@ def missing():
     try:
         t = datetime.now() - timedelta(hours=1)
         session = Session()
-        s = ["<!doctype html><html><body><p>"]
+        s = ['<p>']
 
         report_set = set([int(x) for (x,) in session.query(distinct(NodeState.nodeId)).filter(NodeState.time > t).all()])
         all_set = set([int(x) for (x,) in session.query(Node.id).filter(and_(Node.houseId != None,Node.roomId != None)).all()])
@@ -203,9 +294,8 @@ def missing():
         # for n in session.query(Node).filter(or_(Node.houseId == None,Node.roomId==None)).order_by(Node.id).all():
         #     s.append("%d <a href=\"registerNode?node=%d\">(register)</a><br/>" % (n.id, n.id))
             
-        s.append("</body></html>")
 
-        return ''.join(s)
+        return _page('Missing nodes', ''.join(s))
     finally:
         session.close()
         
@@ -214,8 +304,7 @@ def lastreport():
     try:
         session = Session()
 
-        s = ["<!doctype html><html><body><h2>CogentHouse - Last report</h2>"]
-
+        s = []
 
         s.append("<table border=\"0\">")
         s.append("<tr><th>Node</th><th>Last heard from</th>")
@@ -225,16 +314,15 @@ def lastreport():
             s.append("<tr><td>%d</td><td>%s</td></tr>" % (nid, maxtime))
 
         s.append("</table>")
-        s.append("</body></html>")
 
-        return ''.join(s)
+        return _page('Last report', ''.join(s))
     finally:
         session.close()
         
 def yield24():
     try:
         session = Session()
-        s = ["<!doctype html><html><body><h2>CogentHouse - Yield over last day</h2>"]
+        s = []
 
         s.append("<table border=\"1\">")
         s.append("<tr>")
@@ -272,17 +360,16 @@ def yield24():
                 s.append("</tr>")
 
 
-        s.append("</table></body></html>")
-        return ''.join(s)
+        s.append("</table>")
+        return _page('Yield for last day', ''.join(s))
     finally:
         session.close()
 
 def dataYield():
     try:
         session = Session()
-        s = ["<!doctype html><html><body><h2>CogentHouse - Yield</h2>"]
+        s = []
 
-        s.append("<h3>Overall yield since node first heard from</h3>")
         s.append("<table border=\"1\">")
         s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Message Count</th><th>First heard</th><th>Last heard</th><th>Yield</th></tr>")
 
@@ -335,8 +422,8 @@ def dataYield():
                 
             s.append("<tr><td>%d</td><td>%d</td><td>%8.2f</td></tr>" % (nid, cnt, y))
 
-        s.append("</table></body></html>")
-        return ''.join(s)
+        s.append("</table>")
+        return _page('Yield since first heard', ''.join(s))
     finally:
         session.close()
     
@@ -351,7 +438,7 @@ def registerNode(node=None):
         if n is None:
             raise Exception("unknown node id %d" % node)
         
-        s = ["<!doctype html><html><body><h3>CogentHouse: Register Node</h3>"]
+        s = []
 
         s.append("<form action=\"registerNodeSubmit\">")
         s.append("<p>Node id: %d<input type=\"hidden\" name=\"node\" value=\"%d\"/></p>" % (node, node))
@@ -368,9 +455,8 @@ def registerNode(node=None):
         s.append("<p><input type=\"submit\" value=\"Register\"></p>")
         
         s.append("</form>")
-        s.append("</body></html>")
 
-        return ''.join(s)
+        return _page(''.join(s))
         
     finally:
         session.close()
@@ -444,7 +530,6 @@ def unregisterNodeSubmit(node=None):
 def addNewHouse(regnode=None):
     try:
         session = Session()
-        s = ["<!doctype html><html><body><h3>CogentHouse: Add New House</h3>"]
 
         s.append("<form action=\"addNewHouseSubmit\">")
         s.append('<input type="hidden" name="regnode" value="%s" />' % (regnode))
@@ -460,9 +545,8 @@ def addNewHouse(regnode=None):
         s.append("<p><input type=\"submit\" value=\"Register\"></p>")
         
         s.append("</form>")
-        s.append("</body></html>")
 
-        return ''.join(s)
+        return _page('Add new house', ''.join(s))
     finally:
         session.close()
 
@@ -485,7 +569,7 @@ def addNewHouseSubmit(regnode=None, address=None, deployment=None ):
         return _redirect("registerNode?node=%s&house=%d" % (regnode,h.id))
     except Exception, e:
         session.rollback()
-        return "<!doctype html><html><body><p>%s</p></body></html>" % str(e)
+        return page('Add new house error', '<p>%s</p>' % str(e))
     finally:
         session.close()
         
@@ -498,7 +582,7 @@ def lowbat(bat="2.6"):
             batlvl = 2.6
         t = datetime.now() - timedelta(hours=1)
         session = Session()
-        s = ["<!doctype html><html><body><h2>Nodes reporting low battery levels in last hour</h2>"]
+        s = []
         for r in session.query(distinct(Reading.nodeId)).filter(and_(Reading.typeId==6,
                                                      Reading.value<=batlvl,
                                                      Reading.time > t)).order_by(Reading.nodeId):
@@ -506,9 +590,7 @@ def lowbat(bat="2.6"):
             
             s.append("<p><a href=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\">%d</a></p>" % (r,6,60,60,r))
 
-        s.append("</body></html>")
-
-        return ''.join(s)
+        return _page('Low batteries', ''.join(s))
     finally:
         session.close()
             
@@ -568,20 +650,20 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                 # for label in labels:
                 #     label.set_rotation(30)
 
-                try:
-                    thisnode = session.query(Node).filter(Node.id==int(node)).one()
-                    title = "Unknown room " + node
-                    room = "unknown"
-                    if thisnode.room is not None:
-                        room = thisnode.room.name 
+                # try:
+                #     thisnode = session.query(Node).filter(Node.id==int(node)).one()
+                #     title = "Unknown room " + node
+                #     room = "unknown"
+                #     if thisnode.room is not None:
+                #         room = thisnode.room.name 
 
-                    house = "unknown"
-                    if thisnode.house is not None:
-                        house = thisnode.house.address
+                #     house = "unknown"
+                #     if thisnode.house is not None:
+                #         house = thisnode.house.address
 
-                    ax.set_title("%s/%s (%s)" % (house, room, node))
-                except ValueError:
-                    pass
+                #     ax.set_title("%s/%s (%s)" % (house, room, node))
+                # except ValueError:
+                #     pass
 
                 ax.set_xlabel("Date")
                 try:
