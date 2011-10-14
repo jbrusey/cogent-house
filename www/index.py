@@ -37,17 +37,64 @@ _periods = {
     "week" : 1440*7,
     "month" : 1440 * 7 * 52 / 12}
 
+_navs = [
+    ("Home", "index.py")
+    ]
+
+_sidebars = [
+    ("Temperature", "allGraphs?typ=0"),
+    ("Humidity", "allGraphs?typ=2"),
+    ("CO2", "allGraphs?typ=8"),
+    ("AQ", "allGraphs?typ=9"),
+    ("VOC", "allGraphs?typ=10"),
+    ("Electricity", "allGraphs?typ=11"),
+    ("Battery", "allGraphs?typ=6"),
+    ("Duty cycle", "allGraphs?typ=13"),
+     ]
+
+def _main(html):
+    return '<div id="main">' + html + '</div>';
+
+def _wrap(html):
+    return '<div id="wrap">' + html + '</div>';
+
+def _nav():
+    return ('<div id="nav">' +
+            '<ul>' + 
+            ''.join(['<li><a href="%s">%s</a></li>' % (b,a) for (a,b) in _navs]) +
+            '</ul>' +
+            '</div>')
+
+def _sidebar():
+    return ('<div id="sidebar">' +
+            '<ul>' + 
+            ''.join(['<li><a href="%s">%s</a></li>' % (b,a) for (a,b) in _sidebars]) +
+            '</ul>' +
+            '</div>')
+
 def _page(title='No title', html=''):
-    return _head(title) + html + _foot()
+    return (_head(title) +
+            _wrap(_header(title) +
+                  _nav() +
+                  _main(html) +
+                  _sidebar() +
+                  _footer()) +
+            _foot())
 
 def _head(title='No title'):
     return ('<!doctype html><html><head><title>CogentHouse Maintenance Portal - %s</title></head>' % title +
             '<link rel="stylesheet" type="text/css" href="../style/ccarc.css" />'
             '<script type="text/javascript" src="../scripts/datePicker.js"></script>' +
-            '<body><h1><a href="index.py">CogentHouse</a>: %s</h1>' % (title));
+            '<body>')
 
 def _foot():
-    return '<div id="foot">&copy; Cogent Computing Applied Research Centre</div></body></html>';
+    return '</body></html>'
+            
+def _header(title):
+    return ('<div id="header"><h1><a href="index.py">CogentHouse</a>: %s</h1></div>' % (title))
+
+def _footer():
+    return '<div id="footer">&copy; Cogent Computing Applied Research Centre</div>'
 
 def _redirect(url=""):
         return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
