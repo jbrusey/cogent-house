@@ -50,6 +50,14 @@ _sidebars = [
     ("Electricity", "allGraphs?typ=11"),
     ("Battery", "allGraphs?typ=6"),
     ("Duty cycle", "allGraphs?typ=13"),
+
+    ("Network tree", "treePage"),
+    ("Missing and extra nodes", "missing"),
+    ("Packet yield", "yield24"),
+    ("Low batteries", "lowbat"),
+    ("View log", "viewLog"),
+    ("Export data", "exportDataForm"),
+
      ]
 
 def _main(html):
@@ -151,21 +159,15 @@ def treePage(period='hour'):
 
 def index():
     s=['']
-    s.append('<p><a href="allGraphs?typ=0">Temperature Data</a></p>')
-    s.append('<p><a href="allGraphs?typ=2">Humidity Data</a></p>')
-    s.append('<p><a href="allGraphs?typ=6">Battery Data</a></p>')
-    s.append('<p><a href="allGraphs?typ=8">CO2 Data</a></p>')
-    s.append('<p><a href="allGraphs?typ=9">AQ Data</a></p>')
-    s.append('<p><a href="allGraphs?typ=10">VOC Data</a></p>')
-    s.append('<p><a href="allGraphs?typ=11">Current Cost Data</a></p>')
-    s.append('<p><a href="treePage">Tree</a></p>')
-    s.append('<p><a href="missing">Missing Nodes</a></p>')
+    # s.append('<p><a href="allGraphs?typ=0">Temperature Data</a></p>')
+    # s.append('<p><a href="allGraphs?typ=2">Humidity Data</a></p>')
+    # s.append('<p><a href="allGraphs?typ=6">Battery Data</a></p>')
+    # s.append('<p><a href="allGraphs?typ=8">CO2 Data</a></p>')
+    # s.append('<p><a href="allGraphs?typ=9">AQ Data</a></p>')
+    # s.append('<p><a href="allGraphs?typ=10">VOC Data</a></p>')
+    # s.append('<p><a href="allGraphs?typ=11">Current Cost Data</a></p>')
     s.append('<p><a href="lastreport">Last Report</a></p>')
-    s.append('<p><a href="yield24">Yield over the last 24 hours</a></p>')
     s.append('<p><a href="dataYield">Yield since first heard</a></p>')
-    s.append('<p><a href="lowbat">Low Battery</a></p>')
-    s.append('<p><a href="viewLog">View log</a></p>')
-    s.append('<p><a href="exportDataForm">Export data</a></p>')    
     return _page('Home page', ''.join(s))
 
 
@@ -190,9 +192,11 @@ def allGraphs(typ="0",period="day"):
         is_empty = True
         for (i, h, r) in session.query(Node.id, House.address, Room.name).join(House, Room).order_by(House.address, Room.name):
             is_empty = False
-            
-            #s.append("<p>%s, %s</p>" % ( i, repr(i)))
-            s.append('<p><a href=\"nodeGraph?node=%d&typ=%s&period=%s\"><div id="grphtitle">%s</div><img src=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>' % (i,typ,period,h + ": " + r + " (" + str(i) + ")", i,typ,mins,mins,i))
+
+            fr = session.query(Reading).filter(and_(Reading.nodeId==i,
+                                                    Reading.typeId==typ)).first()
+            if fr is not None:
+                s.append('<p><a href=\"nodeGraph?node=%d&typ=%s&period=%s\"><div id="grphtitle">%s</div><img src=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>' % (i,typ,period,h + ": " + r + " (" + str(i) + ")", i,typ,mins,mins,i))
 
         if is_empty:
             s.append("<p>No nodes have reported yet.</p>")
@@ -213,7 +217,7 @@ def exportDataForm():
             s.append("<option value=\"%d\">%s</option>" % (st.id, st.name))
         s.append("</select></p>")
 
-        s.append("<table border=\"0\" width=\"650\" CELLPADDING=\"5\"><tr><td>")
+        s.append("<table border=\"0\" width=\"650\" cellpadding=\"5\"><tr><td>")
         s.append("Start Date: <input type=\"text\" name=\"StartDate\" value=\"\" />")
         s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('StartDate');\"></td><td>") 
 
@@ -625,12 +629,17 @@ def lowbat(bat="2.6"):
         t = datetime.now() - timedelta(hours=1)
         session = Session()
         s = []
+        empty = True
         for r in session.query(distinct(Reading.nodeId)).filter(and_(Reading.typeId==6,
                                                      Reading.value<=batlvl,
                                                      Reading.time > t)).order_by(Reading.nodeId):
             r = r[0]
             
             s.append("<p><a href=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\">%d</a></p>" % (r,6,60,60,r))
+            empty = False
+
+        if empty:
+            s.append("<p>No low batteries found</p>")
 
         return _page('Low batteries', ''.join(s))
     finally:
