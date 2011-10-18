@@ -99,10 +99,10 @@ def _foot():
     return '</body></html>'
             
 def _header(title):
-    return ('<div id="header"><h1><a href="index.py">CogentHouse</a>: %s</h1></div>' % (title))
+    return ('<div id="header"><h1>%s</h1></div>' % (title))
 
 def _footer():
-    return '<div id="footer">&copy; Cogent Computing Applied Research Centre</div>'
+    return '<div id="footer">CogentHouse &copy; <a href="http://cogentcomputing.org">Cogent Computing Applied Research Centre</a></div>'
 
 def _redirect(url=""):
         return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
