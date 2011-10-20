@@ -42,21 +42,22 @@ _navs = [
     ]
 
 _sidebars = [
-    ("Temperature", "allGraphs?typ=0"),
-    ("Humidity", "allGraphs?typ=2"),
-    ("CO2", "allGraphs?typ=8"),
-    ("AQ", "allGraphs?typ=9"),
-    ("VOC", "allGraphs?typ=10"),
-    ("Electricity", "allGraphs?typ=11"),
-    ("Battery", "allGraphs?typ=6"),
-    ("Duty cycle", "allGraphs?typ=13"),
+    ("Temperature", "allGraphs?typ=0", "Show temperature graphs for all nodes"),
+    ("Humidity", "allGraphs?typ=2", "Show humidity graphs for all nodes"),
+    ("CO<sub>2</sub>", "allGraphs?typ=8", "Show CO2 graphs for all nodes"),
+    ("AQ", "allGraphs?typ=9", "Show air quality graphs for all nodes"),
+    ("VOC", "allGraphs?typ=10", "Show volatile organic compound (VOC) graphs for all nodes"),
+    ("Electricity", "allGraphs?typ=11", "Show electricity usage for all nodes"),
+    ("Battery", "allGraphs?typ=6", "Show node battery voltage"),
+    ("Duty cycle", "allGraphs?typ=13", "Show transmission delay graphs"),
+    ("Bathroom v. Elec.", "bathElec", "Show bathroom versus electricity"),
 
-    ("Network tree", "treePage"),
-    ("Missing and extra nodes", "missing"),
-    ("Packet yield", "yield24"),
-    ("Low batteries", "lowbat"),
-    ("View log", "viewLog"),
-    ("Export data", "exportDataForm"),
+    ("Network tree", "treePage", "Show a network tree diagram"),
+    ("Missing and extra nodes", "missing", "Show unregistered nodes and missing nodes"),
+    ("Packet yield", "yield24", "Show network performance"),
+    ("Low batteries", "lowbat", "Report any low batteries"),
+    ("View log", "viewLog", "View a detailed log"),
+    ("Export data", "exportDataForm", "Export data to CSV"),
 
      ]
 
@@ -69,14 +70,14 @@ def _wrap(html):
 def _nav():
     return ('<div id="nav">' +
             '<ul>' + 
-            ''.join(['<li><a href="%s">%s</a></li>' % (b,a) for (a,b) in _navs]) +
+            ''.join(['<li><a href="%s" title="jump to %s">%s</a></li>' % (b,a,a) for (a,b) in _navs]) +
             '</ul>' +
             '</div>')
 
 def _sidebar():
     return ('<div id="sidebar">' +
             '<ul>' + 
-            ''.join(['<li><a href="%s">%s</a></li>' % (b,a) for (a,b) in _sidebars]) +
+            ''.join(['<li><a href="%s" title="%s">%s</a></li>' % (b,c,a) for (a,b,c) in _sidebars]) +
             '</ul>' +
             '</div>')
 
@@ -92,6 +93,7 @@ def _page(title='No title', html=''):
 def _head(title='No title'):
     return ('<!doctype html><html><head><title>CogentHouse Maintenance Portal - %s</title></head>' % title +
             '<link rel="stylesheet" type="text/css" href="../style/ccarc.css" />'
+            '<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />'
             '<script type="text/javascript" src="../scripts/datePicker.js"></script>' +
             '<body>')
 
@@ -102,7 +104,7 @@ def _header(title):
     return ('<div id="header"><h1>%s</h1></div>' % (title))
 
 def _footer():
-    return '<div id="footer">CogentHouse &copy; <a href="http://cogentcomputing.org">Cogent Computing Applied Research Centre</a></div>'
+    return '<div id="footer">CogentHouse &copy; <a href="http://cogentcomputing.org" title="Find out more about Cogent">Cogent Computing Applied Research Centre</a></div>'
 
 def _redirect(url=""):
         return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
@@ -150,7 +152,7 @@ def treePage(period='hour'):
         if k == period:
             s.append(" %s " % k)
         else:
-            s.append(" <a href=\"treePage?period=%s\">%s</a> " % (k, k))
+            s.append(' <a href=\"treePage?period=%s\" title="change period to %s">%s</a> ' % (k, k, k))
 
     s.append('<p>')
     s.append('<img src="tree?period=%s" alt="network tree diagram"></a></p>' % (period))
@@ -166,8 +168,12 @@ def index():
     # s.append('<p><a href="allGraphs?typ=9">AQ Data</a></p>')
     # s.append('<p><a href="allGraphs?typ=10">VOC Data</a></p>')
     # s.append('<p><a href="allGraphs?typ=11">Current Cost Data</a></p>')
-    s.append('<p><a href="lastreport">Last Report</a></p>')
-    s.append('<p><a href="dataYield">Yield since first heard</a></p>')
+    # s.append('<p><a href="lastreport" title="jump to last report">Last Report</a></p>')
+    # s.append('<p><a href="dataYield" title="jump to yield since first heard">Yield since first heard</a></p>')
+    s.append("""<p>
+    Welcome to the CogentHouse Maintenance Portal</p>
+    <p>This portal can be used to monitor your deployed CogentHouse sensors and to view graphs of all recorded data.</p>
+    """)
     return _page('Home page', ''.join(s))
 
 
@@ -186,7 +192,7 @@ def allGraphs(typ="0",period="day"):
             if k == period:
                 s.append(" %s " % k)
             else:
-                s.append(" <a href=\"allGraphs?typ=%s&period=%s\">%s</a> " % (typ, k, k))
+                s.append(' <a href=\"allGraphs?typ=%s&period=%s\" title="change period to %s">%s</a> ' % (typ, k, k, k))
         s.append("</p>")
         
         is_empty = True
@@ -203,6 +209,37 @@ def allGraphs(typ="0",period="day"):
 
 
         return _page('Time series graphs', ''.join(s))
+    finally:
+        session.close()
+
+def bathElec(period='day'):
+    try:
+        session = Session()
+
+        try:
+            mins = _periods[period]
+        except:
+            mins = 1440
+
+        s = ['<p>']
+        for k in sorted(_periods, key=lambda k: _periods[k]):
+            if k == period:
+                s.append(" %s " % k)
+            else:
+                s.append(' <a href=\"bathElec?period=%s\" title="change period to %s">%s</a> ' % (k, k, k))
+        s.append("</p>")
+        
+        is_empty = True
+        for (h) in session.query(House):
+            is_empty = False
+
+            s.append('<p><div id="grphtitle">%s</div><img src=\"bathElecImg?house=%d&minsago=%d&duration=%d\" alt=\"bath / elec graph for %s\" width=\"700\" height=\"400\"></a></p>' % (h.address, h.id, mins, mins, h.address))
+
+        if is_empty:
+            s.append("<p>No nodes have reported yet.</p>")
+
+
+        return _page('Bathroom v. electricity graphs', ''.join(s))
     finally:
         session.close()
 
@@ -735,3 +772,104 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
             return str(t)
     finally:
         session.close()
+
+
+
+def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
+
+    try:
+        session = Session()
+
+
+        try:
+            minsago_i = timedelta(minutes=int(minsago))
+        except Exception:
+            minsago_i = timedelta(minutes=1)
+
+        try:
+            duration_i = timedelta(minutes=int(duration))
+        except Exception:
+            duration_i = timedelta(minutes=1)
+
+        debug = (debug is not None)
+
+        startts = datetime.now() - minsago_i
+        endts = startts + duration_i
+
+        # find all the electricity readings for House n for the required period
+
+        nodesInHouse = session.query(Node.id).join(Node.house).filter(House.id==int(house)).all()
+        nodesInHouse = [a for (a,) in nodesInHouse]
+
+        
+        qry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId.in_(nodesInHouse),
+                 Reading.typeId == 11,
+                 Reading.time >= startts,
+                 Reading.time <= endts))
+
+
+        (bathroomNode,) = session.query(Node.id).join(Node.house, Node.room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
+
+        qry2 = session.query(Reading.time, Reading.value).filter(
+            and_(Reading.nodeId == bathroomNode,
+                 Reading.typeId == 2,
+                 Reading.time >= startts,
+                 Reading.time <= endts))
+        
+        
+        t = []
+        v = []
+        for qt, qv in qry:
+            t.append(matplotlib.dates.date2num(qt))
+            v.append(qv)
+
+        t2 = []
+        v2 = []
+        for qt, qv in qry2:
+            t2.append(matplotlib.dates.date2num(qt))
+            v2.append(qv)
+
+
+        #t,v = zip(*(tuple (row) for row in cur))
+        #    ax.plot(t,v,fmt)
+
+        if not debug:
+            with _lock:
+                fig = plt.figure()
+                fig.set_size_inches(7,4)
+                ax = fig.add_subplot(111)
+                ax.set_autoscalex_on(False)
+                ax.set_xlim((matplotlib.dates.date2num(startts),
+                         matplotlib.dates.date2num(endts)))
+                
+                if len(t) > 0:
+                    ax.plot_date(t, v, 'r-')
+
+                fig.autofmt_xdate()
+                ax.set_xlabel("Date")
+                try:
+                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(11)).one()
+                    ax.set_ylabel("%s (%s)" % tuple(thistype))
+                except:
+                    pass
+
+                if len(t2) > 0:
+                    ax2 = ax.twinx()
+                    ax2.plot_date(t2, v2, 'b-')
+                    ax2.set_ylabel('Bathroom humidity')
+
+
+                image = cStringIO.StringIO()
+                fig.savefig(image)
+
+            req.content_type = "image/png"
+
+            return image.getvalue()
+        else:
+            req.content_type = "text/plain"
+            return str(t)
+    finally:
+        session.close()
+
+
