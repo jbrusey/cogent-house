@@ -809,13 +809,6 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
                  Reading.time <= endts))
 
 
-        (bathroomNode,) = session.query(Node.id).join(Node.house, Node.room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
-
-        qry2 = session.query(Reading.time, Reading.value).filter(
-            and_(Reading.nodeId == bathroomNode,
-                 Reading.typeId == 2,
-                 Reading.time >= startts,
-                 Reading.time <= endts))
         
         
         t = []
@@ -824,11 +817,20 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
             t.append(matplotlib.dates.date2num(qt))
             v.append(qv)
 
+        bathroomNode = session.query(Node.id).join(Node.house, Node.room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
+
         t2 = []
         v2 = []
-        for qt, qv in qry2:
-            t2.append(matplotlib.dates.date2num(qt))
-            v2.append(qv)
+        if bathroomNode is not None:
+            qry2 = session.query(Reading.time, Reading.value).filter(
+                and_(Reading.nodeId == bathroomNode[0],
+                     Reading.typeId == 2,
+                     Reading.time >= startts,
+                     Reading.time <= endts))
+
+            for qt, qv in qry2:
+                t2.append(matplotlib.dates.date2num(qt))
+                v2.append(qv)
 
 
         #t,v = zip(*(tuple (row) for row in cur))
