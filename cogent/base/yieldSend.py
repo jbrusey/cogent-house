@@ -33,9 +33,11 @@ Subject: """+host+""" yield
 """]
 
    start_time = time.time()
-    
-   pub_ip = urllib2.urlopen("http://www.biranchi.com/ip.php").read()
-   html.append("<html><head></head><body><p>Hi!</p><p>This is <b>"+platform.node()+"</b>, my current ip address is <b>"+pub_ip+"</b></p>")
+   try: 
+      pub_ip = urllib2.urlopen("http://www.biranchi.com/ip.php").read()
+      html.append("<html><head></head><body><p>Hi!</p><p>This is <b>"+platform.node()+"</b>, my current ip address is <b>"+pub_ip+"</b></p>")
+   except Exception, e:
+      html.append("<html><head></head><body><p>Couldn't find ip address due to %s</p>" % str(e))
 
    if time_queries:
       html.append("<p>ip lookup took: %ld secs</p>" % (time.time() - start_time))
@@ -48,7 +50,7 @@ Subject: """+host+""" yield
       if time_queries:
          html.append("<p>creating session took: %ld secs</p>" % (time.time() - start_time))
          start_time = time.time()
-      t = datetime.now() - timedelta(days=1)
+      t = datetime.utcnow() - timedelta(days=1)
       
       lowBatHeader = True
       for (r, addr, name) in session.query(distinct(Reading.nodeId), House.address, Room.name).filter(and_(Reading.typeId==6,Reading.value<=batlvl,Reading.time > t)).join(Node, House, Room).order_by(House.address, Room.name):  
@@ -74,7 +76,7 @@ Subject: """+host+""" yield
       html.append("<table border=\"1\">")
       html.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Message Count</th><th>Last Heard</th><th>Yield</th></tr>"  )
 
-      t = datetime.now() - timedelta(days=1)
+      t = datetime.utcnow() - timedelta(days=1)
       nodestateq = session.query(NodeState,func.count(NodeState),func.max(NodeState.time)).filter(NodeState.time > t).group_by(NodeState.nodeId).join(Node,House,Room).order_by(House.address, Room.name).all()
       for (ns, cnt, maxtime) in nodestateq:
          n = ns.node

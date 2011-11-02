@@ -30,7 +30,6 @@ logger = logging.getLogger("ch.base")
 F="/home/james/sa.db"
 #DBFILE = "sqlite:///" 
 DBFILE = "mysql://chuser@localhost/ch"
-SETTINGS_CHECK_TIME = 30.
 
 from sqlalchemy import create_engine, func, and_
 
@@ -50,38 +49,6 @@ class BaseLogger(object):
 
     def create_tables(self):
         self.metadata.create_all(self.engine)
-
-        self.setting_session = Session()
-        s = self.setting_session.query(NodeType).get(0)
-        if s is None:
-            configured = Bitset(size=Packets.RS_SIZE)
-            configured[Packets.RS_TEMPERATURE] = True
-            configured[Packets.RS_HUMIDITY] = True
-            configured[Packets.RS_PAR] = True
-            configured[Packets.RS_TSR] = True
-            configured[Packets.RS_VOLTAGE] = True
-            configured[Packets.RS_DUTY] = True
-            configured1 = Bitset(size=Packets.RS_SIZE)
-            configured1[Packets.RS_DUTY] = True
-            self.setting_session.add_all(
-                [
-                    NodeType(time=datetime.now(),
-                             id=0,
-                             name="base",
-                             seq=1,
-                             updated_seq=0,
-                             period=15*1024,
-                             configured=configured),
-                    NodeType(time=datetime.now(),
-                             id=1,
-                             name="cc",
-                             seq=1,
-                             updated_seq=0,
-                             period=15*1024,
-                             configured=configured1),
-                    ])                    
-
-            self.setting_session.commit()
 
         session = Session()
         if session.query(SensorType).get(0) is None:
@@ -199,38 +166,38 @@ class BaseLogger(object):
             session.commit()
         session.close()    
                              
-    def update_settings(self):
+    # def update_settings(self):
 
-        x = self.setting_session.query(NodeType).filter(NodeType.seq != NodeType.updated_seq).first()
-        if x is not None:
-            cm = ConfigMsg()
-            max_nodetype = self.setting_session.query(func.max(NodeType.id)).one()[0] + 1
-            max_nodetype = min(max_nodetype, Packets.NODE_TYPE_MAX)
-            cm.set_typeCount(max_nodetype)
-            for i in range(max_nodetype):
-                nt = self.setting_session.query(NodeType).filter(NodeType.id==i).first()
-                if nt is not None:
-                    cm.setElement_byType_samplePeriod(i, nt.period)
-                    if nt.blink:
-                        cm.setElement_byType_blink(i, 1)
-                    else:
-                        cm.setElement_byType_blink(i, 0)
+    #     x = self.setting_session.query(NodeType).filter(NodeType.seq != NodeType.updated_seq).first()
+    #     if x is not None:
+    #         cm = ConfigMsg()
+    #         max_nodetype = self.setting_session.query(func.max(NodeType.id)).one()[0] + 1
+    #         max_nodetype = min(max_nodetype, Packets.NODE_TYPE_MAX)
+    #         cm.set_typeCount(max_nodetype)
+    #         for i in range(max_nodetype):
+    #             nt = self.setting_session.query(NodeType).filter(NodeType.id==i).first()
+    #             if nt is not None:
+    #                 cm.setElement_byType_samplePeriod(i, nt.period)
+    #                 if nt.blink:
+    #                     cm.setElement_byType_blink(i, 1)
+    #                 else:
+    #                     cm.setElement_byType_blink(i, 0)
                     
-                    for j in range(len(nt.configured.a)):
-                        cm.setElement_byType_configured(i, j, nt.configured.a[j])
-                    nt.updated_seq = nt.seq
-                else:
-                    logger.warning("no NodeType record for type %d - setting some default values" % (i))
-                    cm.setElement_byType_samplePeriod(i, 300 * 1024) # 300 seconds
-                    cm.setElement_byType_blink(i,1)
-                    for j in range(cm.numElements_byType_configured(1)):
-                        cm.setElement_byType_configured(i, j, 0)
+    #                 for j in range(len(nt.configured.a)):
+    #                     cm.setElement_byType_configured(i, j, nt.configured.a[j])
+    #                 nt.updated_seq = nt.seq
+    #             else:
+    #                 logger.warning("no NodeType record for type %d - setting some default values" % (i))
+    #                 cm.setElement_byType_samplePeriod(i, 300 * 1024) # 300 seconds
+    #                 cm.setElement_byType_blink(i,1)
+    #                 for j in range(cm.numElements_byType_configured(1)):
+    #                     cm.setElement_byType_configured(i, j, 0)
 
-            cm.set_special(Packets.SPECIAL)
-            self.bif.sendMsg(cm)
-            logger.debug("sending config: %s" % cm)
+    #         cm.set_special(Packets.SPECIAL)
+    #         self.bif.sendMsg(cm)
+    #         logger.debug("sending config: %s" % cm)
 
-            self.setting_session.commit()
+    #         self.setting_session.commit()
 
     def duplicate_packet(self, session, time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
@@ -257,7 +224,7 @@ class BaseLogger(object):
 
         try:
             session = Session()
-            t = datetime.now()
+            t = datetime.utcnow()
             n = msg.getAddr()
             parent = msg.get_ctp_parent_id()
             localtime = msg.get_timestamp()
@@ -313,7 +280,6 @@ class BaseLogger(object):
 
     def run(self):
 
-        last_update_t = time.time()
         try:
             while True:
                 # wait up to 30 seconds for a message
@@ -324,11 +290,6 @@ class BaseLogger(object):
                     pass
                 except Exception as e:
                     logger.exception("during receiving or storing msg: " + str(e))
-                    
-
-                if time.time() - last_update_t >= SETTINGS_CHECK_TIME:
-                    self.update_settings()
-                    last_update_t = time.time()
 
         except KeyboardInterrupt:
             self.bif.finishAll()

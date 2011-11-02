@@ -98,7 +98,7 @@ class TestSchema(unittest.TestCase):
 
         dep = Deployment(name="TestDep",
                          description="Does this work",
-                         startDate=datetime.now()
+                         startDate=datetime.utcnow()
                          , endDate=None)
         session.add(dep)
         session.commit()
@@ -124,7 +124,7 @@ class TestSchema(unittest.TestCase):
         #Add a house
         h = House(deploymentId=1,
                   address = "1 Sampson",
-                  startDate=datetime.now())
+                  startDate=datetime.utcnow())
 
         session.add(h)
         session.commit()
@@ -146,7 +146,7 @@ class TestSchema(unittest.TestCase):
         occ=Occupier(houseId=1,
                      name="Mr Man",
                      contactNumber="01212342345",
-                     startDate=datetime.now()
+                     startDate=datetime.utcnow()
                      )
 
         session.add(occ)
@@ -176,14 +176,14 @@ class TestSchema(unittest.TestCase):
         configured1[13] = True
         session.add_all(
             [
-                NodeType(time=datetime.now(),
+                NodeType(time=datetime.utcnow(),
                          id=0,
                          name="base",
                          seq=1,
                          updated_seq=0,
                          period=15*1024,
                          configured=configured),
-                NodeType(time=datetime.now(),
+                NodeType(time=datetime.utcnow(),
                          id=1,
                          name="cc",
                          seq=1,
@@ -215,12 +215,12 @@ class TestSchema(unittest.TestCase):
         session.commit()
 
         for i in range(100):
-            r = Reading(time=datetime.now(),
+            r = Reading(time=datetime.utcnow(),
                         nodeId=63,
                         typeId=0,
                         value=i/1000.)
             session.add(r)
-            ns = NodeState(time=datetime.now(),
+            ns = NodeState(time=datetime.utcnow(),
                            nodeId=63,
                            parent=64,
                            localtime=( (1<<32) - 50 + i)) # test large integers
