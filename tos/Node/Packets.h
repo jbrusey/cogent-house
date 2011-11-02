@@ -49,10 +49,11 @@ enum {
   SC_AQ = 9,
   SC_VOC = 10,
   SC_POWER = 11,
-  SC_POWER_MAX = 12,
-  SC_HEAT = 13,
-  SC_DUTY_TIME= 14,
-  SC_ERRNO = 15,
+  SC_HEAT = 12,
+  SC_DUTY_TIME= 13,
+  SC_ERRNO = 14,
+  SC_POWER_MAX = 15,
+  // always add new elements here and do not renumber old ones
   SC_SIZE = 16 // SC_SIZE must be 1 greater than last entry
 };
 
