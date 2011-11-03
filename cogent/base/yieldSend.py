@@ -53,16 +53,21 @@ Subject: """+host+""" yield
       t = datetime.utcnow() - timedelta(days=1)
       
       lowBatHeader = True
-      for (r, addr, name) in session.query(distinct(Reading.nodeId), House.address, Room.name).filter(and_(Reading.typeId==6,Reading.value<=batlvl,Reading.time > t)).join(Node, House, Room).order_by(House.address, Room.name):  
-         
-	 if (lowBatHeader):
-            html.append("<h3>Nodes reporting low battery levels in last 24 hours</h3>")
-            html.append("<table border=\"1\">")
-            html.append("<tr><th>Node</th><th>House</th><th>Room</th></tr>"  )
-            lowBatHeader=False
-         #r = r[0]
+      qq = session.query(Reading, func.min(Reading.value)).filter(
+         and_(Reading.typeId==6, Reading.time > t, Reading.value < batlvl)).group_by(
+         Reading.nodeId)
+      
+      #for (r, addr, name) in session.query(Node.id, House.address. Room.name).join(qq,  House.address, Room.name).filter(and_(Reading.typeId==6,Reading.value<=batlvl,Reading.time > t)).join(Node, House, Room).order_by(House.address, Room.name):
+      for (r, value) in qq.all():
+         if r.node is not None and r.node.house is not None and r.node.room is not None:
+            n = r.node
+            if (lowBatHeader):
+               html.append("<h3>Nodes reporting low battery levels in last 24 hours</h3>")
+               html.append("<table border=\"1\">")
+               html.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Voltage</th></tr>"  )
+               lowBatHeader=False
    
-         html.append("<tr><td>%d</td><td>%s</td><td>%s</td></tr>" % (r,addr,name))
+            html.append("<tr><td>%d</td><td>%s</td><td>%s</td><td>%f</td></tr>" % (n.id,n.house.address,n.room.name, value))
 
       if not lowBatHeader:
          html.append("</table>")
