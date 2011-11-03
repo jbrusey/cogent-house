@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 from cogent.base.model import *
 from sqlalchemy import create_engine, and_, or_, distinct, func
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 
 
 _DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
@@ -875,6 +876,19 @@ def lowbat(bat="2.6"):
         session.close()
             
 
+def _calibrate(session,v,node,typ):
+    # calibrate
+    try:
+        (mult, offs) = session.query(Sensor.calibrationSlope, Sensor.calibrationOffset).filter(
+            and_(Sensor.sensorTypeId==typ,
+                 Sensor.nodeId==node)).one()
+        return [x * mult + offs for x in v]
+    except NoResultFound, e:
+        return v
+
+
+    
+
 def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
 
     try:
@@ -908,8 +922,8 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
             t.append(matplotlib.dates.date2num(qt))
             v.append(qv)
 
-
-
+        v = _calibrate(session, v, node, typ)
+            
         #t,v = zip(*(tuple (row) for row in cur))
         #    ax.plot(t,v,fmt)
 
@@ -949,7 +963,7 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                 try:
                     thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
                     ax.set_ylabel("%s (%s)" % tuple(thistype))
-                except:
+                except NoResultFound:
                     pass
 
 
@@ -993,29 +1007,36 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
         nodesInHouse = session.query(Node.id).join(Node.house).filter(House.id==int(house)).all()
         nodesInHouse = [a for (a,) in nodesInHouse]
 
-        
-        qry = session.query(Reading.time,Reading.value).filter(
+
+        (elec_node) = session.query(Reading.nodeId).filter(
             and_(Reading.nodeId.in_(nodesInHouse),
                  Reading.typeId == 11,
                  Reading.time >= startts,
-                 Reading.time <= endts))
+                 Reading.time <= endts)).first()
 
-
-        
-        
         t = []
         v = []
-        for qt, qv in qry:
-            t.append(matplotlib.dates.date2num(qt))
-            v.append(qv)
+        if elec_node is not None:
+            qry = session.query(Reading.time,Reading.value).filter(
+                and_(Reading.nodeId == elec_node,
+                     Reading.typeId == 11,
+                     Reading.time >= startts,
+                     Reading.time <= endts))
 
-        bathroomNode = session.query(Node.id).join(Node.house, Node.room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
+        
+            for qt, qv in qry:
+                t.append(matplotlib.dates.date2num(qt))
+                v.append(qv)
+
+            v = _calibrate(session, v, elec_node, 11)
+
+        (bathroomNode) = session.query(Node.id).join(Node.house, Node.room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
 
         t2 = []
         v2 = []
         if bathroomNode is not None:
             qry2 = session.query(Reading.time, Reading.value).filter(
-                and_(Reading.nodeId == bathroomNode[0],
+                and_(Reading.nodeId == bathroomNode,
                      Reading.typeId == 2,
                      Reading.time >= startts,
                      Reading.time <= endts))
@@ -1023,6 +1044,8 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
             for qt, qv in qry2:
                 t2.append(matplotlib.dates.date2num(qt))
                 v2.append(qv)
+
+            v2 = _calibrate(session, v2, bathroomNode, 2)
 
 
         #t,v = zip(*(tuple (row) for row in cur))
