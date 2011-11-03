@@ -7,6 +7,7 @@ from __future__ import with_statement
 import cStringIO
 import time
 from datetime import datetime, timedelta
+import urllib
 # set the home to a writable directory
 import os
 os.environ['HOME']='/tmp'
@@ -27,9 +28,7 @@ _DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
 
 engine = create_engine(_DBURL, echo=False, pool_recycle=60)
 #engine.execute("pragma foreign_keys=on")
-Session = sessionmaker(bind=engine)
-
-
+init_model(engine)
 
 _periods = {
     "hour" : 60,
@@ -60,6 +59,12 @@ _sidebars = [
     ("Export data", "exportDataForm", "Export data to CSV"),
 
      ]
+
+def _url(path, query=None):
+    if query is None or len(query) == 0:
+        return path
+    else:
+        return path + "?" + urllib.urlencode(query)
 
 def _main(html):
     return '<div id="main">' + html + '</div>';
@@ -152,10 +157,13 @@ def treePage(period='hour'):
         if k == period:
             s.append(" %s " % k)
         else:
-            s.append(' <a href=\"treePage?period=%s\" title="change period to %s">%s</a> ' % (k, k, k))
+            s.append(' <a href="%s" title="change period to %s">%s</a> ' % (_url("treePage", [('period', k)]),
+                                                                                              k, k))
 
     s.append('<p>')
-    s.append('<img src="tree?period=%s" alt="network tree diagram"></a></p>' % (period))
+    u = _url("tree",[('period', period)])
+    s.append('<a href="%s" title="click to zoom">' % u)
+    s.append('<img src="%s" alt="network tree diagram" width="700"/></a></p>' % u)
 
     return _page('Network tree diagram', ''.join(s))
 
@@ -192,7 +200,9 @@ def allGraphs(typ="0",period="day"):
             if k == period:
                 s.append(" %s " % k)
             else:
-                s.append(' <a href=\"allGraphs?typ=%s&period=%s\" title="change period to %s">%s</a> ' % (typ, k, k, k))
+                u = _url("allGraphs", [('typ', typ),
+                                       ('period', k)])
+                s.append(' <a href="%s" title="change period to %s">%s</a> ' % (u, k, k))
         s.append("</p>")
         
         is_empty = True
@@ -202,7 +212,14 @@ def allGraphs(typ="0",period="day"):
             fr = session.query(Reading).filter(and_(Reading.nodeId==i,
                                                     Reading.typeId==typ)).first()
             if fr is not None:
-                s.append('<p><a href=\"nodeGraph?node=%d&typ=%s&period=%s\"><div id="grphtitle">%s</div><img src=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>' % (i,typ,period,h + ": " + r + " (" + str(i) + ")", i,typ,mins,mins,i))
+                u = _url("nodeGraph", [('node', i),
+                                       ('typ', typ),
+                                       ('period', period)])
+                u2 = _url("graph", [('node', i),
+                                    ('typ', typ),
+                                    ('minsago', mins),
+                                    ('duration', mins)])
+                s.append('<p><a href="%s"><div id="grphtitle">%s</div><img src="%s" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>' % (u,h + ": " + r + " (" + str(i) + ")", u2, i))
 
         if is_empty:
             s.append("<p>No nodes have reported yet.</p>")
@@ -226,14 +243,18 @@ def bathElec(period='day'):
             if k == period:
                 s.append(" %s " % k)
             else:
-                s.append(' <a href=\"bathElec?period=%s\" title="change period to %s">%s</a> ' % (k, k, k))
+                u = _url("bathElec", [('period', k)])
+                s.append(' <a href="%s" title="change period to %s">%s</a> ' % (u, k, k))
         s.append("</p>")
         
         is_empty = True
         for (h) in session.query(House):
             is_empty = False
 
-            s.append('<p><div id="grphtitle">%s</div><img src=\"bathElecImg?house=%d&minsago=%d&duration=%d\" alt=\"bath / elec graph for %s\" width=\"700\" height=\"400\"></a></p>' % (h.address, h.id, mins, mins, h.address))
+            u = _url("bathElecImg", [('house', h.id),
+                                     ('minsago', mins),
+                                     ('duration', mins)])
+            s.append('<p><div id="grphtitle">%s</div><img src="%s" alt="bath / elec graph for %s" width="700" height="400"></a></p>' % (h.address, u, h.address))
 
         if is_empty:
             s.append("<p>No nodes have reported yet.</p>")
@@ -316,16 +337,25 @@ def nodeGraph(node=None, typ="0", period="day"):
             mins = _periods[period]
         except:
             mins = 1440
+
+        (n, h, r) = session.query(Node.id, House.address, Room.name).join(House, Room).filter(Node.id==int(node)).one()
             
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
             if k == period:
                 s.append(" %s " % k)
             else:
-                s.append(" <a href=\"nodeGraph?node=%s&typ=%s&period=%s\">%s</a> " % (node, typ, k, k))
+                u = _url("nodeGraph", [('node', node),
+                                       ('typ', typ),
+                                       ('period', k)])
+                s.append(' <a href="%s" title="change period to %s">%s</a> ' % (u, k, k))
         s.append("</p>")
-        
-        s.append("<p><img src=\"graph?node=%s&typ=%s&minsago=%d&duration=%d\" alt=\"graph for node %s\" width=\"700\" height=\"400\"></p>" % (node,typ,mins,mins,node))
+
+        u = _url("graph", [('node', node),
+                           ('typ', typ),
+                           ('minsago', mins),
+                           ('duration', mins)])
+        s.append('<p><div id="grphtitle">%s</div><img src="%s" alt="graph for node %s" width="700" height="400"></p>' % (h + ": " + r + " (" + node + ")", u, node))
 
         return _page('Time series graph', ''.join(s))
     finally:
@@ -346,7 +376,7 @@ def missing():
         s = ['<p>']
 
         report_set = set([int(x) for (x,) in session.query(distinct(NodeState.nodeId)).filter(NodeState.time > t).all()])
-        all_set = set([int(x) for (x,) in session.query(Node.id).filter(and_(Node.houseId != None,Node.roomId != None)).all()])
+        all_set = set([int(x) for (x,) in session.query(Node.id).join(House, Room).all()])
         missing_set = all_set - report_set
         extra_set = report_set - all_set
 
@@ -363,15 +393,19 @@ def missing():
                 room = "unknown"
                 if n.room is not None:
                     room = n.room.name
-                s.append("<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href=\"unregisterNode?node=%d\">(unregister)</a></tr>" % (ns.nodeId, n.house.address, room, str(maxtime), ns.nodeId))
+                u = _url("unregisterNode", [('node', ns.nodeId)])
+                s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (ns.nodeId, n.house.address, room, str(maxtime), u))
                   
 
             s.append("</table>")
 
-        if len(extra_set) > 0:
-            s.append("</p><h2>Extra nodes that weren't expected</h2><p>")
+        if len(extra_set) == 0:
+            s.append('</p><p>No extra nodes detected.</p><p>')
+        else:
+            s.append("</p><h3>Extra nodes that weren't expected</h3><p>")
             for i in sorted(extra_set):
-                s.append("%d <a href=\"registerNode?node=%d\">(register)</a><br/>" % (i, i))
+                u = _url("registerNode", [('node', i)])
+                s.append('%d <a href="%s">(register)</a><br/>' % (i, u))
 
         # s.append("<h3>Unregistered nodes</h3><p>")
         # for n in session.query(Node).filter(or_(Node.houseId == None,Node.roomId==None)).order_by(Node.id).all():
@@ -529,17 +563,19 @@ def registerNode(node=None):
         for h in session.query(House):
             s.append("<option value=\"%d\">%s</option>" % (h.id, h.address))
         s.append("</select>")
-        s.append('<a href="addNewHouse">(add new house)</a></p>')
+        u = _url("addNewHouse", [('regnode', node)])
+        s.append(' <a href="%s">(add new house)</a></p>' % u)
         s.append("<p>Room: <select name=\"room\">")
         for r in session.query(Room):
             s.append("<option value=\"%d\">%s</option>" % (r.id, r.name))
         s.append("</select>")
-        s.append('<a href="addNewRoom">(add new room)</a></p>')
+        u = _url("addNewRoom", [('regnode', node)])
+        s.append(' <a href="%s">(add new room)</a></p>' % u)
         s.append("<p><input type=\"submit\" value=\"Register\"></p>")
         
         s.append("</form>")
 
-        return _page(''.join(s))
+        return _page('Register node', ''.join(s))
         
     finally:
         session.close()
@@ -609,23 +645,33 @@ def unregisterNodeSubmit(node=None):
         session.rollback()
     finally:
         session.close()
-    
-def addNewHouse(regnode=None):
+
+#------------------------------------------------------------
+# House
+
+def addNewHouse(regnode=None, err=None, address=None):
+    assert regnode is not None
+    errors = { 'duphouse': 'This house address already exists'}
+    if address is None:
+        address = ''
     try:
         session = Session()
-
+        
+        s = []
+        if err is not None:
+            s.append('<p>%s</p>' % (errors[err]))
         s.append("<form action=\"addNewHouseSubmit\">")
         s.append('<input type="hidden" name="regnode" value="%s" />' % (regnode))
 
-        s.append('<p>Address: <input type="text" name="address" /></p>')
+        s.append('<p>Address: <input type="text" name="address" value="%s"/></p>' % address)
         
 
-        s.append('<p>Deployment: <select name="deployment">')
-        for d in session.query(Deployment):
-            s.append('<option value="%d">%s</option>' % (d.id, d.name))
-        s.append('</select>')
+        # s.append('<p>Deployment: <select name="deployment">')
+        # for d in session.query(Deployment):
+        #     s.append('<option value="%d">%s</option>' % (d.id, d.name))
+        # s.append('</select>')
         
-        s.append("<p><input type=\"submit\" value=\"Register\"></p>")
+        s.append("<p><input type=\"submit\" value=\"Add\"></p>")
         
         s.append("</form>")
 
@@ -639,23 +685,165 @@ def addNewHouseSubmit(regnode=None, address=None, deployment=None ):
 
         if address is None:
             raise Exception("no address specified")
+        if regnode is None:
+            raise Exception("no regnode specified")
 
         address = address.strip().lower()
 
         h = session.query(House).filter(House.address==address).first()
         if h is not None:
-            return _redirect("error")
+            return _redirect(_url("addNewHouse", [('regnode', regnode),
+                                                  ('address', address),
+                                                  ('err', 'duphouse')]))
 
         h = House(address=address, deploymentId=deployment)
         session.add(h)
         session.commit()
-        return _redirect("registerNode?node=%s&house=%d" % (regnode,h.id))
+        u = _url("registerNode", [('node', regnode),
+                                  ('house', h.id)])
+        return _redirect(u)
     except Exception, e:
         session.rollback()
-        return page('Add new house error', '<p>%s</p>' % str(e))
+        return _page('Add new house error', '<p>%s</p>' % str(e))
+    finally:
+        session.close()
+
+#------------------------------------------------------------
+# Room
+        
+def addNewRoom(regnode=None, err=None, name=None):
+    assert regnode is not None
+    errors = { 'duproom': 'This room name already exists',
+               'nullroomtype': 'Please select a room type'}
+    if name is None:
+        name = ''
+    try:
+        session = Session()
+        
+        s = []
+        if err is not None:
+            s.append('<p>%s</p>' % (errors[err]))
+        s.append("<form action=\"addNewRoomSubmit\">")
+        s.append('<input type="hidden" name="regnode" value="%s" />' % (regnode))
+
+        s.append('<p>Name: <input type="text" name="name" value="%s" /></p>' % (name))
+        
+
+        s.append('<p>Type: <select name="roomtype">')
+        for d in session.query(RoomType):
+            s.append('<option value="%d">%s</option>' % (d.id, d.name))
+        s.append('</select>')
+        u = _url("addNewRoomType", [('ref', _url("addNewRoom", [('regnode', regnode),
+                                                                ('err', err),
+                                                                ('name', name)]))])
+        s.append(' <a href="%s">(add new room type)</a></p>' % u)
+
+        s.append("<p><input type=\"submit\" value=\"Add\"></p>")
+        
+        s.append("</form>")
+
+        return _page('Add new room', ''.join(s))
+    finally:
+        session.close()
+
+def addNewRoomSubmit(regnode=None, name=None, roomtype=None ):
+    try:
+        session = Session()
+
+        if roomtype is None:
+            return _redirect(_url("addNewRoom", [('regnode', regnode),
+                                                  ('name', name),
+                                                  ('err', 'nullroomtype')]))
+        
+
+        if name is None:
+            raise Exception("no name specified")
+        if regnode is None:
+            raise Exception("no regnode specified")
+
+        name = name.strip().lower()
+
+        h = session.query(Room).filter(Room.name==name).first()
+        if h is not None:
+            return _redirect(_url("addNewRoom", [('regnode', regnode),
+                                                  ('name', name),
+                                                  ('err', 'duproom')]))
+
+        h = Room(name=name, roomTypeId=int(roomtype))
+        session.add(h)
+        session.commit()
+        u = _url("registerNode", [('node', regnode),
+                                  ('room', h.id)])
+        return _redirect(u)
+    except Exception, e:
+        session.rollback()
+        return _page('Add new room error', '<p>%s</p>' % str(e))
     finally:
         session.close()
         
+#------------------------------------------------------------
+# RoomType
+
+def addNewRoomType(ref=None, err=None, name=None):
+    assert ref is not None
+    errors = { 'dup': 'This room type already exists',
+               'short': 'The room type name is too short'}
+    if name is None:
+        name = ''
+    try:
+        session = Session()
+        
+        s = []
+        if err is not None:
+            s.append('<p>%s</p>' % (errors[err]))
+        s.append("<form action=\"addNewRoomTypeSubmit\">")
+        s.append('<input type="hidden" name="ref" value="%s" />' % (ref))
+
+        s.append('<p>Room type: <input type="text" name="name" value="%s" /></p>' % (name))
+
+        s.append("<p><input type=\"submit\" value=\"Add\">")
+        s.append('    <a href="%s">Cancel</a></p>' % (ref))
+        
+        s.append("</form>")
+
+        return _page('Add new room type', ''.join(s))
+    finally:
+        session.close()
+
+def addNewRoomTypeSubmit(ref=None, name=None):
+    try:
+        session = Session()
+
+        if name is None:
+            raise Exception("no name specified")
+        if ref is None:
+            raise Exception("no ref specified")
+
+        name = name.strip().lower()
+        if len(name) > 20:
+            name = name[:20]
+        if len(name) < 3:
+            return _redirect(_url("addNewRoomType", [('ref', ref),
+                                                     ('name', name),
+                                                     ('err', 'short')]))
+
+        h = session.query(RoomType).filter(RoomType.name==name).first()
+        if h is not None:
+            return _redirect(_url("addNewRoomType", [('ref', ref),
+                                                     ('name', name),
+                                                     ('err', 'dup')]))
+
+        h = RoomType(name=name)
+        session.add(h)
+        session.commit()
+        return _redirect(ref)
+    except Exception, e:
+        session.rollback()
+        return _page('Add new room type error', '<p>%s</p>' % str(e))
+    finally:
+        session.close()
+
+#------------------------------------------------------------
 
 def lowbat(bat="2.6"):
     try:
@@ -671,8 +859,12 @@ def lowbat(bat="2.6"):
                                                      Reading.value<=batlvl,
                                                      Reading.time > t)).order_by(Reading.nodeId):
             r = r[0]
-            
-            s.append("<p><a href=\"graph?node=%d&typ=%s&minsago=%d&duration=%d\">%d</a></p>" % (r,6,60,60,r))
+            u = _url("graph", [('node', r),
+                               ('typ', 6),
+                               ('minsago', 60),
+                               ('duration', 60)])
+                               
+            s.append('<p><a href="%s">%d</a></p>' % (u, r))
             empty = False
 
         if empty:
