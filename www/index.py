@@ -735,7 +735,6 @@ def addNewRoom(regnode=None, err=None, name=None):
             s.append('<option value="%d">%s</option>' % (d.id, d.name))
         s.append('</select>')
         u = _url("addNewRoomType", [('ref', _url("addNewRoom", [('regnode', regnode),
-                                                                ('err', err),
                                                                 ('name', name)]))])
         s.append(' <a href="%s">(add new room type)</a></p>' % u)
 
