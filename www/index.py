@@ -265,10 +265,19 @@ def bathElec(period='day'):
     finally:
         session.close()
 
-def exportDataForm():
+def exportDataForm(err=None):
+    errors = { 'notype': 'No sensor type has been specified',
+               'nostart': 'No start date specified',
+               'startfmt': 'Start date must be of the form dd/mm/yyyy',
+               'noend': 'No end date specified',
+               'endfmt': 'End date must be of the form dd/mm/yyyy',
+               'nodata': 'No data found for this sensor / period',
+               }
     try:
         session = Session()
         s = []
+        if err is not None:
+            s.append("<p>%s</p>" % errors[err])
         s.append("<form action=\"getData\">")
 
         s.append("<p>Sensor Type: <select name=\"sensorType\">")
@@ -294,7 +303,6 @@ def exportDataForm():
 
 def getData(req,sensorType=None, StartDate=None, EndDate=None):
 	 
-    req.content_type = "text/csv"
     try:
         session = Session()
         time_format = "%d/%m/%Y"	 
@@ -302,26 +310,34 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
 
         #Param validation
         if sensorType==None:
-            raise Exception("No sensor type specified")
+            return _redirect(_url("exportDataForm", [('err', 'notype')]))
         st=int(sensorType)
         if StartDate==None:
-            raise Exception("No Start Date specified")
+            return _redirect(_url("exportDataForm", [('err', 'nostart')]))
         try:
             sd=datetime.fromtimestamp(time.mktime(time.strptime(StartDate, time_format)))
         except:
-            raise Exception("Start date is not in correct format")
+            return _redirect(_url("exportDataForm", [('err', 'startfmt')]))
         if EndDate==None:
-            raise Exception("No End Date specified")
+            return _redirect(_url("exportDataForm", [('err', 'noend')]))
         try:
             ed=datetime.fromtimestamp(time.mktime(time.strptime(EndDate, time_format)))  
         except:
-            raise Exception("End date is not in correct format")
+            return _redirect(_url("exportDataForm", [('err', 'endfmt')]))
 
+        ed = ed + timedelta(days=1)
 
         #construct query
-        exportData = session.query(Reading.nodeId,Reading.time,Reading.value).filter(and_(Reading.typeId==st,
-                                                                                         Reading.time>sd,
-                                                                                         Reading.time<ed)).order_by(Reading.nodeId,Reading.time);
+        exportData = session.query(Reading.nodeId,Reading.time,Reading.value * Sensor.calibrationSlope + Sensor.calibrationOffset).join(
+            Sensor, and_(Sensor.nodeId == Reading.nodeId,
+                         Sensor.sensorTypeId == Reading.typeId)).filter(
+            and_(Reading.typeId == st,
+                 Reading.time >= sd,
+                 Reading.time < ed)).order_by(Reading.nodeId,Reading.time).all()
+        if len(exportData) == 0:
+            return _redirect(_url("exportDataForm", [('err', 'nodata')]))
+        req.content_type = "text/csv"
+        return "".join(["%d,%s,%s\n" % (n, t, v) for n, t, v in exportData])
         csvStr=""
         for rn,rt,rv in exportData:
             csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
