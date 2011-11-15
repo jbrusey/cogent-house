@@ -52,9 +52,11 @@ enum {
   SC_HEAT = 12,
   SC_DUTY_TIME= 13,
   SC_ERRNO = 14,
-  SC_POWER_MAX = 15,
-  // always add new elements here and do not renumber old ones
-  SC_SIZE = 16 // SC_SIZE must be 1 greater than last entry
+  SC_POWER_MIN = 15,
+  SC_POWER_MAX = 16,
+  SC_D_CO2 = 17,
+  SC_MSG_COUNT=18,
+  SC_SIZE = 19 // SC_SIZE must be 1 greater than last entry
 };
 
 #include "PackState/packstate.h"
