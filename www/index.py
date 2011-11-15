@@ -337,7 +337,7 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
         if len(exportData) == 0:
             return _redirect(_url("exportDataForm", [('err', 'nodata')]))
         req.content_type = "text/csv"
-        return "".join(["%d,%s,%s\n" % (n, t, v) for n, t, v in exportData])
+        return "".join(['%d,"%s",%s\n' % (n, t, v) for n, t, v in exportData])
         csvStr=""
         for rn,rt,rv in exportData:
             csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
