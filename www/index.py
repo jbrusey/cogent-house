@@ -902,13 +902,14 @@ def _calibrate(session,v,node,typ):
         return v
 
 
-    
 
+#NOTE: need to egt from db    
+deltaDict={0: 1, 2: 3, 8: 17} 
 def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
 
     try:
         session = Session()
-
+        plotLines=False
 
         try:
             minsago_i = timedelta(minutes=int(minsago))
@@ -921,23 +922,55 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
             duration_i = timedelta(minutes=1)
 
         debug = (debug is not None)
-
+        week = timedelta(minutes=int(_periods["week"]))
         startts = datetime.now() - minsago_i
+        deltats = (datetime.now() - minsago_i) - week
+
         endts = startts + duration_i
 
         qry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
                  Reading.typeId == int(typ),
                  Reading.time >= startts,
-                 Reading.time <= endts))
+                 Reading.time <= endts)).order_by(Reading.time)
+
+        
+        if int(typ) in deltaDict:
+            dqry = session.query(Reading.time, Reading.value).filter(
+                and_(Reading.nodeId == int(node),
+                     Reading.typeId == int(deltaDict[int(typ)]),
+                     Reading.time >= startts,
+                     Reading.time <= endts)).order_by(Reading.time)
+            
+            #get most recent delta
+            last_heard=None
+            last_delta=None
+            for (RT, RV) in dqry:
+                last_heard=RT;
+                last_delta=RV;
+                plotLines=True
+
         #cur.execute("select time, value from reading where type=? and node=? and time <= ? and time >= ?", [int(typ), int(node), endts, startts] )
         t = []
         v = []
+        last_value=None
         for qt, qv in qry:
             t.append(matplotlib.dates.date2num(qt))
             v.append(qv)
+            last_value=float(qv)
+        
+        if plotLines:
+            #predict current point
+            duration = (datetime.now() - last_heard).seconds
+            pred_inc = float(duration)*last_delta
+            last_value += pred_inc
+            t.append(matplotlib.dates.date2num(datetime.now()))
+            v.append(last_value)
 
+        
         v = _calibrate(session, v, node, typ)
+
+
             
         #t,v = zip(*(tuple (row) for row in cur))
         #    ax.plot(t,v,fmt)
@@ -952,9 +985,14 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                          matplotlib.dates.date2num(endts)))
                 
                 if len(t) > 0:
-                    ax.plot_date(t, v, fmt)
+                    if (plotLines):
+                        ax.plot_date(t, v, fmt, color='blue', linestyle='dashed')                        
+                        #ax.plot_date(last_heard, last_value, fmt, color='red', linestyle='dashed')
+                    else:
+                        ax.plot_date(t, v, fmt)
 
                 fig.autofmt_xdate()
+
                 # labels = ax.get_xticklabels()
                 # for label in labels:
                 #     label.set_rotation(30)
