@@ -987,7 +987,7 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                 if len(t) > 0:
                     if (plotLines):
                         ax.plot_date(t, v, fmt, color='blue', linestyle='dashed')                        
-                        #ax.plot_date(last_heard, last_value, fmt, color='red', linestyle='dashed')
+                        ax.plot_date(datetime.now(), last_value, fmt, color='red', linestyle='dashed')
                     else:
                         ax.plot_date(t, v, fmt)
 
