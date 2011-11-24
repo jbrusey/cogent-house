@@ -293,72 +293,64 @@ implementation
     }
   }
 
-  event void ReadTemp.readDone(error_t result, float data)
+  void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
   {
     if (result == SUCCESS)
-      call PackState.add(SC_TEMPERATURE, data);
-    call ExpectReadDone.clear(RS_TEMPERATURE);
-    post checkDataGathered();
-  }
-	
-  event void ReadHum.readDone(error_t result, float data) {
-    if (result == SUCCESS)
-      call PackState.add(SC_HUMIDITY, data);
-    call ExpectReadDone.clear(RS_HUMIDITY);
-    post checkDataGathered();
-  }
-  
-  event void ReadPAR.readDone(error_t result, uint16_t data) {
-    if (result == SUCCESS) 
-      call PackState.add(SC_PAR, data);
-    call ExpectReadDone.clear(RS_PAR);
+      call PackState.add(state_code, data);
+    call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
 
+
+  event void ReadTemp.readDone(error_t result, float data)
+  {
+    do_readDone(result, data, RS_TEMPERATURE, SC_TEMPERATURE);
+  }
+	
+  event void ReadHum.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_HUMIDITY, SC_TEMPERATURE);
+  }
+  
+  event void ReadPAR.readDone(error_t result, uint16_t data) {
+    do_readDone(result, data, RS_PAR, SC_PAR);
+  }
+
   event void ReadTSR.readDone(error_t result, uint16_t data) {		
-    if (result == SUCCESS) 
-      call PackState.add(SC_TSR, data);
-    call ExpectReadDone.clear(RS_TSR);
-    post checkDataGathered();
+    do_readDone(result, data, RS_TSR, SC_TSR);
   }
   
   event void ReadCO2.readDone(error_t result, float data) {
-    if (result == SUCCESS) 
-      call PackState.add(SC_CO2, data);
-    call ExpectReadDone.clear(RS_CO2);
-    post checkDataGathered();
+    do_readDone(result, data, RS_CO2, SC_CO2);
   }
   
   event void ReadAQ.readDone(error_t result, float data) {
-    if (result == SUCCESS) 
-      call PackState.add(SC_AQ, data);
-    call ExpectReadDone.clear(RS_AQ);
-    post checkDataGathered();
+    do_readDone(result, data, RS_AQ, SC_AQ);
   }
   
   event void ReadVOC.readDone(error_t result, float data) {	
-    if (result == SUCCESS) 
-      call PackState.add(SC_VOC, data);
-    call ExpectReadDone.clear(RS_VOC);
-    post checkDataGathered();
+    do_readDone(result, data, RS_VOC, SC_VOC);
   }
 
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
     ccStruct power;
     power = *data;
-    if (result == SUCCESS)
+    if (result == SUCCESS) {
       call PackState.add(SC_POWER_MIN, power.min);
       call PackState.add(SC_POWER, power.average);
       call PackState.add(SC_POWER_MAX, power.max);
+    }
+    if (power.kwh > 0){
+      call PackState.add(SC_POWER_KWH, power.kwh);
+    }
     call ExpectReadDone.clear(RS_POWER);
     post checkDataGathered();
   }
 
   event void ReadVolt.readDone(error_t result, uint16_t data) {	
+    float volt;
     if (result == SUCCESS) 
-      call PackState.add(SC_VOLTAGE, (data/4096.0)*3);
-    call ExpectReadDone.clear(RS_VOLTAGE);
-    post checkDataGathered();
+      volt=(data/4096.)*3.;
+      do_readDone(result, volt, RS_VOC, SC_VOC);
   }
 
 

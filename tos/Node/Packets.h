@@ -54,7 +54,8 @@ enum {
   SC_ERRNO = 14,
   SC_POWER_MIN = 15,
   SC_POWER_MAX = 16,
-  SC_SIZE = 17 // SC_SIZE must be 1 greater than last entry
+  SC_POWER_KWH = 17,
+  SC_SIZE = 18 // SC_SIZE must be 1 greater than last entry
 };
 
 #include "PackState/packstate.h"

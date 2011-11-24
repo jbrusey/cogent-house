@@ -70,6 +70,7 @@ implementation
   
   /* shared variables */
   uint32_t totalWatts;
+  uint32_t impCount = 0;
   uint16_t sampleCount, max, min;
   bool shared_reset_state = FALSE;
 
@@ -197,16 +198,19 @@ implementation
       min=-1;
     }
 
+    
     if (sc != 0) {
       results.average=(((float) tw) / sc);
       results.max=((float) ma);
       results.min=((float) mi);
+      results.kwh=impCount/1000.;
       signal ReadWattage.readDone(SUCCESS, &results);
     }
     else {
       results.average=0.0;
       results.max=0.0;
       results.min=0.0;
+      results.kwh=impCount/1000.;
       signal ReadWattage.readDone(FAIL, &results);
     }
 
@@ -281,7 +285,7 @@ implementation
   };
   uint8_t in_num = NUM_BEGIN;
 
-  bool inNumber(uint8_t byte, uint16_t *value) {
+  bool inNumber(uint8_t byte, uint32_t *value) {
     if (in_num == NUM_BEGIN) { 
       if (byte >= '0' && byte <= '9') {
 	in_num = NUM_IN;
@@ -303,7 +307,8 @@ implementation
 
   tag_t msg = {"<msg>", "</msg>", 0, 0, FALSE };
   tag_t ch1 = {"<ch1><watts>", "</watts></ch1>", 0, 0, FALSE };
-  uint16_t watts = 0;
+  tag_t imp = {"<>", "</>", 0, 0, FALSE };
+  uint32_t watts = 0;
 
   bool receiving_bytes = FALSE;
 
@@ -315,6 +320,9 @@ implementation
 	   ch1.stag_i,
 	   ch1.etag_i,
 	   ch1.in_tag,
+	   imp.stag_i,
+	   imp.etag_i,
+	   imp.in_tag,
 	   msg.stag_i,
 	   msg.etag_i,
 	   msg.in_tag);
@@ -388,7 +396,11 @@ implementation
 	    sampleCount ++;
 	  }
 	}
-      } else {
+      }
+      else if (inTag(byte, &imp)) {
+	inNumber(byte, &impCount) == NUM_END;	
+      } 
+      else {
 	in_num = NUM_BEGIN;
 	watts = 0;
       }
