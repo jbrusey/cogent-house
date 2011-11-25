@@ -308,7 +308,7 @@ implementation
   }
 	
   event void ReadHum.readDone(error_t result, float data) {
-    do_readDone(result, data, RS_HUMIDITY, SC_TEMPERATURE);
+    do_readDone(result, data, RS_HUMIDITY, SC_HUMIDITY);
   }
   
   event void ReadPAR.readDone(error_t result, uint16_t data) {
