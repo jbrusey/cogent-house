@@ -332,25 +332,20 @@ implementation
   }
 
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
-    ccStruct power;
-    power = *data;
     if (result == SUCCESS) {
-      call PackState.add(SC_POWER_MIN, power.min);
-      call PackState.add(SC_POWER, power.average);
-      call PackState.add(SC_POWER_MAX, power.max);
+      call PackState.add(SC_POWER_MIN, data->min);
+      call PackState.add(SC_POWER, data->average);
+      call PackState.add(SC_POWER_MAX, data->max);
     }
-    if (power.kwh > 0){
-      call PackState.add(SC_POWER_KWH, power.kwh);
+    if (data->kwh > 0){
+      call PackState.add(SC_POWER_KWH, data->kwh);
     }
     call ExpectReadDone.clear(RS_POWER);
     post checkDataGathered();
   }
 
   event void ReadVolt.readDone(error_t result, uint16_t data) {	
-    float volt;
-    if (result == SUCCESS) 
-      volt=(data/4096.)*3.;
-      do_readDone(result, volt, RS_VOLTAGE, SC_VOLTAGE);
+    do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
   }
 
 
