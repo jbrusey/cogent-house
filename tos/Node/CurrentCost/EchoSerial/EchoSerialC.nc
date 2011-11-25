@@ -94,7 +94,7 @@ implementation
   };
   uint8_t in_num = NUM_BEGIN;
 
-  bool inNumber(uint8_t byte, uint16_t *value) {
+  bool inNumber(uint8_t byte, uint32_t *value) {
     if (in_num == NUM_BEGIN) { 
       if (byte >= '0' && byte <= '9') {
 	in_num = NUM_IN;
@@ -115,20 +115,33 @@ implementation
 
   tag_t msg = {"<msg>", "</msg>", 0, 0, FALSE };
   tag_t ch1 = {"<ch1><watts>", "</watts></ch1>", 0, 0, FALSE };
-  uint16_t watts = 0;
+  tag_t imp = {"<imp>", "</imp>", 0, 0, FALSE };
+  uint32_t watts = 0;
+  uint32_t impulses = 0;
 
   async event void CurrentCostUartStream.receivedByte(uint8_t byte) { 
-    call ByteQueue.enqueue(byte);
-    post printBytes();
-    /* if (inTag(byte, &msg)) {  */
-    /*   if (inTag(byte, &ch1)) { */
-    /* 	if (inNumber(byte, &watts) == NUM_END) { */
-    /* 	} */
-    /*   } else { */
-    /* 	in_num = NUM_BEGIN; */
-    /* 	watts = 0; */
-    /*   } */
-    /* } */
+    //call ByteQueue.enqueue(byte);
+    // post printBytes();
+    if (inTag(byte, &msg)) {  
+      if (inTag(byte, &ch1)) { 
+     	if (inNumber(byte, &watts) == NUM_END) {
+	  printf("%lu", watts);
+	  printfflush();
+     	} 
+       } 
+      else if (inTag(byte, &imp)) { 
+     	if (inNumber(byte, &impulses) == NUM_END) {
+	  printf("%lu", impulses);
+	  printfflush();
+     	} 
+       } 
+
+      else { 
+     	in_num = NUM_BEGIN; 
+ 	watts = 0; 
+      } 
+
+    } 
   }
 
   async event void CurrentCostUartStream.receiveDone(uint8_t *buf, uint16_t len, error_t error){}

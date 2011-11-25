@@ -350,7 +350,7 @@ implementation
     float volt;
     if (result == SUCCESS) 
       volt=(data/4096.)*3.;
-      do_readDone(result, volt, RS_VOC, SC_VOC);
+      do_readDone(result, volt, RS_VOLTAGE, SC_VOLTAGE);
   }
 
 
