@@ -1,4 +1,4 @@
-/* Packets.h - Header file containing all packet formats sent/recieved
+/* Packets.h - Header file containing all packet formats sent/received
 
    Copyright (C) 2011 Ross Wilkins
 
@@ -24,7 +24,7 @@
 Packet Header
 ===================
 
-Header file containing all packet formats sent/recieved
+Header file containing all packet formats sent/received
 
 
 :author: Ross Wilkins
