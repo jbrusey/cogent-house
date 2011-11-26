@@ -28,7 +28,7 @@ implementation
     ssel: 0x02, 		//Clock source (00=UCLKI; 01=ACLK; 10=SMCLK; 11=SMCLK)
     ckpl: 0,    		//Clock polarity (0=normal; 1=inverted)
     urxwie : 0, 		// Wake-up interrupt-enable (0=all set URXIFGx; 1=only address sets URXIFGx)
-    urxeie : 0  		// Erroneous-character receive (0=rejected; 1=recieved and URXIFGx set)
+    urxeie : 0  		// Erroneous-character receive (0=rejected; 1=received and URXIFGx set)
     }
   };
 
