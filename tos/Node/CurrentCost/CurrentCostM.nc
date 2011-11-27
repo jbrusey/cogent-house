@@ -71,7 +71,7 @@ implementation
   
   /* shared variables */
   uint32_t totalWatts;
-  uint32_t impCount = 0;
+  uint32_t lastImpCount;
   uint16_t sampleCount, max_watts, min_watts;
   bool shared_reset_state = FALSE;
 
@@ -186,6 +186,7 @@ implementation
     uint32_t tw;
     uint16_t sc;
     uint16_t ma, mi;
+    uint32_t lic;
     ccStruct results;
     
     atomic {
@@ -193,18 +194,19 @@ implementation
       sc = sampleCount;
       ma = max_watts;
       mi = min_watts;
+      lic = lastImpCount;
       totalWatts = 0;
       sampleCount = 0;
       max_watts = 0;
       min_watts = MY_UINT16_MAX;
+      lastImpCount = 0;
     }
 
-    
     if (sc != 0) {
       results.average = ((float) tw) / sc;
       results.max = (float) ma;
       results.min = (float) mi;
-      results.kwh = impCount / 1000.;
+      results.kwh = lic / 1000.;
       signal ReadWattage.readDone(SUCCESS, &results);
     }
     else 
@@ -307,6 +309,7 @@ implementation
   tag_t ch1 = {"<ch1><watts>", "</watts></ch1>", 0, 0, FALSE };
   tag_t imp = {"<imp>", "</imp>", 0, 0, FALSE };
   uint32_t watts = 0;
+  uint32_t impCount = 0;
 
   bool receiving_bytes = FALSE;
 
@@ -324,7 +327,7 @@ implementation
 	   msg.stag_i,
 	   msg.etag_i,
 	   msg.in_tag);
-    printf("totalWatts=%lu\n", totalWatts);
+    atomic printf("totalWatts=%lu, lastImpCount=%lu\n", totalWatts, lastImpCount);
 #endif
 
     if (receiving_bytes) { 
@@ -399,12 +402,17 @@ implementation
 	  }
 	}
       }
-      /* else if (inTag(byte, &imp)) { */
-      /* 	inNumber(byte, &impCount) == NUM_END;	 */
-      /* }  */
+      else if (inTag(byte, &imp)) { 
+	if (inNumber(byte, &impCount) == NUM_END) {
+	  atomic {
+	    lastImpCount = impCount;
+	  }
+	}
+      }
       else {
 	in_num = NUM_BEGIN;
 	watts = 0;
+	impCount = 0;
       }
     }
   }
