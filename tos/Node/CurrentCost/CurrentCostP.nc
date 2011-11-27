@@ -1,7 +1,7 @@
 // -*- c -*-
 #include "printf.h"
 #include "cc_struct.h"
-
+#include "printfloat.h"
 
 module CurrentCostP
 {
@@ -56,8 +56,16 @@ implementation
 	
 
   event void ReadWattage.readDone(error_t result, ccStruct *data) {
-    if (result == SUCCESS)
-      printf("readDone: %d\n", (int) data->average);
+    if (result == SUCCESS) {
+      printfloat(data->min);
+      printf(", ");
+      printfloat(data->average);
+      printf(", ");
+      printfloat(data->max);
+      printf(", ");
+      printfloat(data->kwh);
+      printf("\n");
+    }
     else
       printf("readDone no data\n");
 
