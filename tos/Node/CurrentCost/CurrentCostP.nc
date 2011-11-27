@@ -7,7 +7,7 @@ module CurrentCostP
 {
   uses {
     interface Boot;
-    interface Read<ccStruct> as ReadWattage;
+    interface Read<ccStruct *> as ReadWattage;
     interface SplitControl as CurrentCostControl;
     interface Timer<TMilli> as SensingTimer;
     interface LocalTime<TMilli>;
@@ -55,9 +55,9 @@ implementation
   }
 	
 
-  event void ReadWattage.readDone(error_t result, ccStruct data) {
+  event void ReadWattage.readDone(error_t result, ccStruct *data) {
     if (result == SUCCESS)
-      printf("readDone: %d\n", (int) data.average);
+      printf("readDone: %d\n", (int) data->average);
     else
       printf("readDone no data\n");
 
