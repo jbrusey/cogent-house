@@ -217,6 +217,7 @@ implementation
 "<ch3>"
 "<watts>00000</watts>"
 "</ch3>"
+    "<imp>0000030733</imp><ipu>1000</ipu>"
 "</msg>\01"
 "<msg>"
 "<src>CC128-v0.11</src>"
@@ -235,6 +236,7 @@ implementation
 "<ch3>"
 "<watts>00000</watts>"
 "</ch3>"
+    "<imp>0000030734</imp><ipu>1000</ipu>"
 "</msg>\01"
 "<msg>"
 "<src>CC128-v0.11</src>"
@@ -253,6 +255,7 @@ implementation
 "<ch3>"
 "<watts>00000</watts>"
 "</ch3>"
+    "<imp>0000030735</imp><ipu>1000</ipu>"
 "</msg>\01";
 
   char x [] = 
