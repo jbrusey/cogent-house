@@ -40,6 +40,7 @@
 #endif
 #include "msp430usart.h"
 #include "cc_struct.h"
+#define MY_UINT16_MAX (65535U)
 
 module CurrentCostM @safe()
 {
@@ -71,7 +72,7 @@ implementation
   /* shared variables */
   uint32_t totalWatts;
   uint32_t impCount = 0;
-  uint16_t sampleCount, max, min;
+  uint16_t sampleCount, max_watts, min_watts;
   bool shared_reset_state = FALSE;
 
   /* non-shared */
@@ -190,29 +191,24 @@ implementation
     atomic {
       tw = totalWatts;
       sc = sampleCount;
-      ma = max;
-      mi = min;
+      ma = max_watts;
+      mi = min_watts;
       totalWatts = 0;
       sampleCount = 0;
-      max = 0;
-      min=-1;
+      max_watts = 0;
+      min_watts = MY_UINT16_MAX;
     }
 
     
     if (sc != 0) {
-      results.average=(((float) tw) / sc);
-      results.max=((float) ma);
-      results.min=((float) mi);
-      results.kwh=impCount/1000.;
+      results.average = ((float) tw) / sc;
+      results.max = (float) ma;
+      results.min = (float) mi;
+      results.kwh = impCount / 1000.;
       signal ReadWattage.readDone(SUCCESS, &results);
     }
-    else {
-      results.average=0.0;
-      results.max=0.0;
-      results.min=0.0;
-      results.kwh=impCount/1000.;
-      signal ReadWattage.readDone(FAIL, &results);
-    }
+    else 
+      signal ReadWattage.readDone(FAIL, NULL);
 
 #ifdef DEBUG
     printf("total = %lu, count = %u\n", tw, sc);
@@ -286,28 +282,30 @@ implementation
   uint8_t in_num = NUM_BEGIN;
 
   bool inNumber(uint8_t byte, uint32_t *value) {
-    if (in_num == NUM_BEGIN) { 
-      if (byte >= '0' && byte <= '9') {
-	in_num = NUM_IN;
-	*value = byte - '0';
+    atomic {
+      if (in_num == NUM_BEGIN) { 
+	if (byte >= '0' && byte <= '9') {
+	  in_num = NUM_IN;
+	  *value = byte - '0';
+	}
       }
-    }
-    else if (in_num == NUM_IN) {
-      if (byte >= '0' && byte <= '9') { 
-	*value = (*value) * 10 + (byte - '0');
+      else if (in_num == NUM_IN) {
+	if (byte >= '0' && byte <= '9') { 
+	  *value = (*value) * 10 + (byte - '0');
+	}
+	else
+	  in_num = NUM_END;
       }
-      else
-	in_num = NUM_END;
+      else if (in_num == NUM_END)
+	in_num = NUM_OUT;
+      return in_num;
     }
-    else if (in_num == NUM_END)
-      in_num = NUM_OUT;
-    return in_num;
   }
 
 
   tag_t msg = {"<msg>", "</msg>", 0, 0, FALSE };
   tag_t ch1 = {"<ch1><watts>", "</watts></ch1>", 0, 0, FALSE };
-  tag_t imp = {"<>", "</>", 0, 0, FALSE };
+  tag_t imp = {"<imp>", "</imp>", 0, 0, FALSE };
   uint32_t watts = 0;
 
   bool receiving_bytes = FALSE;
@@ -316,7 +314,7 @@ implementation
   {
     /* no bytes received for at least 1 second */
 #ifdef DEBUG
-    printf("timeout %u %u %d %u %u %d\n", 
+    printf("timeout %u %u %d %u %u %d %u %u %d\n", 
 	   ch1.stag_i,
 	   ch1.etag_i,
 	   ch1.in_tag,
@@ -326,6 +324,7 @@ implementation
 	   msg.stag_i,
 	   msg.etag_i,
 	   msg.in_tag);
+    printf("totalWatts=%lu\n", totalWatts);
 #endif
 
     if (receiving_bytes) { 
@@ -390,16 +389,19 @@ implementation
 	if (inNumber(byte, &watts) == NUM_END) {
 	  atomic { 
 	    totalWatts += watts;
-	    if (watts>max) {max=watts;}
-	    if (min==-1) {min=watts;}
-	    else if (watts < min) {min = watts;}
+	    if (watts > max_watts) {
+	      max_watts = watts;
+	    }
+	    if (min_watts > watts) {
+	      min_watts = watts;
+	    }
 	    sampleCount ++;
 	  }
 	}
       }
-      else if (inTag(byte, &imp)) {
-	inNumber(byte, &impCount) == NUM_END;	
-      } 
+      /* else if (inTag(byte, &imp)) { */
+      /* 	inNumber(byte, &impCount) == NUM_END;	 */
+      /* }  */
       else {
 	in_num = NUM_BEGIN;
 	watts = 0;
