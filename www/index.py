@@ -18,9 +18,11 @@ _lock = Lock()
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.path import Path
+import matplotlib.patches as patches
 
 from cogent.base.model import *
-from sqlalchemy import create_engine, and_, or_, distinct, func
+from sqlalchemy import create_engine, and_, or_, distinct, func, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -903,8 +905,208 @@ def _calibrate(session,v,node,typ):
 
 
 
-#NOTE: need to egt from db    
-deltaDict={0: 1, 2: 3, 8: 17} 
+deltaDict={0: 1, 2: 3, 6: 7, 8: 17} 
+
+def _plot(typ, t, v, startts, endts, debug, fmt, req):
+    if not debug:
+        with _lock:
+            fig = plt.figure()
+            fig.set_size_inches(7,4)
+            ax = fig.add_subplot(111)
+            ax.set_autoscalex_on(False)
+            ax.set_xlim((matplotlib.dates.date2num(startts),
+                         matplotlib.dates.date2num(endts)))
+                
+            if len(t) > 0:                            
+                ax.plot_date(t, v, fmt)
+                fig.autofmt_xdate()
+                ax.set_xlabel("Date")
+                try:
+                    session = Session()
+                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
+                    ax.set_ylabel("%s (%s)" % tuple(thistype))
+                    session.close()
+                except NoResultFound:
+                    pass
+
+
+            image = cStringIO.StringIO()
+            fig.savefig(image)
+
+            req.content_type = "image/png"
+            return  [req.content_type, image.getvalue()]
+    else:
+        req.content_type = "text/plain"
+        return [req.content_type , str(t)+ str(v)]
+
+
+def _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTimeDict, startts, endts, debug, fmt, req, noData=False):
+
+    try:
+        session = Session()
+        #predict current point
+        if last_heard!=None:
+            duration = (endts - last_heard).seconds
+
+        #get point before first time
+        qry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(nid),
+                 Reading.typeId == int(typ),
+                 Reading.time < startts)).order_by(desc(Reading.time))
+
+    
+        dqry = session.query(Reading.time, Reading.value).filter(
+            and_(Reading.nodeId == int(nid),
+                 Reading.typeId == int(deltaDict[int(typ)]),
+                 Reading.time < startts)).order_by(desc(Reading.time))
+
+
+        for qt, qv in qry:
+            dtp=[qt]
+            preTN=[matplotlib.dates.date2num(qt)]
+            preV=[qv]
+            break
+
+        gotPastDelta=False
+        for qt, qv in dqry:
+            dtn = (matplotlib.dates.date2num(qt))
+            deltaTimeDict[dtn] = qv
+            gotPastDelta=True
+            break
+
+        if noData == True and gotPastDelta == False:
+            return False
+
+
+        if last_heard == None:
+            duration = (endts - dtp[0]).seconds
+            last_delta = deltaTimeDict[dtn]
+            last_value = preV[0]
+            
+
+        pred_inc = float(duration)*last_delta
+        if int(nid)==20:
+            pred_inc = float(duration)*(last_delta/300.)
+        last_value += pred_inc
+    
+        dt.append(datetime.now())
+        t.append(matplotlib.dates.date2num(dt[-1]))
+        v.append(last_value)
+        deltaTimeDict[t[-1]] = last_delta
+
+        if int(nid)==20:
+            newDeltaTimeDict={}
+            for k,dv in deltaTimeDict.iteritems():
+                newDeltaTimeDict[k]=float(dv)/300.
+            deltaTimeDict=newDeltaTimeDict
+            
+
+        #add to lists
+        if gotPastDelta == True:
+            dtp.extend(dt)
+            preTN.extend(t)
+            preV.extend(v)
+        
+            dt = dtp
+            t = preTN
+            v = preV
+            
+    
+        #construct verts arrays
+        paths=[]
+        i=0
+        
+        codes = [Path.MOVETO,
+                 Path.CURVE4,
+                 Path.CURVE4,
+                 Path.CURVE4,
+                 ]
+
+
+        thresholds={0: 0.25, 2: 1., 6: 0.01, 8: 100}
+        while i+1 < len(v):
+            stn = t[i]
+            st=dt[i]
+            sv=v[i]
+            sd=deltaTimeDict[stn]
+            etn=t[i+1]
+            et=dt[i+1]
+            ev=v[i+1]
+            ed=deltaTimeDict[etn]
+            
+            tds = timedelta(seconds=(et - st).seconds - 300) #subtract off one smple period
+
+            c1t=st+tds
+            c1tn=matplotlib.dates.date2num(c1t)
+            c1v=sv+(sd*tds.seconds)
+            
+            #calculate upper or lower bands
+            thresh=+thresholds[int(typ)]
+            c1ub=c1v+thresh
+            c1lb=c1v-thresh
+
+            tds = timedelta(seconds= 300)
+            c2t=et-tds # one sample back
+            c2tn=matplotlib.dates.date2num(c2t)
+            c2v=ev-(ed*tds.seconds)
+
+            if c2v > c1ub:
+                c2v = c1ub
+            elif c2v < c1lb:
+                c2v = c1lb
+                
+            verts = [
+                (stn, sv),  # P0
+                (c1tn, c1v), # P1
+                (c2tn, c2v), # P2
+                (etn, ev), # P3
+                ]
+
+            path = Path(verts, codes)
+            paths.append(path)
+            i+=1
+
+        if not debug:
+            with _lock:
+                fig = plt.figure()
+                fig.set_size_inches(7,4)
+                ax = fig.add_subplot(111)
+                ax.set_autoscalex_on(False)
+                ax.set_xlim((matplotlib.dates.date2num(startts),
+                             matplotlib.dates.date2num(endts)))
+            
+
+                
+                for p in paths:
+                    patch = patches.PathPatch(p, facecolor='none', lw=2)
+                    ax.add_patch(patch)
+                
+                if len(t) > 0:    
+                    ax.plot_date(t, v, fmt)
+                ax.plot_date(endts, last_value, fmt, color='red', linestyle='dashed')                    
+                fig.autofmt_xdate()
+                ax.set_xlabel("Date")
+
+
+                try:
+                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
+                    ax.set_ylabel("%s (%s)" % tuple(thistype))
+                except NoResultFound:
+                    pass
+
+                image = cStringIO.StringIO()
+                fig.savefig(image)
+                
+                req.content_type = "image/png"
+                return  [req.content_type, image.getvalue()]
+        else:
+            req.content_type = "text/plain"
+            return [req.content_type , str(t)+ str(v) + repr(paths)]
+    finally:
+        session.close()
+
+
+
 def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
 
     try:
@@ -935,6 +1137,7 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                  Reading.time <= endts)).order_by(Reading.time)
 
         
+        deltaTimeDict={}
         if int(typ) in deltaDict:
             dqry = session.query(Reading.time, Reading.value).filter(
                 and_(Reading.nodeId == int(node),
@@ -946,89 +1149,42 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
             last_heard=None
             last_delta=None
             for (RT, RV) in dqry:
+                deltaTimeDict[matplotlib.dates.date2num(RT)]=RV
                 last_heard=RT;
                 last_delta=RV;
                 plotLines=True
 
-        #cur.execute("select time, value from reading where type=? and node=? and time <= ? and time >= ?", [int(typ), int(node), endts, startts] )
+
         t = []
+        dt = []
         v = []
         last_value=None
         for qt, qv in qry:
+            dt.append(qt)
             t.append(matplotlib.dates.date2num(qt))
             v.append(qv)
             last_value=float(qv)
-        
-        if plotLines:
-            #predict current point
-            duration = (datetime.now() - last_heard).seconds
-            pred_inc = float(duration)*last_delta
-            last_value += pred_inc
-            t.append(matplotlib.dates.date2num(datetime.now()))
-            v.append(last_value)
 
-        
         v = _calibrate(session, v, node, typ)
 
 
-            
-        #t,v = zip(*(tuple (row) for row in cur))
-        #    ax.plot(t,v,fmt)
+        req.content_type = "image/png"
 
-        if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscalex_on(False)
-                ax.set_xlim((matplotlib.dates.date2num(startts),
-                         matplotlib.dates.date2num(endts)))
-                
-                if len(t) > 0:
-                    if (plotLines):
-                        ax.plot_date(t, v, fmt, color='blue', linestyle='dashed')                        
-                        ax.plot_date(datetime.now(), last_value, fmt, color='red', linestyle='dashed')
-                    else:
-                        ax.plot_date(t, v, fmt)
-
-                fig.autofmt_xdate()
-
-                # labels = ax.get_xticklabels()
-                # for label in labels:
-                #     label.set_rotation(30)
-
-                # try:
-                #     thisnode = session.query(Node).filter(Node.id==int(node)).one()
-                #     title = "Unknown room " + node
-                #     room = "unknown"
-                #     if thisnode.room is not None:
-                #         room = thisnode.room.name 
-
-                #     house = "unknown"
-                #     if thisnode.house is not None:
-                #         house = thisnode.house.address
-
-                #     ax.set_title("%s/%s (%s)" % (house, room, node))
-                # except ValueError:
-                #     pass
-
-                ax.set_xlabel("Date")
-                try:
-                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
-                    ax.set_ylabel("%s (%s)" % tuple(thistype))
-                except NoResultFound:
-                    pass
-
-
-                image = cStringIO.StringIO()
-                fig.savefig(image)
-
-            req.content_type = "image/png"
-
-            return image.getvalue()
+        #will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
+        nid=int(node)
+        if len(t) == 0:  
+            res= _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTimeDict, startts, endts, debug, fmt, req, noData=True)
+            if res==False:
+                res=_plot(typ, t, v, startts, endts, debug, fmt, req)
+            req.content_type=res[0]
+            return res[1]
+        elif plotLines:
+            res= _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTimeDict, startts, endts, debug, fmt, req)
         else:
-            req.content_type = "text/plain"
-            return str(t)
+            res=_plot(typ, t, v, startts, endts, debug, fmt, req)
+
+        req.content_type=res[0]
+        return res[1]
     finally:
         session.close()
 
