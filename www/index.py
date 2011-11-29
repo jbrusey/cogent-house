@@ -939,34 +939,89 @@ def _plot(typ, t, v, startts, endts, debug, fmt, req):
         req.content_type = "text/plain"
         return [req.content_type , str(t)+ str(v)]
 
+def test(req,nid,typ,minsago):
+    try:
+        session = Session()
+
+        try:
+            minsago_i = timedelta(minutes=int(minsago))
+        except Exception:
+            minsago_i = timedelta(minutes=1)
+
+        startts = datetime.now() - minsago_i
+        
+        (max_time_before,) = session.query(func.max(Reading.time)).filter(
+            and_(Reading.nodeId == int(nid),
+                 Reading.typeId == int(typ),
+                 Reading.time < startts)).first()
+
+        (v2,) = session.query(Reading.value).filter(
+            and_(Reading.nodeId == int(nid),
+                 Reading.typeId == int(typ),
+                 Reading.time == max_time_before)).first()
+
+
+        sq = session.query(func.max(Reading.time).label('maxtime')).filter(
+            and_(Reading.nodeId == int(nid),
+                 Reading.typeId == int(typ),
+                 Reading.time < startts)).subquery()
+        
+        (mt2, v3,) = session.query(Reading.time,Reading.value).join(
+            sq, Reading.time==sq.c.maxtime).filter(
+            and_(Reading.nodeId == int(nid),
+                 Reading.typeId == int(typ))).first()
+
+        sql = session.query(Reading.time,Reading.value).join(
+            sq, Reading.time==sq.c.maxtime).filter(
+            and_(Reading.nodeId == int(nid),
+                 Reading.typeId == int(typ))).as_scalar()
+
+        req.content_type='text/plain'
+        return repr(max_time_before) + " " + repr(v2) + " " + repr(v3) + " " + repr(mt2) + str(sql)
+        
+        
+    finally:
+        session.close()
+
+def _latest_reading_before(session, nid, typ, startts):
+
+        # get latest reading / time that is before start time
+        
+        sq = session.query(func.max(Reading.time).label('maxtime')).filter(
+            and_(Reading.nodeId == nid,
+                 Reading.typeId == typ,
+                 Reading.time < startts)).subquery()
+        
+        (qt, qv,) = session.query(Reading.time,Reading.value).join(
+            sq, Reading.time==sq.c.maxtime).filter(
+            and_(Reading.nodeId == nid,
+                 Reading.typeId == typ)).first()
+
+        # get corresponding delta
+        (dt, dv,) = session.query(Reading.time,Reading.value).join(
+            sq, Reading.time==sq.c.maxtime).filter(
+            and_(Reading.nodeId == nid,
+                 Reading.typeId == deltaDict[typ])).first()
+    
+
 
 def _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTimeDict, startts, endts, debug, fmt, req, noData=False):
 
     try:
         session = Session()
+        
         #predict current point
         if last_heard!=None:
             duration = (endts - last_heard).seconds
 
-        #get point before first time
-        qry = session.query(Reading.time,Reading.value).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ),
-                 Reading.time < startts)).order_by(desc(Reading.time))
 
-    
-        dqry = session.query(Reading.time, Reading.value).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(deltaDict[int(typ)]),
-                 Reading.time < startts)).order_by(desc(Reading.time))
-
-
-        for qt, qv in qry:
-            dtp=[qt]
-            preTN=[matplotlib.dates.date2num(qt)]
-            preV=[qv]
-            break
-
+        if qv is None or dv is None:
+            return
+   
+        dtp=[qt]
+        preTN=[matplotlib.dates.date2num(qt)]
+        preV=[qv]
+        
         gotPastDelta=False
         for qt, qv in dqry:
             dtn = (matplotlib.dates.date2num(qt))
