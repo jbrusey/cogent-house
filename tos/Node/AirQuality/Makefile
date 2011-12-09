@@ -1,6 +1,6 @@
 COMPONENT=SensorSAppC
 CFLAGS += -I$(TOSDIR)/lib/printf
 
-CFLAGS += -DDEBUG
+#CFLAGS += -DDEBUG
 
 include $(MAKERULES)

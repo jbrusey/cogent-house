@@ -1,3 +1,6 @@
+#define NEW_PRINTF_SEMANTICS
+#include "printf.h"
+
 configuration SensorSAppC {}
 
 implementation {
@@ -8,6 +11,8 @@ implementation {
   components SensorSC as App, LedsC;
   components new SensirionSht11C(); 
   components new TimerMilliC();
+  components PrintfC;
+  components SerialStartC;
 
   components new CarbonDioxideC() as CarbonDioxide;
   components new VOCC() as VOC;
