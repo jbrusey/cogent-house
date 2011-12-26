@@ -5,4 +5,4 @@
 # author: Ross Wilkins
 # author: James Brusey <james.brusey@gmail.com>
 #
-su chuser -c "python -m cogent.base.yieldSend"
+su chuser -c "python -m cogent.daily_email"
