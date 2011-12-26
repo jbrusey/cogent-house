@@ -109,7 +109,7 @@ def packetYield(session, missed_thresh=5):
         if len(recovered_nodes) > 0:
             # these nodes must have been unregistered
             html.append('<h3>Nodes recently unregistered</h3><p>')
-            html.append(', '.join(recovered_nodes))
+            html.append(', '.join([str(x) for x in recovered_nodes]))
             html.append('</p>')
         
     return html
