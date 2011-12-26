@@ -57,10 +57,21 @@ class TestIP(unittest.TestCase):
         try:
             s = Session()
             x = packetYield(s)
-            print x
+            #print x
             y = packetYield(s)
-            self.assertTrue(len(y) == 0)
+            #self.assertTrue(len(y) == 0)
             print y
+        finally:
+            s.close()
+
+    def test_ccyield(self):
+        try:
+            s = Session()
+            x = ccYield(s)
+            print x
+            y = ccYield(s)
+            print y
+            #self.assertTrue(len(y) == 0)
         finally:
             s.close()
 
@@ -81,12 +92,8 @@ if __name__ == "__main__":
         s.add(n)
         s.add(Node(id=23, house=h, room=r))
         s.add(Node(id=24, house=h, room=r))
-        for i in range(4):
-            r = Reading(typeId=6,
-                        time=datetime.utcnow(),
-                        value=2.5 + i / 100.,
-                        nodeId=22)
-            s.add(r)
+        s.add(Node(id=4098, nodeTypeId=1, house=h, room=r))
+        s.add(Node(id=4099, nodeTypeId=1, house=h, room=r))
 
         t = datetime.utcnow() - timedelta(days=1)
         for i in range(288):
@@ -95,6 +102,22 @@ if __name__ == "__main__":
                            parent=0,
                            localtime=0)
             s.add(ns)
+
+            s.add(Reading(typeId=6,
+                        time=t,
+                        value=3.0 - i / 288.,
+                        nodeId=22))
+
+            s.add(Reading(typeId=11,
+                          time=t,
+                          value=300.0,
+                          nodeId=4098))
+            if i < 200:
+                s.add(Reading(typeId=11,
+                              time=t,
+                              value=300.0,
+                    nodeId=4099))
+            
             if i > 6:
                 s.add(NodeState(time=t,
                                 nodeId=24,
