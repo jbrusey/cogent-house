@@ -1,4 +1,17 @@
 #!/usr/bin/python
+#
+# ------------------------------------------------------------
+# daily-email.py
+#
+# J. Brusey, December 2011
+#
+# run a set of status queries but only send a message out when
+# something significant happens.
+#
+# Report query methods can be found in cogent/report/*
+#
+# ------------------------------------------------------------
+
 
 from sqlalchemy import create_engine, and_, distinct, func
 from sqlalchemy.orm import sessionmaker
@@ -9,8 +22,7 @@ from cogent.report import *
 
 import platform
 import smtplib
-import re
-
+import time
 
 host=platform.node()
 me = "yield@"+host
