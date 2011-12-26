@@ -89,18 +89,27 @@ def packetYield(session, missed_thresh=5):
         html.append('</table>')
 
     if len(recovered_nodes) > 0:
-        html.append('<h3>Nodes recently recovered</h3>')
-        html.append('<table border="1">')
-        html.append("<tr>")
-        headings = ["Node", "House", "Room"]
-        html.extend(["<th>%s</th>" % x for x in headings])
-        html.append("</tr>")
-        fmt = ['%d', '%s', '%s']
-        for values in session.query(Node.id, House.address, Room.name).filter(
-            Node.id.in_(recovered_nodes)).join(House, Room).all():
+        recovered_list = session.query(Node.id, House.address, Room.name).filter(
+            Node.id.in_(recovered_nodes)).join(House, Room).all()
+        if len(recovered_list) > 0:
+            html.append('<h3>Nodes recently recovered</h3>')
+            html.append('<table border="1">')
             html.append("<tr>")
-            html.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
+            headings = ["Node", "House", "Room"]
+            html.extend(["<th>%s</th>" % x for x in headings])
             html.append("</tr>")
-        html.append('</table>')
+            fmt = ['%d', '%s', '%s']
+            for values in recovered_list:
+                recovered_nodes.remove(values[0])
+                html.append("<tr>")
+                html.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
+                html.append("</tr>")
+            html.append('</table>')
+
+        if len(recovered_nodes) > 0:
+            # these nodes must have been unregistered
+            html.append('<h3>Nodes recently unregistered</h3><p>')
+            html.append(', '.join(recovered_nodes))
+            html.append('</p>')
         
     return html
