@@ -109,15 +109,19 @@ implementation
   
   command error_t HeatMeterControl.start() {
     //Set up energy pulse
-    call EnergyInterrupt.clear();
-    call EnergyInterrupt.enable();
+    atomic{
+      call EnergyInterrupt.clear();
+      call EnergyInterrupt.enable();
+    }
     call EnergyInterrupt.edge(FALSE);
     call EnergyInput.makeInput();
     
     //Set up volume pulse
-    call VolumeInterrupt.clear();
-    call VolumeInterrupt.enable();
-    call VolumeInterrupt.edge(FALSE);
+    atomic{
+      call VolumeInterrupt.clear();
+      call VolumeInterrupt.enable();
+    }
+    call VolumeInterrupt.edge(FALSE);  
     call VolumeInput.makeInput();
     signal HeatMeterControl.startDone(SUCCESS);
     return SUCCESS;
