@@ -13,7 +13,7 @@ module CogentHouseP
     //radio
     interface SplitControl as RadioControl;
     interface LowPowerListening;
-		
+    
     //ctp
     interface StdControl as CollectionControl;
     interface CtpInfo;
@@ -26,7 +26,7 @@ module CogentHouseP
 		
     //sending interfaces
     interface Send as StateSender;
-		
+    
     //Sensing
     interface Read<float> as ReadTemp;
     interface Read<float> as ReadHum;
@@ -38,13 +38,14 @@ module CogentHouseP
     interface Read<float> as ReadAQ;
     interface SplitControl as CurrentCostControl;
     interface Read<ccStruct *> as ReadWattage;
+    interface SplitControl as HeatMeterControl;
+    interface Read<hmStruct *> as ReadHeatMeter;
 
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
     interface PackState;
-
-
+    
     //Time
     interface LocalTime<TMilli>;
 
@@ -89,7 +90,6 @@ implementation
   uint16_t message_size;
 
   struct nodeType nt;
-	
 
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
@@ -139,7 +139,7 @@ implementation
       newData->ctp_parent_id = -1;
       newData->timestamp = call LocalTime.get();
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
-	newData->ctp_parent_id = parent;
+      	newData->ctp_parent_id = parent;
       }
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
@@ -205,6 +205,11 @@ implementation
       call Configured.set(RS_VOC);
       call Configured.set(RS_DUTY);
     }
+    else if (nodeType == 4) { /* heat meter */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_HEATMETER);
+    }
     if (nodeType > 0) { 
       call LowPowerListening.setLocalWakeupInterval(0);
     }
@@ -260,6 +265,7 @@ implementation
       call ExpectReadDone.clearAll();
       call PackState.clear();
 
+
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
 	  call ExpectReadDone.set(i);
@@ -281,6 +287,8 @@ implementation
 	    call ReadVOC.read();
 	  else if (i == RS_POWER)
 	    call ReadWattage.read();
+	  else if (i == RS_HEATMETER)
+	    call ReadHeatMeter.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -344,12 +352,23 @@ implementation
     post checkDataGathered();
   }
 
+ event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
+    if (result == SUCCESS) {
+      call PackState.add(SC_HEAT_ENERGY, data->energy);
+      call PackState.add(SC_HEAT_VOLUME, data->volume);
+    }
+    call ExpectReadDone.clear(RS_HEATMETER);
+    post checkDataGathered();
+  }
+
   event void ReadVolt.readDone(error_t result, uint16_t data) {	
     do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
   }
 
 
-  /* Once the radio starts, start the collection protocol. */
+
+
+ /* Once the radio starts, start the collection protocol. */
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS)
       {
@@ -365,6 +384,8 @@ implementation
 	call SenseTimer.startOneShot(DEF_SENSE_PERIOD);
 	if (call Configured.get(RS_POWER)) 
 	  call CurrentCostControl.start();
+	if (call Configured.get(RS_HEATMETER)) 
+	  call HeatMeterControl.start();
       }
     else
       call RadioControl.start();
@@ -537,8 +558,12 @@ implementation
   }
     
 
-  event void CurrentCostControl.startDone(error_t error) {
-  }
+
+  event void HeatMeterControl.startDone(error_t error) {}
+
+  event void HeatMeterControl.stopDone(error_t error) {}
+
+  event void CurrentCostControl.startDone(error_t error) {}
 
   event void CurrentCostControl.stopDone(error_t error) { 
     if (packet_pending) { 

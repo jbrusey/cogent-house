@@ -3,6 +3,7 @@
 #include "Collection.h"
 #include "PolyClass/horner.c"
 #include "CurrentCost/cc_struct.h"
+#include "HeatMeter/hm_struct.h"
 #include <stdio.h>
 #include <stdint.h>
 #ifdef DEBUG
@@ -42,24 +43,32 @@ implementation
   components new CarbonDioxideC() as CarbonDioxide;
   components new VOCC() as VOC;
   components new AQC() as AQ;
-  components HplMsp430InterruptP;
-  components HplMsp430GeneralIOC as GPIO;
+  components HplMsp430InterruptP as GIOInterrupt;
+  components HplMsp430GeneralIOC as GIO;
 
   //import sensing modules
   components ThermalSensingM;
   components LightSensingM;
   components AirQualityM;
+  components HeatMeterM;
 
   //sensor readings
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
+
   LightSensingM.GetPAR -> PAR;
   LightSensingM.GetTSR -> TSR;
+
   AirQualityM.GetCO2 -> CarbonDioxide;
   AirQualityM.GetVOC -> VOC;
   AirQualityM.GetAQ -> AQ;
-  AirQualityM.CO2On -> GPIO.Port23;
+  AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
+
+  HeatMeterM.EnergyInput -> GIO.Port26;
+  HeatMeterM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+  HeatMeterM.VolumeInput -> GIO.Port23;
+  HeatMeterM.VolumeInterrupt -> GIOInterrupt.Port23; //set to read from gio2
 
   //link modules to main file
   CogentHouseP.ReadTemp->ThermalSensingM.ReadTemp;
@@ -70,6 +79,9 @@ implementation
   CogentHouseP.ReadCO2->AirQualityM.ReadCO2;
   CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
   CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
+
+  CogentHouseP.ReadHeatMeter->HeatMeterM.ReadHeatMeter;
+  CogentHouseP.HeatMeterControl -> HeatMeterM.HeatMeterControl;
 
   // Instantiate and wire our collection service
   components CollectionC;
