@@ -48,7 +48,9 @@ module HeatMeterM
     interface HplMsp430Interrupt as EnergyInterrupt;	
     
     interface HplMsp430GeneralIO as VolumeInput;
-    interface HplMsp430Interrupt as VolumeInterrupt;	
+    interface HplMsp430Interrupt as VolumeInterrupt;
+    
+    interface Leds;
   }
 }
 implementation
@@ -71,13 +73,9 @@ implementation
       volumeCount = 0;
       sampleCount = 0;
     }
-    if (sc != 0) {
-      results.energy = (float) te;
-      results.volume = (float) tv * 100.0;
-      signal ReadHeatMeter.readDone(SUCCESS, &results);
-    }
-    else 
-      signal ReadHeatMeter.readDone(FAIL, NULL);
+    results.energy = (float) te;
+    results.volume = (float) tv * 100.0;
+    signal ReadHeatMeter.readDone(SUCCESS, &results);
   }
 
   command error_t ReadHeatMeter.read() {
@@ -85,25 +83,38 @@ implementation
     return SUCCESS;
   }
 
+#ifdef DEBUG
+  task void energyInterruptPrint(){
+    call Leds.led1Toggle();
+    printf("Energy Interrupt Fired\n");
+    printfflush();
+  }
+#endif
+
   async event void EnergyInterrupt.fired() {
     //clear the interrupt pending flag then increment the count
     call EnergyInterrupt.clear();
     energyCount += 1;
     sampleCount += 1;
 #ifdef DEBUG
-    printf("Energy Interrupt Fired");
-    printfflush();
+    post energyInterruptPrint();
 #endif
   }
   
+#ifdef DEBUG
+  task void volumeInterruptPrint(){
+    call Leds.led2Toggle();
+    printf("Volume  Interrupt Fired\n");
+    printfflush();
+  }
+#endif
   async event void VolumeInterrupt.fired() {
     //clear the interrupt pending flag then increment the count
     call VolumeInterrupt.clear();  
     volumeCount += 1;
     sampleCount += 1;
 #ifdef DEBUG
-    printf("Volume  Interrupt Fired");
-    printfflush();
+    post volumeInterruptPrint();
 #endif
   }
   
