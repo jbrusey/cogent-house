@@ -6,7 +6,7 @@ configuration HeatMeterC { }
 
 implementation
 {
-  components MainC, HeatMeterP, HeatMeterM;
+  components MainC, HeatMeterP, HeatMeterM, LedsC;
   components new TimerMilliC() as SensingTimer;
   components HilTimerMilliC;
   components PrintfC, SerialStartC;
@@ -15,7 +15,7 @@ implementation
 	
   
   HeatMeterP.Boot -> MainC.Boot;
-  
+  HeatMeterM.Leds -> LedsC;
   HeatMeterM.EnergyInput -> GIO.Port26;
   HeatMeterM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
   HeatMeterM.VolumeInput -> GIO.Port23;

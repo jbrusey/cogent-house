@@ -90,11 +90,16 @@ implementation
   uint16_t message_size;
 
   struct nodeType nt;
+	
 
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
    */
   void reportError(uint8_t errno) {
+#ifdef DEBUG
+    printf("Error message: %u\n", errno);
+    printfflush();
+#endif
     last_errno *= errno;
   }
 
@@ -206,11 +211,10 @@ implementation
       call Configured.set(RS_DUTY);
     }
     else if (nodeType == 4) { /* heat meter */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_HEATMETER);
+      call Configured.set(RS_VOLTAGE);
     }
-    if (nodeType > 0) { 
+    if (nodeType > 0 && nodeType != 4) { 
       call LowPowerListening.setLocalWakeupInterval(0);
     }
     call RadioControl.start();
@@ -339,6 +343,20 @@ implementation
     do_readDone(result, data, RS_VOC, SC_VOC);
   }
 
+  event void ReadVolt.readDone(error_t result, uint16_t data) {	
+    do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
+  }
+
+ event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
+    if (result == SUCCESS) {
+      call PackState.add(SC_HEAT_ENERGY, data->energy);
+      call PackState.add(SC_HEAT_VOLUME, data->volume);
+    }
+    call ExpectReadDone.clear(RS_HEATMETER);
+    post checkDataGathered();
+  }
+
+
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
     if (result == SUCCESS) {
       call PackState.add(SC_POWER_MIN, data->min);
@@ -351,21 +369,6 @@ implementation
     call ExpectReadDone.clear(RS_POWER);
     post checkDataGathered();
   }
-
- event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
-    if (result == SUCCESS) {
-      call PackState.add(SC_HEAT_ENERGY, data->energy);
-      call PackState.add(SC_HEAT_VOLUME, data->volume);
-    }
-    call ExpectReadDone.clear(RS_HEATMETER);
-    post checkDataGathered();
-  }
-
-  event void ReadVolt.readDone(error_t result, uint16_t data) {	
-    do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
-  }
-
-
 
 
  /* Once the radio starts, start the collection protocol. */
