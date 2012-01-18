@@ -6,7 +6,7 @@ from cogent.report.packetyield import packetYield
 from cogent.report.ccyield import ccYield
 
 
-reports = [ ('Current IP Address', iplookup),
+reports = [ 
             ('Nodes with low battery in last 24 hours', lowBat),
             ('Packet yield', packetYield),
             ('Current cost yield', ccYield),
