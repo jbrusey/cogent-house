@@ -27,19 +27,6 @@ import unittest
 
 class TestIP(unittest.TestCase):
 
-    def test_iplookup(self):
-        
-        try:
-            s = Session()
-            s.query(LastReport).filter(LastReport.name=="ip-address").delete()
-
-            x = iplookup(s)
-            self.assertTrue(len(x) > 0)
-            y = iplookup(s)
-            self.assertTrue(len(y) == 0)
-        finally:
-            s.close()
-
     def test_lowbat(self):
 
         try:
