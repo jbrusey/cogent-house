@@ -49,9 +49,10 @@ enum {
   SC_AQ = 9,
   SC_VOC = 10,
   SC_POWER = 11,
-  SC_HEAT = 12,
+  //SC_HEAT = 12,
   SC_DUTY_TIME= 13,
   SC_ERRNO = 14,
+  SC_SIZE_V1 = 15,
   SC_POWER_MIN = 15,
   SC_POWER_MAX = 16,
   SC_POWER_KWH = 17,
@@ -82,9 +83,10 @@ enum {
 //separate packets structure for mote type
 
 enum {
-  AM_STATEMSG = 4,
+  AM_STATEV1MSG = 4,
   AM_CONFIGMSG = 5,
   DIS_SETTINGS = 6,
+  AM_STATEMSG = 7,
   SPECIAL = 0xc7
 };
 
@@ -95,6 +97,15 @@ typedef nx_struct StateMsg {
   nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
   nx_float packed_state[SC_SIZE];
 } StateMsg; // varies depending on SC_SIZE 
+
+typedef nx_struct StateV1Msg {
+  nx_uint16_t ctp_parent_id;
+  nx_uint32_t timestamp;
+  nx_uint8_t special;
+  nx_uint8_t packed_state_mask[bitset_size(SC_SIZE_V1)];
+  nx_float packed_state[SC_SIZE_V1];
+} StateV1Msg; // varies depending on SC_SIZE 
+
 
 enum {
   NODE_TYPE_MAX = 10
@@ -111,6 +122,5 @@ typedef nx_struct ConfigMsg {
   ConfigPerType byType [NODE_TYPE_MAX];
   nx_uint8_t special;
 } ConfigMsg;
-
 
 #endif

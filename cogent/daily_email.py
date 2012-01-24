@@ -35,7 +35,7 @@ def header():
 To: """+you+"""
 MIME-Version: 1.0
 Content-type: text/html
-Subject: """+host+""" yield
+Subject: cogent-house status for """+host+""" 
 <html><head></head><body>"""
 
 def footer():
