@@ -14,7 +14,7 @@ if "TOSROOT" not in os.environ:
     raise Exception("Please source the Tiny OS environment script first")
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 
-from cogent.node import StateMsg, ConfigMsg, Packets
+from cogent.node import *
 from cogent.base.BaseIF import BaseIF
 
 from Queue import Empty
@@ -259,7 +259,7 @@ class BaseLogger(object):
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
             state = []
-            for i in range(Packets.SC_SIZE):
+            for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))

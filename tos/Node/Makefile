@@ -1,7 +1,7 @@
 PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter
 COMPONENT=CogentHouseC
 PYTHON_TARGET_DIR=../../cogent/node
-PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py)
+PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py StateV1Msg.py ConfigMsg.py Packets.py)
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
@@ -23,6 +23,9 @@ include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+
+$(PYTHON_TARGET_DIR)/StateV1Msg.py: Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateV1Msg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@

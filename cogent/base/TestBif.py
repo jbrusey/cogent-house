@@ -6,8 +6,8 @@
 import sys
 import os
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
-sys.path.append("..")
-from cogent.node import StateMsg, ConfigMsg, Packets
+sys.path.append("../..")
+from cogent.node import *
 from tinyos.message import MoteIF 
 import time
 from cogent.base.model import *
@@ -36,13 +36,26 @@ if __name__ == '__main__':
     import logging
     tb = TestBif()
 
+
     sm = StateMsg(addr=22)
     sm.set_ctp_parent_id(101)
     sm.set_timestamp(307200)
     sm.set_special(0xc7)
     sm.setElement_packed_state_mask(0, 1)
     sm.setElement_packed_state_mask(1, 0)
+    sm.setElement_packed_state_mask(2, 0)
     sm.setElement_packed_state(0, 25.5)
+    
+
+    tb.receive(sm)
+
+    sm = StateV1Msg(addr=23)
+    sm.set_ctp_parent_id(101)
+    sm.set_timestamp(307200)
+    sm.set_special(0xc7)
+    sm.setElement_packed_state_mask(0, 1)
+    sm.setElement_packed_state_mask(1, 0)
+    sm.setElement_packed_state(0, 22.5)
     
 
     tb.receive(sm)
@@ -54,6 +67,7 @@ if __name__ == '__main__':
     sm.set_special(0xc7)
     sm.setElement_packed_state_mask(0, 1)
     sm.setElement_packed_state_mask(1, 0)
+    sm.setElement_packed_state_mask(2, 0)
     sm.setElement_packed_state(0, 25.5)
     
 
@@ -61,11 +75,11 @@ if __name__ == '__main__':
 
 
 
-    logging.basicConfig(filename="/tmp/BaseLogger.log",
-                        filemode="a",
+    logging.basicConfig(#filename="/tmp/BaseLogger.log",
+                        #filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=logging.DEBUG)    
-    lm = BaseLogger(bif=tb, dbfile='mysql://localhost/ch')
+    lm = BaseLogger(bif=tb, dbfile='sqlite:///testbif.db')# 'mysql://localhost/ch')
     lm.create_tables()
     lm.run()
 
