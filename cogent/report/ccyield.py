@@ -4,7 +4,7 @@ from cogent.base.model import *
 
 
 
-def ccYield(session, missed_thresh=5):
+def ccYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(datetime.utcnow() - timedelta(days=1))):
     html = []
 
     last_lost_nodes = session.query(LastReport).filter(LastReport.name=="lost-cc-nodes").first()
@@ -12,9 +12,6 @@ def ccYield(session, missed_thresh=5):
         last_lost_nodes_set = eval(last_lost_nodes.value)
     else:
         last_lost_nodes_set = set()
-
-    t = datetime.utcnow() - timedelta(days=1)
-    
 
     q = session.query(
         Reading.nodeId,
@@ -24,7 +21,8 @@ def ccYield(session, missed_thresh=5):
         Room.name
         ).filter(
             and_(
-                Reading.time > t,
+                Reading.time >= start_t,
+                Reading.time < end_t,
                 Reading.typeId == 11,
                 Node.nodeTypeId == 1,
                 )).group_by(
@@ -38,7 +36,8 @@ def ccYield(session, missed_thresh=5):
     low_nodes = set()
     ok_nodes = set()
     low_nodes_report = []
-    expected_yield = (1 * 24 * 3600) / 300
+    # assumes 5 minute period
+    expected_yield = (end_t - start_t).seconds / 300
     
     for (n, cnt, maxtime, hn, rn) in q:
 

@@ -33,8 +33,7 @@ class TestIP(unittest.TestCase):
             s = Session()
 
             x = lowBat(s)
-            #print repr(x)
-            self.assertTrue(len(x) == 4)
+            self.assertTrue(len(x) == 5)
             y = lowBat(s)
             self.assertTrue(len(y) == 0)
         finally:
