@@ -4,7 +4,7 @@ from cogent.base.model import *
 
 
 
-def packetYield(session, missed_thresh=5):
+def packetYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(datetime.utcnow() - timedelta(days=1))):
     html = []
 
     last_lost_nodes = session.query(LastReport).filter(LastReport.name=="lost-nodes").first()
@@ -13,13 +13,13 @@ def packetYield(session, missed_thresh=5):
     else:
         last_lost_nodes_set = set()
 
-    t = datetime.utcnow() - timedelta(days=1)
     nodestateq = session.query(NodeState.nodeId,
                                func.count(NodeState.nodeId),
                                func.max(NodeState.time),
                                House.address,
                                Room.name
-                               ).filter(NodeState.time > t
+                               ).filter(and_(NodeState.time >= start_t,
+                                             NodeState.time < end_t)
                                         ).group_by(NodeState.nodeId
                                                    ).join(Node,House,Room
                                                           ).order_by(House.address, Room.name
@@ -28,7 +28,8 @@ def packetYield(session, missed_thresh=5):
     low_nodes = set()
     ok_nodes = set()
     low_nodes_report = []
-    expected_yield = (1 * 24 * 3600) / 300
+    # assumes 5 minute period
+    expected_yield = (end_t - start_t).seconds / 300
     
     for (n, cnt, maxtime, hn, rn) in nodestateq:
 
