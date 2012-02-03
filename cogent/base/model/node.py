@@ -8,10 +8,12 @@ class Node(Base):
     __tablename__ = "Node"
 
     id = Column(Integer, primary_key=True)
+    # TODO change to location
     houseId = Column(Integer, ForeignKey('House.id'))
     house = relationship("House", backref=("node"))
     roomId = Column(Integer, ForeignKey('Room.id'))
     room = relationship("Room", backref=("node"))
+    
     nodeTypeId = Column(Integer, ForeignKey('NodeType.id'))
     nodeType = relationship("NodeType", backref=("node"))
     
