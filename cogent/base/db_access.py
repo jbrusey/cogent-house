@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
 from datetime import datetime
+import os.path
 try:
     from base.model import *
 except:
@@ -14,7 +15,7 @@ import scipy.stats as stats
 calib = {}
 
 def fetch_calib(filename, dtype):
-    calib_file = csv.reader(open('./Calibration/' + filename, 'r'), delimiter=',')
+    calib_file = csv.reader(open(os.path.join(os.path.dirname(__file__), 'Calibration', filename), 'r'), delimiter=',')
 
     for row in calib_file:
         if len(row) == 2:
