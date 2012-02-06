@@ -10,26 +10,17 @@ module DigitalP {
 	uses interface Timer<TMilli> as PulseEnd;
 }
 implementation {
-    int count=0;
-    
+   
 	event void Boot.booted() {
 		call GIO.makeOutput(); //make it input
 		call GIO.set();
-		call PulseTimer.startPeriodic(1024);	
-
+		call PulseTimer.startPeriodic(307200);	
 	}
 
 	event void PulseTimer.fired() {
-	    count+=1;
-	    if (count < 100){
-    		call Leds.led2On();
-	    	call GIO.clr();	
-	    	call PulseEnd.startOneShot(410);
-	    }
-	    else
-	    {
-	        call PulseTimer.stop();
-	    }
+        call Leds.led2On();
+    	call GIO.clr();	
+    	call PulseEnd.startOneShot(410);
 	}
 
 	event void PulseEnd.fired() {

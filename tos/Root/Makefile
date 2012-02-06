@@ -2,7 +2,7 @@ PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
 COMPONENT=CogentRootC
 
 PFLAGS +=-DTOSH_DATA_LENGTH=92
-
+CC2420_CHANNEL=20
 # turn on leds for debugging?
 CFLAGS += -DBLINKY
 CFLAGS += -DSERIAL_QUEUE_SIZE=50
