@@ -14,7 +14,7 @@ import scipy.stats as stats
 calib = {}
 
 def fetch_calib(filename, dtype):
-    calib_file = csv.reader(open('../SummarySheet/Calibration/' + filename, 'r'), delimiter=',')
+    calib_file = csv.reader(open('./Calibration/' + filename, 'r'), delimiter=',')
 
     for row in calib_file:
         if len(row) == 2:
