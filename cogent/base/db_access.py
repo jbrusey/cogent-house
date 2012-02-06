@@ -39,11 +39,11 @@ def fetch_calib(filename, dtype):
         
         calib[node_id][dtype] = (m, c)
 
-fetch_calib('Tempcoeefs.csv', 'temperature')
-fetch_calib('humCoeefs.csv', 'humidity')
-fetch_calib('co2Coeefs.csv', 'co2')
-fetch_calib('vocCoeffs.csv', 'voc')
-fetch_calib('aqCoeefs.csv', 'aq')
+fetch_calib('temp_coeffs.csv', 'temperature')
+fetch_calib('hum_coeffs.csv', 'humidity')
+fetch_calib('co2_coeffs.csv', 'co2')
+fetch_calib('voc_coeffs.csv', 'voc')
+fetch_calib('aq_coeffs.csv', 'aq')
     
 def get_calibration(session, node_id, reading_type):
     try:
