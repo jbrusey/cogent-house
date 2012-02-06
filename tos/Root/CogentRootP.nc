@@ -115,7 +115,6 @@ implementation
 						    void* payload, 
 						    uint8_t len)
   {
-  call Leds.led0Toggle();
 #ifdef BLINKY
     call Leds.led1Toggle();
 #endif
