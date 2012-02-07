@@ -30,11 +30,12 @@ class NodeType(Base):
 
     def __repr__(self):
         return ("NodeType(" +
-                str(self.node_type) + "," +
-                str(self.node_type_name) + "," + 
-                str(self.time) + "," +
-                str(self.seq) + "," +
-                str(self.period) + "," +
-                str(self.blink) + "," +
-                repr(self.configured) + ")")
+                ",".join([repr(x) for x in [self.id,
+                                            self.name,
+                                            self.time,
+                                            self.seq,
+                                            self.updated_seq,
+                                            self.period,
+                                            self.blink,
+                                            self.configured]]) + ")")
 

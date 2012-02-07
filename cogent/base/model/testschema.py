@@ -10,21 +10,24 @@ from cogent.base.model import *
 
 from cogent.base.model.meta import Session, Base
 
+DBURL="sqlite:///:memory:"
 
 class TestNodeType(unittest.TestCase):
     def setUp(self):
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
+        session = Session()
+        engine = session.get_bind(mapper=None)
+        session.close()
+        Base.metadata.create_all(engine)
 
-        self.engine = create_engine("sqlite:///:memory:", echo=False)
-        self.engine.execute("pragma foreign_keys=on")
-        self.Session = sessionmaker(bind=self.engine)
-        self.metadata = Base.metadata
-        self.metadata.create_all(self.engine)
+    def tearDown(self):
+        session = Session()
+        engine = session.get_bind(mapper=None)
+        session.close()
+        Base.metadata.drop_all(engine)
 
         
     def test1(self):
-        session = self.Session()
+        session = Session()
         b = Bitset(size=20)
         b[3] = True
         b[13] = True
@@ -39,14 +42,16 @@ class TestNodeType(unittest.TestCase):
         try:
             session.add(r)
             session.commit()
+            self.assertTrue( r.configured[3] and r.configured[13] )
         except Exception,e:
             print e
             session.rollback()
+        finally:
+            session.close()
 
-        self.assertTrue( r.configured[3] and r.configured[13] )
 
     def test2(self):
-        session = self.Session()
+        session = Session()
         b = Bitset(size=20)
         b[3] = True
         b[13] = True
@@ -64,34 +69,43 @@ class TestNodeType(unittest.TestCase):
         except Exception,e:
             print e
             session.rollback()
+        finally:
+            session.close()
 
-        session = self.Session()
-        r = session.query(NodeType).get(0)
+        session = Session()
+        try:
+            r = session.query(NodeType).get(0)
 
-        self.assertTrue( r.name == "base" )
+            self.assertTrue( r.name == "base" )
 
             
-        self.assertTrue( r.configured[3] and r.configured[13] )
+            self.assertTrue( r.configured[3] and r.configured[13] )
+        finally:
+            session.close()
 
     def test3(self):
-        session = self.Session()
-        r = session.query(NodeType).get(0)
-        self.assertTrue( r is None )
-
-
+        session = Session()
+        try:
+            r = session.query(NodeType).get(0)
+            self.assertTrue( r is None )
+        finally:
+            session.close()
+            
 class TestSchema(unittest.TestCase):
     def setUp(self):
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker
+        session = Session()
+        engine = session.get_bind(mapper=None)
+        session.close()
+        Base.metadata.create_all(engine)
 
-        self.engine = create_engine("mysql://james@localhost/ch_test", echo=True)
-        self.Session = sessionmaker(bind=self.engine)
-        self.metadata = Base.metadata
-        self.metadata.drop_all(self.engine)
-        self.metadata.create_all(self.engine)
-
+    def tearDown(self):
+        session = Session()
+        engine = session.get_bind(mapper=None)
+        session.close()
+        Base.metadata.drop_all(engine)
+    
     def test1(self):
-        session = self.Session()
+        session = Session()
 
         #Add a deployment
 
@@ -228,13 +242,22 @@ class TestSchema(unittest.TestCase):
         session.commit()
 
         session.close()
-        session = self.Session()
+        session = Session()
 
         loctimes = [x[0] for x in session.query(NodeState.localtime).all()]
-        print max(loctimes) - min(loctimes)
+        #print max(loctimes) - min(loctimes)
         self.assertTrue(max(loctimes) - min(loctimes) == 99) 
 
 
-    #Add node history
 if __name__ == "__main__":
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    engine = create_engine(DBURL, echo=False)
+    engine.execute("pragma foreign_keys=on")
+    init_model(engine)
+    metadata = Base.metadata
+    metadata.create_all(engine)
+
     unittest.main()

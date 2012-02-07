@@ -14,7 +14,7 @@ class Reading(Base):
     nodeId = Column(Integer, ForeignKey('Node.id'))
     node = relationship("Node", backref=backref('readings'))
     typeId = Column('type', Integer, ForeignKey('SensorType.id'))
-    # TODO also include houseId and roomId columns
+    # TODO also include LocationId column
     typ = relationship("SensorType", backref=backref('readings'))
     value = Column(Float)    
 
