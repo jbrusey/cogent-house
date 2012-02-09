@@ -7,7 +7,7 @@ def nodesInSet(session, node_set):
     html.append("<table border=\"1\">")
     html.append("<tr><th>Node</th><th>House</th><th>Room</th></tr>"  )
     for (r, addr, name) in session.query(Node.id, House.address, Room.name).filter(
-            Node.id.in_(node_set)).join(House,Room).order_by(House.address, Room.name).all():
+            Node.id.in_(node_set)).join(Location, House,Room).order_by(House.address, Room.name).all():
         html.append("<tr><td>%d</td><td>%s</td><td>%s</td></tr>" % (r,addr,name))
 
     html.append("</table>")

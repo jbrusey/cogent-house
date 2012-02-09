@@ -7,6 +7,7 @@ from cogent.base.model.deploymentmetadata import DeploymentMetadata
 from cogent.base.model.house import House
 from cogent.base.model.housemetadata import HouseMetadata
 from cogent.base.model.lastreport import LastReport
+from cogent.base.model.location import Location
 from cogent.base.model.node import Node
 from cogent.base.model.nodehistory import NodeHistory
 from cogent.base.model.nodestate import NodeState

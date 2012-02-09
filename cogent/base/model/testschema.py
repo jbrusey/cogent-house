@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
 from Bitset import Bitset
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from cogent.base.model import *
 
@@ -214,10 +214,13 @@ class TestSchema(unittest.TestCase):
 
         #Add readings
 
+        ll = Location(houseId=h.id,
+                      roomId=r.id)
+        session.add(ll)
+
         n = Node(id=63,
-                 houseId=h.id,
-                 nodeTypeId=0,
-                 roomId=r.id)
+                 locationId=ll.id,
+                 nodeTypeId=0)
         session.add(n)
 
         st = SensorType(id=0,
@@ -228,17 +231,24 @@ class TestSchema(unittest.TestCase):
         session.add(st)
         session.commit()
 
+        tt = datetime.utcnow() - timedelta(minutes=(500))
+        
         for i in range(100):
-            r = Reading(time=datetime.utcnow(),
+
+            ll = session.query(Node).filter(Node.id==63).one().locationId
+            
+            r = Reading(time=tt,
                         nodeId=63,
                         typeId=0,
+                        locationId=ll,
                         value=i/1000.)
             session.add(r)
-            ns = NodeState(time=datetime.utcnow(),
+            ns = NodeState(time=tt,
                            nodeId=63,
                            parent=64,
                            localtime=( (1<<32) - 50 + i)) # test large integers
             session.add(ns)
+            tt = tt + timedelta(minutes=5)
         session.commit()
 
         session.close()

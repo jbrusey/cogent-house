@@ -21,7 +21,7 @@ def packetYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(date
                                ).filter(and_(NodeState.time >= start_t,
                                              NodeState.time < end_t)
                                         ).group_by(NodeState.nodeId
-                                                   ).join(Node,House,Room
+                                                   ).join(Node,Location,House,Room
                                                           ).order_by(House.address, Room.name
                                                                      ).all()
 
@@ -42,7 +42,8 @@ def packetYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(date
         else:
             ok_nodes.add(n)
 
-    all_set = set([int(x) for (x,) in session.query(Node.id).filter(and_(Node.houseId != None,Node.roomId != None)).all()])
+    all_set = set([int(x) for (x,) in session.query(Node.id).filter(
+        Node.locationId != None).all()])
 
     lost_nodes = all_set - ok_nodes
 
@@ -83,7 +84,7 @@ def packetYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(date
         html.append("</tr>")
         fmt = ['%d', '%s', '%s']
         for values in session.query(Node.id, House.address, Room.name).filter(
-            Node.id.in_(just_lost_nodes)).join(House, Room).all():
+            Node.id.in_(just_lost_nodes)).join(Location, House, Room).all():
             html.append("<tr>")
             html.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
             html.append("</tr>")
@@ -91,7 +92,7 @@ def packetYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(date
 
     if len(recovered_nodes) > 0:
         recovered_list = session.query(Node.id, House.address, Room.name).filter(
-            Node.id.in_(recovered_nodes)).join(House, Room).all()
+            Node.id.in_(recovered_nodes)).join(Location, House, Room).all()
         if len(recovered_list) > 0:
             html.append('<h3>Nodes recently recovered</h3>')
             html.append('<table border="1">')
