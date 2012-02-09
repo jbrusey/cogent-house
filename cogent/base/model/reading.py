@@ -7,18 +7,36 @@ from cogent.base.model.meta import Base
 class Reading(Base):
     __tablename__ = "Reading"
 
-    # TODO remove id
-    id = Column(Integer, primary_key=True)
-    # TODO time, typeId and nodeId should be primary key
-    time = Column(DateTime)
-    nodeId = Column(Integer, ForeignKey('Node.id'))
+    time = Column(DateTime,
+                  primary_key=True,
+                  nullable=False,
+                  autoincrement=False)
+    nodeId = Column(Integer,
+                    ForeignKey('Node.id'),
+                    primary_key=True,
+                    nullable=False,
+                    autoincrement=False)
     node = relationship("Node", backref=backref('readings'))
-    typeId = Column('type', Integer, ForeignKey('SensorType.id'))
-    # TODO also include LocationId column
+    typeId = Column('type',
+                    Integer,
+                    ForeignKey('SensorType.id'),
+                    primary_key=True,
+                    nullable=False,
+                    autoincrement=False)
+    locationId = Column(Integer,
+                        ForeignKey('Location.id'))
+    location = relationship('Location', backref=backref('readings'))
+    
     typ = relationship("SensorType", backref=backref('readings'))
     value = Column(Float)    
 
     def __repr__(self):
-        return "Reading(" + str(self.id) +"," + str(self.time) + "," + str(self.nodeId) + "," + str(self.typeId) + "," + str(self.value) + ")"
+        return ("Reading(" + 
+                ",".join([repr(x) for x in [self.time,
+                                            self.nodeId,
+                                            self.typeId,
+                                            self.locationId,
+                                            self.value]
+                    ]) + ")")
         
         

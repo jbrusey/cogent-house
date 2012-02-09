@@ -230,17 +230,19 @@ class BaseLogger(object):
             localtime = msg.get_timestamp()
 
             node = session.query(Node).get(n)
+            locId = None
             if node is None:
                 #(houseId,roomId,nodeTypeId) = self.getNodeDetails(n)
                 try:
                     session.add(Node(id=n,
-                                     houseId=None,
-                                     roomId=None,
+                                     locationId=None,
                                      nodeTypeId=(n / 4096)))
                     session.commit()
                 except:
                     session.rollback()
                     logger.exception("can't add node %d" % n)
+            else:
+                locId = node.locationId
 
             if self.duplicate_packet(session=session,
                                      time=t,
@@ -266,6 +268,7 @@ class BaseLogger(object):
                     r = Reading(time=t,
                                 nodeId=n,
                                 typeId=i,
+                                locationId=locId,
                                 value=v)
                     session.add(r)
                     j += 1
