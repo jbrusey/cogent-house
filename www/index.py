@@ -407,13 +407,9 @@ def missing():
             s.append("<table border=\"1\">")
             s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Last Heard</th><th></th></tr>"  )
 
-            for (ns, maxtime) in session.query(NodeState,func.max(NodeState.time)).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all():
-                n = ns.node
-                room = "unknown"
-                if n.room is not None:
-                    room = n.room.name
-                u = _url("unregisterNode", [('node', ns.nodeId)])
-                s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (ns.nodeId, n.house.address, room, str(maxtime), u))
+            for (ns, maxtime, nodeid, house, room) in session.query(NodeState,func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all():
+                u = _url("unregisterNode", [('node', nodeId)])
+                s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (nodeId, house, room, str(maxtime), u))
                   
 
             s.append("</table>")
@@ -471,29 +467,24 @@ def yield24():
         nodestateq = session.query(
             NodeState,
             func.count(NodeState),
-            func.max(NodeState.time)
+            func.max(NodeState.time),
+            House.address,
+            Room.name
             ).filter(NodeState.time > t
                      ).group_by(NodeState.nodeId
                                 ).join(Node,Location,House,Room).order_by(House.address, Room.name).all()
 
-        for (ns, cnt, maxtime) in nodestateq:
+        for (ns, cnt, maxtime, house, room) in nodestateq:
 
-            n = ns.node
-            if n.house is not None:
-                yield_secs = (1 * 24 * 3600)
+            yield_secs = (1 * 24 * 3600)
 
-                y = (cnt) / (yield_secs / 300.0) * 100.0
+            y = (cnt) / (yield_secs / 300.0) * 100.0
 
-
-                room = 'unknown'
-                if n.room is not None:
-                    room = n.room.name
-                
-                values = [ns.nodeId, n.house.address, room, cnt, maxtime, y]
-                fmt = ['%d', '%s', '%s', '%d', '%s', '%8.2f']
-                s.append("<tr>")
-                s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
-                s.append("</tr>")
+            values = [ns.nodeId, house, room, cnt, maxtime, y]
+            fmt = ['%d', '%s', '%s', '%d', '%s', '%8.2f']
+            s.append("<tr>")
+            s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
+            s.append("</tr>")
 
 
         s.append("</table>")
@@ -519,11 +510,11 @@ def dataYield():
             try:
                 n = session.query(Node).filter(Node.id == nid).one()
                 try:
-                    house = n.house.address
+                    house = n.location.house.address
                 except:
                     house = '-'
                 try:
-                    room = n.room.name
+                    room = n.location.room.name
                 except:
                     room = '-'
             except:
@@ -610,8 +601,7 @@ def unregisterNode(node=None):
             raise Exception("unknown node id %d" % node)
         n = session.query(Node).filter(Node.id == int(node)).one()
 
-        n.houseId = None
-        n.roomId = None
+        n.locationId = None
         session.commit()
         return _redirect("missing")
     
@@ -636,8 +626,15 @@ def registerNodeSubmit(node=None, house=None, room=None):
 
         n = session.query(Node).filter(Node.id==int(node)).one()
 
-        n.houseId = int(house)
-        n.roomId = int(room)
+        ll = session.query(Location).filter(
+            and_(Location.houseId == int(house),
+                 Location.roomId == int(room))).first()
+
+        if ll is None:
+            ll = Location(houseId=int(house), roomId=int(room))
+            session.add(ll)
+            
+        n.location = ll
         session.commit()
         return _redirect("missing")
     
@@ -655,8 +652,7 @@ def unregisterNodeSubmit(node=None):
 
         n = session.query(Node).filter(Node.id == int(node)).one()
 
-        n.houseId = None
-        n.roomId = None
+        n.locationId = None
         session.commit()
         return _redirect("missing")
     
