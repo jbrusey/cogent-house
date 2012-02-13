@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
 from datetime import datetime
+import os.path
 import csv
 import scipy.stats as stats
 
@@ -18,7 +19,50 @@ reading_limits = {
     }
 
 
+# Yes, run this when this file is imported
+calib = {}
+
+def fetch_calib(filename, dtype):
+    calib_file = csv.reader(open(os.path.join(os.path.dirname(__file__), 'Calibration', filename), 'r'), delimiter=',')
+
+    for row in calib_file:
+        if len(row) == 2:
+            node_id,c = row
+            m = 1.0
+        elif len(row) == 3:
+            node_id,m,c = row
+        else:
+            continue
+        
+        if m == '':
+            m = 1.0
+        if c == '':
+            c = 0.0
+            
+        node_id = int(node_id)
+        m = float(m)
+        c = float(c)
+        
+        if node_id not in calib:
+            calib[node_id] = {}
+        
+        calib[node_id][dtype] = (m, c)
+
+fetch_calib('temp_coeffs.csv', 'temperature')
+fetch_calib('hum_coeffs.csv', 'humidity')
+fetch_calib('co2_coeffs.csv', 'co2')
+fetch_calib('voc_coeffs.csv', 'voc')
+fetch_calib('aq_coeffs.csv', 'aq')
+    
 def get_calibration(session, node_id, reading_type):
+    try:
+        values = calib[node_id][reading_type]
+    except:
+        values = (1.0, 0.0)
+    return values
+
+
+def get_calibration_db(session, node_id, reading_type):
 	rtype_id = reading_types.index(reading_type)
 	row = session.query(Sensor.calibrationSlope, Sensor.calibrationOffset).filter(and_(Sensor.nodeId == node_id, Sensor.sensorTypeId == rtype_id)).first()
 	if row == None: return (1.0, 0.0)
