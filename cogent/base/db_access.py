@@ -155,7 +155,7 @@ def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(
     
     for node_id,values in data.iteritems():
         m, c = get_calibration(session, node_id, reading_type)
-        datadata[node_id] = [(row[0], m * row[1] + c) for row in values]
+        data[node_id] = [(row[0], m * row[1] + c) for row in values]
     data = clean_data(data, reading_type)
     
     return data
