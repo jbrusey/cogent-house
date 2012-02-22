@@ -113,6 +113,11 @@ def create_db_engine_mysql(username, database, host='localhost'):
 def create_session(db_engine):
     Session = sessionmaker(bind=db_engine)
     return Session()
+    
+
+def create_session_mysql(username, database, host='localhost'):
+    db_engine = create_db_engine_mysql(username, database, host)
+    return create_session(db_engine)
 
 
 # Need to add an optional Deployment specification
@@ -142,7 +147,7 @@ def get_node_locations_by_house(session, house_id, include_external=True):
     return node_details
 
 
-def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True):
     rows = _query_by_type(session, reading_type, start_time, end_time, filter_values = False)
     rows.order_by(Reading.time)
 
@@ -153,25 +158,27 @@ def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(
             data[node_id] = []
         data[node_id].append((row.time, row.value))
     
-    for node_id,values in data.iteritems():
-        m, c = get_calibration(session, node_id, reading_type)
-        data[node_id] = [(row[0], m * row[1] + c) for row in values]
-    data = clean_data(data, reading_type)
+    if postprocess:
+        for node_id,values in data.iteritems():
+            m, c = get_calibration(session, node_id, reading_type)
+            data[node_id] = [(row[0], m * row[1] + c) for row in values]
+        data = clean_data(data, reading_type)
     
     return data
 
 
-def get_data_by_node_and_type(session, node_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+def get_data_by_node_and_type(session, node_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True):
     rows = _query_by_node_and_type(session, node_id, reading_type, start_time, end_time, filter_values = False)
     rows.order_by(Reading.time)
     
     data = []
     for time,value in rows:
         data.append((time, value))
-        
-    m, c = get_calibration(session, node_id, reading_type)
-    data = [(row[0], m * row[1] + c) for row in data]
-    data = clean_data(data, reading_type)
+
+    if postprocess:
+        m, c = get_calibration(session, node_id, reading_type)
+        data = [(row[0], m * row[1] + c) for row in data]
+        data = clean_data(data, reading_type)
     
     return data
     
