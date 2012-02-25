@@ -12,7 +12,7 @@ all: $(MIGPYFILES)
 install:  all
 	python setup.py install
 	a2ensite cogent-house
-	alembic upgrade head
+	(cd cogent && alembic upgrade head)
 
  $(MIGPYFILES): tos/Node/Packets.h
 	make -C tos/Node telosb
