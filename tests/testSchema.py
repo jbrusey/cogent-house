@@ -23,7 +23,7 @@ from cogent.base.model import *
 
 #from cogent.base.model.meta import Session, Base
 
-DBURL="sqlite:///:memory:"
+#DBURL="sqlite:///:memory:"
 
 import meta
 Session = meta.Session
