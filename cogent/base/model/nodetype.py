@@ -1,10 +1,21 @@
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Float, Boolean
+"""
+.. codeauthor::  Ross Wiklins 
+.. codeauthor::  James Brusey
+.. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
+
+"""
+
+import sqlalchemy
+import logging
+log = logging.getLogger(__name__)
+
+import meta
+Base = meta.Base
+
+from sqlalchemy import Table, Column, Integer, ForeignKey,String,DateTime,Boolean
 from sqlalchemy.orm import relationship, backref
+
 import sqlalchemy.types as types
-
-from cogent.base.model.meta import Base
-
 from Bitset import Bitset
 
 class BitsetType(types.TypeDecorator):
@@ -17,6 +28,22 @@ class BitsetType(types.TypeDecorator):
         return Bitset.fromstring(value)
 
 class NodeType(Base):
+    """Type of Node
+    
+    These values should remain relitively static as we only have a given number of nodetypes
+
+    :var Integer id: Id
+    :var String name: Name of type
+    :var DateTime time: 
+    :var Integer seq:
+    :var Integer updated_seq: 
+    :var Integer period:
+    :var Boolean blink:
+    :var configured: :class:`cogentviewer.models.node.BitsetType`
+    :var nodes: *backref* to :class:`cogentviewer.models.node.Node`
+   
+
+    """
     __tablename__ = "NodeType"
 
     id = Column(Integer, primary_key = True, autoincrement = False)
@@ -27,6 +54,8 @@ class NodeType(Base):
     period = Column(Integer)
     blink = Column(Boolean)
     configured = Column(BitsetType(10))
+
+    nodes = relationship("Node",order_by="Node.id",backref="nodeType")
 
     def __repr__(self):
         return ("NodeType(" +

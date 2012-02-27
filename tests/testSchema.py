@@ -48,7 +48,7 @@ class TestNodeType(unittest.TestCase):
         b[3] = True
         b[13] = True
 
-        r = NodeType(time=datetime.utcnow(),
+        r = NodeType(time=datetime.datetime.utcnow(),
                      id=0,
                      name="base",
                      seq=1,
@@ -72,7 +72,7 @@ class TestNodeType(unittest.TestCase):
         b[3] = True
         b[13] = True
 
-        r = NodeType(time=datetime.utcnow(),
+        r = NodeType(time=datetime.datetime.utcnow(),
                      id=0,
                      name="base",
                      seq=1,
@@ -128,7 +128,7 @@ class TestSchema(unittest.TestCase):
 
         dep = Deployment(name="TestDep",
                          description="Does this work",
-                         startDate=datetime.utcnow()
+                         startDate=datetime.datetime.utcnow()
                          , endDate=None)
         session.add(dep)
         session.commit()
@@ -154,7 +154,7 @@ class TestSchema(unittest.TestCase):
         #Add a house
         h = House(deploymentId=1,
                   address = "1 Sampson",
-                  startDate=datetime.utcnow())
+                  startDate=datetime.datetime.utcnow())
 
         session.add(h)
         session.commit()
@@ -176,7 +176,7 @@ class TestSchema(unittest.TestCase):
         occ=Occupier(houseId=1,
                      name="Mr Man",
                      contactNumber="01212342345",
-                     startDate=datetime.utcnow()
+                     startDate=datetime.datetime.utcnow()
                      )
 
         session.add(occ)
@@ -206,14 +206,14 @@ class TestSchema(unittest.TestCase):
         configured1[13] = True
         session.add_all(
             [
-                NodeType(time=datetime.utcnow(),
+                NodeType(time=datetime.datetime.utcnow(),
                          id=0,
                          name="base",
                          seq=1,
                          updated_seq=0,
                          period=15*1024,
                          configured=configured),
-                NodeType(time=datetime.utcnow(),
+                NodeType(time=datetime.datetime.utcnow(),
                          id=1,
                          name="cc",
                          seq=1,
@@ -247,7 +247,7 @@ class TestSchema(unittest.TestCase):
         session.add(st)
         session.commit()
 
-        tt = datetime.utcnow() - timedelta(minutes=(500))
+        tt = datetime.datetime.utcnow() - timedelta(minutes=(500))
         
         for i in range(100):
 

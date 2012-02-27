@@ -4,7 +4,10 @@ from cogent.base.model import *
 
 
 
-def packetYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(datetime.utcnow() - timedelta(days=1))):
+def packetYield(session,
+                missed_thresh=5,
+                end_t=datetime.datetime.utcnow(),
+                start_t=(datetime.datetime.utcnow() - timedelta(days=1))):
     html = []
 
     last_lost_nodes = session.query(LastReport).filter(LastReport.name=="lost-nodes").first()
