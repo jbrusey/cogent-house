@@ -108,11 +108,11 @@ class Reading(Base):
 
         #pass
         #Find the Sensor
-        session = meta.Session()
-        theSensor = session.query(sensor.Sensor).filter_by(sensorTypeId = self.typeId,
-                                                           nodeId = self.nodeId).first()
+        #session = meta.Session()
+        #theSensor = session.query(sensor.Sensor).filter_by(sensorTypeId = self.typeId,
+        #                                                   nodeId = self.nodeId).first()
         #print theSensor
         
-        value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
+        #value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
 
-        return (self.time,value)
+        return (self.time,self.value)
