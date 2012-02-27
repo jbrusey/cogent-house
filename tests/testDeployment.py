@@ -86,6 +86,7 @@ class TestDeployment(unittest.TestCase):
         Called after each testcase,
         Uncommits any changes that test case made
         """
+        
         #Pyramid
         try:
             self.transaction.abort()
@@ -103,20 +104,20 @@ class TestDeployment(unittest.TestCase):
         thisDeployment = models.Deployment(description="Test")
         self.assertEqual(thisDeployment.description,"Test")
 
-    # def testDeploymentUpdate(self):
-    #     """Can we update deployments"""
+    def testDeploymentUpdate(self):
+        """Can we update deployments"""
     
-    #     thisDeployment = models.Deployment()
+        thisDeployment = models.Deployment()
         
-    #     thisDeployment.update(description="A Test Deployment")
-    #     self.assertEqual(thisDeployment.description,"A Test Deployment")
+        thisDeployment.update(description="A Test Deployment")
+        self.assertEqual(thisDeployment.description,"A Test Deployment")
 
-    #     #Check if we can do multiple inserts and not loose previous stuff
-    #     today = datetime.datetime.now()
-    #     thisDeployment.update(startDate = today,endDate=today)
-    #     self.assertEqual(thisDeployment.startDate,today)
-    #     self.assertEqual(thisDeployment.endDate,today)
-    #     self.assertEqual(thisDeployment.description,"A Test Deployment")
+        #Check if we can do multiple inserts and not loose previous stuff
+        today = datetime.datetime.now()
+        thisDeployment.update(startDate = today,endDate=today)
+        self.assertEqual(thisDeployment.startDate,today)
+        self.assertEqual(thisDeployment.endDate,today)
+        self.assertEqual(thisDeployment.description,"A Test Deployment")
 
         
     def testDeploymentMeta(self):

@@ -162,8 +162,8 @@ def createTestDB():
                             locationId=locBath1.id,
                             nodeTypeId=stdNode.id)
 
-    #bed1.nodes.append(nodeBed1)
-    #bath1.nodes.append(nodeBath1)
+    bed1.nodes.append(nodeBed1)
+    bath1.nodes.append(nodeBath1)
     session.add(nodeBed1)
     session.add(nodeBath1)
 
@@ -175,8 +175,8 @@ def createTestDB():
                             locationId = locBed2.id,
                             nodeTypeId = vocNode.id)
 
-    #bed2.nodes.append(nodeBed21)
-    #bed2.nodes.append(nodeBed22)
+    bed2.nodes.append(nodeBed21)
+    bed2.nodes.append(nodeBed22)
     session.add(nodeBed21)
     session.add(nodeBed22)
     #We also Reuse the Node that was in Bath1, and move it into Bath2
@@ -184,7 +184,7 @@ def createTestDB():
     #                        locationId = locBath2.id,
     #                        nodeTypeId = stdNode.id)
     
-    #bath2.nodes.append(nodeBath1)
+    bath2.nodes.append(nodeBath1)
     nodeBath1.locationId = locBath2.id
     session.flush()
 
