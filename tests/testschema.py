@@ -2,15 +2,31 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Float, Boolean
 from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
-from Bitset import Bitset
+
 import unittest
 from datetime import datetime, timedelta
 
+#Original Version used this namespace,
+#So I will too.
+#from cogent.base.model.Bitset import Bitset
+
+try:
+    import cogent
+except ImportError:
+    #Assume we are running from the test directory
+    print "Unable to Import Cogent Module Appending Path"
+    import sys
+    sys.path.append("../")
+
+
 from cogent.base.model import *
 
-from cogent.base.model.meta import Session, Base
+#from cogent.base.model.meta import Session, Base
 
 DBURL="sqlite:///:memory:"
+
+import meta
+Session = meta.Session
 
 class TestNodeType(unittest.TestCase):
     def setUp(self):
@@ -260,14 +276,15 @@ class TestSchema(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    # from sqlalchemy import create_engine
+    # from sqlalchemy.orm import sessionmaker
 
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
+  
 
-    engine = create_engine(DBURL, echo=False)
-    engine.execute("pragma foreign_keys=on")
-    init_model(engine)
-    metadata = Base.metadata
-    metadata.create_all(engine)
+    # engine = create_engine(DBURL, echo=False)
+    # engine.execute("pragma foreign_keys=on")
+    # init_model(engine)
+    # metadata = Base.metadata
+    # metadata.create_all(engine)
 
     unittest.main()
