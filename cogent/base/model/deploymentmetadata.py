@@ -9,7 +9,7 @@ class DeploymentMetadata(Base):
 
     id = Column(Integer, primary_key=True)
     deploymentId = Column(Integer, ForeignKey('Deployment.id'))
-    deployment = relationship("Deployment", backref=("metadata"))
+    deployment = relationship("Deployment", backref=("meta"))
     name = Column(String(255))
     description = Column(String(255))
     units = Column(String(255))
