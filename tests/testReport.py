@@ -98,7 +98,7 @@ def initDb():
         s.add(Node(id=4098, nodeTypeId=1, location=ll))
         s.add(Node(id=4099, nodeTypeId=1, location=ll))
 
-        t = datetime.utcnow() - timedelta(days=1)
+        t = datetime.datetime.utcnow() - timedelta(days=1)
         for i in range(288):
             ns = NodeState(time=t,
                            nodeId=23,
