@@ -13,7 +13,6 @@ Contents:
 
    introduction
    models
-   dbVersion
 
 Indices and tables
 ==================
