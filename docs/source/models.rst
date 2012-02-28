@@ -130,10 +130,6 @@ Deployment Related Classes
 ==========================
 
 
-.. automodule:: cogent.base.model.deployment
-   :members:
-
-
 .. graphviz:: deployment.dot
 
 .. automodule::	cogent.base.model.deployment
@@ -200,7 +196,7 @@ Node Related Classes
 Occupier Related Classes
 =========================
 
-.. graphviz:: occupier.dot
+.. .. graphviz:: occupier.dot
 
 .. automodule:: cogent.base.model.occupier
    :members:
@@ -223,7 +219,10 @@ Other Classes
 
 Classes that deal with other stuff
 
+
 .. graphviz:: other.dot
+
+.. other.dot
 
 .. automodule:: cogent.base.model.Bitset
    :members:
