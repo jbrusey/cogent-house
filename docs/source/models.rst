@@ -129,12 +129,17 @@ The :mod:`model` Classes
 Deployment Related Classes
 ==========================
 
-.. graphviz:: deployment.dot
 
-.. automodule::	cogentviewer.models.deployment
+.. automodule:: cogent.base.model.deployment
    :members:
 
-.. automodule:: cogentviewer.models.deploymentmetadata
+
+.. graphviz:: deployment.dot
+
+.. automodule::	cogent.base.model.deployment
+   :members:
+
+.. automodule:: cogent.base.model.deploymentmetadata
    :members:
 
 House Related Classes
@@ -142,13 +147,13 @@ House Related Classes
 
 .. graphviz:: house.dot
 
-.. automodule:: cogentviewer.models.house
+.. automodule:: cogent.base.model.house
    :members:
 
-.. automodule:: cogentviewer.models.housemetadata
+.. automodule:: cogent.base.model.housemetadata
    :members:
 
-.. automodule:: cogentviewer.models.location
+.. automodule:: cogent.base.model.location
    :members:
 
 
@@ -157,7 +162,7 @@ Reading Related Classes
 
 .. graphviz:: reading.dot
 
-.. automodule:: cogentviewer.models.reading
+.. automodule:: cogent.base.model.reading
    :members:
 
 
@@ -166,10 +171,10 @@ Room Related Classes
 
 .. graphviz:: room.dot
 
-.. automodule:: cogentviewer.models.room
+.. automodule:: cogent.base.model.room
    :members:
 
-.. automodule:: cogentviewer.models.roomtype
+.. automodule:: cogent.base.model.roomtype
    :members:
 
 
@@ -178,16 +183,16 @@ Node Related Classes
 
 .. graphviz:: node.dot
 
-.. automodule:: cogentviewer.models.node
+.. automodule:: cogent.base.model.node
    :members:
 
-.. automodule:: cogentviewer.models.nodetype
+.. automodule:: cogent.base.model.nodetype
    :members:
 
-.. automodule:: cogentviewer.models.nodehistory
+.. automodule:: cogent.base.model.nodehistory
    :members:
 
-.. automodule:: cogentviewer.models.nodestate
+.. automodule:: cogent.base.model.nodestate
    :members:
 
 
@@ -197,7 +202,7 @@ Occupier Related Classes
 
 .. graphviz:: occupier.dot
 
-.. automodule:: cogentviewer.models.occupier
+.. automodule:: cogent.base.model.occupier
    :members:
 
 Sensor Related Classes
@@ -205,10 +210,10 @@ Sensor Related Classes
 
 .. graphviz:: sensor.dot
 
-.. automodule:: cogentviewer.models.sensor
+.. automodule:: cogent.base.model.sensor
    :members:
 
-.. automodule:: cogentviewer.models.sensortype
+.. automodule:: cogent.base.model.sensortype
    :members:
 
 
@@ -220,19 +225,19 @@ Classes that deal with other stuff
 
 .. graphviz:: other.dot
 
-.. automodule:: cogentviewer.models.Bitset
+.. automodule:: cogent.base.model.Bitset
    :members:
 
-.. automodule:: cogentviewer.models.host
+.. automodule:: cogent.base.model.host
    :members:
 
-.. automodule:: cogentviewer.models.lastreport
+.. automodule:: cogent.base.model.lastreport
    :members:
    
-.. automodule:: cogentviewer.models.rawmessage
+.. automodule:: cogent.base.model.rawmessage
    :members:
 
-.. automodule:: cogentviewer.models.weather
+.. automodule:: cogent.base.model.weather
    :members:
 
 
