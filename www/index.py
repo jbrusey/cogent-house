@@ -209,7 +209,7 @@ def allGraphs(typ="0",period="day"):
         s.append("</p>")
         
         is_empty = True
-        for (i, h, r) in session.query(Node.id, House.address, Room.name).join(House, Room).order_by(House.address, Room.name):
+        for (i, h, r) in session.query(Node.id, House.address, Room.name).join(Location, House, Room).order_by(House.address, Room.name):
             is_empty = False
 
             fr = session.query(Reading).filter(and_(Reading.nodeId==i,
@@ -357,7 +357,7 @@ def nodeGraph(node=None, typ="0", period="day"):
         except:
             mins = 1440
 
-        (n, h, r) = session.query(Node.id, House.address, Room.name).join(House, Room).filter(Node.id==int(node)).one()
+        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
             
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
@@ -395,7 +395,7 @@ def missing():
         s = ['<p>']
 
         report_set = set([int(x) for (x,) in session.query(distinct(NodeState.nodeId)).filter(NodeState.time > t).all()])
-        all_set = set([int(x) for (x,) in session.query(Node.id).join(House, Room).all()])
+        all_set = set([int(x) for (x,) in session.query(Node.id).join(Location, House, Room).all()])
         missing_set = all_set - report_set
         extra_set = report_set - all_set
 
@@ -407,13 +407,9 @@ def missing():
             s.append("<table border=\"1\">")
             s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Last Heard</th><th></th></tr>"  )
 
-            for (ns, maxtime) in session.query(NodeState,func.max(NodeState.time)).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,House,Room).order_by(House.address, Room.name).all():
-                n = ns.node
-                room = "unknown"
-                if n.room is not None:
-                    room = n.room.name
-                u = _url("unregisterNode", [('node', ns.nodeId)])
-                s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (ns.nodeId, n.house.address, room, str(maxtime), u))
+            for (ns, maxtime, nodeid, house, room) in session.query(NodeState,func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all():
+                u = _url("unregisterNode", [('node', nodeId)])
+                s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (nodeId, house, room, str(maxtime), u))
                   
 
             s.append("</table>")
@@ -471,29 +467,24 @@ def yield24():
         nodestateq = session.query(
             NodeState,
             func.count(NodeState),
-            func.max(NodeState.time)
+            func.max(NodeState.time),
+            House.address,
+            Room.name
             ).filter(NodeState.time > t
                      ).group_by(NodeState.nodeId
-                                ).join(Node,House,Room).order_by(House.address, Room.name).all()
+                                ).join(Node,Location,House,Room).order_by(House.address, Room.name).all()
 
-        for (ns, cnt, maxtime) in nodestateq:
+        for (ns, cnt, maxtime, house, room) in nodestateq:
 
-            n = ns.node
-            if n.house is not None:
-                yield_secs = (1 * 24 * 3600)
+            yield_secs = (1 * 24 * 3600)
 
-                y = (cnt) / (yield_secs / 300.0) * 100.0
+            y = (cnt) / (yield_secs / 300.0) * 100.0
 
-
-                room = 'unknown'
-                if n.room is not None:
-                    room = n.room.name
-                
-                values = [ns.nodeId, n.house.address, room, cnt, maxtime, y]
-                fmt = ['%d', '%s', '%s', '%d', '%s', '%8.2f']
-                s.append("<tr>")
-                s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
-                s.append("</tr>")
+            values = [ns.nodeId, house, room, cnt, maxtime, y]
+            fmt = ['%d', '%s', '%s', '%d', '%s', '%8.2f']
+            s.append("<tr>")
+            s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
+            s.append("</tr>")
 
 
         s.append("</table>")
@@ -519,11 +510,11 @@ def dataYield():
             try:
                 n = session.query(Node).filter(Node.id == nid).one()
                 try:
-                    house = n.house.address
+                    house = n.location.house.address
                 except:
                     house = '-'
                 try:
-                    room = n.room.name
+                    room = n.location.room.name
                 except:
                     room = '-'
             except:
@@ -610,8 +601,7 @@ def unregisterNode(node=None):
             raise Exception("unknown node id %d" % node)
         n = session.query(Node).filter(Node.id == int(node)).one()
 
-        n.houseId = None
-        n.roomId = None
+        n.locationId = None
         session.commit()
         return _redirect("missing")
     
@@ -636,8 +626,15 @@ def registerNodeSubmit(node=None, house=None, room=None):
 
         n = session.query(Node).filter(Node.id==int(node)).one()
 
-        n.houseId = int(house)
-        n.roomId = int(room)
+        ll = session.query(Location).filter(
+            and_(Location.houseId == int(house),
+                 Location.roomId == int(room))).first()
+
+        if ll is None:
+            ll = Location(houseId=int(house), roomId=int(room))
+            session.add(ll)
+            
+        n.location = ll
         session.commit()
         return _redirect("missing")
     
@@ -655,8 +652,7 @@ def unregisterNodeSubmit(node=None):
 
         n = session.query(Node).filter(Node.id == int(node)).one()
 
-        n.houseId = None
-        n.roomId = None
+        n.locationId = None
         session.commit()
         return _redirect("missing")
     
@@ -1052,7 +1048,7 @@ def _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTim
             dt = dtp
             t = preTN
             v = preV
-
+            
     
         #construct verts arrays
         paths=[]
@@ -1256,7 +1252,7 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
 
         # find all the electricity readings for House n for the required period
 
-        nodesInHouse = session.query(Node.id).join(Node.house).filter(House.id==int(house)).all()
+        nodesInHouse = session.query(Node.id).join(Location, House).filter(House.id==int(house)).all()
         nodesInHouse = [a for (a,) in nodesInHouse]
 
 
@@ -1282,7 +1278,7 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
 
             v = _calibrate(session, v, elec_node, 11)
 
-        (bathroomNode) = session.query(Node.id).join(Node.house, Node.room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
+        (bathroomNode) = session.query(Node.id).join(Location, House, Room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
 
         t2 = []
         v2 = []
