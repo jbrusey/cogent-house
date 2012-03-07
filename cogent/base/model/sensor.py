@@ -17,7 +17,7 @@ Base = meta.Base
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Float, Boolean
 from sqlalchemy.orm import relationship, backref
 
-class Sensor(Base):
+class Sensor(Base,meta.InnoDBMix):
     """ Class to deal with Sensor Objects
 
     :var Integer id: Id of Sensor
@@ -40,6 +40,7 @@ class Sensor(Base):
                    "label": "Sensor {0} ({1})".format(self.id,self.sensorType.name),
                    "name":  "Sensor {0} ({1})".format(self.id,self.sensorType.name),
                    "type":"sensor",
+                   "location": self.node.locationId,
                    "parent":"N_{0}".format(parentId),
                    "children":False,
                    }

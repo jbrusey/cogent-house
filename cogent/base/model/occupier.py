@@ -20,7 +20,7 @@ from sqlalchemy.orm import relationship, backref
 
 
 
-class Occupier(Base):
+class Occupier(Base,meta.InnoDBMix):
     """Class representing someone who lives in a house
     
     :var Integer id: Id

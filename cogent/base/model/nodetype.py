@@ -27,7 +27,7 @@ class BitsetType(types.TypeDecorator):
     def process_result_value(self, value, dialect):
         return Bitset.fromstring(value)
 
-class NodeType(Base):
+class NodeType(Base,meta.InnoDBMix):
     """Type of Node
     
     These values should remain relitively static as we only have a given number of nodetypes

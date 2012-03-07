@@ -22,7 +22,7 @@ from sqlalchemy import Table, Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship, backref
 
 
-class RawMessage(Base):
+class RawMessage(Base,meta.InnoDBMix):
     """A Raw Message
 
     :var Integer id: Id
@@ -31,6 +31,7 @@ class RawMessage(Base):
     """
 
     __tablename__ = "RawMessage"
+
 
     id = Column(Integer,primary_key=True,autoincrement=False)
     time = Column(DateTime)

@@ -20,7 +20,7 @@ from Bitset import Bitset
 
 
 
-class NodeHistory(Base):
+class NodeHistory(Base,meta.InnoDBMix):
     """
     Class to hold history of the node
 

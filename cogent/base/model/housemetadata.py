@@ -17,7 +17,7 @@ from sqlalchemy.orm import relationship, backref
 import datetime
 
 
-class HouseMetadata(Base):
+class HouseMetadata(Base,meta.InnoDBMix):
     """Table to hold Metadata about houses
 
     :var Integer id: id

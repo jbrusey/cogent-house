@@ -19,7 +19,7 @@ import sqlalchemy.types as types
 from Bitset import Bitset
 
 
-class Node(Base): 
+class Node(Base,meta.InnoDBMix): 
     """
     Class to hold detals of the nodes themselves
 
@@ -37,8 +37,10 @@ class Node(Base):
 
     id = Column(Integer, primary_key=True)
     locationId = Column(Integer,
-                        ForeignKey('Location.id'))     
-    nodeTypeId = Column(Integer, ForeignKey('NodeType.id'))  
+                        ForeignKey('Location.id'),
+                        nullable=True)     
+    nodeTypeId = Column(Integer, ForeignKey('NodeType.id'),
+                        nullable=True)  
   
     stateHistory = relationship("NodeState", order_by="NodeState.id",backref="node")
     nodeHistory = relationship("NodeHistory",backref="node")
@@ -51,12 +53,12 @@ class Node(Base):
 
 
     def asJSON(self,parentId=""):
-
+        """Adds a Location Parameter to make sure we can link back to location when we come to get the data"""
         theDict = {"id": "N_{0}".format(self.id),
-                   "label": "Node {0}".format(self.id),
                    "name": "Node {0}".format(self.id),
                    "type":"node",
-                   "parent":"R_{0}".format(parentId),
+                   "parent":"L_{0}".format(parentId),
+                   "location": self.locationId,
                    "children":False,
                    }
 

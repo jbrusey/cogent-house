@@ -17,7 +17,7 @@ Base = meta.Base
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Float, Boolean
 from sqlalchemy.orm import relationship, backref
 
-class SensorType(Base):
+class SensorType(Base,meta.InnoDBMix):
     """ Represent Sensor Types
 
     .. note ::

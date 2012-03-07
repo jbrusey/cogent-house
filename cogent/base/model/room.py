@@ -17,13 +17,8 @@ from sqlalchemy.orm import relationship, backref
    
 #Association object linking rooms and nodes. gives a many to many.
 #It also means we can work out what Nodes were in What Rooms at a given time
-NodeRoom = sqlalchemy.Table("nodeRoom",Base.metadata,
-                            Column("id",Integer,primary_key=True),
-                            Column("roomId",Integer,ForeignKey("Room.id")),
-                            Column("nodeId",Integer,ForeignKey("Node.id")),
-                            )
 
-class Room(Base):
+class Room(Base,meta.InnoDBMix):
     """
     A room in a :class:`cogentviewer.models.house.House`
     
@@ -41,13 +36,11 @@ class Room(Base):
 
     location = relationship("Location",backref="room")
 
-    #NEW added a link to nodes via the NodeRoom Table
-    nodes = relationship("Node",secondary = "nodeRoom",backref="rooms")
 
     def asJSON(self,parentId=""):
         theItem = {"id":"R_{0}".format(self.id),
-                   "label": "{0} ({1})".format(self.name,self.roomtype.name),
-                   "name": "{0} ({1})".format(self.name,self.roomtype.name),
+                   "label": "{0} ({1})".format(self.name,self.roomType.name),
+                   "name": "{0} ({1})".format(self.name,self.roomType.name),
                    "type":"room",
                    "parent": "H_{0}".format(parentId),
                    "children":False

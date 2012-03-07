@@ -1,5 +1,5 @@
 """
-Table to hold details of Weathers
+Table to hold details of Weather
 
 .. module:: weather
 
@@ -22,7 +22,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Dat
 from sqlalchemy.orm import relationship, backref
 
 
-class Weather(Base):
+class Weather(Base,meta.InnoDBMix):
     """
     Table to deal with Weather
 
