@@ -1,302 +1,355 @@
-"""Metaclass to initiate all objects and start the database.
+"""Metaclass to bring everything together in a simulation of a Pyramid environment
 
 This really just makes sure all database code is in the same place
 meaing the DB is consistently intiataed in all test cases.
 """
 
-
-"""
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-
-engine = sqlalchemy.create_engine("sqlite:///:memory:",echo=False)
-Base.metadata.create_all(engine)
-Session = sqlalchemy.orm.sessionmaker(bind=engine)
-
-    
-#Create our Test Objects
-session = Session()
-
-"""
-
-#CONFIG
-DB_URL = 'sqlite:///:memory:'
-
 #sqlalchemy Imports
 import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
+import sys
+import os
+import unittest
+
+
+viewer = False
+
+
+
+DBURL = 'mysql://root:Ex3lS4ga@localhost/testStore'
+#DBURL = 'sqlite:///:memory:'
+DBURL = "sqlite:///test.db"
 
 try:
+    import cogentviewer
+    viewer = True
+except:
+    print "Using Base Namespace"
+
+if viewer:
+    from pyramid import testing
+    import transaction
+    import cogentviewer.models as models
+    import cogentviewer.models.meta as meta
+    config = testing.setUp()
+    config.scan('cogentviewer.models')
+else:
     import cogent
-except ImportError:
-    #Assume we are running from the test directory
-    #print "Unable to Import Cogent Module Appending Path"
-    import sys
-    sys.path.append("../")
+    import cogent.base.model as models
+    import cogent.base.model.meta as meta    
 
-#Import our Base Metadata etc
-#from cogent.base.model import *
-#Base = cogent.models.
-#from cogent.base.model.meta import Session, Base
-from cogent.base.model.meta import Base
-
-engine = sqlalchemy.create_engine(DB_URL)#,echo=True)
-Base.metadata.create_all(engine)
-
+engine = create_engine(DBURL)
+models.initialise_sql(engine)
 Session = sqlalchemy.orm.sessionmaker(bind=engine)
-#print engine
 
 import datetime
-try:
-    import cogent
-except ImportError:
-    #Assume we are running from the test directory
-    print "Unable to Import Cogent Module Appending Path"
-    import sys
-    sys.path.append("../")
 
-import cogent.base.model as models
 
+class BaseTestCase(unittest.TestCase):
+    """
+    Deal with tables in the house module
+    """
+    @classmethod
+    def setUpClass(self):
+        """Called the First time this class is called.
+        This means that we can Init the testing database once per testsuite
+        """
+        createTestDB()
+
+    def setUp(self):
+        """Called each time a test case is called, I wrap each
+        testcase in a transaction, this means that nothing is saved to
+        the database between testcases, while still allowing "fake" commits
+        in the individual testcases.
+
+        This means there should be no unexpected items in the DB."""
+        #Pyramid Version
+        try:
+            self.config = testing.setUp()
+        except:
+            pass
+        connection = engine.connect()
+        self.transaction = connection.begin()
+        self.session = Session()
+        self.session.bind=connection
+
+    def tearDown(self):
+        """
+        Called after each testcase,
+        Uncommits any changes that test case made
+        """
+        
+        #Pyramid
+        try:
+            self.transaction.abort()
+            testing.tearDown()
+        except:
+            self.transaction.rollback()
+            self.session.close()
+
+
+#Build a complete testing database
 def createTestDB():
-    """Function to populate a testing DB"""
-    #session = meta.Session()    
     session = Session()
-    #transaction.begin()
-    #First Create a Deployment
 
     now = datetime.datetime.now()
-
+    deploymentEnd = now + datetime.timedelta(days=2)
+    house2Start = now + datetime.timedelta(days=1)
+    
+    
     #See if we need to add these items
-    theQry = session.query(models.Deployment).filter_by(name="test").first()
-    if theQry is not None:
-        return True
+    theDeployment = session.query(models.Deployment).filter_by(name="test").first()
+    #if theQry is not None:
+    #    return True
+    if theDeployment is None:
+        theDeployment = models.Deployment(name="test",
+                                          description="testing",
+                                          startDate = now,
+                                          endDate = deploymentEnd,
+                                          )
+
+        session.add(theDeployment)
+        session.flush()
+    else:
+        theDeployment.update(startDate=now,
+                             endDate=deploymentEnd)
     
-
-    theDeployment = models.Deployment(name="test",
-                                      description="testing",
-                                      startDate = now,
-                                      endDate = now + datetime.timedelta(days=2),
-                                      )
-
-    session.add(theDeployment)
-    session.flush()
     #I Also want to add a couple of houses
-    house1 = models.House(deploymentId = theDeployment.id,
-                          address = "add1",
-                          startDate = now,
-                          endDate = now+datetime.timedelta(days=1),
-                          )
+    #The First House runs for One day
+    house1 = session.query(models.House).filter_by(address="add1").first()
+    if house1 is None:
+        house1 = models.House(deploymentId = theDeployment.id,
+                              address = "add1",
+                              startDate = now,
+                              endDate = deploymentEnd,
+                              )
+        session.add(house1)
+    else:
+        house1.update(startDate = now,
+                      endDate = deploymentEnd)
 
-    house2 = models.House(deploymentId = theDeployment.id,
-                          address = "add2",
-                          startDate = now+datetime.timedelta(days=1),
-                          endDate = now+datetime.timedelta(days=2),
-                          )
+    house2 = session.query(models.House).filter_by(address="add2").first()
+    if house2 is None:
+        house2 = models.House(deploymentId = theDeployment.id,
+                              address = "add2",
+                              startDate = house2Start,
+                              endDate = deploymentEnd,
+                              )
+        session.add(house2)
+    else:
+        house2.update(startDate = house2Start,
+                      endDate = deploymentEnd)
 
-    session.add(house1)
-    session.add(house2)
     session.flush()
-
-    #Lets Say that each room has a bedroom and a bathroom...
-
-    # create types
-    bedType = models.RoomType(name="bedroom")
-    bathType = models.RoomType(name="bathroom")
     
-    #Rooms themselves
-    bed1 = models.Room(name="Bedroom_H1")
-    bed2 = models.Room(name="Bedroom_H2")
-    bed1.roomtype = bedType
-    bed2.roomtype = bedType
+    #Lets Add Some Rooms (Using Bruseys new Room Paradigm)
+
+    #Get the Relevant Room Types
+    bedroomType = session.query(models.RoomType).filter_by(name="Bedroom").first()
+    if bedroomType is None:
+        bedroomType = models.RoomType(name="Bedroom")
+        session.add(bedroomType)
+
+    livingType = session.query(models.RoomType).filter_by(name="Living Room").first()
+    if livingType is None:
+        livingType = models.RoomType(name="Living Room")
+        session.add(livingType)
+
+    session.flush()
+
+    #And the Specific Rooms themselves
+    masterBed = session.query(models.Room).filter_by(name="Master Bedroom").first()
+    if masterBed is None:
+        #(Note) We can either add room type by Id
+        masterBed = models.Room(name="Master Bedroom",roomTypeId=bedroomType.id)
+        session.add(masterBed)
+
+    secondBed = session.query(models.Room).filter_by(name="Second Bedroom").first()
+    if secondBed is None:
+        #Or We can do it the easier way
+        secondBed = models.Room(name="Second Bedroom")
+        secondBed.roomType = bedroomType
+        session.add(secondBed)
     
-    session.add(bed1)
-    session.add(bed2)
+    #Add a Living Room too
+    livingRoom = session.query(models.Room).filter_by(name="Living Room").first()
+    if livingRoom is None:
+        livingRoom = models.Room(name="Living Room")
+        livingRoom.roomType = livingType
+        session.add(livingRoom)
+        
+    session.flush()
 
-    bath1 = models.Room(name="bathroom",roomType = bathType)
-    bath2 = models.Room(name="bathroom",roomType = bathType)
-    session.add(bath1)
-    session.add(bath2)
+    #Each House Should have a Master Bed room
+    loc1_Master = session.query(models.Location).filter_by(houseId=house1.id,roomId = masterBed.id).first()
+    if loc1_Master is None:
+        loc1_Master = models.Location(houseId = house1.id,
+                                    roomId = masterBed.id)
+        session.add(loc1_Master)
+
+    loc2_Master = session.query(models.Location).filter_by(houseId=house2.id,roomId = masterBed.id).first()
+    if loc2_Master is None:
+        loc2_Master = models.Location(houseId = house2.id,
+                                    roomId = masterBed.id)
+        session.add(loc2_Master)
+
+    #Each House Should Also have a Living Rooms
+    loc1_Living = session.query(models.Location).filter_by(houseId=house1.id,roomId=livingRoom.id).first()
+    if loc1_Living is None:
+        loc1_Living = models.Location(houseId = house1.id,
+                                      roomId = livingRoom.id)
+        session.add(loc1_Living)
+
+    loc2_Living = session.query(models.Location).filter_by(houseId=house2.id,roomId=livingRoom.id).first()
+    if loc2_Living is None:
+        loc2_Living = models.Location(houseId = house2.id,
+                                      roomId = livingRoom.id)
+        session.add(loc2_Living)
+
+    #And Lets be Generous and Give the First House a Second Bedroom
+    loc1_Second = session.query(models.Location).filter_by(houseId = house1.id,
+                                                           roomId = secondBed.id).first()
+    if loc1_Second is None:
+        loc1_Second = models.Location(houseId = house1.id,
+                                      roomId = secondBed.id)
+        session.add(loc1_Second)
+
+
 
     session.flush()
-    #Finally tie these rooms to a location
 
-    locBed1 = models.Location(houseId = house1.id,
-                              roomId = bed1.id)
-    locBath1 = models.Location(houseId = house1.id,
-                               roomId = bath1.id)
-    locBed2 = models.Location(houseId = house2.id,
-                              roomId = bed2.id)
-    locBath2 = models.Location(houseId = house2.id,
-                               roomId = bath2.id)
-    session.add(locBed1)
-    session.add(locBed2)
-    session.add(locBath1)
-    session.add(locBath2)
+    #Create Nodes and Sensors
     
+    node37 = session.query(models.Node).filter_by(id=37).first()
+    if node37 is None:
+        node37 = models.Node(id=37)
+        session.add(node37)
+
+    node38 = session.query(models.Node).filter_by(id=38).first()
+    if node38 is None:
+        node38 = models.Node(id=38)
+        session.add(node38)
+
+    node39 = session.query(models.Node).filter_by(id=39).first()
+    if node39 is None:
+        node39 = models.Node(id=39)
+        session.add(node39)
+
+    node40 = session.query(models.Node).filter_by(id=40).first()
+    if node40 is None:
+        node40 = models.Node(id=40)
+        session.add(node40)
+
+    node69 = session.query(models.Node).filter_by(id=69).first()
+    if node69 is None:
+        node69 = models.Node(id=69)
+        session.add(node69)
+
+    node70 = session.query(models.Node).filter_by(id=70).first()
+    if node70 is None:
+        node70 = models.Node(id=70)
+        session.add(node70)
+
+
+    #We want to work only with temperature database
+    tempType = session.query(models.SensorType).filter_by(name="Temperature").first()   
+    if tempType is None:
+        tempType = models.SensorType(id=0,name="Temperature")
+        session.add(tempType)
     session.flush()
 
+    #To make iterating through locations a little easier when adding samples
+    locs = [node37,node38,node39,node40,node69,node70]
     
-    #We want some sensor types 
-    tempSensor = models.SensorType(id=101,name="temp") 
-    humSensor = models.SensorType(id=102,name="hum")
-    vocSensor = models.SensorType(id=103,name="voc")
-    session.add(tempSensor)
-    session.add(humSensor)
-    session.add(vocSensor)
-
-    #Node Types
-    stdNode = models.NodeType(id=101,
-                              name="stdNode")
-    vocNode = models.NodeType(id=102,
-                             name="vocNode")
-    session.add(stdNode)
-    session.add(vocNode)
+    #While Technically it would be a good idea to have sensor's 
+    #We may be able to get away with just having sensor types
+    #However they are needed for the Visualiser so we can add them here.
+    for item in locs:
+        theSensor = session.query(models.Sensor).filter_by(sensorTypeId =tempType.id,
+                                                           nodeId=item.id).first()
+        if theSensor is None:
+            theSensor = models.Sensor(sensorTypeId=tempType.id,
+                                      nodeId=item.id,
+                                      calibrationSlope=1,
+                                      calibrationOffset=0)
+            session.add(theSensor)
+        
     session.flush()
-                             
-    #And Some Nodes
-    nodeBed1 = models.Node(id=111,
-                           locationId=locBed1.id,
-                           nodeTypeId=stdNode.id)
-    nodeBath1 = models.Node(id=121,
-                            locationId=locBath1.id,
-                            nodeTypeId=stdNode.id)
 
-    bed1.nodes.append(nodeBed1)
-    bath1.nodes.append(nodeBath1)
-    session.add(nodeBed1)
-    session.add(nodeBath1)
+    #Zap all old data
+    for item in locs:
+        theQry = session.query(models.Reading).filter_by(nodeId=item.id,
+                                                         typeId=tempType.id)
+        theQry.delete()
 
-    #Make it a bit trickier as we have two nodes in this bedroom
-    nodeBed21 = models.Node(id=211,
-                            locationId = locBed2.id,
-                            nodeTypeId = stdNode.id)
-    nodeBed22 = models.Node(id=212,
-                            locationId = locBed2.id,
-                            nodeTypeId = vocNode.id)
+    #Next Add some data for each node
 
-    bed2.nodes.append(nodeBed21)
-    bed2.nodes.append(nodeBed22)
-    session.add(nodeBed21)
-    session.add(nodeBed22)
-    #We also Reuse the Node that was in Bath1, and move it into Bath2
-    # nodeBath2 = models.Node(id=221,
-    #                        locationId = locBath2.id,
-    #                        nodeTypeId = stdNode.id)
+    #Deployment 1 Lasts for 2 Days, Pretend we have a sampling rate of 1 samples per hour
+    #Match Nodes and Locations (1 Node for Each Bedroom + 2 in the Living Room)
+    node37.location = loc1_Master
+    node38.location = loc1_Second
+    node39.location = loc1_Living
+
+    session.flush()
     
-    bath2.nodes.append(nodeBath1)
-    nodeBath1.locationId = locBath2.id
+    #Add Data (Deal with node 40 seperately as this is a corner case
+
+    locs = [node37,node38,node39]
+    for x in range(2*24):
+    #for x in range(3):
+        insertDate = now+datetime.timedelta(hours = x)
+        for item in locs:
+            #Composite Key not working in Reading
+            session.add(models.Reading(time=insertDate,
+                                       nodeId=item.id,
+                                       typeId=tempType.id,
+                                       locationId=item.location.id,
+                                       value=item.id + x))
     session.flush()
 
-    #And Some Sensors 
-    #Node Bed1( Std Sensor)
-    session.add(models.Sensor(sensorTypeId = tempSensor.id,
-                              nodeId = nodeBed1.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
-    session.add(models.Sensor(sensorTypeId = humSensor.id,
-                              nodeId = nodeBed1.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
-    #Node Bath 2 (std)
-    session.add(models.Sensor(sensorTypeId = tempSensor.id,
-                              nodeId = nodeBath1.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 1.0))
-    session.add(models.Sensor(sensorTypeId = humSensor.id,
-                              nodeId = nodeBath1.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
-    #Node Bed21 (std)
-    session.add(models.Sensor(sensorTypeId = tempSensor.id,
-                              nodeId = nodeBed21.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
-    session.add(models.Sensor(sensorTypeId = humSensor.id,
-                              nodeId = nodeBed21.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
-
-    #Node Bed22 (voc)
-    session.add(models.Sensor(sensorTypeId = tempSensor.id,
-                              nodeId = nodeBed22.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
-    session.add(models.Sensor(sensorTypeId = humSensor.id,
-                              nodeId = nodeBed22.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
-    session.add(models.Sensor(sensorTypeId = vocSensor.id,
-                              nodeId = nodeBed22.id,
-                              calibrationSlope = 1.0,
-                              calibrationOffset = 0.0))
+    #But we also get overZealous with Node 40
+    #For the first week it is in the Living Room
+    node40.location = loc1_Living
+    for x in range(1*24):
+        insertDate = now+datetime.timedelta(hours = x)
+        session.add(models.Reading(time =insertDate,
+                                   nodeId=node40.id,
+                                   typeId=tempType.id,
+                                   locationId=node40.location.id,
+                                   value=node40.id+x))
 
     session.flush()
-    #Finally we want some readings to keep It simple we will just focus temperature sensors
-    
-    #For all Nodes
-    #Type Id = 101
-    #Location (Derive from NodeID)
+    #But we then move it to the Master Bedroom
+    node40.location = loc1_Master
+    for x in range(1*24):
+        insertDate = house2Start+datetime.timedelta(hours = x)
+        session.add(models.Reading(time =insertDate,
+                                   nodeId=node40.id,
+                                   typeId=tempType.id,
+                                   locationId=node40.location.id,
+                                   value=node40.id+(24+x)))
 
-
-    #Reading is, time,nodeid,typeid,locationid,value
-
-    #Deal with the first House
-    for x in range(10):
-        #Bedroom [House1 (0-1week) Bed 1.1 (Nodeid = 111) (LocBed1)]
-        theReading = models.Reading(time=now+datetime.timedelta(seconds=x*60),
-                                    nodeId=111,
-                                    typeId=tempSensor.id,
-                                    locationId=locBed1.id,
-                                    value=1.0)
-        session.add(theReading)
-
-        #And the bathroom [121]
-        theReading = models.Reading(time=now+datetime.timedelta(seconds=x*60),
-                                    nodeId=121,
-                                    typeId=tempSensor.id,
-                                    locationId=locBath1.id,
-                                    value=1.0)
-        session.add(theReading)
-                                    
-
+    #TODO: Our Data for the Living room node 40 disapears in the visualiser
     session.flush()
 
-    #And the Second House
-    secondTime = now+datetime.timedelta(days=1)
-    for x in range(10):
-        #Bed 2.2 (1-2week) Bed 2.2 (Nodeid = 211)  
-        theReading = models.Reading(time=secondTime+datetime.timedelta(seconds=x*60),
-                                    nodeId=211,
-                                    typeId=tempSensor.id,
-                                    locationId=locBed2.id,
-                                    value=1.0)
-        session.add(theReading)
+    #We then Go to Deployment 2 it lasts for 1 day
+    #Match nodes and Locations 1 Node in Bed and Living Room
+    node69.location = loc2_Master
+    node70.location = loc2_Living
 
-        theReading = models.Reading(time=secondTime+datetime.timedelta(seconds=x*60),
-                                    nodeId=212,
-                                    typeId=tempSensor.id,
-                                    locationId=locBed2.id,
-                                    value=2.0)
-        session.add(theReading)
-
-        #And the bathroom [121]
-        theReading = models.Reading(time=secondTime+datetime.timedelta(seconds=x*60),
-                                    nodeId=121,
-                                    typeId=tempSensor.id,
-                                    locationId=locBath2.id,
-                                    value=2.0)
-        session.add(theReading)
-                                    
-
+    locs = [node69,node70]
+    for x in range(1*24):
+    #for x in range(3):
+        insertDate = house2Start+datetime.timedelta(hours = x)
+        for item in locs:
+            #Composite Key not working in Reading
+            session.add(models.Reading(time=insertDate,
+                                       nodeId=item.id,
+                                       typeId=tempType.id,
+                                       locationId=item.location.id,
+                                       value=item.id + x))
     session.flush()
-
-#    import pprint
-#    pprint.pprint(theDeployment.flatten())    
-
     session.commit()
-    #transaction.commit()
-
-
-    
-    
+    session.close()

@@ -19,34 +19,20 @@ import datetime
 #Python Module Imports
 import sqlalchemy.exc
 
-try:
-    import cogent
-except ImportError:
-    #Assume we are running from the test directory
-    print "Unable to Import Cogent Module Appending Path"
-    import sys
-    sys.path.append("../")
+import testmeta
 
-#Are we working from the base version
-try:
-    import cogent.base.model as models
-    import testmeta
-    Session = testmeta.Session
-    engine = testmeta.engine
-except ImportError,e:
-    print "Unable to Import Cogent.base.models Assuming running from Pyramid"
-    print "Error was {0}".format(e)
+print "TEST META IS {0}".format(testmeta)
+print "MODELS ARE {0}".format(testmeta.models)
+print "META is {0}".format(testmeta.meta)
 
-#Or the Pyramid Version
-try:
+print "TETMETA viewer {0}".format(testmeta.viewer)
+
+models = testmeta.models
+
+if testmeta.viewer:
+    #If we are dealing with the viewer class
     from pyramid import testing
-    import cogentviewer.models as models
-    import cogentviewer.models.meta as meta
-    import testmeta
     import transaction
-except ImportError,e:
-    print "Unable to Import Pyramid, Assuming we are working in the Base directory"
-    print "Error was {0}".format(e)
 
 class TestHouse(unittest.TestCase):
     """
@@ -66,7 +52,6 @@ class TestHouse(unittest.TestCase):
         in the individual testcases.
 
         This means there should be no unexpected items in the DB."""
-
         #Pyramid Version
         try:
             self.config = testing.setUp()
@@ -76,9 +61,10 @@ class TestHouse(unittest.TestCase):
         except:
             #We have to do it slightly different for non pyramid applications.
             #We do however get the same functionality.
-            connection = engine.connect()
+            connection = testmeta.engine.connect()
             self.transaction = connection.begin()
-            self.session = Session(bind=connection)
+            self.session = testmeta.Session()
+            self.session.bind=connection
 
     def tearDown(self):
         """
@@ -172,50 +158,25 @@ class TestHouse(unittest.TestCase):
 
         theDeployment = session.query(models.Deployment).first()
         for item in houses:
+            #Is the the Right Deployment
             self.assertEqual(item.deployment,theDeployment)
-            self.assertEqual(len(item.locations),2)
+            #And Do we have some locations
+            self.assertGreater(len(item.locations),1)
 
-        #And Test Individaul Locations
+        #And Test the Locations we have for each house are as expected
         theHouse = session.query(models.House).filter_by(address="add1").first()
         roomNames = [x.name for x in theHouse.getRooms()]
-        #roomNames = [x.room.name for x in theHouse.locations]
 
-        #Make sure these are as expectedFailure
-        expectedNames = ["Bedroom_H1","bathroom"]
+        #Make sure these are as expected
+        expectedNames = ["Master Bedroom","Second Bedroom","Living Room"]
         self.assertItemsEqual(roomNames,expectedNames)
 
-        
+        #Try it a second way
         theHouse = session.query(models.House).filter_by(address="add2").first()
-        #roomNames = [x.room.name for x in theHouse.locations]
-        roomNames = [x.name for x in theHouse.getRooms()]
-        expectedNames = ["bathroom","Bedroom_H2"]
+        roomNames = [x.room.name for x in theHouse.locations]
+        expectedNames = ["Master Bedroom","Living Room"]
         self.assertItemsEqual(roomNames,expectedNames)
 
-        # print ""
-        # print "+"*40
-        # print theHouse.locations
-        # print roomNames
-        # print "+"
-
-
-
-        # print ""
-        # print "~"*40
-        # print "-- Room Types --"
-        # theQry = session.query(models.RoomType).all()
-        # for item in theQry:
-        #     print item
-
-        # print "-- Rooms --"
-        # theQry = session.query(models.Room).all()
-        # for item in theQry:
-        #     print item
-        
-        # print "-- Locations --"
-        # theQry = session.query(models.Location).all()
-        # for item in theQry:
-        #     print item
-        # print "~"*40
 
 if __name__ == "__main__":
     unittest.main()

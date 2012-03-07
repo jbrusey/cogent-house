@@ -19,35 +19,22 @@ import datetime
 #Python Module Imports
 import sqlalchemy.exc
 
-try:
-    import cogent
-except ImportError:
-    #Assume we are running from the test directory
-    print "Unable to Import Cogent Module Appending Path"
-    import sys
-    sys.path.append("../")
+#Get the Namespaces sorted out
 
-#Are we working from the base version
-try:
-    import cogent.base.model as models
-    import testmeta
-    Session = testmeta.Session
-    engine = testmeta.engine
-except ImportError,e:
-    print "Unable to Import Cogent.base.models Assuming running from Pyramid"
-    print "Error was {0}".format(e)
+import testmeta
 
-#Or the Pyramid Version
-try:
+print "TEST META IS {0}".format(testmeta)
+print "MODELS ARE {0}".format(testmeta.models)
+print "META is {0}".format(testmeta.meta)
+
+print "TETMETA viewer {0}".format(testmeta.viewer)
+
+models = testmeta.models
+
+if testmeta.viewer:
+    #If we are dealing with the viewer class
     from pyramid import testing
-    import cogentviewer.models as models
-    import cogentviewer.models.meta as meta
-    import testmeta
     import transaction
-except ImportError,e:
-    print "Unable to Import Pyramid, Assuming we are working in the Base directory"
-    print "Error was {0}".format(e)
-
 
 class TestDeployment(unittest.TestCase):
     """
@@ -77,9 +64,10 @@ class TestDeployment(unittest.TestCase):
         except:
             #We have to do it slightly different for non pyramid applications.
             #We do however get the same functionality.
-            connection = engine.connect()
+            connection = testmeta.engine.connect()
             self.transaction = connection.begin()
-            self.session = Session(bind=connection)
+            self.session = testmeta.Session()
+            self.session.bind=connection
 
     def tearDown(self):
         """
@@ -203,23 +191,16 @@ class TestDeployment(unittest.TestCase):
         session = self.session
 
         theDeployment = session.query(models.Deployment).first()
-        #print ""
-        #print "~"*40
-        print theDeployment
-
 
         self.assertIsInstance(theDeployment,models.Deployment)
         
         #And Fetch Houses
         theHouses = session.query(models.House).all()
-        #print theHouses
 
         self.assertEqual(theHouses,theDeployment.houses)
-        #print "~"*40
 
         for item in theDeployment.houses:
             self.assertEqual(item.deployment, theDeployment)
-
 
 if __name__ == "__main__":
     unittest.main()
