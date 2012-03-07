@@ -5,11 +5,7 @@ Testing for the Deployment Module
 """
 
 """
-Unfortunately there is quite a bit of try,except blocks here.
-This does mean that the same test cases can be shared between the
-Pyramid Code, and the Standard Version
 
-If anyone comes up with a better way then let me know.
 """
 
 #Python Library Imports
@@ -21,65 +17,10 @@ import sqlalchemy.exc
 
 import testmeta
 
-print "TEST META IS {0}".format(testmeta)
-print "MODELS ARE {0}".format(testmeta.models)
-print "META is {0}".format(testmeta.meta)
-
-print "TETMETA viewer {0}".format(testmeta.viewer)
-
 models = testmeta.models
 
-if testmeta.viewer:
-    #If we are dealing with the viewer class
-    from pyramid import testing
-    import transaction
 
-class TestHouse(unittest.TestCase):
-    """
-    Deal with tables in the house module
-    """
-    @classmethod
-    def setUpClass(self):
-        """Called the First time this class is called.
-        This means that we can Init the testing database once per testsuite
-        """
-        testmeta.createTestDB()
-
-    def setUp(self):
-        """Called each time a test case is called, I wrap each
-        testcase in a transaction, this means that nothing is saved to
-        the database between testcases, while still allowing "fake" commits
-        in the individual testcases.
-
-        This means there should be no unexpected items in the DB."""
-        #Pyramid Version
-        try:
-            self.config = testing.setUp()
-            #Wrap In Transaction to ensure nothing gets saved between test cases
-            self.transaction = transaction.begin()
-            self.session = meta.Session
-        except:
-            #We have to do it slightly different for non pyramid applications.
-            #We do however get the same functionality.
-            connection = testmeta.engine.connect()
-            self.transaction = connection.begin()
-            self.session = testmeta.Session()
-            self.session.bind=connection
-
-    def tearDown(self):
-        """
-        Called after each testcase,
-        Uncommits any changes that test case made
-        """
-        
-        #Pyramid
-        try:
-            self.transaction.abort()
-            testing.tearDown()
-        except:
-            self.transaction.rollback()
-            self.session.close()
-
+class TestHouse(testmeta.BaseTestCase):
     def testHouse(self):
         """Can we Create Houses"""
         
