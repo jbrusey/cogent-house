@@ -318,12 +318,18 @@ def init_data():
     print "Done"
 
 
-def initialise_sql(engine):
-    """Initialise the database, standard Pyramid Code"""
+def initialise_sql(engine,dropTables=False):
+    """Initialise the database
+
+    :param engine: Engine to use for the database
+    :param dropTables: Do we want to clean the database out or not
+    """
     Session.configure(bind=engine)
     Base.metadata.bind=engine
     #Deployment.create(engine)
-    #Base.metadata.drop_all(engine)
+    if dropTables:
+        Base.metadata.drop_all(engine)
+
     Base.metadata.create_all(engine)
     init_data()
 
