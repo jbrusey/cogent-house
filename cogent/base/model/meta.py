@@ -29,3 +29,34 @@ except ImportError:
 
 # The declarative Base
 Base = declarative_base()
+
+class InnoDBMix(object):
+    """
+    Base class for all models used in the viewer.
+    
+    This class defines standard functionality that should be included in 
+    all modules.
+
+    Additionally, table arguments are given, making sure that any new
+    tables created use the InnoDB engine
+    """
+    
+    
+    __table_args__ = {'mysql_engine': 'InnoDB',
+                      'mysql_charset':'utf8'}
+
+
+    def update(self,**kwargs):
+        """
+        Update an object using keyword arguments
+        
+        .. code-block::
+
+	    foo = Template() # Create a blank object
+	    foo.update(id=5,value=10) # Set id and value to 5,10 respectively
+        """
+        for key,value in kwargs.iteritems():
+            setattr(self,key,value)
+
+
+

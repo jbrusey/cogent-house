@@ -1,19 +1,26 @@
 """
 Classes to initialise the SQL and populate with default Sensors
 
-:version: 0.3
+:version: 0.4
 :author: Dan Goldsmith
 :date: Feb 2012
 
+:since 0.4:  Models updated to use Mixin Class, This should ensure all new tables are created using INNODB
 """
 
 import logging
 log = logging.getLogger(__name__)
+#log.setLevel(logging.WARNING)
 
 import csv
 import os
 
 from sqlalchemy.exc import IntegrityError
+
+try:
+    import transaction
+except:
+    "Unable to import Transaction must close sessions properly"
 
 from meta import *
 
@@ -44,8 +51,12 @@ def populateSensorTypes():
     if they do not already exist.
     """
     log.debug("Populating Sensors")
-    session = Session()
-    #transaction.begin()
+    session = meta.Session()
+    try:
+        transaction.begin()
+    except:
+        session = meta.Session()
+        pass
 
     sensorList = [SensorType(id=0,name="Temperature",
                             code="T",
@@ -159,6 +170,13 @@ def populateSensorTypes():
     for item in sensorList:
         session.merge(item)
 
+    session.flush()
+    try:
+        transaction.commit()
+    except:
+        session.commit()
+        session.close()
+
 
 def _parseCalibration(filename,sensorcode):
     """Helper method to Parse a sensor calibration file
@@ -169,7 +187,11 @@ def _parseCalibration(filename,sensorcode):
     
     log.debug("Updating Cooeficents from {0}".format(filename))
 
-    session = Session()        
+    session = meta.Session() 
+    try:
+        transaction.begin()
+    except:
+        pass
 
     theFile = "{0}.csv".format(filename)
     thePath = os.path.join("cogentviewer","calibration",theFile)
@@ -201,27 +223,39 @@ def _parseCalibration(filename,sensorcode):
         m = float(m)
         c = float(c)
         
+        #Check if we know about this Node
+        theNode = session.query(Node).filter_by(id = nodeId).first()
+        if theNode is None:
+            #Create a new Node
+            theNode = Node(id=nodeId)
+            #log.debug("--> Creating Node {0}".format(theNode))
+            session.add(theNode)
+        
+        
         #Check if we know about this sensor
-        theQry = session.query(Sensor).filter_by(sensorTypeId = sensorType.id,
-                                                 nodeId = nodeId).first()
+        theSensor = session.query(Sensor).filter_by(sensorTypeId = sensorType.id,
+                                                    nodeId = nodeId).first()
 
-        if theQry is None:
+        if theSensor is None:
             #Add a new Sensor
-
             theSensor = Sensor(sensorTypeId = sensorType.id,
                                nodeId = nodeId,
                                calibrationSlope = m,
                                calibrationOffset = c)
             session.add(theSensor)
-            log.debug("Adding New Sensor {0}".format(theSensor))
+            #log.debug("Adding New Sensor {0}".format(theSensor))
 
         else:
             #Update the Sensor ?
-            theQry.calibrationSlope = m
-            theQry.calibrationOffset = c
-            
-    session.flush()
+            theSensor.calibrationSlope = m
+            theSensor.calibrationOffset = c
 
+    session.flush()
+    try:
+        transaction.commit()
+    except:
+        session.commit()
+        session.close()
 
 def populateCalibration():
     """
@@ -235,14 +269,27 @@ def populateCalibration():
                   ("hum_coeffs","RH"),
                   ("temp_coeffs","T"),
                   ("voc_coeffs","VOC")]
+
+
     for item in calibFiles:
-        _parseCalibration(item[0],item[1])
+        #_parseCalibration(item[0],item[1])
+        try:
+            _parseCalibration(item[0],item[1])
+        except Exception,e:
+            print "Unable to parse Calibration file {0}".format(e)
+            log.warning("Unable to parse Calibration {0}".format(e))
+
 
 
 def populateRoomTypes():
     """Add Some Default Room Types"""
     log.debug("Populating room types")
-    session = Session()
+    session = meta.Session()
+
+    try:
+        transaction.begin()
+    except:
+        pass
 
     roomList = ["Bedroom",
                 "Bathroom",
@@ -256,18 +303,31 @@ def populateRoomTypes():
             session.add(RoomType(name=item))
             
     session.flush()
-
+    try:
+        transaction.commit()
+    except:
+        session.commit()
+        session.close()
         
+
+def init_data():
+    print "Populating Data"
+    populateSensorTypes()
+    populateRoomTypes()
+    populateCalibration()
+    print "Done"
+
 
 def initialise_sql(engine):
     """Initialise the database, standard Pyramid Code"""
     Session.configure(bind=engine)
     Base.metadata.bind=engine
+    #Deployment.create(engine)
+    #Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    
-    populateSensorTypes()
-    populateCalibration()
-    populateRoomTypes()
+    init_data()
+
+   
 
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""

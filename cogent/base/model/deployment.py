@@ -21,7 +21,7 @@ import meta
 Base = meta.Base
 
 
-class Deployment(Base):
+class Deployment(Base,meta.InnoDBMix):
     """Table to hold information about deployments.
 
     I would assume that a deployment is a logical grouping if
@@ -50,7 +50,7 @@ class Deployment(Base):
 
     """
     __tablename__ = "Deployment"
-
+    
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     description = Column(String(255))
@@ -62,17 +62,12 @@ class Deployment(Base):
     meta = relationship("DeploymentMetadata",order_by="DeploymentMetadata.id",backref="deployment")
     houses = relationship("House",order_by="House.id",backref="deployment")
 
-    def update(self,**kwargs):
-        for key,value in kwargs.iteritems():
-            setattr(self,key,value)
 
     def asJSON(self):
+        """ Return a JSON compatable structure representing this item see :func:`models.asJSON`"""
         return {"id":"D_{0}".format(self.id),
                 "name":self.name,
-                "label":self.name,
                 "type":"deployment",
-                #"end":self.endDate,
-                #"start":self.startDate,
                 "children":None,
                 "parent":"root",}
 

@@ -15,7 +15,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Dat
 from sqlalchemy.orm import relationship, backref
 
 
-class RoomType(Base):
+class RoomType(Base,meta.InnoDBMix):
     """The Type of Room  e.g. bedroom or kitchen
 
     :var Integer id: Id
@@ -24,6 +24,7 @@ class RoomType(Base):
     
     """
     __tablename__ = "RoomType"
+
 
     id = Column(Integer,primary_key=True)
     name = Column(String(20))

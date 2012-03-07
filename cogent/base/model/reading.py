@@ -22,7 +22,7 @@ import time
 #To allow Calibration
 import sensor
 
-class Reading(Base):
+class Reading(Base,meta.InnoDBMix):
     """Table to hold detils of readings,
 
     Reading has a composite primary key consisiting of time,nodeId,typeId
@@ -35,6 +35,7 @@ class Reading(Base):
     :var float value: The sensor reading itself
     """
     __tablename__ = "Reading"
+
 
     time = Column(DateTime,
                   primary_key=True,
@@ -108,11 +109,11 @@ class Reading(Base):
 
         #pass
         #Find the Sensor
-        #session = meta.Session()
-        #theSensor = session.query(sensor.Sensor).filter_by(sensorTypeId = self.typeId,
-        #                                                   nodeId = self.nodeId).first()
+        session = meta.Session()
+        theSensor = session.query(sensor.Sensor).filter_by(sensorTypeId = self.typeId,
+                                                           nodeId = self.nodeId).first()
         #print theSensor
         
-        #value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
+        value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
 
-        return (self.time,self.value)
+        return (self.time,value)

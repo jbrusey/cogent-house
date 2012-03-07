@@ -21,7 +21,7 @@ import meta
 Base = meta.Base
 
 
-class DeploymentMetadata(Base):
+class DeploymentMetadata(Base,meta.InnoDBMix):
     """
     Table to hold metadata about a deployment
 

@@ -7,7 +7,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Dat
 import meta
 Base = meta.Base
 
-class LastReport(Base):
+class LastReport(Base,meta.InnoDBMix):
     """
     Class to deal with LastReports
 	This holds details of the last report E-Mailed to chuser

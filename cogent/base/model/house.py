@@ -18,7 +18,7 @@ from sqlalchemy.orm import relationship, backref
 
 import datetime
 
-class House(Base):
+class House(Base,meta.InnoDBMix):
     """
     Class to represent Houses
 
@@ -35,7 +35,6 @@ class House(Base):
         **meta** as originally **metas** this could break old code.
 
     """
-
     __tablename__ = "House"
 
     id = Column(Integer, primary_key=True)
@@ -50,9 +49,6 @@ class House(Base):
     occupiers = relationship("Occupier",backref="house")
     locations = relationship("Location",backref="house")
 
-    def update(self,**kwargs):
-        for key,value in kwargs.iteritems():
-            setattr(self,key,value)
 
     def getRooms(self):
         """Function to get the Rooms this house has, This returns the
@@ -68,9 +64,7 @@ class House(Base):
 
 
     def asJSON(self,parentId=""):
-        #log.debug("House toJSON Called")
         theItem = {"id":"H_{0}".format(self.id),
-                "label":self.address,
                 "name":self.address,
                 "type":"house",
                 "parent": "D_{0}".format(self.deploymentId),
@@ -101,8 +95,7 @@ class House(Base):
 
         if self.locations:
             outDict[0]["children"] = True
-            rooms = self.getRooms()
-            for item in rooms:
+            for item in self.locations:
                 outDict.extend(item.asList(self.id))
 
         return outDict

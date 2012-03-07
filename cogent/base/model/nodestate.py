@@ -19,7 +19,7 @@ import sqlalchemy.types as types
 from Bitset import Bitset
 
 
-class NodeState(Base):
+class NodeState(Base,meta.InnoDBMix):
     """
     It appears that this table holds the state of any nodes.
     
@@ -40,6 +40,7 @@ class NodeState(Base):
     """
 
     __tablename__ = "NodeState"
+
 
     id = Column(Integer, primary_key=True)
     time = Column(DateTime)
