@@ -1,5 +1,9 @@
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 
+REQUIRES = ['SQLAlchemy',
+            "MySQL-python",]
+    
 setup(name='ch-base',
       version='1.0',
       description='CogentHouse base station logger',
@@ -17,5 +21,6 @@ setup(name='ch-base',
                   ('/var/www/cogent-house', ['www/index.py']),
                   ('/var/www/scripts', ['www/scripts/datePicker.js']),
                   ('/var/www/style', ['www/style/ccarc.css'])
-                  ]
+                  ],
+      install_requires = REQUIRES,
       )
