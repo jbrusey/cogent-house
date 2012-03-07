@@ -2,20 +2,6 @@
 Test Cases for the Sensor Classes
 """
 
-"""
-Testing for the Deployment Module
-
-:author: Dan Goldsmith <djgoldsmith@googlemail.com>
-"""
-
-"""
-Unfortunately there is quite a bit of try,except blocks here.
-This does mean that the same test cases can be shared between the
-Pyramid Code, and the Standard Version
-
-If anyone comes up with a better way then let me know.
-"""
-
 #Python Library Imports
 import unittest
 import datetime
@@ -23,83 +9,19 @@ import datetime
 #Python Module Imports
 import sqlalchemy.exc
 
-try:
-    import cogent
-except ImportError:
-    #Assume we are running from the test directory
-    print "Unable to Import Cogent Module Appending Path"
-    import sys
-    sys.path.append("../")
+import testmeta
 
-#Are we working from the base version
-try:
-    import cogent.base.model as models
-    import testmeta
-    Session = testmeta.Session
-    engine = testmeta.engine
-except ImportError,e:
-    print "Unable to Import Cogent.base.models Assuming running from Pyramid"
-    print "Error was {0}".format(e)
+models = testmeta.models
 
-#Or the Pyramid Version
-try:
-    from pyramid import testing
-    import cogentviewer.models as models
-    import cogentviewer.models.meta as meta
-    import testmeta
-    import transaction
-except ImportError,e:
-    print "Unable to Import Pyramid, Assuming we are working in the Base directory"
-    print "Error was {0}".format(e)
 
+import sqlalchemy.exc
 from sqlalchemy.exc import FlushError
 from sqlalchemy.exc import IntegrityError
 
-class TestSensor(unittest.TestCase):
+class TestSensor(testmeta.BaseTestCase):
     """
     Deal with tables in the deployment module
     """
-    @classmethod
-    def setUpClass(self):
-        """Called the First time this class is called.
-        This means that we can Init the testing database once per testsuite
-        """
-        testmeta.createTestDB()
-
-    def setUp(self):
-        """Called each time a test case is called, I wrap each
-        testcase in a transaction, this means that nothing is saved to
-        the database between testcases, while still allowing "fake" commits
-        in the individual testcases.
-
-        This means there should be no unexpected items in the DB."""
-
-        #Pyramid Version
-        try:
-            self.config = testing.setUp()
-            #Wrap In Transaction to ensure nothing gets saved between test cases
-            self.transaction = transaction.begin()
-            self.session = meta.Session
-        except:
-            #We have to do it slightly different for non pyramid applications.
-            #We do however get the same functionality.
-            connection = engine.connect()
-            self.transaction = connection.begin()
-            self.session = Session(bind=connection)
-
-    def tearDown(self):
-        """
-        Called after each testcase,
-        Uncommits any changes that test case made
-        """
-        
-        #Pyramid
-        try:
-            self.transaction.abort()
-            testing.tearDown()
-        except:
-            self.transaction.rollback()
-            self.session.close()
 
     def testCreate(self):
         """Can We Create Sensor Objects"""
@@ -190,58 +112,11 @@ class TestSensor(unittest.TestCase):
 
         #theQry = session.query(models.Sensor).filter_by(sensorTypeId=sType.id)
         #self.assertEqual(theQry.count(), 4)
-        
-        
 
-        
-        
-
-class TestSensorType(unittest.TestCase):
+class TestSensorType(testmeta.BaseTestCase):
     """
     TestCases for Sensor Types
     """
-    @classmethod
-    def setUpClass(self):
-        """Called the First time this class is called.
-        This means that we can Init the testing database once per testsuite
-        """
-        testmeta.createTestDB()
-
-    def setUp(self):
-        """Called each time a test case is called, I wrap each
-        testcase in a transaction, this means that nothing is saved to
-        the database between testcases, while still allowing "fake" commits
-        in the individual testcases.
-
-        This means there should be no unexpected items in the DB."""
-
-        #Pyramid Version
-        try:
-            self.config = testing.setUp()
-            #Wrap In Transaction to ensure nothing gets saved between test cases
-            self.transaction = transaction.begin()
-            self.session = meta.Session
-        except:
-            #We have to do it slightly different for non pyramid applications.
-            #We do however get the same functionality.
-            connection = engine.connect()
-            self.transaction = connection.begin()
-            self.session = Session(bind=connection)
-
-    def tearDown(self):
-        """
-        Called after each testcase,
-        Uncommits any changes that test case made
-        """
-        
-        #Pyramid
-        try:
-            self.transaction.abort()
-            testing.tearDown()
-        except:
-            self.transaction.rollback()
-            self.session.close()
-
     def testCreate(self):
         session = self.session
 
@@ -258,14 +133,13 @@ class TestSensorType(unittest.TestCase):
         theSType = models.SensorType(name="test")
         
         session.add(theSType)
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(FlushError):
             session.flush()
 
     def testGloals(self):
         """Test Against the Premade Database
         
         """
-        
         session = self.session
         #See if we have a temperature Sensor
         theQry = session.query(models.SensorType).filter_by(name="Temperature").first()        
