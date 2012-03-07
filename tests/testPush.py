@@ -21,8 +21,10 @@ import testmeta
 models = testmeta.models
 
 #from cogent.push import remoteModels as remoteModels
+import cogent.push.Pusher as Pusher
 
 REMOTE_URL = "sqlite:///remote.db"
+LOCAL_URL = "sqlite:///test.db"
 
 class TestPush(testmeta.BaseTestCase):
     """Test the Push Functionality.
@@ -43,13 +45,24 @@ class TestPush(testmeta.BaseTestCase):
 
         #This is a little bit hackey, but it works quite nicely at the moment.
         #Basically creates an empty remote database that we can connect to.
-        print "Initialising Remote Engine"
+        # print "Initialising Remote Engine"
         engine = create_engine(REMOTE_URL)
-        models.initialise_sql(engine,True)
+        models.initialise_sql(engine,False)
         remoteSession = sqlalchemy.orm.sessionmaker(bind=engine)
         self.remoteSession = remoteSession
         self.engine = engine
+
+        remoteEngine = sqlalchemy.create_engine("sqlite:///remote.db")
+        localEngine =  sqlalchemy.create_engine("sqlite:///test.db")
+
+        push = Pusher.Pusher()
+        push.init_remote(remoteEngine)
+        push.init_local(localEngine)
+        self.push = push
+         #push.testRemoteQuery()
+         #push.testLocalQuery()
         
+
         #What is pretty cool is the idea we can also  recreate the database to clean it out each time
         #models.initialise_sql(self.engine,True)
 
@@ -70,11 +83,11 @@ class TestPush(testmeta.BaseTestCase):
         for item in theQry:
             print "--> {0}".format(item)
             
-        #Add an Item to the Remote
-        # theItem = models.RoomType(name="Khazi")
-        # remoteSession.add(theItem)
-        # remoteSession.flush()
-        # remoteSession.commit()
+    def testPushSetup(self):
+        print "Testing if the Push Setup works properly"""
+        self.push.testRemoteQuery()
+        self.push.testLocalQuery()
+        
 
     def testConnection(self):
         """Can we connect to remote databases with various strings"""
