@@ -17,12 +17,17 @@ class UploadURL(Base,meta.InnoDBMix):
     """Table to hold URLS that we need to push data to.
     Each of these records represents a remote database connection.
     
+    I did have the url as the primary key,  However it is may be possible we
+    want to connect to multiple databases on one host. Therefore add a ID 
+
+    :var integer Id: Id of upload object
     :var String url: URL of remote host to connect to 
     :var String dburl: SQLA database string to connect to
     :var Datetime lastUpdate: The last record that was sent to this url
     """
     __tablename__ = "UploadURL"
-    url = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
+    id = sqlalchemy.Column(sqlalchemy.Integer,primary_key=True)
+    url = sqlalchemy.Column(sqlalchemy.String)
     dburl = sqlalchemy.Column(sqlalchemy.String)
     lastUpdate = sqlalchemy.Column(sqlalchemy.DateTime)
 
