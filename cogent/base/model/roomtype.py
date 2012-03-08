@@ -30,6 +30,14 @@ class RoomType(Base,meta.InnoDBMix):
     name = Column(String(20))
     rooms = relationship("Room",order_by="Room.id",backref="roomType")
 
+    def __cmp__(self,other):
+        """Check if two room type items are equal"""
+        if self.name == other.name:
+            return self.id - other.id
+        else:
+            return False
+
+
     def __str__(self):
         return "RoomType {0} : {1}".format(self.id,self.name)
 

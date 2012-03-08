@@ -1,6 +1,6 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
-
+log = logging.getLogger(__name__)
 
 import sqlalchemy
 import remoteModels
@@ -14,8 +14,6 @@ import cogent.base.model.meta as meta
 class Pusher(object):
     """Class to push updates to a remote database"""
     def __init__(self):
-        self.log = logging.getLogger(__name__)
-        self.log.debug("Pusher Intialised")
         pass
 
     def init_remote(self,engine):
@@ -23,8 +21,6 @@ class Pusher(object):
 
         :param engine: Engine to use for this connection
         """
-        log = self.log
-
         log.debug("Initalising Remote Engine")
         RemoteSession = sqlalchemy.orm.sessionmaker()
         RemoteSession.configure(bind=engine)
@@ -37,7 +33,6 @@ class Pusher(object):
 
     def init_local(self,engine):
         """Initalise a local connection"""
-        log = self.log
         log.debug("Initialising Local Engine")
         models.initialise_sql(engine)
         LocalSession = sqlalchemy.orm.sessionmaker(bind=engine)
@@ -46,26 +41,24 @@ class Pusher(object):
 
     def testRemoteQuery(self):
         """
-        Run a test Query
+        Run a test Query for Room Types on the Remote Database
         """
-        log = self.log
         session = self.RemoteSession()
-
-        log.debug("Querying Room Type")
         theQry = session.query(remoteModels.RemoteRoomType)
-        for item in theQry:
-            log.debug("--> {0}".format(item))
+        return theQry.all()
 
     def testLocalQuery(self):
         """
         Test Query of Local Database
         """
-        log = self.log
         session = self.LocalSession()
-        log.debug("Query Room Type")
+        #log.debug("Query Room Type")
         theQry = session.query(models.RoomType)
-        for item in theQry:
-            log.debug("--> {0}".format(item))
+        return theQry.all()
+        #for item in theQry:
+        #    log.debug("--> {0}".format(item))
+
+
 
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
