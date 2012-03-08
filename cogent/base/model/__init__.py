@@ -10,7 +10,7 @@ Classes to initialise the SQL and populate with default Sensors
 
 import logging
 log = logging.getLogger(__name__)
-#log.setLevel(logging.WARNING)
+log.setLevel(logging.WARNING)
 
 import csv
 import os
@@ -44,6 +44,7 @@ from roomtype import *
 from sensor import *
 from sensortype import *
 from weather import *
+from uploadurl import *
 
    
 def populateSensorTypes():
@@ -276,8 +277,7 @@ def populateCalibration():
         try:
             _parseCalibration(item[0],item[1])
         except Exception,e:
-            print "Unable to parse Calibration file {0}".format(e)
-            log.warning("Unable to parse Calibration {0}".format(e))
+            log.info("Unable to parse Calibration {0}".format(e))
 
 
 
