@@ -22,7 +22,6 @@ models = testmeta.models
 
 #from cogent.push import remoteModels as remoteModels
 import cogent.push.Pusher as Pusher
-
 REMOTE_URL = "sqlite:///remote.db"
 LOCAL_URL = "sqlite:///test.db"
 
@@ -48,8 +47,13 @@ class TestPush(testmeta.BaseTestCase):
 
         #As well as the Push we want to create a direct connection to the remote database
         #This means we can query to ensure the output from each is the same
+
+        #What is pretty cool is the idea we can also  recreate the database to clean it out each time
+        #models.initialise_sql(self.engine,True)
+
+
         engine = create_engine(REMOTE_URL)
-        models.initialise_sql(engine)
+        
         remoteSession = sqlalchemy.orm.sessionmaker(bind=engine)
         self.remoteSession = remoteSession
         self.engine = engine
@@ -57,37 +61,48 @@ class TestPush(testmeta.BaseTestCase):
         self.remoteEngine = sqlalchemy.create_engine(REMOTE_URL)
         self.localEngine =  sqlalchemy.create_engine(LOCAL_URL)
 
+        #Make sure that the local and remote databases are "clean"
+        models.initialise_sql(self.remoteEngine,True)
+        models.initialise_sql(self.localEngine,True)
+       
+        #Add a remote URL to the local database
+        session = testmeta.Session()
+        uploadurl = models.UploadURL(url="127.0.0.1",
+                                     dburl=REMOTE_URL)
+        theQry = session.query(models.UploadURL).filter_by(url="127.0.0.1",
+                                                           dburl=REMOTE_URL).first()
+        if not theQry:
+            session.add(uploadurl)
+            session.flush()
+            session.commit()
 
-         #push.testRemoteQuery()
-         #push.testLocalQuery()
-        
+        #Setup the Pushing Class
+        #Push Method Connection
+        push = Pusher.Pusher()
+        #Setup Remote Engine
+        #rEngine = self._getRemoteEngine()
+        session = testmeta.Session()
+        remoteUrl = session.query(models.UploadURL).filter_by(url="127.0.0.1").first()
+        rEngine = sqlalchemy.create_engine(remoteUrl.dburl)
 
-        #What is pretty cool is the idea we can also  recreate the database to clean it out each time
-        #models.initialise_sql(self.engine,True)
+        push.initRemote(rEngine)
+        #SEtup Local Connection
+        push.initLocal(self.localEngine)
+        self.push = push
+            
+    #def setUp(self):
+    #    """Overload the setup function so we do not do the transaction wrapping"""
+    #    pass
 
-    # def testSetup(self):
-    #     print "Testing setup or remote and local database"
-    #     #Query from local database
-    #     localSession = testmeta.Session()
-    #     remoteSession = self.remoteSession()
+    #def tearDown(self):
+    #    """Overload the teardown function so we do not do the transaction wrapping"""
+    #    pass
 
-    #     print "Querying Local"
-    #     theQry = localSession.query(models.RoomType)
-    #     for item in theQry:
-    #         print "--> {0}".format(item)
-
-    #     print "Query Remote"
-    #     theQry = remoteSession.query(models.RoomType)
-    #     for item in theQry:
-    #         print "--> {0}".format(item)
             
     def testRemoteDirect(self):
         """Test to see if making a direct connection to the remote database returns what we expect"""
-        push = Pusher.Pusher()
-
-        #Initalise Connections
-        push.init_remote(self.remoteEngine)
-
+        push = self.push
+        
         #Do we get the same items come back from the database
         #For the Remote
         remotePush = push.testRemoteQuery()
@@ -98,10 +113,10 @@ class TestPush(testmeta.BaseTestCase):
 
     def testLocalDirect(self):
         """Test to see if making a direct connection to the local database returns what we expect"""
+        push = self.push
+        #push = Pusher.Pusher()
 
-        push = Pusher.Pusher()
-
-        push.init_local(self.localEngine)
+        push.initLocal(self.localEngine)
         #Do we get the same items come back from the database
         #For the Remote
         remotePush = push.testLocalQuery()
@@ -110,17 +125,96 @@ class TestPush(testmeta.BaseTestCase):
         self.assertEqual(remotePush,remoteData)        
 
 
-        
+    def testTableConnection(self):
+        """
+        Test if the database connects properly when we use the 
+        upload URL table
+        """
+        push = self.push
 
-
-        
-
-    def testConnection(self):
-        """Can we connect to remote databases with various strings"""
+        #Compare to local version
+        remotePush = push.testRemoteQuery()
+        session = self.remoteSession()
+        remoteData = session.query(models.RoomType).all()
+        self.assertEqual(remotePush,remoteData)
         pass
 
-    def testFullTransfer(self):
-        """Can we transfer everything across"""
+    def testNodeCompare(self):
+        """Does the first Stage (Node Comparison) Work"""
+        push = self.push
+
+        #As this is the first time test for equlaity between tables
+        localSession = testmeta.Session()
+        remoteSession = self.remoteSession()
+        
+        localNodes = localSession.query(models.Node).all()
+        remoteNodes = remoteSession.query(models.Node).all()
+        self.assertEqual(localNodes,remoteNodes)
+        
+        #So the node Comparison should return False (No Update Required)
+        needsSync = push.checkNodes()
+        self.assertFalse(needsSync)
+
+
+    def testNodeSync(self):
+        """Can we correctly synchronise nodes on the remote machine"""
+        push = self.push
+
+        #As this is the first time test for equlaity between tables
+        session = testmeta.Session()
+        
+        #Make sure we have the right sensor types
+        tempType = session.query(models.SensorType).filter_by(name="Temperature").first()   
+        if tempType is None:
+            tempType = models.SensorType(id=0,name="Temperature")
+            session.add(tempType)
+        humType = session.query(models.SensorType).filter_by(name="Humidity").first()
+        if humType is None:
+            humType = models.SensorType(id=2,name="Humidity")
+            session.add(humType)
+        co2Type = session.query(models.SensorType).filter_by(name="CO2").first()
+        if co2Type is None:
+            co2Type = models.SensorType(id=3,name="CO2")
+            session.add(co2Type)
+        session.flush()
+            
+        #Add a Couple of nodes and sensors to the local table
+        newNode1 = models.Node(id=101010)
+        newNode2 = models.Node(id=101012)
+        newNode3 = models.Node(id=101013)
+        session.add(newNode1)
+        session.add(newNode2)
+        session.add(newNode3)
+        #And Sensors
+        for item in [newNode1,newNode2,newNode3]:
+            theTempSensor = models.Sensor(sensorTypeId=tempType.id,
+                                          nodeId=item.id,
+                                          calibrationSlope=1,
+                                          calibrationOffset=0)
+            session.add(theTempSensor)
+            theHumSensor = models.Sensor(sensorTypeId=humType.id,
+                                         nodeId=item.id,
+                                         calibrationSlope=1,
+                                         calibrationOffset=0)
+            session.add(theHumSensor)
+        #And add a Co2 Sensor to newNode3
+        theCo2Sensor = models.Sensor(sensorTypeId=co2Type.id,
+                                     nodeId=newNode3.id,
+                                     calibrationSlope=1,
+                                     calibrationOffset=0)
+        session.add(theHumSensor)
+        session.flush()
+        session.commit()
+        
+        
+        #So the node Comparison should return True (Update Required)
+        needsSync = push.checkNodes()
+        self.assertTrue(needsSync)
+
+        #And was th esync successfull
+        hasSync = puch.syncNodes()
+        self.assertTrue(hasSync)
+        
         pass
 
     
