@@ -47,16 +47,19 @@ from weather import *
 from uploadurl import *
 
    
-def populateSensorTypes():
+def populateSensorTypes(session = False):
     """Populate the database with default sensing types,
     if they do not already exist.
     """
     log.debug("Populating Sensors")
-    session = meta.Session()
+
+    if not session:
+        session = meta.Session()
+
     try:
         transaction.begin()
     except:
-        session = meta.Session()
+        #session = meta.Session()
         pass
 
     sensorList = [SensorType(id=0,name="Temperature",
@@ -179,7 +182,7 @@ def populateSensorTypes():
         session.close()
 
 
-def _parseCalibration(filename,sensorcode):
+def _parseCalibration(filename,sensorcode,session=False):
     """Helper method to Parse a sensor calibration file
 
     :param filename: Name of file we get cooeficencts from
@@ -188,7 +191,9 @@ def _parseCalibration(filename,sensorcode):
     
     log.debug("Updating Cooeficents from {0}".format(filename))
 
-    session = meta.Session() 
+    if not session:
+        session = meta.Session() 
+
     try:
         transaction.begin()
     except:
@@ -258,7 +263,7 @@ def _parseCalibration(filename,sensorcode):
         session.commit()
         session.close()
 
-def populateCalibration():
+def populateCalibration(session = False):
     """
     Populate the Sensor Table with the correct calibration Cooeficients for each Sensor
     """
@@ -275,16 +280,18 @@ def populateCalibration():
     for item in calibFiles:
         #_parseCalibration(item[0],item[1])
         try:
-            _parseCalibration(item[0],item[1])
+            _parseCalibration(item[0],item[1],session)
         except Exception,e:
             log.info("Unable to parse Calibration {0}".format(e))
 
 
 
-def populateRoomTypes():
+def populateRoomTypes(session = False):
     """Add Some Default Room Types"""
     log.debug("Populating room types")
-    session = meta.Session()
+    
+    if not session:
+        session = meta.Session()
 
     try:
         transaction.begin()
@@ -310,19 +317,25 @@ def populateRoomTypes():
         session.close()
         
 
-def init_data():
+def init_data(session=False):
+    """Populate the database with some initial data
+    
+    :param session: Session to use if not the default
+    """
+
     print "Populating Data"
-    populateSensorTypes()
-    populateRoomTypes()
-    populateCalibration()
+    populateSensorTypes(session = session)
+    populateRoomTypes(session = session)
+    #populateCalibration(session = session)
     print "Done"
 
 
-def initialise_sql(engine,dropTables=False):
+def initialise_sql(engine,dropTables=False,session=False):
     """Initialise the database
 
     :param engine: Engine to use for the database
     :param dropTables: Do we want to clean the database out or not
+    :param session: Use a session other than the global DB session
     """
     Session.configure(bind=engine)
     Base.metadata.bind=engine
@@ -331,7 +344,7 @@ def initialise_sql(engine,dropTables=False):
         Base.metadata.drop_all(engine)
 
     Base.metadata.create_all(engine)
-    init_data()
+    init_data(session)
 
    
 

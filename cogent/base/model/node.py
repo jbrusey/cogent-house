@@ -51,6 +51,20 @@ class Node(Base,meta.InnoDBMix):
         for key,value in kwargs.iteritems():
             setattr(self,key,value)
 
+    def __str__(self):
+        return "Node ({0}".format(self.id)
+
+    def __cmp__(self,other):
+        """Compare two nodes
+        
+        .. warning::
+        
+            As the nodes should all have unique ID's we just run the compare on Id.
+            If at some future point this changes, we need to ensure that this method is updated
+        """
+
+        return self.id - other.id
+        
 
     def asJSON(self,parentId=""):
         """Adds a Location Parameter to make sure we can link back to location when we come to get the data"""
