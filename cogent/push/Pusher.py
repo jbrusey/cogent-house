@@ -16,13 +16,16 @@ class Pusher(object):
     def __init__(self):
         pass
 
-    def initRemote(self,engine):
+    def initRemote(self,remoteUrl):
         """Intialise a connection to the database and reflect all Remote Tables
 
-        :param engine: Engine to use for this connection
+        :param remoteUrl:  a :class:`models.remoteURL` object that we need to connect to
         """
         log.debug("Initalising Remote Engine")
         RemoteSession = sqlalchemy.orm.sessionmaker()
+
+        self.rUrl = remoteUrl
+        engine = sqlalchemy.create_engine(remoteUrl.dburl)
         RemoteSession.configure(bind=engine)
         RemoteMetadata = sqlalchemy.MetaData()
         
@@ -127,7 +130,8 @@ class Pusher(object):
                 rSess.flush()
         rSess.commit()
 
-        
+    def syncReadings(self):
+        """Syncronse readings between two databases"""
 
 
 
