@@ -309,9 +309,72 @@ class TestPush(testmeta.BaseTestCase):
         pass
 
     
+    def testUpdateReadings(self):
+        """Can we update the remote database readings
+        
+        Add a load of "new" readings to the local database and ensure they are updated correctly
+        """
+        
+        #Given a known node and location can we update the data we have
 
-    
+        #Fake the last upadate
+        lSession = testmeta.Session()
 
+        theNode = lSession.query(models.Node).filter_by(id=38).first()
+        tempSensor = lSession.query(models.SensorType).filter_by(name="Temperature").first()
+        
+        #This should give us the parameters we need
+        thisTime = datetime.datetime.now()
+        
+        #We need to fake that we have had an update to this point in time
+        theQry = lSession.query(models.UploadURL)
+        for item in theQry:
+            item.lastUpdate = thisTime
+        lSession.flush()
+        
+
+
+        nodeId = theNode.id
+        typeId = tempSensor.id
+        locationId = theNode.location.id
+
+        for x in range(250):
+            theReading = models.Reading(time=thisTime,
+                                        nodeId=nodeId,
+                                        typeId=typeId,
+                                        locationId = locationId,
+                                        value=x)
+            lSession.add(theReading)
+            thisTime += datetime.timedelta(seconds=1)
+        
+        lSession.flush()
+        lSession.commit()
+
+        #Synchonise Nodes
+        push = self.push
+        push.syncNodes()
+
+        #Synchronise Readings
+        
+        #Check Everything is Equal
+        rSession = self.remoteSession()
+        lQry = lSession.query(models.Reading)
+        rQry = rSession.query(models.Reading)
+        self.assertEqual(lQry.count(),rQry.count())
+        
+        #And A double check of the items we added
+        lQry = lSession.query(models.Reading).filter_by(nodeId=nodeId).all()
+        rQry = rSession.query(models.Reading).filter_by(nodeId=nodeId).all()
+
+        self.assertEqual(lQry,rQry)
+
+    def testUpdateRemote(self):
+        """Can we do a more comprehensive update of the remote database
+
+        This will add not only new readings, but nodes, sensors etc to the database
+        Deployments and Houses to the database
+        """
+        pass
 
 if __name__ == "__main__":
     unittest.main()
