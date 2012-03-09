@@ -93,9 +93,9 @@ class TestPush(testmeta.BaseTestCase):
         #rEngine = self._getRemoteEngine()
         session = testmeta.Session()
         remoteUrl = session.query(models.UploadURL).filter_by(url="127.0.0.1").first()
-        rEngine = sqlalchemy.create_engine(remoteUrl.dburl)
+        #rEngine = sqlalchemy.create_engine(remoteUrl.dburl)
 
-        push.initRemote(rEngine)
+        push.initRemote(remoteUrl)
         #SEtup Local Connection
         push.initLocal(self.localEngine)
         self.push = push
