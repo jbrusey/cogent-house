@@ -130,9 +130,90 @@ class Pusher(object):
                 rSess.flush()
         rSess.commit()
 
-    def syncReadings(self):
-        """Syncronse readings between two databases"""
+    def syncLocation(self,theLocation):
+        """Code to Synchonise Locations
 
+        :param theLocation: Location to Synchronise
+        :return Equivelent Location Id in the Remote Database
+        """
+        lSess = self.LocalSession()
+        rSess = self.RemoteSession()
+
+        log.debug("Synchonising Location {0}".format(theLocation))
+
+        remoteRoom = rSess.query(remoteModels.Room).filter_by(name= theLocation.room.name,
+                                                              roomTypeId = theLocation.room.roomTypeId).first()
+
+        #If the Room Doesnt exist Create item
+        
+        
+        remoteLocation = rSess.query(remoteModels.Location)
+        pass
+
+    def syncReadings(self):
+        """Syncronse readings between two databases
+
+        This assumes that Sync Nodes has been called.
+
+        The Algorithm for this is:
+
+        Initialise Temproray Storage, (Location = {})
+        
+        #. Get the time of the most recent update from the local database
+        #. Get all Local Readings after this time.
+        #. For Each Reading
+
+            #. If !Location in TempStore:
+                #. Add Location()
+            #. Else:
+                #. Add Sample
+
+        Additionally we need to Sync the NodeState Table
+        
+        """
+
+        lSess = self.LocalSession()
+        rSess = self.RemoteSession()
+
+        log.debug("Synchonising Readings")
+
+        #Timestamp to check readings against
+        cutTime = self.rUrl.lastUpdate
+        rUrl = self.rUrl
+
+        #Get the Readings
+        readings = lSess.query(models.Reading).order_by(models.Reading.time)
+        if cutTime:
+            readings = readings.filter(models.Reading.time > cutTime)
+
+        log.debug("Total Readings to Synch {0}".format(readings.count()))
+        
+        #Init Temp Storage
+        locationStore = {}
+        for reading in readings:
+            mappedLoc = locationStore.get(reading.locationId,None)
+            #Check if we have the location etc
+            if mappedLoc is None:
+                log.debug("No Such Location Creating")
+                mapId = self.syncLocation(reading.location)
+                locationStore[reading.locationId] = mapId
+            #Otherwise, We should just be able to sync the Reading
+            newReading = remoteModels.Reading(time = reading.time,
+                                              nodeId = reading.nodeId,
+                                              typeId = reading.typeId,
+                                              locationId = mapId,
+                                              value = reading.value)
+            session.add(newReading)
+
+        #This should be the last Sample
+        commit = sesison.commit()
+        print "Commit Success {0}".format(commit)
+        if commit:
+            self.rUrl.lastUpdate = newReading.time
+            session.flush()
+            session.commit()
+        
+        pass
 
 
 if __name__ == "__main__":
