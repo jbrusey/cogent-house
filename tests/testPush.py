@@ -111,7 +111,6 @@ class TestPush(testmeta.BaseTestCase):
     def _syncData(self):
         """Helper function to Synchonse the database"""
         #Synchonise Nodes
-        return
         push = self.push
         push.syncNodes()
 
@@ -119,6 +118,7 @@ class TestPush(testmeta.BaseTestCase):
         push.syncReadings()
 
         #Check Everything is Equal
+        lSession = testmeta.Session()
         rSession = self.remoteSession()
         lQry = lSession.query(models.Reading)
         rQry = rSession.query(models.Reading)
