@@ -5,6 +5,10 @@ Testing for the Deployment Module
 """
 
 """
+FOR FUCKS SAKE DAN.
+Testing DB adds data upto Now + 2Days
+We then add new data from NOW.
+This means that the old stuff is attempted to Sync, Causing an Error'D
 
 """
 
@@ -130,7 +134,7 @@ class TestPush(testmeta.BaseTestCase):
 
         self.assertEqual(lQry,rQry)
 
-            
+    @unittest.skip("Skip this for a second")
     def testRemoteDirect(self):
         """Test to see if making a direct connection to the remote database returns what we expect"""
         push = self.push
@@ -142,7 +146,7 @@ class TestPush(testmeta.BaseTestCase):
         remoteData = session.query(models.RoomType).all()
         self.assertEqual(remotePush,remoteData)
 
-
+    @unittest.skip("Skip this for a second")
     def testLocalDirect(self):
         """Test to see if making a direct connection to the local database returns what we expect"""
         push = self.push
@@ -156,7 +160,7 @@ class TestPush(testmeta.BaseTestCase):
         remoteData = session.query(models.RoomType).all()
         self.assertEqual(remotePush,remoteData)        
 
-
+    @unittest.skip("Skip this for a second")
     def testTableConnection(self):
         """
         Test if the database connects properly when we use the 
@@ -171,7 +175,7 @@ class TestPush(testmeta.BaseTestCase):
         self.assertEqual(remotePush,remoteData)
         pass
 
-    #@unittest.skip("Skip this for a second")
+    @unittest.skip("Skip this for a second")
     def testNodeCompareFalse(self):
         """Does the Compare Function return False if we have no changes to the Nodes"""
         push = self.push
@@ -188,7 +192,7 @@ class TestPush(testmeta.BaseTestCase):
         needsSync = push.checkNodes()
         self.assertFalse(needsSync)
 
-    
+    @unittest.skip("Skip this for a second")   
     def testNodeCompareTrue(self):
         """Does the Compeare function return something if we need to sync nodes"""
         push = self.push
@@ -215,8 +219,8 @@ class TestPush(testmeta.BaseTestCase):
                                       nodeTypeId=theNode.nodeTypeId))
         remoteSession.commit()
 
-    #@unittest.skip("Skip this for a second")
-    def testSingleSync(self):
+    @unittest.skip("Skip this for a second")
+    def testSingleNodeSync(self):
         """ 
         Can We synchronise a single Node.
 
@@ -231,20 +235,20 @@ class TestPush(testmeta.BaseTestCase):
         remoteSession = self.remoteSession()
         
         theNode = remoteSession.query(models.Node).filter_by(id=40).first()
-        print "{0}".format("-="*30)
-        print "Pre {0}".format(theNode)
+        #print "{0}".format("-="*30)
+        #print "Pre {0}".format(theNode)
         remoteSession.delete(theNode)
         remoteSession.flush()
         remoteSession.commit()
-        print "Post: {0}".format(theNode)
-        print "{0}".format("-="*30)
+        #print "Post: {0}".format(theNode)
+        #print "{0}".format("-="*30)
         #localNodes = localSession.query(models.Node).all()
         #remoteNodes = remoteSession.query(models.Node).all()
         #self.assertEqual(localNodes,remoteNodes)
         
         #So the node Comparison should return False (No Update Required)
         needsSync = push.checkNodes()
-        print "Sync {0}".format(needsSync[0])
+        #print "Sync {0}".format(needsSync[0])
         self.assertEqual([theNode],needsSync)
 
         push.syncNodes(needsSync)
@@ -253,14 +257,20 @@ class TestPush(testmeta.BaseTestCase):
         rQry = remoteSession.query(models.Node).all()
         self.assertEqual(lQry,rQry)
 
-        rQry = remoteSession.query(models.Node).filter_by(id=40).first()
-        self.assertTrue(rQry)
-        #And Compare old and New databases to make sure they are the same
-        #Add the node back to the remoteDB
-        #remoteSession.add(theNode)
-        #remoteSession.commit()
 
-    #@unittest.skip("Skip this for a second")
+        #This does give us a problem, as now node 40 will be missing data
+        #I think the best approach is to reset the database after this sync
+
+        cleanDB = True
+        #cleanDB = False
+        #Make sure that the local and remote databases are "clean"
+        models.initialise_sql(self.localEngine,cleanDB)
+        testmeta.createTestDB()
+
+        models.initialise_sql(self.remoteEngine,cleanDB,remoteSession)
+        testmeta.createTestDB(remoteSession)
+
+    @unittest.skip("Skip this for a second")
     def testNodeSync(self):
         """What happens if we add some new nodes to the mix"""
         #
@@ -330,7 +340,7 @@ class TestPush(testmeta.BaseTestCase):
         self.assertEqual(lQry,rQry)
         pass
 
-    
+    #@unittest.skip("Skip this for a second")   
     def testUpdateReadings(self):
         """Can we update the remote database readings
         
@@ -349,12 +359,13 @@ class TestPush(testmeta.BaseTestCase):
         thisTime = datetime.datetime.now()
         
         #We need to fake that we have had an update to this point in time
-        theQry = lSession.query(models.UploadURL)
+        theQry = lSession.query(models.UploadURL).all()
+        print "======== TO UPDATE {0}".format(theQry)
         for item in theQry:
             item.lastUpdate = thisTime
+            
         lSession.flush()
-        
-
+        lSession.commit()
 
         nodeId = theNode.id
         typeId = tempSensor.id
@@ -374,6 +385,7 @@ class TestPush(testmeta.BaseTestCase):
 
         self._syncData()
 
+    @unittest.skip("Skip this for a second")   
     def testUpdateNodes(self):
         """Does the Update work if we have some new nodes
 
@@ -427,6 +439,7 @@ class TestPush(testmeta.BaseTestCase):
         self._syncData()            
         pass
 
+    @unittest.skip("Skip this for a second")   
     def testUpdateLocations(self):
         """Does the update work if we have a new location
 
@@ -513,6 +526,7 @@ class TestPush(testmeta.BaseTestCase):
         self._syncData()
         pass
 
+    @unittest.skip("Skip this for a second")   
     def testUpdateComplete(self):
         """
         Does the update work if we we add a new deployment downwards

@@ -68,7 +68,7 @@ class Pusher(object):
         lSess = self.LocalSession()
         rSess = self.RemoteSession()
 
-        log.debug("\n{0} Checking Nodes {0}".format("#"*20))
+        log.debug("{0} Checking Nodes {0}".format("#"*20))
         #Get the Nodes we Know about on the Remote Connection
         rQry = rSess.query(remoteModels.Node.id)
 
@@ -130,24 +130,82 @@ class Pusher(object):
                 rSess.flush()
         rSess.commit()
 
-    def syncLocation(self,theLocation):
+    def syncLocation(self,locId):
         """Code to Synchonise Locations
 
-        :param theLocation: Location to Synchronise
+        Locations are a combination of Rooms/Houses
+        
+        # Check we have a room of this (name/type) in the remote databases (Create)
+        # Check we have a house of this (name/deployment) in the remote (Create)
+        # Check we have a location with these paramters (create)
+
+        :param locId: LocationId to Synchronise
         :return Equivelent Location Id in the Remote Database
         """
         lSess = self.LocalSession()
         rSess = self.RemoteSession()
 
-        log.debug("Synchonising Location {0}".format(theLocation))
+        theLocation = lSess.query(models.Location).filter_by(id=locId).first()
+        log.debug("Synchonising Location ({0}) {1}".format(locId,theLocation))
 
-        remoteRoom = rSess.query(remoteModels.Room).filter_by(name= theLocation.room.name,
-                                                              roomTypeId = theLocation.room.roomTypeId).first()
+        #This is a little unfortunate, but I cannot (without over complicating reflection) 
+        #Setup backrefs on the remote tables this should be a :TODO:
+        #So We need a long winded query
 
-        #If the Room Doesnt exist Create item
+        remoteRoom = rSess.query(remoteModels.Room).filter_by(name=theLocation.room.name).first()
+        if remoteRoom is None:
+            log.debug("--> No Such Room {0}".format(theLocation.room.name))
+
+            #We also cannot assume that the room type will exist so we need to check that
+            roomType = rSess.query(remoteModels.RoomType).filter_by(name=theLocation.room.roomType.name).first()
+            if roomType is None:
+                log.debug("--> --> No Such Room Type {0}".format(theLocation.room.roomType.name))
+                roomType = remoteModels.RoomType(name=theLocation.room.roomType.name)
+                rSess.add(roomType)
+                rSess.flush()
+            remoteRoom = remoteModels.Room(name=theLocation.room.name,
+                                           roomTypeId = roomType.id)
+
+            rSess.add(remoteRoom)
+            rSess.flush()
+        log.debug("Remote Room is {0}".format(remoteRoom))
+            
+        #Then Check the House
         
+        remoteHouse = rSess.query(remoteModels.House).filter_by(deploymentId = theLocation.house.deploymentId,
+                                                                address = theLocation.house.address).first()
+        if remoteHouse is None:
+            #Check the Deployment Exists
+            remoteDeployment = rSess.query(remoteModels.Deployment).filter_by(name=theLocation.house.deployment.name).first()
+            if not remoteDeployment:
+                remoteDeployment = remoteModels.Deployment(name=theLocation.house.deployment.name,
+                                                           description = theLocation.house.deployment.description,
+                                                           startDate = theLocation.house.deployment.startDate,
+                                                           endDate = theLocation.house.deployment.endDate)
+                rSess.add(remoteDeployment)
+                rSess.flush()
+            
+            remoteHouse = remoteModels.House(address=theLocation.house.address,
+                                             deploymentId=remoteDeployment.id)
+            rSess.add(remoteHouse)
+            rSess.flush()
+                                             
+
+        log.debug("--> Remote House is {0}".format(remoteHouse))
+        #It is 
         
-        remoteLocation = rSess.query(remoteModels.Location)
+        remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouse.id,
+                                                                      roomId=remoteRoom.id).first()
+
+        if not remoteLocation:
+            remoteLocation = remoteModels.Location(houseId=remoteHouse.id,
+                                                   roomId = remoteRoom.id)
+            rSess.add(remoteLocation)
+            rSess.flush()
+            
+        log.debug("--> Remote Location is {0}".format(remoteLocation))
+        rSess.commit()
+        return remoteLocation
         pass
 
     def syncReadings(self):
@@ -173,17 +231,24 @@ class Pusher(object):
         """
 
         lSess = self.LocalSession()
-        rSess = self.RemoteSession()
+        session = self.RemoteSession()
 
         log.debug("Synchonising Readings")
 
         #Timestamp to check readings against
-        cutTime = self.rUrl.lastUpdate
+        #cutTime = self.rUrl.lastUpdate
         rUrl = self.rUrl
-
+        log.debug("rURL {0}".format(self.rUrl))
+        #log.debug("Cut Off Time {0}".format(cutTime))
+        timeQry = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
+        log.debug("Time Query {0}".format(timeQry))
+        cutTime = timeQry.lastUpdate
+        log.debug("Last Update {0}".format(cutTime))
+                 
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
         if cutTime:
+            
             readings = readings.filter(models.Reading.time > cutTime)
 
         log.debug("Total Readings to Synch {0}".format(readings.count()))
@@ -191,28 +256,37 @@ class Pusher(object):
         #Init Temp Storage
         locationStore = {}
         for reading in readings:
+            
             mappedLoc = locationStore.get(reading.locationId,None)
             #Check if we have the location etc
             if mappedLoc is None:
-                log.debug("No Such Location Creating")
-                mapId = self.syncLocation(reading.location)
+                mapId = self.syncLocation(reading.locationId)
+                if not mapId:
+                    log.warning("Error Creating Location {0}".format(reading.locationId))
+                    return False
+                                
                 locationStore[reading.locationId] = mapId
             #Otherwise, We should just be able to sync the Reading
             newReading = remoteModels.Reading(time = reading.time,
                                               nodeId = reading.nodeId,
-                                              typeId = reading.typeId,
-                                              locationId = mapId,
+                                              type = reading.typeId,
+                                              locationId = mapId.id,
                                               value = reading.value)
+                     
             session.add(newReading)
-
+            #log.debug("ProcessingReading {0} -> {1}".format(reading,newReading))
+            #session.flush()
+            #session.commit()
         #This should be the last Sample
-        commit = sesison.commit()
-        print "Commit Success {0}".format(commit)
-        if commit:
-            self.rUrl.lastUpdate = newReading.time
-            session.flush()
-            session.commit()
+        session.flush()
+        session.commit()
+        #log.info("Commit State {0}".format(commit))
+        #if commit:
+        #    self.rUrl.lastUpdate = newReading.time
+        #    session.flush()
+        #    session.commit()
         
+        return True
         pass
 
 

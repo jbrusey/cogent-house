@@ -31,5 +31,6 @@ class UploadURL(Base,meta.InnoDBMix):
     dburl = sqlalchemy.Column(sqlalchemy.String)
     lastUpdate = sqlalchemy.Column(sqlalchemy.DateTime)
 
-
+    def __str__(self):
+	return "{0} {1}".format(self.dburl,self.lastUpdate)
     
