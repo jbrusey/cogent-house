@@ -61,10 +61,20 @@ class TestPush(testmeta.BaseTestCase):
         self.remoteEngine = sqlalchemy.create_engine(REMOTE_URL)
         self.localEngine =  sqlalchemy.create_engine(LOCAL_URL)
 
+        cleanDB = True
+        #cleanDB = False
+
         #Make sure that the local and remote databases are "clean"
-        models.initialise_sql(self.remoteEngine,True)
-        models.initialise_sql(self.localEngine,True)
-       
+        models.initialise_sql(self.localEngine,cleanDB)
+        testmeta.createTestDB()
+
+        models.initialise_sql(self.remoteEngine,cleanDB,remoteSession())
+        testmeta.createTestDB(remoteSession())
+
+        #models.init_data(remoteSession())
+        #models.init_data(localSession())
+
+
         #Add a remote URL to the local database
         session = testmeta.Session()
         uploadurl = models.UploadURL(url="127.0.0.1",
@@ -139,8 +149,9 @@ class TestPush(testmeta.BaseTestCase):
         self.assertEqual(remotePush,remoteData)
         pass
 
-    def testNodeCompare(self):
-        """Does the first Stage (Node Comparison) Work"""
+    #@unittest.skip("Skip this for a second")
+    def testNodeCompareFalse(self):
+        """Does the Compare Function return False if we have no changes to the Nodes"""
         push = self.push
 
         #As this is the first time test for equlaity between tables
@@ -155,10 +166,82 @@ class TestPush(testmeta.BaseTestCase):
         needsSync = push.checkNodes()
         self.assertFalse(needsSync)
 
-
-    def testNodeSync(self):
-        """Can we correctly synchronise nodes on the remote machine"""
+    
+    def testNodeCompareTrue(self):
+        """Does the Compeare function return something if we need to sync nodes"""
         push = self.push
+
+        #As this is the first time test for equlaity between tables
+        localSession = testmeta.Session()
+        remoteSession = self.remoteSession()
+        
+        theNode = remoteSession.query(models.Node).filter_by(id=40).first()
+        remoteSession.delete(theNode)
+        remoteSession.flush()
+        remoteSession.commit()
+        #localNodes = localSession.query(models.Node).all()
+        #remoteNodes = remoteSession.query(models.Node).all()
+        #self.assertEqual(localNodes,remoteNodes)
+        
+        #So the node Comparison should return False (No Update Required)
+        needsSync = push.checkNodes()
+        self.assertEqual([theNode],needsSync)
+
+        #Add the node back to the remoteDB
+        remoteSession.add(models.Node(id=theNode.id,
+                                      locationId=theNode.locationId,
+                                      nodeTypeId=theNode.nodeTypeId))
+        remoteSession.commit()
+
+    #@unittest.skip("Skip this for a second")
+    def testSingleSync(self):
+        """ 
+        Can We synchronise a single Node.
+
+        This operates in a simple way, just deleteing a node from the Test DB.
+        Therefore there will be no update of sensor types etc
+
+        """
+        push = self.push
+
+        #As this is the first time test for equlaity between tables
+        localSession = testmeta.Session()
+        remoteSession = self.remoteSession()
+        
+        theNode = remoteSession.query(models.Node).filter_by(id=40).first()
+        print "{0}".format("-="*30)
+        print "Pre {0}".format(theNode)
+        remoteSession.delete(theNode)
+        remoteSession.flush()
+        remoteSession.commit()
+        print "Post: {0}".format(theNode)
+        print "{0}".format("-="*30)
+        #localNodes = localSession.query(models.Node).all()
+        #remoteNodes = remoteSession.query(models.Node).all()
+        #self.assertEqual(localNodes,remoteNodes)
+        
+        #So the node Comparison should return False (No Update Required)
+        needsSync = push.checkNodes()
+        print "Sync {0}".format(needsSync[0])
+        self.assertEqual([theNode],needsSync)
+
+        push.syncNodes(needsSync)
+        
+        lQry = localSession.query(models.Node).all()
+        rQry = remoteSession.query(models.Node).all()
+        self.assertEqual(lQry,rQry)
+
+        rQry = remoteSession.query(models.Node).filter_by(id=40).first()
+        self.assertTrue(rQry)
+        #And Compare old and New databases to make sure they are the same
+        #Add the node back to the remoteDB
+        #remoteSession.add(theNode)
+        #remoteSession.commit()
+
+    #@unittest.skip("Skip this for a second")
+    def testNodeSync(self):
+        """What happens if we add some new nodes to the mix"""
+        #
 
         #As this is the first time test for equlaity between tables
         session = testmeta.Session()
@@ -177,7 +260,7 @@ class TestPush(testmeta.BaseTestCase):
             co2Type = models.SensorType(id=3,name="CO2")
             session.add(co2Type)
         session.flush()
-            
+
         #Add a Couple of nodes and sensors to the local table
         newNode1 = models.Node(id=101010)
         newNode2 = models.Node(id=101012)
@@ -206,15 +289,23 @@ class TestPush(testmeta.BaseTestCase):
         session.flush()
         session.commit()
         
-        
+        push = self.push
         #So the node Comparison should return True (Update Required)
         needsSync = push.checkNodes()
         self.assertTrue(needsSync)
 
-        #And was th esync successfull
-        hasSync = puch.syncNodes()
-        self.assertTrue(hasSync)
+        #And was the sync successfull
+        #hasSync = push.syncNodes()
+        #self.assertTrue(hasSync)
         
+
+        push.syncNodes(needsSync)
+        
+        #And Was the Synchronising Successfull
+        remoteSession = self.remoteSession()
+        lQry = session.query(models.Node).all()
+        rQry = remoteSession.query(models.Node).all()
+        self.assertEqual(lQry,rQry)
         pass
 
     
