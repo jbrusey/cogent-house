@@ -108,6 +108,27 @@ class TestPush(testmeta.BaseTestCase):
     #    """Overload the teardown function so we do not do the transaction wrapping"""
     #    pass
 
+    def _syncData(self):
+        """Helper function to Synchonse the database"""
+        #Synchonise Nodes
+        push = self.push
+        push.syncNodes()
+
+        #Synchronise Readings
+        push.syncReadings()
+
+        #Check Everything is Equal
+        rSession = self.remoteSession()
+        lQry = lSession.query(models.Reading)
+        rQry = rSession.query(models.Reading)
+        self.assertEqual(lQry.count(),rQry.count())
+        
+        #And A double check of the items we added
+        lQry = lSession.query(models.Reading).filter_by(nodeId=nodeId).all()
+        rQry = rSession.query(models.Reading).filter_by(nodeId=nodeId).all()
+
+        self.assertEqual(lQry,rQry)
+
             
     def testRemoteDirect(self):
         """Test to see if making a direct connection to the remote database returns what we expect"""
@@ -285,7 +306,7 @@ class TestPush(testmeta.BaseTestCase):
                                      nodeId=newNode3.id,
                                      calibrationSlope=1,
                                      calibrationOffset=0)
-        session.add(theHumSensor)
+        session.add(theCo2Sensor)
         session.flush()
         session.commit()
         
@@ -350,26 +371,57 @@ class TestPush(testmeta.BaseTestCase):
         lSession.flush()
         lSession.commit()
 
-        #Synchonise Nodes
-        push = self.push
-        push.syncNodes()
-
-        #Synchronise Readings
-        
-        #Check Everything is Equal
-        rSession = self.remoteSession()
-        lQry = lSession.query(models.Reading)
-        rQry = rSession.query(models.Reading)
-        self.assertEqual(lQry.count(),rQry.count())
-        
-        #And A double check of the items we added
-        lQry = lSession.query(models.Reading).filter_by(nodeId=nodeId).all()
-        rQry = rSession.query(models.Reading).filter_by(nodeId=nodeId).all()
-
-        self.assertEqual(lQry,rQry)
+       self._syncData()
 
     def testUpdateNodes(self):
         """Does the Update work if we have some new nodes"""
+        lSession = testmeta.Session()
+
+        #Get our Sensor Types
+        tempSensor = lSession.query(models.SensorType).filter_by(name="Temperature").first()
+        humType = session.query(models.SensorType).filter_by(name="Humidity").first()
+        
+        #Create Nodes and Sensors
+        newNode1 = models.Node(id=201010)
+        newNode2 = models.Node(id=201012)
+        
+        for item in [newNode1,newNode2]:
+            theTempSensor = models.Sensor(sensorTypeId=tempType.id,
+                                          nodeId=item.id,
+                                          calibrationSlope=1,
+                                          calibrationOffset=0)
+            session.add(theTempSensor)
+            theHumSensor = models.Sensor(sensorTypeId=humType.id,
+                                         nodeId=item.id,
+                                         calibrationSlope=1,
+                                         calibrationOffset=0)
+            session.add(theHumSensor)
+            
+        
+        #Make Sure we update the last Synch Time
+        thisTime = datetime.datetime.now()
+
+        theQry = lSession.query(models.UploadURL)
+        for item in theQry:
+            item.lastUpdate = thisTime
+        lSession.flush()
+
+        #Add a load more Readings
+        for x in range(100):
+            for node in [newNode1,newNode2]:
+                for sensor in node.sensors:
+                    theReading = models.Reading(time=thisTime,
+                                                nodeId=node.id,
+                                                typeId=sensor.sensorTypeId,
+                                                locationId = node.locationId,
+                                                value=x)
+                lSession.add(theReading)
+            thisTime += datetime.timedelta(seconds=1)
+        
+        lSession.flush()
+        lSession.commit()
+
+        self._syncData()            
         pass
 
     def testUpdateLocations(self):
