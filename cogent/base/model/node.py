@@ -44,15 +44,15 @@ class Node(Base,meta.InnoDBMix):
   
     stateHistory = relationship("NodeState", order_by="NodeState.id",backref="node")
     nodeHistory = relationship("NodeHistory",backref="node")
-    readings = relationship("Reading",backref="node")
-    sensors = relationship("Sensor", backref=("node"))
+    readings = relationship("Reading",backref="node",cascade="all")
+    sensors = relationship("Sensor", backref="node",cascade="all")
    
     def update(self,**kwargs):
         for key,value in kwargs.iteritems():
             setattr(self,key,value)
 
     def __str__(self):
-        return "Node ({0}".format(self.id)
+        return "Node {0}".format(self.id)
 
     def __cmp__(self,other):
         """Compare two nodes

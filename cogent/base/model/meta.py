@@ -45,6 +45,7 @@ class InnoDBMix(object):
     __table_args__ = {'mysql_engine': 'InnoDB',
                       'mysql_charset':'utf8'}
 
+    __mapper_args__ = {'passive_updates': True}
 
     def update(self,**kwargs):
         """

@@ -91,8 +91,13 @@ class BaseTestCase(unittest.TestCase):
 
 
 #Build a complete testing database
-def createTestDB():
-    session = Session()
+def createTestDB(session=False):
+    """Create a complete Testing Database
+    :param session: Session to use if not the global DB session
+    """
+    if not session:
+        session = Session()
+
 
     now = datetime.datetime.now()
     deploymentEnd = now + datetime.timedelta(days=2)

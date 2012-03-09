@@ -9,65 +9,92 @@ import sqlalchemy
 
 from sqlalchemy.orm import mapper
 
-class RemoteDeployment(object):
-    pass
+class RemoteBase(object):
+ def __init__(self,**kwargs):
+        """
+        Create an object using keyword arguments
+        """
+        for key,value in kwargs.iteritems():
+            setattr(self,key,value)
 
-class RemoteHouse(object):
-    pass
-
-class RemoteNode(object):
+class Node(object):
     def __init__(self,id=None,nodeTypeId=None,locationId=None):
         self.id = id
         self.nodeTypeId = nodeTypeId
         self.locationId = locationId
+
+class Sensor(RemoteBase):
+    pass
+
+    
+
+
+class RoomType(object):
+    pass
+
+
+# class Room(object):
+#     pass
+
+
+# class Deployment(object):
+#     pass
+
+# class House(object):
+#     pass
+
         
-class RemoteRoomType(object):
-    pass
 
-class RemoteRoom(object):
-    pass
-
-class RemoteLocation(object):
-    pass
+# class Location(object):
+#     pass
 
 def reflectTables(engine,RemoteMetadata):
     print "Reflecting Tables"
-    deployment = sqlalchemy.Table('Deployment',
-                                  RemoteMetadata,
-                                  autoload=True,
-                                  autoload_with=engine)
+    # deployment = sqlalchemy.Table('Deployment',
+    #                               RemoteMetadata,
+    #                               autoload=True,
+    #                               autoload_with=engine)
 
-    mapper(RemoteDeployment,deployment)
+    # mapper(Deployment,deployment)
 
-    house = sqlalchemy.Table('House',
-                             RemoteMetadata,
-                             autoload=True,
-                             autoload_with=engine)
-    mapper(RemoteHouse,house)
+    # house = sqlalchemy.Table('House',
+    #                          RemoteMetadata,
+    #                          autoload=True,
+    #                          autoload_with=engine)
+    # mapper(House,house)
 
     node = sqlalchemy.Table('Node',
                             RemoteMetadata,
                             autoload=True,
                             autoload_with=engine)
-    mapper (RemoteNode,node)
+    mapper (Node,node)
+
+    sensor = sqlalchemy.Table("Sensor",
+                              RemoteMetadata,
+                              autoload=True,
+                              autoload_with=engine)
+
+    mapper(Sensor,sensor)
+
+
 
     roomType = sqlalchemy.Table('RoomType',
                                 RemoteMetadata,
                                 autoload=True,
                                 autoload_with=engine)
-    mapper(RemoteRoomType,roomType)
+    mapper(RoomType,roomType)
         
-    room = sqlalchemy.Table('Room',
-                            RemoteMetadata,
-                            autoload=True,
-                            autoload_with=engine)
-    mapper(RemoteRoom,room)
+    # room = sqlalchemy.Table('Room',
+    #                         RemoteMetadata,
+    #                         autoload=True,
+    #                         autoload_with=engine)
+    # mapper(Room,room)
 
-    location = sqlalchemy.Table('Location',
-                            RemoteMetadata,
-                            autoload=True,
-                            autoload_with=engine)
-    mapper(RemoteLocation,location)
+    # location = sqlalchemy.Table('Location',
+    #                         RemoteMetadata,
+    #                         autoload=True,
+    #                         autoload_with=engine)
+    # mapper(RemoteLocation,location)
     pass
 
 # def initialise_sql(engine):
