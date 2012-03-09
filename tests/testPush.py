@@ -368,13 +368,23 @@ class TestPush(testmeta.BaseTestCase):
 
         self.assertEqual(lQry,rQry)
 
-    def testUpdateRemote(self):
-        """Can we do a more comprehensive update of the remote database
+    def testUpdateNodes(self):
+        """Does the Update work if we have some new nodes"""
+        pass
 
-        This will add not only new readings, but nodes, sensors etc to the database
-        Deployments and Houses to the database
+    def testUpdateLocations(self):
+        """Does the update work if we have a new location
+
+        This will add not only new readings, but move one of the nodes to a new Location
         """
         pass
+
+    def testUpdateComplete(self):
+        """
+        Does the update work if we we add a new deployment downwards
+        """
+        pass
+
 
 if __name__ == "__main__":
     unittest.main()
