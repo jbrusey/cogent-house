@@ -103,14 +103,17 @@ class TestPush(testmeta.BaseTestCase):
         #SEtup Local Connection
         push.initLocal(self.localEngine)
         self.push = push
-            
-    #def setUp(self):
-    #    """Overload the setup function so we do not do the transaction wrapping"""
-    #    pass
 
-    #def tearDown(self):
-    #    """Overload the teardown function so we do not do the transaction wrapping"""
-    #    pass
+        #Fix the damn time series data bug
+        print "Resetting Current Time"
+        self.thisTime = datetime.datetime.now()
+
+
+    def setUp(self):
+        pass
+    
+    def tearDown(self):
+        pass
 
     def _syncData(self):
         """Helper function to Synchonse the database"""
@@ -128,11 +131,33 @@ class TestPush(testmeta.BaseTestCase):
         rQry = rSession.query(models.Reading)
         self.assertEqual(lQry.count(),rQry.count())
         
-        #And A double check of the items we added
-        lQry = lSession.query(models.Reading).filter_by(nodeId=nodeId).all()
-        rQry = rSession.query(models.Reading).filter_by(nodeId=nodeId).all()
+        # #Make sure that the local and remote databases are "clean"
+        # cleanDB = True
+        # models.initialise_sql(self.localEngine,cleanDB)
+        # testmeta.createTestDB()
 
-        self.assertEqual(lQry,rQry)
+        # models.initialise_sql(self.remoteEngine,cleanDB,remoteSession())
+        # testmeta.createTestDB(remoteSession())
+
+        # #models.init_data(remoteSession())
+        # #models.init_data(localSession())
+
+
+        # #Add a remote URL to the local database
+        # session = testmeta.Session()
+        # uploadurl = models.UploadURL(url="127.0.0.1",
+        #                              dburl=REMOTE_URL)
+        # theQry = session.query(models.UploadURL).filter_by(url="127.0.0.1",
+        #                                                    dburl=REMOTE_URL).first()
+        # if not theQry:
+        #     session.add(uploadurl)
+        #     session.flush()
+        #     session.commit()
+        #And A double check of the items we added
+        #lQry = lSession.query(models.Reading).filter_by().all()
+        #rQry = rSession.query(models.Reading).filter_by().all()
+
+        #self.assertEqual(lQry,rQry)
 
     @unittest.skip("Skip this for a second")
     def testRemoteDirect(self):
@@ -270,6 +295,15 @@ class TestPush(testmeta.BaseTestCase):
         models.initialise_sql(self.remoteEngine,cleanDB,remoteSession)
         testmeta.createTestDB(remoteSession)
 
+        uploadurl = models.UploadURL(url="127.0.0.1",
+                                     dburl=REMOTE_URL)
+        theQry = localSession.query(models.UploadURL).filter_by(url="127.0.0.1",
+                                                           dburl=REMOTE_URL).first()
+        if not theQry:
+            localSession.add(uploadurl)
+            localSession.flush()
+            localSession.commit()
+
     @unittest.skip("Skip this for a second")
     def testNodeSync(self):
         """What happens if we add some new nodes to the mix"""
@@ -338,9 +372,9 @@ class TestPush(testmeta.BaseTestCase):
         lQry = session.query(models.Node).all()
         rQry = remoteSession.query(models.Node).all()
         self.assertEqual(lQry,rQry)
-        pass
 
-    #@unittest.skip("Skip this for a second")   
+
+    @unittest.skip("Skip this for a second")   
     def testUpdateReadings(self):
         """Can we update the remote database readings
         
@@ -356,13 +390,15 @@ class TestPush(testmeta.BaseTestCase):
         tempSensor = lSession.query(models.SensorType).filter_by(name="Temperature").first()
         
         #This should give us the parameters we need
-        thisTime = datetime.datetime.now() + datetime.timedelta(days=5)
-        
+        #thisTime = datetime.datetime.now() + datetime.timedelta(days=5)
+        thisTime = self.thisTime + datetime.timedelta(days=10)
+        startTime = self.thisTime
+
         #We need to fake that we have had an update to this point in time
-        theQry = lSession.query(models.UploadURL).all()
-        print "======== TO UPDATE {0}".format(theQry)
-        for item in theQry:
-            item.lastUpdate = thisTime
+        theQry = lSession.query(models.UploadURL).first()
+        theQry.lastUpdate = thisTime
+        #for item in theQry:
+        #    item.lastUpdate = thisTime
             
         lSession.flush()
         lSession.commit()
@@ -383,7 +419,47 @@ class TestPush(testmeta.BaseTestCase):
         lSession.flush()
         lSession.commit()
 
+        self.thisTime = thisTime
         self._syncData()
+
+        #rSession = self.remoteSession()
+        #And remove all readings from the DB that we added
+        #lQry = lSession.query(models.Reading).filter(models.Reading.time >= startTime).delete()
+        #rQry = rSession.query(remoteModels.Reading).filter(models.Reading.time >= startTime).delete()
+
+        
+
+    def testOne(self):
+        print "--> Run Test 1 <--"
+        lSession = testmeta.Session()
+        print "--> Start Time {0}".format(self.thisTime)
+        thisTime = self.thisTime + datetime.timedelta(days=5)
+        print "---> New Time {0}".format(thisTime)
+
+        theQry = lSession.query(models.UploadURL).first()
+
+        theQry.lastUpdate = thisTime
+        lSession.flush()
+        lSession.commit()
+        self.thisTime = thisTime
+        print "--> This Time {0}".format(self.thisTime)
+
+    def testTwo(self):
+        print "--> Run Test 2 <--"
+        lSession = testmeta.Session()
+        print "--> Start Time {0}".format(self.thisTime)
+        thisTime = self.thisTime + datetime.timedelta(days=5)
+        print "---> New Time {0}".format(thisTime)
+
+        theQry = lSession.query(models.UploadURL).first()
+
+        theQry.lastUpdate = thisTime
+        lSession.flush()
+        lSession.commit()
+        self.thisTime = thisTime
+        print "--> This Time {0}".format(self.thisTime)
+        #self._syncData()
+
 
     @unittest.skip("Skip this for a second")   
     def testUpdateNodes(self):
@@ -414,15 +490,17 @@ class TestPush(testmeta.BaseTestCase):
             
         
         #Make Sure we update the last Synch Time
-        thisTime = datetime.datetime.now() + datetime.timedelta(days=10)
+        thisTime = self.thisTime + datetime.timedelta(days=10)
+        #thisTime = datetime.datetime.now() + datetime.timedelta(days=10)
 
-        theQry = lSession.query(models.UploadURL)
-        for item in theQry:
-            item.lastUpdate = thisTime
+        theQry = lSession.query(models.UploadURL).first()
+
+        theQry.lastUpdate = thisTime
         lSession.flush()
+        lSession.commit()
 
         #Add a load more Readings
-        for x in range(10):
+        for x in range(2):
             for node in [newNode1,newNode2]:
                 for sensor in node.sensors:
                     theReading = models.Reading(time=thisTime,
@@ -436,10 +514,12 @@ class TestPush(testmeta.BaseTestCase):
         lSession.flush()
         lSession.commit()
 
+        self.thisTime = thisTime
         self._syncData()            
         pass
 
     @unittest.skip("Skip this for a second")   
+    #FAIL HERE
     def testUpdateLocations(self):
         """Does the update work if we have a new location
 
@@ -475,7 +555,6 @@ class TestPush(testmeta.BaseTestCase):
 
         newNode2.location = newLocation
         lSession.flush()
-
         lSession.commit()
         
 
@@ -494,12 +573,14 @@ class TestPush(testmeta.BaseTestCase):
             
         
         #Make Sure we update the last Synch Time
-        thisTime = datetime.datetime.now() + datetime.timedelta(days=20)
+        thisTime = self.thisTime + datetime.timedelta(days=10)
 
-        theQry = lSession.query(models.UploadURL)
-        for item in theQry:
-            item.lastUpdate = thisTime
+        theQry = lSession.query(models.UploadURL).first()
+        theQry.lastUpdate = thisTime
+        #for item in theQry:
+        #    item.lastUpdate = thisTime
         lSession.flush()
+        lSession.commit()
         
         #And Create a New Location to move each node to
 
@@ -522,7 +603,7 @@ class TestPush(testmeta.BaseTestCase):
         lSession.flush()
         lSession.commit()
 
-
+        self.thisTime = thisTime
         self._syncData()
         pass
 
@@ -533,17 +614,19 @@ class TestPush(testmeta.BaseTestCase):
 
         Basically Ripped off from the testmeta.initDB class
         """
-        thisTime = datetime.datetime.now()
+        
+        thisTime = self.thisTime + datetime.timedelta(days=10)
 
         session = testmeta.Session()
-        theQry = session.query(models.UploadURL)
-        for item in theQry:
-            item.lastUpdate = thisTime
+        theQry = session.query(models.UploadURL).first()
+        #for item in theQry:
+        #    item.lastUpdate = thisTime
         session.flush()
+        lSession.commit()
 
         #-------- NABBED FROM initDB with some M-% 
 
-        now = datetime.datetime.now() + datetime.timedelta(days=30)
+        now = thisTime
         deploymentEnd = now + datetime.timedelta(days=2)
         house2Start = now + datetime.timedelta(days=1)
 
@@ -803,10 +886,7 @@ class TestPush(testmeta.BaseTestCase):
         session.commit()
         session.close()
 
-
-
-
-
+        self.thisTime = thisTime
         self._syncData()
 
         pass
