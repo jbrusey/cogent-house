@@ -356,7 +356,7 @@ class TestPush(testmeta.BaseTestCase):
         tempSensor = lSession.query(models.SensorType).filter_by(name="Temperature").first()
         
         #This should give us the parameters we need
-        thisTime = datetime.datetime.now()
+        thisTime = datetime.datetime.now() + datetime.timedelta(days=5)
         
         #We need to fake that we have had an update to this point in time
         theQry = lSession.query(models.UploadURL).all()
@@ -414,7 +414,7 @@ class TestPush(testmeta.BaseTestCase):
             
         
         #Make Sure we update the last Synch Time
-        thisTime = datetime.datetime.now()
+        thisTime = datetime.datetime.now() + datetime.timedelta(days=10)
 
         theQry = lSession.query(models.UploadURL)
         for item in theQry:
@@ -494,7 +494,7 @@ class TestPush(testmeta.BaseTestCase):
             
         
         #Make Sure we update the last Synch Time
-        thisTime = datetime.datetime.now()
+        thisTime = datetime.datetime.now() + datetime.timedelta(days=20)
 
         theQry = lSession.query(models.UploadURL)
         for item in theQry:
@@ -543,7 +543,7 @@ class TestPush(testmeta.BaseTestCase):
 
         #-------- NABBED FROM initDB with some M-% 
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.now() + datetime.timedelta(days=30)
         deploymentEnd = now + datetime.timedelta(days=2)
         house2Start = now + datetime.timedelta(days=1)
 
