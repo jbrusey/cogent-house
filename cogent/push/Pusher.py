@@ -1,6 +1,7 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
+#log.setLevel(logging.WARNING)
 
 import sqlalchemy
 import remoteModels
@@ -242,14 +243,17 @@ class Pusher(object):
         #log.debug("Cut Off Time {0}".format(cutTime))
         timeQry = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
         log.debug("Time Query {0}".format(timeQry))
-        cutTime = timeQry.lastUpdate
+        if timeQry:
+            cutTime = timeQry.lastUpdate
+        else:
+            cutTime = None
         log.debug("Last Update {0}".format(cutTime))
                  
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
         if cutTime:
             
-            readings = readings.filter(models.Reading.time > cutTime)
+            readings = readings.filter(models.Reading.time >= cutTime)
 
         log.debug("Total Readings to Synch {0}".format(readings.count()))
         
@@ -279,8 +283,8 @@ class Pusher(object):
             #session.commit()
         #This should be the last Sample
         session.flush()
-        session.commit()
-        #log.info("Commit State {0}".format(commit))
+        commitState = session.commit()
+        log.info("Commit State {0}".format(commitState))
         #if commit:
         #    self.rUrl.lastUpdate = newReading.time
         #    session.flush()
