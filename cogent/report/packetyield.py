@@ -45,7 +45,7 @@ def packetYield(session, missed_thresh=5, end_t=datetime.utcnow(), start_t=(date
     all_set = set([int(x) for (x,) in session.query(Node.id).filter(
         Node.locationId != None).all()])
 
-    lost_nodes = all_set - ok_nodes
+    lost_nodes = all_set - ok_nodes - low_nodes
 
     if last_lost_nodes is None:
         last_lost_nodes = LastReport(name="lost-nodes", value=repr(lost_nodes))
