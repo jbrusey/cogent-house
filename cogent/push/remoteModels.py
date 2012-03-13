@@ -11,35 +11,38 @@ from sqlalchemy.orm import mapper
 
 class RemoteBase(object):
  def __init__(self,**kwargs):
-        """
-        Create an object using keyword arguments
-        """
-        for key,value in kwargs.iteritems():
-            setattr(self,key,value)
+    """
+    Create an object using keyword arguments
+    """
+    for key,value in kwargs.iteritems():
+           setattr(self,key,value)
 
 class Node(RemoteBase):
-    pass
+   
+   pass
 
 class Sensor(RemoteBase):
-    pass
+   pass
 
 class Room(RemoteBase):
-    pass
+   pass
 
 class House(RemoteBase):
-    pass
+   pass
 
 class Location(RemoteBase):
-    pass
+   pass
 
 class Reading(RemoteBase):
-    pass
+   def __str__(self):
+      return "Value: {0} Time: {1}".format(self.value,self.time)
+   pass
 
 class RoomType(RemoteBase):
-    pass
+   pass
 
 class Deployment(RemoteBase):
-    pass
+   pass
 
         
 
