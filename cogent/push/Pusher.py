@@ -107,6 +107,7 @@ class Pusher(object):
         :return: True is the Sync is successfull
         """
         rSess = self.RemoteSession()
+        lSess = self.LocalSession()
 
         if not syncNodes:
             syncNodes = self.checkNodes()
@@ -115,9 +116,13 @@ class Pusher(object):
         log.debug("{0} Synchronising Nodes {0}".format("="*30))
         for node in syncNodes:
             log.debug("--> Synching Node {0}".format(node))
+            node = lSess.query(models.Node).filter_by(id=node.id).first()
             #First we need to create the node itself
             newNode = remoteModels.Node(id=node.id)
             rSess.add(newNode)
+
+            newLocation = self.syncLocation(node.locationId)
+            newNode.locationId = newLocation.id
             
             log.debug("--> SYNCHING SENSORS")
             for sensor in node.sensors:
@@ -129,6 +134,9 @@ class Pusher(object):
                                                 calibrationOffset = sensor.calibrationOffset)
                 rSess.add(newSensor)
                 rSess.flush()
+            #Finally we also need to synchonise locations
+
+  
         rSess.commit()
 
     def syncLocation(self,locId):
@@ -239,12 +247,12 @@ class Pusher(object):
         #Timestamp to check readings against
         #cutTime = self.rUrl.lastUpdate
         rUrl = self.rUrl
-        log.debug("rURL {0}".format(self.rUrl))
+        log.debug("--> rURL {0}".format(self.rUrl))
         #log.debug("Cut Off Time {0}".format(cutTime))
-        timeQry = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
-        log.debug("Time Query {0}".format(timeQry))
-        if timeQry:
-            cutTime = timeQry.lastUpdate
+        lastUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
+        log.debug("--> Time Query {0}".format(lastUpdate))
+        if lastUpdate:
+            cutTime = lastUpdate.lastUpdate
         else:
             cutTime = None
         log.debug("Last Update {0}".format(cutTime))
@@ -282,16 +290,29 @@ class Pusher(object):
             #session.flush()
             #session.commit()
         #This should be the last Sample
-        session.flush()
-        commitState = session.commit()
-        log.info("Commit State {0}".format(commitState))
-        #if commit:
-        #    self.rUrl.lastUpdate = newReading.time
-        #    session.flush()
-        #    session.commit()
+
+
+        log.debug("Last Reading Added Was {0}".format(newReading))
+
+        try:
+            session.flush()
+            session.commit()
+            log.info("Commit Successfull")
+            #Update the Local Timestamp
+            newUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
+            newUpdate.lastUpdate = newReading.time
+            lSess.flush()
+            lSess.commit()
+            log.info("Commit Successfull Last update is {0}".format(newUpdate))
+        except Exception, e:
+            log.warning("Commit Fails {0}".format(e))
+            self.rUrl.lastUpdate = newReading.time
+            session.flush()
+            session.commit()
         
-        return True
-        pass
+        lSess.close()
+        session.close()
+        # pass
 
 
 if __name__ == "__main__":
