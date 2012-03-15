@@ -18,7 +18,8 @@ models = testmeta.models
 
 #from cogent.push import remoteModels as remoteModels
 import cogent.push.Pusher as Pusher
-REMOTE_URL = "sqlite:///remote.db"
+#REMOTE_URL = "sqlite:///remote.db"
+REMOTE_URL = "mysql://root:Ex3lS4ga@localhost/testStore"
 LOCAL_URL = "sqlite:///test.db"
 
 class TestPushFunctions(testmeta.BaseTestCase):

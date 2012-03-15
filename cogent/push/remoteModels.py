@@ -31,6 +31,8 @@ class House(RemoteBase):
    pass
 
 class Location(RemoteBase):
+   def __str__(self):
+      return "RLocation {0} {1} {2}".format(self.id,self.houseId,self.roomId)
    pass
 
 class Reading(RemoteBase):
