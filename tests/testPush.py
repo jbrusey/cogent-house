@@ -26,8 +26,15 @@ models = testmeta.models
 
 #from cogent.push import remoteModels as remoteModels
 import cogent.push.Pusher as Pusher
-REMOTE_URL = "sqlite:///remote.db"
+#REMOTE_URL = "sqlite:///remote.db"
+REMOTE_URL = "mysql://root:Ex3lS4ga@127.0.0.1:3307/testStore"
 LOCAL_URL = "sqlite:///test.db"
+
+
+import subprocess
+
+#Pooling for connections
+
 
 class TestPush(testmeta.BaseTestCase):
     """Test the Push Functionality.
@@ -44,6 +51,8 @@ class TestPush(testmeta.BaseTestCase):
         
         We need to override the standard class here, as we also want to create a Remote
         database connection.
+
+        For the SSH Tunnel it may be worth investigating paramiko
         """
 
         #This is a little bit hackey, but it works quite nicely at the moment.
@@ -65,6 +74,14 @@ class TestPush(testmeta.BaseTestCase):
         self.remoteEngine = sqlalchemy.create_engine(REMOTE_URL)
         self.localEngine =  sqlalchemy.create_engine(LOCAL_URL)
 
+        print "Starting SSH Tunnel"
+        theProcess = subprocess.Popen("ssh -L 3308:localhost:3307 dang@127.0.0.1",
+                                      shell=True,
+                                      close_fds=True)
+
+        self.theProcess = theProcess
+        #print theProcess.communicate()
+
         cleanDB = True
         #cleanDB = False
 
@@ -73,7 +90,7 @@ class TestPush(testmeta.BaseTestCase):
         testmeta.createTestDB()
 
         models.initialise_sql(self.remoteEngine,cleanDB,remoteSession())
-        testmeta.createTestDB(remoteSession())
+        #testmeta.createTestDB(remoteSession())
 
         #models.init_data(remoteSession())
         #models.init_data(localSession())
@@ -132,7 +149,7 @@ class TestPush(testmeta.BaseTestCase):
         rQry = rSession.query(models.Reading)
         self.assertEqual(lQry.count(),rQry.count())
        
-    #@unittest.skip("Skip this for a second")   
+    @unittest.skip("Skip this for a second")   
     def testPush_UpdateReadings(self):
         """Can we update the remote database readings
         
@@ -350,7 +367,7 @@ class TestPush(testmeta.BaseTestCase):
         self._syncData()
         #pass
 
-    @unittest.skip("Skip this for a second")   
+    #@unittest.skip("Skip this for a second")   
     def testUpdateComplete(self):
         """
         Does the update work if we we add a new deployment downwards
@@ -358,14 +375,22 @@ class TestPush(testmeta.BaseTestCase):
         Basically Ripped off from the testmeta.initDB class
         """
         
-        thisTime = self.thisTime + datetime.timedelta(days=10)
+        #thisTime = self.thisTime + datetime.timedelta(days=10)
 
         session = testmeta.Session()
-        theQry = session.query(models.UploadURL).first()
+
+        theQry = session.query(models.UploadURL).filter_by(url="127.0.0.1",
+                                                           dburl=REMOTE_URL).first()
+        #Add about 10 days so there are no clashes in timestamps
+        print "--> DB Time {0}".format(theQry)
+        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+        print "--> This Time {0}".format(thisTime)
+
+        #theQry = session.query(models.UploadURL).first()
         #for item in theQry:
         #    item.lastUpdate = thisTime
-        session.flush()
-        lSession.commit()
+        #session.flush()
+        #lSession.commit()
 
         #-------- NABBED FROM initDB with some M-% 
 
@@ -629,7 +654,7 @@ class TestPush(testmeta.BaseTestCase):
         session.commit()
         session.close()
 
-        self.thisTime = thisTime
+        #self.thisTime = thisTime
         self._syncData()
 
         pass

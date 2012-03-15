@@ -27,8 +27,8 @@ class UploadURL(Base,meta.InnoDBMix):
     """
     __tablename__ = "UploadURL"
     id = sqlalchemy.Column(sqlalchemy.Integer,primary_key=True)
-    url = sqlalchemy.Column(sqlalchemy.String)
-    dburl = sqlalchemy.Column(sqlalchemy.String)
+    url = sqlalchemy.Column(sqlalchemy.String(100))
+    dburl = sqlalchemy.Column(sqlalchemy.String(100))
     lastUpdate = sqlalchemy.Column(sqlalchemy.DateTime)
 
     def __str__(self):

@@ -66,7 +66,7 @@ class Location(Base,meta.InnoDBMix):
             for item in self.nodes:
                 outDict.extend(item.asList(self.id))
         return outDict
-
+       
 
     def __str__(self):
         return ("Loc ({0}): House {1} , Room {2}".format(self.id,self.houseId,self.roomId))
