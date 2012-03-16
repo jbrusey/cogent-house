@@ -31,11 +31,11 @@ class Pusher(object):
 
         #Put up an ssh tunnel
         print "Starting SSH Tunnel"
-        theProcess = subprocess.Popen("ssh -L 3308:localhost:3307 dang@127.0.0.1",
-                                      shell=True,
-                                      close_fds=True)
+        #theProcess = subprocess.Popen("ssh -L 3308:localhost:3307 dang@127.0.0.1",
+         #                             shell=True,
+          #                            close_fds=True)
 
-        self.theProcess = theProcess        
+        #self.theProcess = theProcess        
 
         engine = sqlalchemy.create_engine(remoteUrl.dburl)
         RemoteSession.configure(bind=engine)
