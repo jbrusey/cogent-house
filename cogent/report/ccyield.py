@@ -95,7 +95,7 @@ def ccYield(session, missed_thresh=10, end_t=datetime.utcnow(), start_t=(datetim
         html.append("</tr>")
         fmt = ['%d', '%s', '%s']
         for values in session.query(Node.id, House.address, Room.name).filter(
-            Node.id.in_(just_lost_nodes)).join(Node, Location, House, Room).all():
+            Node.id.in_(just_lost_nodes)).join(Location, House, Room).all():
             html.append("<tr>")
             html.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
             html.append("</tr>")
@@ -103,7 +103,7 @@ def ccYield(session, missed_thresh=10, end_t=datetime.utcnow(), start_t=(datetim
 
     if len(recovered_nodes) > 0:
         recovered_list = session.query(Node.id, House.address, Room.name).filter(
-            Node.id.in_(recovered_nodes)).join(Node, Location, House, Room).all()
+            Node.id.in_(recovered_nodes)).join(Location, House, Room).all()
         if len(recovered_list) > 0:
             html.append('<h3>Current Cost nodes recently recovered</h3>')
             html.append('<table border="1">')
