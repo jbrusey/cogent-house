@@ -13,20 +13,22 @@ import sys
 import os
 import unittest
 
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
 viewer = False
 
 
 
-DBURL = 'mysql://root:Ex3lS4ga@localhost/testStore'
+#DBURL = 'mysql://root:Ex3lS4ga@localhost/testStore'
 #DBURL = 'sqlite:///:memory:'
 DBURL = "sqlite:///test.db"
 
 try:
     import cogentviewer
     viewer = True
-except:
-    print "Using Base Namespace"
+except ImportError:
+    log.debug("Using Base Namespace")
 
 if viewer:
     from pyramid import testing
@@ -38,14 +40,19 @@ if viewer:
 else:
     import cogent
     import cogent.base.model as models
-    import cogent.base.model.meta as meta    
+    import cogent.base.model.meta as meta   
+    import cogent.base.model.populateData as populateData
 
-engine = create_engine(DBURL)
-models.initialise_sql(engine)
-Session = sqlalchemy.orm.sessionmaker(bind=engine)
+#engine = create_engine(DBURL)
+#models.initialise_sql(engine)
+#populateData.init_data()
+
+#Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 import datetime
 
+engine = create_engine(DBURL)
+Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 class BaseTestCase(unittest.TestCase):
     """
@@ -56,7 +63,13 @@ class BaseTestCase(unittest.TestCase):
         """Called the First time this class is called.
         This means that we can Init the testing database once per testsuite
         """
-        createTestDB()
+
+        models.initialise_sql(engine)
+        self.engine = engine
+        #populateData.init_data()
+        populateData.init_data()
+        self.Session = sqlalchemy.orm.sessionmaker(bind=engine)
+        createTestDB(self.Session())
 
     def setUp(self):
         """Called each time a test case is called, I wrap each
@@ -72,7 +85,7 @@ class BaseTestCase(unittest.TestCase):
             pass
         connection = engine.connect()
         self.transaction = connection.begin()
-        self.session = Session()
+        self.session = self.Session()
         self.session.bind=connection
 
     def tearDown(self):

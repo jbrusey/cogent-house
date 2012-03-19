@@ -51,7 +51,6 @@ class Deployment(RemoteBase):
 
 
 def reflectTables(engine,RemoteMetadata):
-    print "Reflecting Tables"
     deployment = sqlalchemy.Table('Deployment',
                                   RemoteMetadata,
                                   autoload=True,
