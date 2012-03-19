@@ -1,15 +1,10 @@
 """
 Testing for the Push Module Functionality
 
+It should be noted that the push functionality does not work properly with sqlite.
+See the pusher documentation for details
+
 :author: Dan Goldsmith <djgoldsmith@googlemail.com>
-"""
-
-"""
-FOR FUCKS SAKE DAN.
-Testing DB adds data upto Now + 2Days
-We then add new data from NOW.
-This means that the old stuff is attempted to Sync, Causing an Error'D
-
 """
 
 #Python Library Imports
@@ -23,17 +18,21 @@ import sqlalchemy.exc
 import testmeta
 
 models = testmeta.models
+populateData = testmeta.populateData
 
-#from cogent.push import remoteModels as remoteModels
 import cogent.push.Pusher as Pusher
-#REMOTE_URL = "sqlite:///remote.db"
-LOCAL_URL = "sqlite:///test.db"
 
+LOCAL_URL = "sqlite:///local.db"
+
+#REMOTE_URL = "sqlite:///remote.db"
+REMOTE_URL = "mysql://test_user:test_user@localhost/testStore"
 
 import subprocess
 
 #Pooling for connections
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
 
 class TestPush(testmeta.BaseTestCase):
     """Test the Push Functionality.
@@ -61,50 +60,41 @@ class TestPush(testmeta.BaseTestCase):
         #This means we can query to ensure the output from each is the same
 
         #What is pretty cool is the idea we can also  recreate the database to clean it out each time
-        #models.initialise_sql(self.engine,True)
-
-
-        engine = create_engine(REMOTE_URL)
-        
-        remoteSession = sqlalchemy.orm.sessionmaker(bind=engine)
-        self.remoteSession = remoteSession
-        self.engine = engine
+        #Create the Local and Remote Database Engines and sessions
 
         self.remoteEngine = sqlalchemy.create_engine(REMOTE_URL)
+        self.remoteSession = sqlalchemy.orm.sessionmaker(bind=self.remoteEngine)
+
         self.localEngine =  sqlalchemy.create_engine(LOCAL_URL)
-
-        print "Starting SSH Tunnel"
-        theProcess = subprocess.Popen("ssh -L 3308:localhost:3307 dang@127.0.0.1",
-                                      shell=True,
-                                      close_fds=True)
-
-        self.theProcess = theProcess
-        #print theProcess.communicate()
+        self.localSession = sqlalchemy.orm.sessionmaker(bind=self.localEngine)
 
         cleanDB = True
         #cleanDB = False
 
-        #Make sure that the local and remote databases are "clean"
+        #Make sure that the local and remote databases are "clean" then populate with data
+        log.debug("Init Remote DB")
+        models.initialise_sql(self.remoteEngine,cleanDB)
+        models.populate_data(self.remoteSession())
+        testmeta.createTestDB(self.remoteSession())
+
+        log.debug("Init Local DB")
         models.initialise_sql(self.localEngine,cleanDB)
-        testmeta.createTestDB()
-
-        models.initialise_sql(self.remoteEngine,cleanDB,remoteSession())
-        #testmeta.createTestDB(remoteSession())
-
-        #models.init_data(remoteSession())
-        #models.init_data(localSession())
+        models.populate_data(self.localSession())
+        testmeta.createTestDB(self.localSession())
 
         #Add an Update Time.  This can be used to increment the "Last update"
         #And avoid problems with the testing script running stuff out of order
         #As our testing DB has 2 days worth of data in it, we need this to be now + 2 days
         #So Lets make it 5 days to be sure
+        #return
         now = datetime.datetime.now() + datetime.timedelta(days=5)
 
         #Add a remote URL to the local database
-        session = testmeta.Session()
+        session = self.localSession()
         uploadurl = models.UploadURL(url="127.0.0.1",
                                      dburl=REMOTE_URL,
                                      lastUpdate=now)
+
         theQry = session.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                            dburl=REMOTE_URL).first()
         if not theQry:
@@ -113,18 +103,20 @@ class TestPush(testmeta.BaseTestCase):
             session.commit()
 
         #Setup the Pushing Class
-        #Push Method Connection
         push = Pusher.Pusher()
-        #Setup Remote Engine
-        #rEngine = self._getRemoteEngine()
-        session = testmeta.Session()
         remoteUrl = session.query(models.UploadURL).filter_by(url="127.0.0.1").first()
-        #rEngine = sqlalchemy.create_engine(remoteUrl.dburl)
-
+        #Initalise the connection
         push.initRemote(remoteUrl)
-        #SEtup Local Connection
+
         push.initLocal(self.localEngine)
         self.push = push
+
+        log.debug("{0} Starting Tests {0}".format("="*30))
+
+    #@classmethod
+    #def tearDownClass(self):
+    #    #As this class adds a load of cruft. It is best we drop everything and start again
+    #    models.initialise_sql(self.localEngine,True)
 
     def setUp(self):
         pass
@@ -142,47 +134,41 @@ class TestPush(testmeta.BaseTestCase):
         push.syncReadings()
 
         #Check Everything is Equal
-        lSession = testmeta.Session()
+        lSession = self.localSession()
         rSession = self.remoteSession()
         lQry = lSession.query(models.Reading)
         rQry = rSession.query(models.Reading)
         self.assertEqual(lQry.count(),rQry.count())
        
-    @unittest.skip("Skip this for a second")   
+    #@unittest.skip("Skip this for a second")  
     def testPush_UpdateReadings(self):
         """Can we update the remote database readings
         
-        Add a load of "new" readings to the local database and ensure they are updated correctly
-
-        OK
+        Add a load of "new" readings to the local database and ensure they are updated correctly.
         """
         
-        #Given a known node and location can we update the data we have
-        #print "{0} TEST UPDATE READINGS {0}".format("-"*20)
-        #Fake the last upadate
-        lSession = testmeta.Session()
-        lSession.flush()
-        theNode = lSession.query(models.Node).filter_by(id=38).first()
-        tempSensor = lSession.query(models.SensorType).filter_by(name="Temperature").first()
+        lSession = self.localSession()
 
         #We need to fake that we have had an update to this point in time
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
-        #Add about 10 days so there are no clashes in timestamps
-        #print "--> DB Time {0}".format(theQry)
+
         thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
-        #print "---> Current Time {0}".format(thisTime)
-        #theQry.lastUpdate = thisTime
-        #for item in theQry:
-        #    item.lastUpdate = thisTime
-            
+
+
         lSession.flush()
         lSession.commit()
+
+        #Get Node and Sensor Parameters
+        theNode = lSession.query(models.Node).filter_by(id=38).first()
+        tempSensor = lSession.query(models.SensorType).filter_by(name="Temperature").first()
 
         nodeId = theNode.id
         typeId = tempSensor.id
         locationId = theNode.location.id
 
+        log.debug("Adding Readings:")
+        log.debug("--> Start Time {0}".format(thisTime))
         for x in range(10):
             theReading = models.Reading(time=thisTime,
                                         nodeId=nodeId,
@@ -190,31 +176,28 @@ class TestPush(testmeta.BaseTestCase):
                                         locationId = locationId,
                                         value=x)
             lSession.add(theReading)
-            #print "--> Item Added {0}".format(theReading)
             thisTime += datetime.timedelta(seconds=1)
-        
+
+        log.debug("--> End Time: {0}".format(thisTime))
+
         lSession.flush()
         lSession.commit()
         lSession.close()
         #self.thisTime = thisTime
         self._syncData()
 
-    @unittest.skip("Skip this for a second")   
+    #@unittest.skip("Skip this for a second")   
     def testUpdateNodes(self):
         """Does the Update work if we have some new nodes
 
         """
-        #print
-        #print "{0} TEST UPDATE NODES {0}".format("-"*20)
-        lSession = testmeta.Session()
+        lSession = self.localSession()
 
         #Make Sure we update the last Synch Time so it plays nicely with unittest
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
-        #Add about 10 days so there are no clashes in timestamps
-        #print "--> DB Time {0}".format(theQry)
         thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
-        #print "--> This Time {0}".format(thisTime)
+
 
         #Get our Sensor Types
         tempType = lSession.query(models.SensorType).filter_by(name="Temperature").first()
@@ -239,7 +222,6 @@ class TestPush(testmeta.BaseTestCase):
                                           calibrationSlope=1,
                                           calibrationOffset=0)
             lSession.add(theTempSensor)
-            #print "Sensor Added {0}".format(theTempSensor)
             theHumSensor = models.Sensor(sensorTypeId=humType.id,
                                          nodeId=item.id,
                                          calibrationSlope=1,
@@ -252,6 +234,10 @@ class TestPush(testmeta.BaseTestCase):
         #return
 
         #Add a load more Readings
+
+        log.debug("Adding Readings:")
+        log.debug("--> Start Time {0}".format(thisTime))
+
         for x in range(10):
             for node in [newNode1,newNode2]:
                 for sensor in node.sensors:
@@ -264,30 +250,25 @@ class TestPush(testmeta.BaseTestCase):
 
             thisTime += datetime.timedelta(seconds=1)
         
+        log.debug("--> End Time: {0}".format(thisTime))
         lSession.flush()
         lSession.commit()
         lSession.close()
         self._syncData()  
 
-    #-------------------------------------------          
-
-    @unittest.skip("Skip this for a second")   
-    #FAIL HERE
+    #@unittest.skip("Skip this for a second")   
     def testUpdateLocations(self):
         """Does the update work if we have a new location
 
         This will add not only new readings, but move one of the nodes to a new Location
         """
 
-        lSession = testmeta.Session()
+        lSession = self.localSession()
 
         #Make Sure we update the last Synch Time so it plays nicely with unittest
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
-        #Add about 10 days so there are no clashes in timestamps
-        print "--> DB Time {0}".format(theQry)
         thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
-        print "--> This Time {0}".format(thisTime)
 
         #Get our Sensor Types
         tempType = lSession.query(models.SensorType).filter_by(name="Temperature").first()
@@ -332,13 +313,6 @@ class TestPush(testmeta.BaseTestCase):
             lSession.add(theHumSensor)
             
         
-        #Make Sure we update the last Synch Time
-        #thisTime = self.thisTime + datetime.timedelta(days=10)
-
-        #theQry = lSession.query(models.UploadURL).first()
-        #theQry.lastUpdate = thisTime
-        #for item in theQry:
-        #    item.lastUpdate = thisTime
         lSession.flush()
         lSession.commit()
         
@@ -376,20 +350,12 @@ class TestPush(testmeta.BaseTestCase):
         
         #thisTime = self.thisTime + datetime.timedelta(days=10)
 
-        session = testmeta.Session()
+        session = self.localSession()
 
         theQry = session.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                            dburl=REMOTE_URL).first()
-        #Add about 10 days so there are no clashes in timestamps
-        print "--> DB Time {0}".format(theQry)
-        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
-        print "--> This Time {0}".format(thisTime)
 
-        #theQry = session.query(models.UploadURL).first()
-        #for item in theQry:
-        #    item.lastUpdate = thisTime
-        #session.flush()
-        #lSession.commit()
+        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
 
         #-------- NABBED FROM initDB with some M-% 
 
@@ -400,8 +366,7 @@ class TestPush(testmeta.BaseTestCase):
 
         #See if we need to add these items
         theDeployment = session.query(models.Deployment).filter_by(name="Sync").first()
-        #if theQry is not None:
-        #    return True
+
         if theDeployment is None:
             theDeployment = models.Deployment(name="Sync",
                                               description="Synchonisation DB",

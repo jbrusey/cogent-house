@@ -1,7 +1,6 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger(__name__)
-#log.setLevel(logging.INFO)
+
 
 import sqlalchemy
 import remoteModels
@@ -9,13 +8,35 @@ import remoteModels
 import cogent
 import cogent.base.model as models
 import cogent.base.model.meta as meta
-#RemoteSession = sqlalchemy.orm.sessionmaker()
-#RemoteMetadata = sqlalchemy.MetaData()
 import datetime
 import subprocess
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
 class Pusher(object):
-    """Class to push updates to a remote database"""
+    """Class to push updates to a remote database.
+
+    .. warning::
+    
+        This will fail if the database type is SQLite, currently a connection cannot issue a
+        statement while another is open.  Therefore the loop through the readings, appending new items 
+        fails with a DATABASE LOCKED error.
+
+        I am at a loss of what to do to fix this.
+        However, as we will be pushing to mySQL, its not really a problem except for some test cases
+        
+    .. note::
+    
+        I currently add 1 second to the time the last sample was transmitted,  
+        this means that there is no chance that the query to get readings will return an
+        item that has all ready been synced, leading to an integrity error.
+
+        I have tried lower values (0.5 seconds) but this pulls the last synced item out, 
+        this is possibly a error induced by mySQL's datetime not holding microseconds.
+        
+
+    """
     def __init__(self):
         pass
 
@@ -30,7 +51,6 @@ class Pusher(object):
         self.rUrl = remoteUrl
 
         #Put up an ssh tunnel
-        print "Starting SSH Tunnel"
         #theProcess = subprocess.Popen("ssh -L 3308:localhost:3307 dang@127.0.0.1",
          #                             shell=True,
           #                            close_fds=True)
@@ -75,25 +95,27 @@ class Pusher(object):
         """
         Does the nodes in the remote database need syncing.
 
-        :return: False if no synch is needed, otherwise a list of node objects that need synchronising
+        :return: A list of node objects that need synchronising
         """
         lSess = self.LocalSession()
         rSess = self.RemoteSession()
 
-        log.debug("{0} Checking Nodes {0}".format("#"*20))
         #Get the Nodes we Know about on the Remote Connection
         rQry = rSess.query(remoteModels.Node.id)
 
         #As the above query returns a list of tuples then we need to filter that down
         rQry = [x[0] for x in rQry]
 
-        log.debug("Remote Items {0}".format(rQry))
+        #Normally we would just issue a query, but having a empty query._in(<array>) 
+        #Will issue a SQL statement.  Therefore have a guard here to keep DB activity
+        #To a minimum
         if rQry:
             lQry = lSess.query(models.Node).filter(~models.Node.id.in_(rQry)).all()
-
-            return lQry
         else:
-            return False
+            lQry = []
+        
+        log.info("Nodes requiring sync: {0}".format(lQry))
+        return lQry
 
     def syncNodes(self,syncNodes=False):
         """
@@ -125,9 +147,8 @@ class Pusher(object):
             syncNodes = self.checkNodes()
 
         #Create the Remote Connection
-        log.debug("{0} Synchronising Nodes {0}".format("="*30))
         for node in syncNodes:
-            log.debug("--> Syncing Node {0}".format(node))
+            log.info("--> Sync Node {0} with remote database".format(node))
             node = lSess.query(models.Node).filter_by(id=node.id).first()
             #First we need to create the node itself
             newNode = remoteModels.Node(id=node.id)
@@ -136,9 +157,8 @@ class Pusher(object):
             newLocation = self.syncLocation(node.locationId)
             newNode.locationId = newLocation.id
             rSess.flush()
-            log.debug("--> SYNCING SENSORS")
             for sensor in node.sensors:
-                log.debug("--> --> Adding Sensor {0}".format(sensor))
+                log.debug("--> --> Sync Sensor {0}".format(sensor))
                 #We shouldn't have to worry about sensor types as they should be global
                 newSensor = remoteModels.Sensor(sensorTypeId=sensor.sensorTypeId,
                                                 nodeId = newNode.id,
@@ -218,18 +238,12 @@ class Pusher(object):
                                              deploymentId=remoteDeployment.id)
             rSess.add(remoteHouse)
             rSess.flush()
-
-                                             
-        #rSess.commit()
+            
         rSess.commit()
         log.debug("--> Remote House is {0}".format(remoteHouse))
-        #It is 
+
 
         remoteHouseId = remoteHouse.id
-        #rSess.close()
-
-
-        #rSess = self.RemoteSession()        
         remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouseId,
                                                                       roomId=remoteRoomId).first()
 
@@ -238,16 +252,11 @@ class Pusher(object):
         if not remoteLocation:
             remoteLocation = remoteModels.Location(houseId=remoteHouseId,
                                                    roomId = remoteRoomId)
-            #rSess.flush()
-            #rSess.commit()
             rSess.add(remoteLocation)
             log.debug("Adding New Remote Location")
-            #rSess.flush()
-            #rSess.commit()
             
         log.debug("--> Remote Location is {0}".format(remoteLocation))
         rSess.commit()
-        #rSess.close()
         return remoteLocation
         pass
 
@@ -276,33 +285,31 @@ class Pusher(object):
         lSess = self.LocalSession()
         session = self.RemoteSession()
 
-        log.debug("Synchronising Readings")
+        log.info("Synchronising Readings")
 
-        #Timestamp to check readings against
-        #cutTime = self.rUrl.lastUpdate
+        #Time stamp to check readings against
         rUrl = self.rUrl
-        log.debug("--> rURL {0}".format(self.rUrl))
-        #log.debug("Cut Off Time {0}".format(cutTime))
         lastUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
-        log.debug("--> Time Query {0}".format(lastUpdate))
+        log.info("--> Time Query {0}".format(lastUpdate))
+
         if lastUpdate:
             cutTime = lastUpdate.lastUpdate
         else:
             cutTime = None
-        log.info("Last Update {0}".format(cutTime))
-                 
+                  
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
         if cutTime:
-            
-            readings = readings.filter(models.Reading.time >= cutTime)
+            log.info("Filter all readings since {0}".format(cutTime))
+            readings = readings.filter(models.Reading.time > cutTime)
 
         log.info("Total Readings to Sync {0}".format(readings.count()))
         
         readings = list(readings.all())
         #Init Temp Storage
         locationStore = {}
-        for reading in readings:           
+        for reading in readings:  
+            #print reading
             mappedLoc = locationStore.get(reading.locationId,None)
             #Check if we have the location etc
             if mappedLoc is None:
@@ -322,19 +329,16 @@ class Pusher(object):
                      
             session.add(newReading)
             session.commit()
-            #session.flush()
-            #session.commit()
-        #This should be the last Sample
 
-
-        log.debug("Last Reading Added Was {0}".format(newReading))
+        log.info("Last Reading Added Was {0}".format(newReading))
 
         try:
             session.flush()
             session.commit()
-            #Update the Local Timestamp
+            #Update the Local Time stamp
             newUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
-            newUpdate.lastUpdate = newReading.time + datetime.timedelta(seconds = 0.1)
+            #Add a bit of jitter otherwise we end up getting the same reading.
+            newUpdate.lastUpdate = newReading.time + datetime.timedelta(seconds = 1)
             lSess.flush()
             lSess.commit()
             log.info("Commit Successful Last update is {0}".format(newUpdate))
