@@ -39,6 +39,8 @@ from sensortype import *
 from weather import *
 from uploadurl import *
 
+import populateData
+
 #Setup Logging
 log = logging.getLogger(__name__)
 
@@ -66,6 +68,14 @@ def initialise_sql(engine,dropTables=False,session=False):
 
     Base.metadata.create_all(engine)  
 
+def populate_data(session):
+    """Populate the database with some initial data
+
+    :param session: Session to use to populate database"""
+    populateData.init_data(session)
+
+    
+    
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     Session.configure(bind=engine)

@@ -21,9 +21,11 @@ import meta
 #Therefore we need to setup the log after we import 
 from sensortype import *
 from roomtype import *
+from node import *
+from sensor import *
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 
 def populateSensorTypes(session = False):
@@ -161,11 +163,12 @@ def _parseCalibration(filename,sensorcode,session=False):
     
     log.debug("Updating Coefficients from {0}".format(filename))
 
-    if not session:
-        session = meta.Session() 
+    #if not session:
+    #    session = meta.Session() 
 
     theFile = "{0}.csv".format(filename)
-    thePath = os.path.join("cogentviewer","calibration",theFile)
+    #thePath = os.path.join("cogentviewer","calibration",theFile)
+    thePath = os.path.join("cogent","base","Calibration",theFile)
     
     
 
@@ -246,11 +249,11 @@ def populateCalibration(session = False):
 
 
     for item in calibFiles:
-        status = _parseCalibration(item[0],item[1])
+        status = _parseCalibration(item[0],item[1],session)
         if not status:
             break
 
-def populateRoomTypes(session = False):
+def populateRoomTypes(session):
     """Add Some Default Room Types
 
     :param session: Session to be used if not the global database session
@@ -282,7 +285,9 @@ def init_data(session=False):
     :param session: Session to use if not the default
     """
 
-    log.info("Populating Initial Data")
+    if not session:
+        session = meta.Session()
+    log.info("Populating Initial Data using session {0}".format(session))
     populateSensorTypes(session = session)
     populateRoomTypes(session = session)
     populateCalibration(session = session)
