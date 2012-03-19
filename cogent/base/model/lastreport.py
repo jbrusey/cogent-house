@@ -1,10 +1,22 @@
-from sqlalchemy.ext.declarative import declarative_base
+import sqlalchemy
+import logging
+log = logging.getLogger(__name__)
+
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Float, Boolean
-from sqlalchemy.orm import relationship, backref
 
-from cogent.base.model.meta import Base
+import meta
+Base = meta.Base
 
-class LastReport(Base):
+class LastReport(Base,meta.InnoDBMix):
+    """
+    Class to deal with LastReports
+	This holds details of the last report E-Mailed to chuser
+
+    :var String name: Name 
+    :var String value: Value 
+
+    """
+
     __tablename__ = "LastReport"
 
     name = Column(String(40), primary_key=True)

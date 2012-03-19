@@ -1,0 +1,45 @@
+digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname="Courier"];
+  HouseMetadata[label=<
+       <table border="0" cellborder="1" cellspacing="0">
+       <tr><td><font face="Helvetica"><b>HouseMetadata</b></font></td></tr>
+       <tr><td port="id"><font color="red">id</font></td></tr> 
+       <tr><td port="houseid"><i>houseId</i></td></tr>
+       <tr><td>name</td></tr>
+       <tr><td>description</td></tr>
+       <tr><td>units</td></tr>
+       <tr><td>value</td></tr>
+       </table>>];
+  
+  HouseMetadata:houseid -> House:id;
+  
+  House[label=<
+       <table border="0" cellborder="1" cellspacing="0">
+       <tr><td><font face="Helvetica"><b>House</b></font></td></tr>
+       <tr><td port="id"><font color="red">id</font></td></tr> 
+       <tr><td port="deptid"><i>deploymentId</i></td></tr>
+       <tr><td>address</td></tr>
+       <tr><td>startdate</td></tr>
+       <tr><td>enddate</td></tr>
+       <tr><td port="meta"><font color="blue"><i>meta</i></font></td></tr>
+       <tr><td port="occupiers"><font color="blue"><i>occupiers</i></font></td></tr>
+       <tr><td port="location"><font color="blue"><i>location</i></font></td></tr>
+       </table>>];
+  
+  House:depId -> Deployment:id;
+  House:meta -> HouseMetadata [style="dashed"];
+  House:occupiers -> Occupier [style="dashed"];
+  House:location -> Location [style="dashed"];
+  
+  
+  Location[label=<
+	   <table border="0" cellborder="1" cellspacing="0">
+	   <tr><td><font face="Helvetica"><b>Location</b></font></td></tr>
+	   <tr><td port="id"><font color="red">id</font></td></tr> 	   
+	   <tr><td port="houseId">houseId</td></tr>
+	   <tr><td port="roomId">roomId</td></tr>
+	   </table>>];
+  Location:houseId -> House:id;
+  Location:roomId -> Room:id;
+}
