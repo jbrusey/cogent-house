@@ -278,7 +278,11 @@ class Pusher(object):
             #. Else:
                 #. Add Sample
 
+        # If Sync is successful, fix the last update timestamp.
+
         Additionally we need to Sync the Node-State Table
+
+
         
         """
 
@@ -301,7 +305,7 @@ class Pusher(object):
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
         if cutTime:
             log.info("Filter all readings since {0}".format(cutTime))
-            readings = readings.filter(models.Reading.time > cutTime)
+            readings = readings.filter(models.Reading.time >= cutTime)
 
         log.info("Total Readings to Sync {0}".format(readings.count()))
         
@@ -349,6 +353,47 @@ class Pusher(object):
         lSess.close()
         session.close()
         # pass
+
+    def syncState(self,cutTime=None):
+        """
+        Synchronise any node state information
+
+        Currently this just syncronises the node state table based on a given start date.
+        Actually this is pretty easy, as our constaints on unique node names mean that 
+        We dont have to do any error checking.
+
+
+        :param DateTime startTime: Time to start filtering the states from
+        """
+        lSess = self.LocalSession()
+        session = self.RemoteSession()
+
+        #Find out what time we need to update from
+        # rUrl = self.rUrl
+        # lastUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
+        # log.info("--> Time Query {0}".format(lastUpdate))
+
+        # if lastUpdate:
+        #     cutTime = lastUpdate.lastUpdate
+        # else:
+        #     cutTime = None
+
+        nodeStates = lSess.query(models.NodeState).order_by(models.NodeState.time)
+        log.info("Total Nodestates {0}".format(nodeStates.count()))
+        if cutTime:
+            log.info("Filter all nodeStates since {0}".format(cutTime))
+            nodeStates = nodeStates.filter(models.NodeState.time >= cutTime)
+
+        log.info("Total NodeStates to Sync {0}".format(nodeStates.count()))
+                  
+        for item in nodeStates:
+            newState = remoteModels.NodeState(time=item.time,
+                                              nodeId = item.nodeId,
+                                              parent = item.parent,
+                                              localtime = item.localtime)
+            session.add(newState)
+        session.flush()
+        session.commit()
 
 
 if __name__ == "__main__":
