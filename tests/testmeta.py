@@ -67,8 +67,7 @@ class BaseTestCase(unittest.TestCase):
         models.initialise_sql(engine)
         log.debug("Setup Testing Class with engine {0}".format(engine))
         self.engine = engine
-        #populateData.init_data()
-        #populateData.init_data()
+        populateData.init_data()
         self.Session = sqlalchemy.orm.sessionmaker(bind=engine)
         createTestDB(self.Session())
 
@@ -389,7 +388,7 @@ def createTestDB(session=False):
     node70.location = loc2_Living
     
     #Add some node state information here too
-    # Chaain base2( 40975) -> node69 -> node70
+    # Chain base2( 40975) -> node69 -> node70
     session.add(models.NodeState(time=house2Start,
                                  nodeId = node69.id,
                                  parent = 40975,
