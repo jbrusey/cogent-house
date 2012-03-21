@@ -8,6 +8,10 @@ Classes used by the pushing object to reflect database Tables
 import sqlalchemy
 
 from sqlalchemy.orm import mapper
+import sqlalchemy.orm
+
+import logging
+log = logging.getLogger(__name__)
 
 class RemoteBase(object):
    def __init__(self,**kwargs):
@@ -58,6 +62,21 @@ class NodeState(RemoteBase):
         
 
 def reflectTables(engine,RemoteMetadata):
+
+   #RemoteMetadata.reflect(bind=engine)
+   #print RemoteMetadata.tables
+   #deployment = RemoteMetadata.tables["Deployment"]
+   #mapper(Deployment,deployment)
+
+
+   try:
+      mapped = sqlalchemy.orm.class_mapper(Deployment)
+      log.debug("Remote Classes allready mapped")
+      log.debug("> {0} <".format(mapped))
+      return
+   except sqlalchemy.orm.exc.UnmappedClassError: 
+      log.debug("Must Map Remote Classes")
+
    deployment = sqlalchemy.Table('Deployment',
                                  RemoteMetadata,
                                  autoload=True,
