@@ -260,8 +260,10 @@ class Pusher(object):
         return remoteLocation
         pass
 
-    def syncReadings(self):
+    def syncReadings(self,cutTime=None):
         """Synchronise readings between two databases
+
+        :param DateTime cutTime: Time to start the Sync from
 
         This assumes that Sync Nodes has been called.
 
@@ -292,14 +294,15 @@ class Pusher(object):
         log.info("Synchronising Readings")
 
         #Time stamp to check readings against
-        rUrl = self.rUrl
-        lastUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
-        log.info("--> Time Query {0}".format(lastUpdate))
+        if not cutTime:
+            rUrl = self.rUrl
+            lastUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
+            log.info("--> Time Query {0}".format(lastUpdate))
 
-        if lastUpdate:
-            cutTime = lastUpdate.lastUpdate
-        else:
-            cutTime = None
+            if lastUpdate:
+                cutTime = lastUpdate.lastUpdate
+            else:
+                cutTime = None
                   
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
@@ -312,6 +315,7 @@ class Pusher(object):
         readings = list(readings.all())
         #Init Temp Storage
         locationStore = {}
+        newReading = None
         for reading in readings:  
             #print reading
             mappedLoc = locationStore.get(reading.locationId,None)
@@ -333,6 +337,10 @@ class Pusher(object):
                      
             session.add(newReading)
             session.commit()
+
+        if newReading is None:
+            #If we had no data to update
+            return
 
         log.info("Last Reading Added Was {0}".format(newReading))
 
