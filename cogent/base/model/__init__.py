@@ -9,6 +9,8 @@ Classes to initialise the SQL and populate with default Sensors
 """
 
 import logging
+log = logging.getLogger(__name__)
+#log.setLevel(logging.WARNING)
 
 import csv
 import os
