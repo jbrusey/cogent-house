@@ -66,10 +66,17 @@ class Deployment(Base,meta.InnoDBMix):
     def asJSON(self):
         """ Return a JSON compatable structure representing this item see :func:`models.asJSON`"""
         return {"id":"D_{0}".format(self.id),
-                "name":self.name,
-                "type":"deployment",
-                "children":None,
-                "parent":"root",}
+               "name":self.name,
+               "label":self.name,
+               "type":"deployment",
+               "children":[],
+               "parent":"root",}
+        
+        # #Shorter version of this
+        # return {"id":"D_{0}".format(self.id),
+        #         "label":self.name,
+        #         "type":"deployment",
+        #         }
 
     def flatten(self):
         
@@ -84,6 +91,12 @@ class Deployment(Base,meta.InnoDBMix):
                                                       self.startDate,
                                                       self.endDate)
 
+
+    def asTree(self):
+        """Recursively turn the deployments into a tree"""
+        thisItem = self.asJSON()
+        thisItem["children"] = [x.asTree() for x in self.houses]
+        return thisItem
 
     def asList(self,parentId = ""):
         outDict = [self.asJSON()]

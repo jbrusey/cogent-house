@@ -26,6 +26,7 @@ LOCAL_URL = "sqlite:///local.db"
 
 #REMOTE_URL = "sqlite:///remote.db"
 REMOTE_URL = "mysql://test_user:test_user@localhost/testStore"
+#REMOTE_URL = "mysql://dang:j4a77aec@127.0.0.1:3307/chtest"
 
 import subprocess
 

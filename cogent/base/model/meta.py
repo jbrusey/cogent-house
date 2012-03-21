@@ -45,14 +45,10 @@ class InnoDBMix(object):
     __table_args__ = {'mysql_engine': 'InnoDB',
                       'mysql_charset':'utf8'}
 
-    __mapper_args__ = {'passive_updates': True}
 
     def update(self,**kwargs):
         """
-        Update an object using keyword arguments
-        
-        .. code-block::
-
+        Update an object using keyword arguments::
 	    foo = Template() # Create a blank object
 	    foo.update(id=5,value=10) # Set id and value to 5,10 respectively
         """
