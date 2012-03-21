@@ -63,11 +63,12 @@ class BaseTestCase(unittest.TestCase):
         """Called the First time this class is called.
         This means that we can Init the testing database once per testsuite
         """
-
+        
         models.initialise_sql(engine)
+        log.debug("Setup Testing Class with engine {0}".format(engine))
         self.engine = engine
         #populateData.init_data()
-        populateData.init_data()
+        #populateData.init_data()
         self.Session = sqlalchemy.orm.sessionmaker(bind=engine)
         createTestDB(self.Session())
 
@@ -108,6 +109,8 @@ def createTestDB(session=False):
     """Create a complete Testing Database
     :param session: Session to use if not the global DB session
     """
+
+    log.debug("Add Testing Data")
     if not session:
         session = Session()
 
@@ -271,6 +274,8 @@ def createTestDB(session=False):
         session.add(node70)
 
 
+        
+
     #We want to work only with temperature database
     tempType = session.query(models.SensorType).filter_by(name="Temperature").first()   
     if tempType is None:
@@ -280,7 +285,8 @@ def createTestDB(session=False):
 
     #To make iterating through locations a little easier when adding samples
     locs = [node37,node38,node39,node40,node69,node70]
-    
+
+
     #While Technically it would be a good idea to have sensor's 
     #We may be able to get away with just having sensor types
     #However they are needed for the Visualiser so we can add them here.
@@ -302,6 +308,11 @@ def createTestDB(session=False):
                                                          typeId=tempType.id)
         theQry.delete()
 
+    #And state history
+    theQry = session.query(models.NodeState).delete()
+    session.flush()
+    
+
     #Next Add some data for each node
 
     #Deployment 1 Lasts for 2 Days, Pretend we have a sampling rate of 1 samples per hour
@@ -310,6 +321,26 @@ def createTestDB(session=False):
     node38.location = loc1_Second
     node39.location = loc1_Living
 
+    session.flush()
+
+    #Add some node state information
+    #To start a true star network
+    for item in [node37,node38,node39,node40]:
+        theState = models.NodeState(time=now,
+                                    nodeId = item.id,
+                                    parent=40974,
+                                    localtime = 0)
+        session.add(theState)
+    session.flush()
+    
+    #Lets also fake a rejig of the nodestate about a day into the depoyment
+    #With a tree along the lines of <base> -> [node37,node38 -> [node39,node40]]
+    for item in [node39,node40]:
+        theState = models.NodeState(time=now+datetime.timedelta(hours=24),
+                                    nodeId = item.id,
+                                    parent = node38.id,
+                                    localtime = 24)
+        session.add(theState)
     session.flush()
     
     #Add Data (Deal with node 40 seperately as this is a corner case
@@ -356,6 +387,19 @@ def createTestDB(session=False):
     #Match nodes and Locations 1 Node in Bed and Living Room
     node69.location = loc2_Master
     node70.location = loc2_Living
+    
+    #Add some node state information here too
+    # Chaain base2( 40975) -> node69 -> node70
+    session.add(models.NodeState(time=house2Start,
+                                 nodeId = node69.id,
+                                 parent = 40975,
+                                 localtime = 0))
+    session.add(models.NodeState(time=house2Start,
+                                 nodeId = node70.id,
+                                 parent = node69.id,
+                                 localtime = 0))
+    session.flush()
+                
 
     locs = [node69,node70]
     for x in range(1*24):
@@ -371,3 +415,4 @@ def createTestDB(session=False):
     session.flush()
     session.commit()
     session.close()
+    log.debug("Testing Data added")
