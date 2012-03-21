@@ -13,6 +13,7 @@ import subprocess
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 class Pusher(object):
     """Class to push updates to a remote database.
@@ -182,18 +183,35 @@ class Pusher(object):
 
         :param locId: LocationId to Synchronise
         :return Equivalent Location Id in the Remote Database
+
+
+
+        :since 0.1: Fixed House Name based bug.
+            Consider the following
+            Say we have one house -> Deploymet combo (Say Summer Deplyments),  then revist at a later time (Winter Depooyments)
+
+            The Following should happen,
+        
+            Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
+            Deployment2 -> House2 --(Location2)->  Room1 -> Node1 ...
+
+            Our Original Code for syching locations did this:
+
+            Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
+            Deployment2 -> House1 --(Location1)->  Room1 -> Node1 ...
         """
         lSess = self.LocalSession()
         rSess = self.RemoteSession()
 
         theLocation = lSess.query(models.Location).filter_by(id=locId).first()
-        log.debug("{2} Synchronising Location ({0}) {1} {2}".format(locId,theLocation,"="*10))
+        log.debug("{2} Synchronising Location {1} {2}".format(locId,theLocation,"="*10))
 
         #This is a little unfortunate, but I cannot (without over complicating reflection) 
         #Setup backrefs on the remote tables this should be a :TODO:
         #So We need a long winded query
 
         localRoom = theLocation.room
+        log.debug("Local Room {0}".format(localRoom))
         remoteRoom = rSess.query(remoteModels.Room).filter_by(name=localRoom.name).first()
         if remoteRoom is None:
             log.debug("--> No Such Room {0}".format(localRoom.name))
@@ -203,55 +221,78 @@ class Pusher(object):
             #We also cannot assume that the room type will exist so we need to check that
             roomType = rSess.query(remoteModels.RoomType).filter_by(name=localRoomType.name).first()
             if roomType is None:
-                log.debug("--> --> No Such Room Type {0}".format(theLocation.room.roomType.name))
-                roomType = remoteModels.RoomType(name=theLocation.room.roomType.name)
+                log.debug("--> --> No Such Room Type {0}".format(localRoomType.name))
+                roomType = remoteModels.RoomType(name=localRoomType.name)
                 rSess.add(roomType)
                 rSess.flush()
 
-            remoteRoom = remoteModels.Room(name=theLocation.room.name,
+            remoteRoom = remoteModels.Room(name=localRoom.name,
                                            roomTypeId = roomType.id)
 
             rSess.add(remoteRoom)
             rSess.flush()
 
         rSess.commit()
-        log.debug("Remote Room is {0}".format(remoteRoom))
-        remoteRoomId = remoteRoom.id
+        log.debug("==> Remote Room is {0}".format(remoteRoom))
 
-
+        #remoteRoomId = remoteRoom.id
+        
+        #if localRoom != remoteRoom:
+        #    log.warning("Rooms Do Not Match !!!! L: {0} R: {1}".format(localRoom,
+        #                                                               remoteRoom))
+        #    sys.exit(0)
+        
         #Then Check the House
+        localHouse = theLocation.house
+    
 
-        remoteHouse = rSess.query(remoteModels.House).filter_by(deploymentId = theLocation.house.deploymentId,
-                                                                address = theLocation.house.address).first()
-        if remoteHouse is None:
-            #Check the Deployment Exists
-            remoteDeployment = rSess.query(remoteModels.Deployment).filter_by(name=theLocation.house.deployment.name).first()
-            if not remoteDeployment:
-                remoteDeployment = remoteModels.Deployment(name=theLocation.house.deployment.name,
-                                                           description = theLocation.house.deployment.description,
-                                                           startDate = theLocation.house.deployment.startDate,
-                                                           endDate = theLocation.house.deployment.endDate)
-                rSess.add(remoteDeployment)
-                rSess.flush()
-            
-            remoteHouse = remoteModels.House(address=theLocation.house.address,
+        #To address the bug above, Add an intermediate step of checking the deployment
+        localDeployment = localHouse.deployment
+        log.debug("--> Local Deployment {0}".format(localDeployment))
+        
+        #Assume that all deployments will have a unique name
+        remoteDeployment = rSess.query(remoteModels.Deployment).filter_by(name=localDeployment.name).first()
+
+        if remoteDeployment is None:
+            log.debug("--> --> Create new Deployment")
+            remoteDeployment = remoteModels.Deployment(name=localDeployment.name,
+                                                       description = localDeployment.description,
+                                                       startDate = localDeployment.startDate,
+                                                       endDate = localDeployment.endDate)
+            rSess.add(remoteDeployment)
+            rSess.commit()
+
+        log.debug("--> Remote Deployment {0}".format(remoteDeployment))
+        
+        remoteHouse = rSess.query(remoteModels.House).filter_by(deploymentId = remoteDeployment.id,
+                                                                address = localHouse.address).first()
+
+        log.debug("--> Local House {0}".format(localHouse))   
+
+        if not remoteHouse:
+            #We should have created the deployment before   
+            log.debug("--> --> Create new House")
+            remoteHouse = remoteModels.House(address=localHouse.address,
                                              deploymentId=remoteDeployment.id)
             rSess.add(remoteHouse)
             rSess.flush()
-            
-        rSess.commit()
+            rSess.commit()
+
         log.debug("--> Remote House is {0}".format(remoteHouse))
+        #rDep = rSess.query(remoteModels.Deployment).filter_by(id=remoteHouse.deploymentId).first()
+        #log.debug("--> Local Deployment {0}".format(localHouse.deployment))
+        #log.debug("--> Remote Deployment is {0}".format(rDep))
 
 
-        remoteHouseId = remoteHouse.id
-        remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouseId,
-                                                                      roomId=remoteRoomId).first()
+        #remoteHouseId = remoteHouse.id
+        remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouse.id,
+                                                                      roomId=remoteRoom.id).first()
 
         log.debug("--> DB Remote Location {0}".format(remoteLocation))
         rSess.flush()
         if not remoteLocation:
-            remoteLocation = remoteModels.Location(houseId=remoteHouseId,
-                                                   roomId = remoteRoomId)
+            remoteLocation = remoteModels.Location(houseId=remoteHouse.id,
+                                                   roomId = remoteRoom.id)
             rSess.add(remoteLocation)
             log.debug("Adding New Remote Location")
             

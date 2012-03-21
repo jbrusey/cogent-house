@@ -205,7 +205,18 @@ class TestPush(testmeta.BaseTestCase):
         """
         
         lSession = self.localSession()
-        
+        rSession = self.remoteSession()
+
+        #Simulate another DB Synching
+        otherDeployment = models.Deployment(name="Other")
+        rSession.add(otherDeployment)
+        rSession.flush()
+        rSession.commit()
+        #otherHouse = models.House(address="Other",deploymentId = otherDeployment.id)
+        #rSession.add(otherHouse)
+        #rSession.flush()
+        #rSession.commit()
+
         #Get times to insert Readings
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
@@ -259,6 +270,7 @@ class TestPush(testmeta.BaseTestCase):
 
         node37.location = summerMaster
         node38.location = summerSecond
+        lSession.flush()
 
         #And add readings for each of these Nodes one should be enough to trigger any updates
         for node in [node37,node38]:
@@ -297,23 +309,30 @@ class TestPush(testmeta.BaseTestCase):
         #This should return an empty list
         self.assertEqual(checkNodes,[])
 
+        
+        #This should check that the number of readings match
         self._syncData()
 
         #And Check that all the items Match
         lSession = self.localSession()
         rSession = self.remoteSession()
+       
 
         #Deployments
+        log.debug("Check Deployments")
         lQry = lSession.query(models.Deployment)
         rQry = rSession.query(models.Deployment)
-        self.assertEqual(lQry.count(),rQry.count(),"Deployments Do Not Match")
+        #Remove one from remote count as we added a "fake" item above
+        self.assertEqual(lQry.count(),rQry.count()-1)
 
         #Houses
+        log.debug("Check Houses")
         lQry = lSession.query(models.House)
         rQry = rSession.query(models.House)
         self.assertEqual(lQry.count(),rQry.count(),"Houses Do Not Match")
 
         #Locations
+        log.debug("Check Locations")
         lQry = lSession.query(models.Location)
         rQry = rSession.query(models.Location)
         self.assertEqual(lQry.count(),rQry.count(),"Locations Do Not Match")        
