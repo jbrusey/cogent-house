@@ -10,10 +10,13 @@ import cogent.base.model as models
 import cogent.base.model.meta as meta
 import datetime
 import subprocess
+import shlex
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 log.setLevel(logging.DEBUG)
+
+LOCAL_URL = "sqlite:///local.db"
 
 class Pusher(object):
     """Class to push updates to a remote database.
@@ -36,10 +39,55 @@ class Pusher(object):
         I have tried lower values (0.5 seconds) but this pulls the last synced item out, 
         this is possibly a error induced by mySQL's datetime not holding microseconds.
         
+    .. warning::
+    
+       In My expereicne you may need to bugger about with conenction strings 
+       Checking either Localhost or 127.0.0.1  
+       Localhost worked on my machine,
+       my connecting to Cogentee wanted 127.0.0.1
 
     """
     def __init__(self):
-        pass
+        log.info("Initialise Push Object")
+        #Create a local session
+        localEngine = sqlalchemy.create_engine(LOCAL_URL)
+        self.initLocal(localEngine)
+
+        #For Each remote connection
+        session = self.LocalSession()
+        theQry = session.query(models.UploadURL).all()
+        for syncLoc in theQry:
+            log.debug("Sync Nodes for {0}".format(syncLoc))
+            sshUrl = syncLoc.url
+            print shlex.split("ssh -L 3307:localhost:3306 dang@192.168.1.106")
+            #['ssh', '-L', '3307:localhost:3306', 'dang@192.168.1.106']
+            
+            subParams = ["ssh","-L","3307:localhost:3306", sshUrl]
+            log.debug("--> Creating SSH Tunnel {0}".format(sshUrl))
+            log.debug("--> --> {0}".format(subParams))
+            
+            theProcess = subprocess.Popen(subParams,stdout=subprocess.PIPE,stdin=subprocess.PIPE)
+            raw_input("GO")
+
+            log.debug("--> Initalise Remote Connection")
+            dburl = syncLoc.dburl
+            log.debug("--> {0}".format(dburl))
+
+
+            self.initRemote(syncLoc)
+            
+            #And A Test Query
+            rSession = self.RemoteSession()
+            theQry = rSession.query(remoteModels.Deployment)
+            for item in theQry:
+                print item
+            
+            log.debug("--> Synchronising Objects")
+            raw_input("### Press Any Key to Continue")
+            #theProcess.terminate()
+            theProcess.kill()
+            import time
+            time.sleep(1)
 
     def initRemote(self,remoteUrl):
         """Initialise a connection to the database and reflect all Remote Tables
@@ -57,8 +105,10 @@ class Pusher(object):
           #                            close_fds=True)
 
         #self.theProcess = theProcess        
+        
 
         engine = sqlalchemy.create_engine(remoteUrl.dburl)
+        log.debug("--> Engine {0}".format(engine))
         RemoteSession.configure(bind=engine)
         RemoteMetadata = sqlalchemy.MetaData()
         
@@ -448,13 +498,16 @@ class Pusher(object):
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
     
-    
-    remoteEngine = sqlalchemy.create_engine("sqlite:///remote.db")
-    localEngine =  sqlalchemy.create_engine("sqlite:///test.db")
+
+    #local
+    #remoteEngine = sqlalchemy.create_engine("sqlite:///remote.db")
+    #localEngine =  sqlalchemy.create_engine("sqlite:///test.db")
 
     push = Pusher()
-    push.initRemote(remoteEngine)
-    push.initLocal(localEngine)
-    push.testRemoteQuery()
-    push.testLocalQuery()
+
+    #push = Pusher()
+    #push.initRemote(remoteEngine)
+    #push.initLocal(localEngine)
+    #push.testRemoteQuery()
+    #push.testLocalQuery()
     pass

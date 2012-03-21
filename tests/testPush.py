@@ -107,7 +107,7 @@ class TestPush(testmeta.BaseTestCase):
         push = Pusher.Pusher()
         remoteUrl = session.query(models.UploadURL).filter_by(url="127.0.0.1").first()
         #Initalise the connection
-        push.initRemote(remoteUrl)
+        push.initRemote(self.remoteUrl)
 
         push.initLocal(self.localEngine)
         self.push = push
