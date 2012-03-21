@@ -622,7 +622,19 @@ class TestPush(testmeta.BaseTestCase):
         #self.thisTime = thisTime
         self._syncData()
 
-        pass
+    def testPush_UpdateNodeState(self):
+        """Does the node state update correctly"""
+        push = self.push
+        #push.syncNodes()
+        
+        push.syncState()
+
+        lSession = self.localSession()
+        rSession = self.remoteSession()
+        lQry = lSession.query(models.NodeState)
+        rQry = rSession.query(models.NodeState)
+        self.assertEqual(lQry.count(),rQry.count())        
+        
 
 
 if __name__ == "__main__":
