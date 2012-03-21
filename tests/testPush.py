@@ -24,8 +24,8 @@ import cogent.push.Pusher as Pusher
 
 LOCAL_URL = "sqlite:///local.db"
 
-#REMOTE_URL = "sqlite:///remote.db"
-REMOTE_URL = "mysql://test_user:test_user@localhost/testStore"
+REMOTE_URL = "sqlite:///remote.db"
+#REMOTE_URL = "mysql://test_user:test_user@localhost/testStore"
 #REMOTE_URL = "mysql://dang:j4a77aec@127.0.0.1:3307/chtest"
 
 import subprocess
@@ -257,7 +257,7 @@ class TestPush(testmeta.BaseTestCase):
         lSession.close()
         self._syncData()  
 
-    #@unittest.skip("Skip this for a second")   
+    @unittest.skip("Skip this for a second")   
     def testUpdateLocations(self):
         """Does the update work if we have a new location
 
@@ -341,7 +341,7 @@ class TestPush(testmeta.BaseTestCase):
         self._syncData()
         #pass
 
-    #@unittest.skip("Skip this for a second")   
+    @unittest.skip("Skip this for a second")   
     def testUpdateComplete(self):
         """
         Does the update work if we we add a new deployment downwards
@@ -627,7 +627,29 @@ class TestPush(testmeta.BaseTestCase):
         push = self.push
         #push.syncNodes()
         
-        push.syncState()
+        #We need to add some states to update
+        lSession = self.localSession()
+
+        #We need to fake that we have had an update to this point in time
+        theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
+                                                            dburl=REMOTE_URL).first()
+
+        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+
+        #And Add some new nodestates
+        for x in range(10):
+            lSession.add(models.NodeState(time=thisTime,
+                                          nodeId=x,
+                                          parent=1024,
+                                          localtime = 0))
+
+        lSession.flush()
+        lSession.commit()
+                         
+        
+
+
+        push.syncState(thisTime)
 
         lSession = self.localSession()
         rSession = self.remoteSession()

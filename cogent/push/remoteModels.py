@@ -46,6 +46,8 @@ class RoomType(RemoteBase):
 class Deployment(RemoteBase):
    pass
 
+class NodeState(RemoteBase):
+   pass
         
 
 
@@ -102,6 +104,13 @@ def reflectTables(engine,RemoteMetadata):
                                autoload=True,
                                autoload_with=engine)
     mapper(Reading,reading)
+
+    nodeState = sqlalchemy.Table("NodeState",
+                                 RemoteMetadata,
+                                 autoload=True,
+                                 autoload_with=engine)
+
+    mapper(NodeState,nodeState)
 
     pass
 
