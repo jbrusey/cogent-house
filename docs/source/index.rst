@@ -13,6 +13,7 @@ Contents:
 
    introduction
    models
+   sync
 
 Indices and tables
 ==================

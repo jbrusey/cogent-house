@@ -112,6 +112,8 @@ class Datagen(object):
                                       dburl="mysql://test_user:test_user@localhost:3307/pushTest")
             session.add(theUrl)
         
+            theUrl = models.UploadURL(url="dang@cogentee.coventry.ac.uk",
+                                      dbUrl="mysql://dang:j4a77aec@localhost:3307/chtest")
 
         session.commit()
 
