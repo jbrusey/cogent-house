@@ -1,0 +1,5 @@
+COMPONENT=DigitalC
+PFLAGS += -I$(TOSDIR)/lib/ftsp 
+
+PFLAGS += -DTIMESYNC_RATE=43200
+include $(MAKERULES)

@@ -138,6 +138,11 @@ implementation
   PackState.Mask -> ABV;
   CogentHouseP.PackState -> PackState;
 
-  //components new LogStorageC(VOLUME_DEBUGLOG, TRUE);
-  //CogentHouseP.DebugLog -> LogStorageC;
+  //Leaf node reciever
+  components new AMReceiverC(AM_LEAFMSG);
+  CogentHouseP.Receive -> AMReceiverC;
+
+  components new AMSenderC(AM_LEAF_ACK_MSG) as ACKSender;
+  CogentHouseP.AMSend -> ACKSender;
+  CogentHouseP.ACK -> ACKSender;
 }

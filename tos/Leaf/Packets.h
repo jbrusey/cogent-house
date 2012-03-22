@@ -58,7 +58,24 @@ enum {
   SC_POWER_KWH = 17,
   SC_HEAT_ENERGY = 18,
   SC_HEAT_VOLUME = 19,
-  SC_SIZE = 20 // SC_SIZE must be 1 greater than last entry
+  SC_D_CO2 = 20,
+  SC_MSG_COUNT = 21,
+  SC_D_VOC = 22,
+  SC_D_AQ = 23,
+  SC_TEMP_HEALTH = 24,
+  SC_TEMP_COLD = 25,
+  SC_TEMP_COMFORT = 26,
+  SC_TEMP_WARM = 27,
+  SC_TEMP_OVER = 28,
+  SC_HUM_DRY = 29,
+  SC_HUM_COMFORT = 30,
+  SC_HUM_DAMP = 31,
+  SC_HUM_RISK = 32,
+  SC_CO2_ACC = 33,
+  SC_CO2_MINOR = 34,
+  SC_CO2_MEDIUM = 35,
+  SC_CO2_MAJOR = 36,
+  SC_SIZE = 37 // SC_SIZE must be 1 greater than last entry
 };
 
 #include "PackState/packstate.h"
@@ -83,20 +100,13 @@ enum {
 //separate packets structure for mote type
 
 enum {
+  AM_ACKMSG = 3,
   AM_STATEV1MSG = 4,
   AM_CONFIGMSG = 5,
   DIS_SETTINGS = 6,
   AM_STATEMSG = 7,
-  AM_LEAFMSG = 8,
-  AM_LEAF_ACK_MSG = 9,
   SPECIAL = 0xc7
 };
-
-
-typedef nx_struct AckMsg {
-  nx_uint16_t node_id;
-  nx_uint32_t timestamp;
-} AckMsg; 
 
 typedef nx_struct StateMsg {
   nx_uint16_t ctp_parent_id;
@@ -130,5 +140,11 @@ typedef nx_struct ConfigMsg {
   ConfigPerType byType [NODE_TYPE_MAX];
   nx_uint8_t special;
 } ConfigMsg;
+
+
+typedef nx_struct AckMsg {
+  nx_uint16_t node;
+} AckMsg;
+
 
 #endif
