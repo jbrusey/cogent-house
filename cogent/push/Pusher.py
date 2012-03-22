@@ -1,5 +1,6 @@
 import logging
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(filename="push.log")
 
 
 import sqlalchemy
@@ -131,11 +132,18 @@ class Pusher(object):
                 
             log.debug("-->--> State")
             #Synchronise State
-            self.syncState()
+            try:
+                self.syncState()
+            except sqlalchemy.exc.OperationalError,e:
+                log.warning(e)
+                break
             #Synchronise Readings
             log.debug("-->--> Readings")
-            self.syncReadings()
-
+            try:
+                self.syncReadings()
+            except sqlalchemy.exc.OperationalError,e:
+                log.warning(e)
+                break
 
             server.shutdown()
             server.socket.close()
