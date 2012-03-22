@@ -112,8 +112,11 @@ class Datagen(object):
                                       dburl="mysql://test_user:test_user@localhost:3307/pushTest")
             session.add(theUrl)
         
+        theUrl = session.query(models.UploadURL).filter_by(url="dang@cogentee.coventry.ac.uk").first()
+        if not theUrl:
             theUrl = models.UploadURL(url="dang@cogentee.coventry.ac.uk",
-                                      dbUrl="mysql://dang:j4a77aec@localhost:3307/chtest")
+                                      dburl="mysql://dang:j4a77aec@localhost:3307/chtest")
+            session.add(theUrl)
 
         session.commit()
 

@@ -21,6 +21,9 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 #log.setLevel(logging.DEBUG)
 
+plogger = paramiko.util.logging.getLogger()
+plogger.setLevel(logging.WARNING)
+
 #LOCAL_URL = "sqlite:///local.db"
 LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
 
@@ -69,9 +72,10 @@ class Pusher(object):
         log.debug("Synch Data")
         session = self.LocalSession()
         theQry = session.query(models.UploadURL).all() #Session gets locked here, 
+        print theQry
         session.close()
         for syncLoc in theQry:
-            log.info("Sync Nodes for {0}".format(syncLoc))
+            log.info("-------- Sync Nodes for {0} ----------------".format(syncLoc))
             sshUrl = syncLoc.url
 
             log.debug("--> Creating SSH Tunnel {0}".format(sshUrl))
@@ -119,7 +123,12 @@ class Pusher(object):
             
             log.debug("--> Synchronising Objects")
             log.debug("-->--> Nodes")
-            self.syncNodes()
+            try:
+                self.syncNodes()
+            except sqlalchemy.exc.OperationalError,e:
+                log.warning(e)
+                break
+                
             log.debug("-->--> State")
             #Synchronise State
             self.syncState()
@@ -204,8 +213,6 @@ class Pusher(object):
 
         #As the above query returns a list of tuples then we need to filter that down
         rQry = [x[0] for x in rQry]
-        print "Remove Nodes"
-        print rQry
         #Normally we would just issue a query, but having a empty query._in(<array>) 
         #Will issue a SQL statement.  Therefore have a guard here to keep DB activity
         #To a minimum
@@ -261,9 +268,10 @@ class Pusher(object):
             newNode = remoteModels.Node(id=node.id)
             rSess.add(newNode)
             rSess.flush()
-            newLocation = self.syncLocation(node.locationId)
-            newNode.locationId = newLocation
-            rSess.flush()
+            if node.locationId:
+                newLocation = self.syncLocation(node.locationId)
+                newNode.locationId = newLocation
+                rSess.flush()
             for sensor in node.sensors:
                 log.debug("--> --> Sync Sensor {0}".format(sensor))
                 #We shouldn't have to worry about sensor types as they should be global
