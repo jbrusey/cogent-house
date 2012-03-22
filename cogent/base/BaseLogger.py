@@ -281,7 +281,7 @@ class BaseLogger(object):
             am.set_node(n)
             logger.debug("Sending Ack: %s, %s" % (n,hex(n)))
             print hex(n)
-            self.bif.sendMsg(am,dest=hex(n))
+            self.bif.sendMsg(am)#,dest=hex(n))
         except Exception as e:
             session.rollback()
             logger.exception("during storing: " + str(e))

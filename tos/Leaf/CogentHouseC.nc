@@ -29,11 +29,11 @@ implementation
   components new TimerMilliC() as TimeOut;
   components RandomC;
   components new AMSenderC(AM_STATEMSG) as StateSender;
-  //components new AMReceiverC(AM_ACKMSG);
+  components new AMReceiverC(AM_ACKMSG);
 
   CogentHouseP.Boot -> MainC.Boot;
   CogentHouseP.StateSender -> StateSender;  
-  //CogentHouseP.Receive -> AMReceiverC;
+  CogentHouseP.Receive -> AMReceiverC;
   CogentHouseP.SenseTimer -> SenseTimer;
   CogentHouseP.SendTimeoutTimer -> SendTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
