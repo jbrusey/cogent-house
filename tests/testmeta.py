@@ -20,9 +20,9 @@ viewer = False
 
 
 
-#DBURL = 'mysql://root:Ex3lS4ga@localhost/testStore'
+DBURL = 'mysql://test_user:test_user@localhost/pushTest'
 #DBURL = 'sqlite:///:memory:'
-DBURL = "sqlite:///test.db"
+#DBURL = "sqlite:///test.db"
 
 try:
     import cogentviewer
@@ -69,7 +69,7 @@ class BaseTestCase(unittest.TestCase):
         self.engine = engine
         populateData.init_data()
         self.Session = sqlalchemy.orm.sessionmaker(bind=engine)
-        createTestDB(self.Session())
+        #createTestDB(self.Session())
 
     def setUp(self):
         """Called each time a test case is called, I wrap each
