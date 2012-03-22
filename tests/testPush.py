@@ -24,8 +24,8 @@ import cogent.push.Pusher as Pusher
 
 LOCAL_URL = "sqlite:///local.db"
 
-#REMOTE_URL = "sqlite:///remote.db"
-REMOTE_URL = "mysql://test_user:test_user@localhost/testStore"
+REMOTE_URL = "sqlite:///remote.db"
+#REMOTE_URL = "mysql://test_user:test_user@localhost/testStore"
 #REMOTE_URL = "mysql://dang:j4a77aec@127.0.0.1:3307/chtest"
 
 import subprocess
@@ -107,7 +107,7 @@ class TestPush(testmeta.BaseTestCase):
         push = Pusher.Pusher()
         remoteUrl = session.query(models.UploadURL).filter_by(url="127.0.0.1").first()
         #Initalise the connection
-        push.initRemote(remoteUrl)
+        push.initRemote(self.remoteUrl)
 
         push.initLocal(self.localEngine)
         self.push = push
@@ -131,8 +131,12 @@ class TestPush(testmeta.BaseTestCase):
         push = self.push
         push.syncNodes()
 
+        #Synchronise State
+        push.syncState()
+        
         #Synchronise Readings
         push.syncReadings()
+        
 
         #Check Everything is Equal
         lSession = self.localSession()
@@ -141,7 +145,7 @@ class TestPush(testmeta.BaseTestCase):
         rQry = rSession.query(models.Reading)
         self.assertEqual(lQry.count(),rQry.count())
        
-    #@unittest.skip("Skip this for a second")  
+    @unittest.skip("Skip this for a second")  
     def testPush_UpdateReadings(self):
         """Can we update the remote database readings
         
@@ -187,7 +191,160 @@ class TestPush(testmeta.BaseTestCase):
         #self.thisTime = thisTime
         self._syncData()
 
-    #@unittest.skip("Skip this for a second")   
+    def testUpdateLocations_Complex(self):
+        """Does the update work if we have a somewhat more complex set of locations
+
+        Checking if a possible corner case is correctly fixed.
+        Say we have one house -> Deploymet combo (Say Summer Deplyments),  then revist at a later time (Winter Depooyments)
+
+        The Following should happen,
+        
+        Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
+        Deployment2 -> House2 --(Location2)->  Room1 -> Node1 ...
+
+        But I think our current update may do this as it currently based on house Address.
+
+        Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
+        Deployment2 -> House1 --(Location1)->  Room1 -> Node1 ...
+        """
+        
+        lSession = self.localSession()
+        rSession = self.remoteSession()
+
+        #Simulate another DB Synching
+        otherDeployment = models.Deployment(name="Other")
+        rSession.add(otherDeployment)
+        rSession.flush()
+        rSession.commit()
+        #otherHouse = models.House(address="Other",deploymentId = otherDeployment.id)
+        #rSession.add(otherHouse)
+        #rSession.flush()
+        #rSession.commit()
+
+        #Get times to insert Readings
+        theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
+                                                            dburl=REMOTE_URL).first()
+  
+        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+
+        #Build the dataset
+        summerDeployment = models.Deployment(name="Summer")
+        winterDeployment = models.Deployment(name="Winter")
+
+        lSession.add(summerDeployment)
+        lSession.add(winterDeployment)
+        lSession.flush()
+
+
+        summerHouse = models.House(address="Address1",
+                                deploymentId = summerDeployment.id,
+                                )
+        lSession.add(summerHouse)
+
+        winterHouse = models.House(address="Address1",
+                                   deploymentId = winterDeployment.id)
+        lSession.add(winterHouse)
+        lSession.flush()
+
+        #Get some Rooms
+        masterBed = lSession.query(models.Room).filter_by(name="Master Bedroom").first()
+        secondBed = lSession.query(models.Room).filter_by(name="Second Bedroom").first()
+
+
+        #And Locations
+        summerMaster = models.Location(houseId = summerHouse.id,
+                                       roomId = masterBed.id)
+        summerSecond = models.Location(houseId = summerHouse.id,
+                                       roomId = secondBed.id)
+
+        winterMaster = models.Location(houseId = winterHouse.id,
+                                       roomId = masterBed.id)
+        winterSecond = models.Location(houseId = winterHouse.id,
+                                       roomId = secondBed.id)            
+
+        lSession.add(summerMaster)
+        lSession.add(summerSecond)
+        lSession.add(winterMaster)
+        lSession.add(winterSecond)
+        lSession.flush()
+
+        #Add Nodes to each Location
+        node37 = lSession.query(models.Node).filter_by(id=37).first()
+        node38 = lSession.query(models.Node).filter_by(id=38).first()
+
+        node37.location = summerMaster
+        node38.location = summerSecond
+        lSession.flush()
+
+        #And add readings for each of these Nodes one should be enough to trigger any updates
+        for node in [node37,node38]:
+            theReading = models.Reading(time=thisTime,
+                                        nodeId = node.id,
+                                        locationId = node.locationId,
+                                        value = 100,
+                                        typeId = 0)
+            lSession.add(theReading)
+            
+        lSession.flush()
+
+        node37.location = winterMaster
+        node38.location = winterSecond
+        lSession.flush()
+
+        for node in [node37,node38]:
+            theReading = models.Reading(time=thisTime + datetime.timedelta(days=1),
+                                        nodeId = node.id,
+                                        locationId = node.locationId,
+                                        value = 100,
+                                        typeId = 0)
+            lSession.add(theReading)
+
+        lSession.flush()
+        lSession.commit()
+        lSession.close()
+
+
+        
+
+        #Check if we have any nodes to Sync
+        push = self.push
+        checkNodes = push.checkNodes()
+        log.debug("Nodes to Sync {0}".format(checkNodes))
+        #This should return an empty list
+        self.assertEqual(checkNodes,[])
+
+        
+        #This should check that the number of readings match
+        self._syncData()
+
+        #And Check that all the items Match
+        lSession = self.localSession()
+        rSession = self.remoteSession()
+       
+
+        #Deployments
+        log.debug("Check Deployments")
+        lQry = lSession.query(models.Deployment)
+        rQry = rSession.query(models.Deployment)
+        #Remove one from remote count as we added a "fake" item above
+        self.assertEqual(lQry.count(),rQry.count()-1)
+
+        #Houses
+        log.debug("Check Houses")
+        lQry = lSession.query(models.House)
+        rQry = rSession.query(models.House)
+        self.assertEqual(lQry.count(),rQry.count(),"Houses Do Not Match")
+
+        #Locations
+        log.debug("Check Locations")
+        lQry = lSession.query(models.Location)
+        rQry = rSession.query(models.Location)
+        self.assertEqual(lQry.count(),rQry.count(),"Locations Do Not Match")        
+        
+        
+        
+
+    @unittest.skip("Skip this for a second")   
     def testUpdateNodes(self):
         """Does the Update work if we have some new nodes
 
@@ -257,7 +414,7 @@ class TestPush(testmeta.BaseTestCase):
         lSession.close()
         self._syncData()  
 
-    #@unittest.skip("Skip this for a second")   
+    @unittest.skip("Skip this for a second")   
     def testUpdateLocations(self):
         """Does the update work if we have a new location
 
@@ -341,7 +498,7 @@ class TestPush(testmeta.BaseTestCase):
         self._syncData()
         #pass
 
-    #@unittest.skip("Skip this for a second")   
+    @unittest.skip("Skip this for a second")   
     def testUpdateComplete(self):
         """
         Does the update work if we we add a new deployment downwards
@@ -622,7 +779,42 @@ class TestPush(testmeta.BaseTestCase):
         #self.thisTime = thisTime
         self._syncData()
 
-        pass
+    @unittest.skip("Skipping Test")
+    def testPush_UpdateNodeState(self):
+        """Does the node state update correctly"""
+        push = self.push
+        #push.syncNodes()
+        
+        #We need to add some states to update
+        lSession = self.localSession()
+
+        #We need to fake that we have had an update to this point in time
+        theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
+                                                            dburl=REMOTE_URL).first()
+
+        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+
+        #And Add some new nodestates
+        for x in range(10):
+            lSession.add(models.NodeState(time=thisTime,
+                                          nodeId=x,
+                                          parent=1024,
+                                          localtime = 0))
+
+        lSession.flush()
+        lSession.commit()
+                         
+        
+
+
+        push.syncState(thisTime)
+
+        lSession = self.localSession()
+        rSession = self.remoteSession()
+        lQry = lSession.query(models.NodeState)
+        rQry = rSession.query(models.NodeState)
+        self.assertEqual(lQry.count(),rQry.count())        
+        
 
 
 if __name__ == "__main__":
