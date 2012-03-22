@@ -16,7 +16,7 @@ import time
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
-log.setLevel(logging.DEBUG)
+#log.setLevel(logging.DEBUG)
 
 LOCAL_URL = "sqlite:///local.db"
 
@@ -62,7 +62,7 @@ class Pusher(object):
         session = self.LocalSession()
         theQry = session.query(models.UploadURL).all()
         for syncLoc in theQry:
-            log.debug("Sync Nodes for {0}".format(syncLoc))
+            log.info("Sync Nodes for {0}".format(syncLoc))
             sshUrl = syncLoc.url
             
             subParams = ["ssh","-L","3307:localhost:3306", sshUrl]
@@ -173,10 +173,14 @@ class Pusher(object):
         #To a minimum
         if rQry:
             lQry = lSess.query(models.Node).filter(~models.Node.id.in_(rQry)).all()
+            lQry = [x.id for x in lQry]
         else:
             lQry = []
         
         log.info("Nodes requiring sync: {0}".format(lQry))
+
+        #lSess.close()
+        lSess.close()
         return lQry
 
     def syncNodes(self,syncNodes=False):
@@ -209,15 +213,15 @@ class Pusher(object):
             syncNodes = self.checkNodes()
 
         #Create the Remote Connection
-        for node in syncNodes:
-            log.info("--> Sync Node {0} with remote database".format(node))
-            node = lSess.query(models.Node).filter_by(id=node.id).first()
+        for nId in syncNodes:
+            log.info("--> Sync Node Id {0} with remote database".format(nId))
+            node = lSess.query(models.Node).filter_by(id=nId).first()
             #First we need to create the node itself
             newNode = remoteModels.Node(id=node.id)
             rSess.add(newNode)
             rSess.flush()
             newLocation = self.syncLocation(node.locationId)
-            newNode.locationId = newLocation.id
+            newNode.locationId = newLocation
             rSess.flush()
             for sensor in node.sensors:
                 log.debug("--> --> Sync Sensor {0}".format(sensor))
@@ -232,6 +236,7 @@ class Pusher(object):
   
         rSess.commit()
         rSess.close()
+        lSess.close()
 
     def syncLocation(self,locId):
         """Code to Synchronise Locations
@@ -359,7 +364,11 @@ class Pusher(object):
             
         log.debug("--> Remote Location is {0}".format(remoteLocation))
         rSess.commit()
-        return remoteLocation
+
+        locId = remoteLocation.id
+        lSess.close()
+        rSess.close()
+        return locId
         pass
 
     def syncReadings(self,cutTime=None):
@@ -409,7 +418,7 @@ class Pusher(object):
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
         if cutTime:
-            log.info("Filter all readings since {0}".format(cutTime))
+            log.debug("Filter all readings since {0}".format(cutTime))
             readings = readings.filter(models.Reading.time >= cutTime)
 
         log.info("Total Readings to Sync {0}".format(readings.count()))
@@ -425,7 +434,7 @@ class Pusher(object):
             if mappedLoc is None:
                 mapId = self.syncLocation(reading.locationId)
                 #And update the nodes Location
-                if not mapId.id:
+                if not mapId:
                     log.warning("Error Creating Location {0}".format(reading.locationId))
                     sys.exit(0)
                                 
@@ -434,17 +443,17 @@ class Pusher(object):
             newReading = remoteModels.Reading(time = reading.time,
                                               nodeId = reading.nodeId,
                                               type = reading.typeId,
-                                              locationId = mapId.id,
+                                              locationId = mapId,
                                               value = reading.value)
                      
             session.add(newReading)
-            session.commit()
+            #session.commit()
 
         if newReading is None:
             #If we had no data to update
             return
 
-        log.info("Last Reading Added Was {0}".format(newReading))
+        log.debug("Last Reading Added Was {0}".format(newReading))
 
         try:
             session.flush()
@@ -489,12 +498,12 @@ class Pusher(object):
         #     cutTime = None
 
         nodeStates = lSess.query(models.NodeState).order_by(models.NodeState.time)
-        log.info("Total Nodestates {0}".format(nodeStates.count()))
+        log.debug("Total Nodestates {0}".format(nodeStates.count()))
         if cutTime:
             log.info("Filter all nodeStates since {0}".format(cutTime))
             nodeStates = nodeStates.filter(models.NodeState.time >= cutTime)
 
-        log.info("Total NodeStates to Sync {0}".format(nodeStates.count()))
+        log.debug("Total NodeStates to Sync {0}".format(nodeStates.count()))
                   
         for item in nodeStates:
             newState = remoteModels.NodeState(time=item.time,
@@ -502,8 +511,11 @@ class Pusher(object):
                                               parent = item.parent,
                                               localtime = item.localtime)
             session.add(newState)
+
         session.flush()
         session.commit()
+        lSess.close()
+        session.close()
 
 
 if __name__ == "__main__":
@@ -513,9 +525,18 @@ if __name__ == "__main__":
     #local
     #remoteEngine = sqlalchemy.create_engine("sqlite:///remote.db")
     #localEngine =  sqlalchemy.create_engine("sqlite:///test.db")
+    import time
 
+    SYNC_TIME = 60
     push = Pusher()
-    push.sync()
+    try:
+        while True:
+            push.sync()
+            time.sleep(SYNC_TIME)
+
+    except KeyboardInterrupt:
+        log.debug("Shutting Down!!")
+        
     #push = Pusher()
     #push.initRemote(remoteEngine)
     #push.initLocal(localEngine)
