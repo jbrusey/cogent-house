@@ -18,7 +18,8 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 #log.setLevel(logging.DEBUG)
 
-LOCAL_URL = "sqlite:///local.db"
+#LOCAL_URL = "sqlite:///local.db"
+LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
 
 class Pusher(object):
     """Class to push updates to a remote database.
@@ -60,7 +61,8 @@ class Pusher(object):
         """Syncronise data"""
         #For Each remote connection
         session = self.LocalSession()
-        theQry = session.query(models.UploadURL).all()
+        theQry = session.query(models.UploadURL).all() #Session gets locked here, 
+        session.close()
         for syncLoc in theQry:
             log.info("Sync Nodes for {0}".format(syncLoc))
             sshUrl = syncLoc.url
@@ -456,12 +458,15 @@ class Pusher(object):
         log.debug("Last Reading Added Was {0}".format(newReading))
 
         try:
+            lastTime = newReading.time + datetime.timedelta(seconds = 1)
             session.flush()
             session.commit()
+            session.close()
             #Update the Local Time stamp
+
             newUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
             #Add a bit of jitter otherwise we end up getting the same reading.
-            newUpdate.lastUpdate = newReading.time + datetime.timedelta(seconds = 1)
+            newUpdate.lastUpdate = lastTime
             lSess.flush()
             lSess.commit()
             log.info("Commit Successful Last update is {0}".format(newUpdate))
@@ -531,6 +536,7 @@ if __name__ == "__main__":
     push = Pusher()
     try:
         while True:
+            log.info("----- Synch at {0}".format(datetime.datetime.now()))
             push.sync()
             time.sleep(SYNC_TIME)
 
