@@ -46,6 +46,8 @@ import populateData
 #Setup Logging
 log = logging.getLogger(__name__)
 
+Session = sqlalchemy.orm.sessionmaker()
+
 def initialise_sql(engine,dropTables=False,session=False):
     """Initialise the database
 
@@ -70,10 +72,13 @@ def initialise_sql(engine,dropTables=False,session=False):
 
     Base.metadata.create_all(engine)  
 
-def populate_data(session):
+def populate_data(session=None):
     """Populate the database with some initial data
 
     :param session: Session to use to populate database"""
+    if not session:
+        session = Session()
+
     populateData.init_data(session)
 
     
