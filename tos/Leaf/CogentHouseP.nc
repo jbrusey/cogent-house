@@ -12,30 +12,47 @@ module CogentHouseP
     
     //radio
     interface SplitControl as RadioControl;
-    interface LowPowerListening;
-    
-    //ctp
-    interface StdControl as CollectionControl;
-    interface CtpInfo;
-
-#ifdef DISSEMINATE		
-    // dissemination
-    interface StdControl as DisseminationControl;
-    interface DisseminationValue<ConfigMsg> as SettingsValue;
+    interface AMSend as StateSender;
+    // interface Receive;
+				
+   //SI Sensing
+#ifdef SI
+    interface Read<FilterState *> as ReadTemp;
+    interface TransmissionControl as TempTrans;
+    interface Read<FilterState *> as ReadHum;
+    interface TransmissionControl as HumTrans;
+    interface Read<FilterState *> as ReadVolt;
+    interface TransmissionControl as VoltTrans;
+    interface Read<FilterState *> as ReadCO2;
+    interface TransmissionControl as CO2Trans;
+    interface Read<FilterState *> as ReadAQ;
+    interface TransmissionControl as AQTrans;
+    interface Read<FilterState *> as ReadVOC;
+    interface TransmissionControl as VOCTrans;
 #endif
-		
-    //sending interfaces
-    interface Send as StateSender;
-    
+#ifdef BN
+    interface Read<float *> as ReadTemp;
+    interface TransmissionControl as TempTrans;
+    interface Read<float *> as ReadHum;
+    interface TransmissionControl as HumTrans;
+    interface Read<float *> as ReadCO2;
+    interface TransmissionControl as CO2Trans;
+    interface Read<float> as ReadVolt;
+    interface Read<float> as ReadVOC;
+    interface Read<float> as ReadAQ;
+#endif
+#ifdef SS
     //Sensing
     interface Read<float> as ReadTemp;
     interface Read<float> as ReadHum;
     interface Read<uint16_t> as ReadPAR;
     interface Read<uint16_t> as ReadTSR;
-    interface Read<uint16_t> as ReadVolt;
+    interface Read<float> as ReadVolt;
     interface Read<float> as ReadCO2;
     interface Read<float> as ReadVOC;
     interface Read<float> as ReadAQ;
+#endif
+
     interface SplitControl as CurrentCostControl;
     interface Read<ccStruct *> as ReadWattage;
     interface SplitControl as HeatMeterControl;
@@ -44,18 +61,17 @@ module CogentHouseP
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
+#ifdef SI
+    interface BitVector as ExpectSendDone;
+#endif
+#ifdef BN
+    interface BitVector as ExpectSendDone;
+#endif
     interface PackState;
-    
+
+
     //Time
     interface LocalTime<TMilli>;
-
-    //Leaf interfaces
-    interface Receive;
-    interface AMSend;
-    interface Packet as ACK;
-
-    // Logging
-    /* interface LogWrite as DebugLog; */
   }
 }
 implementation
@@ -93,6 +109,7 @@ implementation
 
   message_t dataMsg;
   uint16_t message_size;
+  uint8_t msgCount = 0;
 
   struct nodeType nt;
 	
@@ -119,7 +136,6 @@ implementation
     StateMsg *newData;
     int pslen;
     int i;
-    am_addr_t parent;
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -132,9 +148,11 @@ implementation
       reportError(ERR_SEND_WHILE_PACKET_PENDING);
       return;
     }
-
+//Only do with SS as get very high values due to the natur of SI/BN
+#ifdef SS
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
+#endif
     if (last_errno != 1.) {
       call PackState.add(SC_ERRNO, last_errno);
     }
@@ -148,9 +166,8 @@ implementation
       newData->special = 0xc7;
       newData->ctp_parent_id = -1;
       newData->timestamp = call LocalTime.get();
-      if (call CtpInfo.getParent(&parent) == SUCCESS) { 
-      	newData->ctp_parent_id = parent;
-      }
+      newData->ctp_parent_id = DEF_CLUSTER_HEAD;
+      
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
       }
@@ -163,7 +180,8 @@ implementation
 	call CurrentCostControl.stop();
       }
       else {
-	if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+	if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
+	  //if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
 	  printfflush();
@@ -189,6 +207,7 @@ implementation
     my_settings->blink = FALSE;
 		
     call Configured.clearAll();
+#ifdef SS
     if (nodeType == 0) { 
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -200,6 +219,7 @@ implementation
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_DUTY);
       call Configured.set(RS_POWER);
+      call CurrentCostControl.start();
     } 
     else if (nodeType == 2) { /* co2 */
       call Configured.set(RS_TEMPERATURE);
@@ -216,16 +236,95 @@ implementation
       call Configured.set(RS_DUTY);
     }
     else if (nodeType == 4) { /* heat meter */
-      call Configured.set(RS_HEATMETER);
+      call Configured.set(RS_HEATMETER);	  
+      call Configured.set(RS_VOLTAGE);
+      call HeatMeterControl.start();
+    }
+#endif
+#ifdef SI
+    if (nodeType == 0) { 
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_VOLTAGE);
     }
-    if (nodeType > 0 && nodeType != 4) { 
-      call LowPowerListening.setLocalWakeupInterval(0);
+    else if (nodeType == 1) { /* current cost */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+    } 
+    else if (nodeType == 2) { /* co2 */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
     }
-    call RadioControl.start();
-    
+    else if (nodeType == 3) { /* air quality */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+      call Configured.set(RS_AQ);
+      call Configured.set(RS_VOC);
+    }
+#endif
+#ifdef BN
+    if (nodeType == 0) { 
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_VOLTAGE);
+    }
+    else if (nodeType == 1) { /* current cost */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+    } 
+    else if (nodeType == 2) { /* co2 */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+    }
+    else if (nodeType == 3) { /* air quality */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+    }
+#endif
+    // if (nodeType > 0 && nodeType != 4) { 
+    // }    
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
+    sending = FALSE;
+    call SenseTimer.startOneShot(DEF_SENSE_PERIOD);
+  }
+
+  /** Restart the sense timer as a one shot. Using a one shot here
+      rather than periodic removes the possibility of re-entering the
+      sense loop before the last one has finished. The only slight
+      problem here is that this may induce a slight drift in when the
+      timer fires.
+
+      This method is called both when the send completes (sendDone)
+      and when the send times out.
+   */
+  void restartSenseTimer() {
+    uint32_t stop_time = call LocalTime.get();
+    uint32_t send_time, next_interval;
+#ifdef DEBUG
+    printf("restartSenseTimer at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+    
+    if (stop_time < sense_start_time) // deal with overflow
+      send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
+    else
+      send_time = (stop_time - sense_start_time);
+    last_duty = (float) send_time;
+    
+    if (my_settings->samplePeriod < send_time)
+      next_interval = 0;
+    else
+      next_interval = my_settings->samplePeriod - send_time;
+
+    call SenseTimer.startOneShot(next_interval);
+
+    if (my_settings->blink)
+      call Leds.led1Off();
   }
 
 
@@ -234,6 +333,12 @@ implementation
    */
   task void checkDataGathered() {
     bool allDone = TRUE;
+#ifdef SI
+    bool toSend = FALSE;
+#endif
+#ifdef BN
+    bool toSend = FALSE;
+#endif
     uint8_t i;
 
     for (i = 0; i < RS_SIZE; i++) {
@@ -248,7 +353,49 @@ implementation
       printf("allDone %lu\n", call LocalTime.get());
       printfflush();
 #endif
-      sendState();
+#ifdef SS
+      call RadioControl.start();
+#endif
+
+#ifdef SI
+      for (i = 0; i < RS_SIZE; i++) {
+	if (call ExpectSendDone.get(i)) {
+	  toSend = TRUE;
+	  break;
+	}
+      }
+
+      if (toSend){
+	  //we're going do a send so pack the msg count and then increment
+	  call PackState.add(SC_MSG_COUNT, msgCount);
+	  msgCount++;
+	  call RadioControl.start();
+      }
+      else {
+	call SendTimeoutTimer.stop();
+	restartSenseTimer();
+      }
+#endif
+
+#ifdef BN
+      for (i = 0; i < RS_SIZE; i++) {
+	if (call ExpectSendDone.get(i)) {
+	  toSend = TRUE;
+	  break;
+	}
+      }
+
+      if (toSend){
+	  //we're going do a send so pack the msg count and then increment.
+	  call PackState.add(SC_MSG_COUNT, msgCount);
+	  msgCount++;
+	  call RadioControl.start();
+      }
+      else {
+	call SendTimeoutTimer.stop();
+	restartSenseTimer();
+      }
+#endif
     }
   }
 
@@ -278,6 +425,7 @@ implementation
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
 	  call ExpectReadDone.set(i);
+#ifdef SS
 	  if (i == RS_TEMPERATURE)
 	    call ReadTemp.read();
 	  else if (i == RS_HUMIDITY)
@@ -300,6 +448,41 @@ implementation
 	    call ReadHeatMeter.read();
 	  else
 	    call ExpectReadDone.clear(i);
+#endif
+
+#ifdef SI
+	  if (i == RS_TEMPERATURE)
+	    call ReadTemp.read();
+	  else if (i == RS_HUMIDITY)
+	    call ReadHum.read();
+	  else if (i == RS_VOLTAGE)
+	    call ReadVolt.read();
+	  else if (i == RS_CO2)
+	    call ReadCO2.read();
+	  else if (i == RS_AQ)
+	    call ReadAQ.read();
+	  else if (i == RS_VOC)
+	    call ReadVOC.read();
+	  else
+	    call ExpectReadDone.clear(i);
+#endif
+
+#ifdef BN
+	  if (i == RS_TEMPERATURE){
+	    call ReadTemp.read();
+	  }
+	  else if (i == RS_HUMIDITY){
+	    call ReadHum.read();	 
+	  }
+	  else if (i == RS_CO2)
+	    call ReadCO2.read();
+	  else if (i == RS_VOLTAGE){
+	    call ReadVolt.read();
+	  }
+	  else
+	    call ExpectReadDone.clear(i);
+#endif
+
 	}
       }
       /* it could be that no sensors are active but we still need to
@@ -318,8 +501,99 @@ implementation
     post checkDataGathered();
   }
 
+#ifdef SI
+  void do_readDone_delta(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
+  {
+    if (result == SUCCESS){
+      call PackState.add(state_code, s->x);
+      call PackState.add(delta_state_code, s->dx);
+      call ExpectSendDone.set(raw_sensor);
+    }
+    call ExpectReadDone.clear(raw_sensor);
+    post checkDataGathered();
+  }
+#endif
 
-  event void ReadTemp.readDone(error_t result, float data)
+#ifdef SI
+  event void ReadTemp.readDone(error_t result, FilterState* data)
+  {
+    do_readDone_delta(result, data, RS_TEMPERATURE, SC_TEMPERATURE, SC_D_TEMPERATURE);
+  }
+	
+  event void ReadHum.readDone(error_t result, FilterState* data) {
+    do_readDone_delta(result, data, RS_HUMIDITY, SC_HUMIDITY, SC_D_HUMIDITY);
+  }    
+
+  event void ReadCO2.readDone(error_t result, FilterState* data) {
+    do_readDone_delta(result, data, RS_CO2, SC_CO2, SC_D_CO2);
+ }
+    
+  event void ReadAQ.readDone(error_t result, FilterState* data) {
+    do_readDone_delta(result, data, RS_AQ, SC_AQ, SC_D_AQ);
+  }
+ event void ReadVOC.readDone(error_t result, FilterState* data) {
+    do_readDone_delta(result, data, RS_VOC, SC_VOC, SC_D_VOC);
+  }
+
+  event void ReadVolt.readDone(error_t result, FilterState* data) {
+    do_readDone_delta(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
+  }
+#endif
+
+#ifdef BN
+  event void ReadTemp.readDone(error_t result, float* data) {
+    if (result == SUCCESS){
+      call PackState.add(SC_TEMP_HEALTH,data[0]);
+      call PackState.add(SC_TEMP_COLD,data[1]);
+      call PackState.add(SC_TEMP_COMFORT,data[2]);
+      call PackState.add(SC_TEMP_WARM,data[3]);
+      call PackState.add(SC_TEMP_OVER,data[4]);
+      call ExpectSendDone.set(RS_TEMPERATURE);
+    }
+    call ExpectReadDone.clear(RS_TEMPERATURE);
+    post checkDataGathered();
+  }
+	
+  event void ReadHum.readDone(error_t result, float* data) {
+    if (result == SUCCESS){
+      call PackState.add(SC_HUM_DRY,data[0]);
+      call PackState.add(SC_HUM_COMFORT,data[1]);
+      call PackState.add(SC_HUM_DAMP,data[2]);
+      call PackState.add(SC_HUM_RISK,data[3]);
+      call ExpectSendDone.set(RS_HUMIDITY);
+    }
+    call ExpectReadDone.clear(RS_HUMIDITY);
+    post checkDataGathered();
+  }    
+
+  event void ReadCO2.readDone(error_t result, float* data) {
+    if (result == SUCCESS){
+      call PackState.add(SC_CO2_ACC,data[0]);
+      call PackState.add(SC_CO2_MINOR,data[1]);
+      call PackState.add(SC_CO2_MEDIUM,data[2]);
+      call PackState.add(SC_CO2_MAJOR,data[3]);
+      call ExpectSendDone.set(RS_CO2);
+    }
+    call ExpectReadDone.clear(RS_CO2);
+    post checkDataGathered();
+  }
+    
+  event void ReadVolt.readDone(error_t result, float data) {
+    do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
+  }
+
+  event void ReadAQ.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_AQ, SC_AQ);
+  }
+  
+  event void ReadVOC.readDone(error_t result, float data) {	
+    do_readDone(result, data, RS_VOC, SC_VOC);
+  }
+
+#endif
+
+#ifdef SS
+ event void ReadTemp.readDone(error_t result, float data)
   {
     do_readDone(result, data, RS_TEMPERATURE, SC_TEMPERATURE);
   }
@@ -348,9 +622,10 @@ implementation
     do_readDone(result, data, RS_VOC, SC_VOC);
   }
 
-  event void ReadVolt.readDone(error_t result, uint16_t data) {	
-    do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
+  event void ReadVolt.readDone(error_t result, float data) {	
+    do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
   }
+#endif
 
  event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
     if (result == SUCCESS) {
@@ -384,16 +659,7 @@ implementation
         printf("Radio On\n");
         printfflush();
 #endif
-	sending = FALSE;
-	call CollectionControl.start();
-#ifdef DISSEMINATE
-	call DisseminationControl.start();
-#endif
-	call SenseTimer.startOneShot(DEF_SENSE_PERIOD);
-	if (call Configured.get(RS_POWER)) 
-	  call CurrentCostControl.start();
-	if (call Configured.get(RS_HEATMETER)) 
-	  call HeatMeterControl.start();
+	sendState();
       }
     else
       call RadioControl.start();
@@ -401,52 +667,30 @@ implementation
 
 
   //Empty methods
-  event void RadioControl.stopDone(error_t ok) { }
+  event void RadioControl.stopDone(error_t ok) { call Leds.led1Toggle(); }
 
-  /** Restart the sense timer as a one shot. Using a one shot here
-      rather than periodic removes the possibility of re-entering the
-      sense loop before the last one has finished. The only slight
-      problem here is that this may induce a slight drift in when the
-      timer fires.
 
-      This method is called both when the send completes (sendDone)
-      and when the send times out.
-   */
-  void restartSenseTimer() {
-    uint32_t stop_time = call LocalTime.get();
-    uint32_t send_time, next_interval;
-#ifdef DEBUG
-    printf("restartSenseTimer at %lu\n", call LocalTime.get());
-    printfflush();
-#endif
-    if (stop_time < sense_start_time) // deal with overflow
-      send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
-    else
-      send_time = (stop_time - sense_start_time);
-    last_duty = (float) send_time;
-    
-    if (my_settings->samplePeriod < send_time)
-      next_interval = 0;
-    else
-      next_interval = my_settings->samplePeriod - send_time;
-
-    call SenseTimer.startOneShot(next_interval);
-
-    if (my_settings->blink)
-      call Leds.led1Off();
-  }
 
   /** When a message has been successfully transmitted, this event is
       triggered. At this point, we stop the timeout timer, restart the
       sense timer and restart the current-cost if it is needed.
   */
   event void StateSender.sendDone(message_t *msg, error_t ok) {
+    call RadioControl.stop();
+#ifdef SI
+    int i;
+#endif
+#ifdef BN
+    int i;
+#endif
     sending = FALSE;
 
     call SendTimeoutTimer.stop();
 
-    if (ok != SUCCESS) 
+    if (ok != SUCCESS) {
+      call Leds.led0Toggle(); 
       reportError(ERR_SEND_FAILED);    
+    }
     else {
       if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
 	last_errno = last_errno / last_transmitted_errno;
@@ -454,6 +698,48 @@ implementation
 	last_errno = 1.;
     }
 
+#ifdef SI
+    for (i = 0; i < RS_SIZE; i ++) {
+      if (call ExpectSendDone.get(i))
+	switch (i) {
+	case RS_TEMPERATURE:
+	  call TempTrans.transmissionDone();
+	  break;
+	case RS_HUMIDITY:
+	  call HumTrans.transmissionDone();
+	  break;
+	case RS_VOLTAGE:
+	  call VoltTrans.transmissionDone();
+	  break;
+	case RS_CO2:
+	  call CO2Trans.transmissionDone();
+	  break;
+	default:
+	  break;
+	}
+    }
+    call ExpectSendDone.clearAll();
+#endif
+
+#ifdef BN
+    for (i = 0; i < RS_SIZE; i ++) {
+      if (call ExpectSendDone.get(i))
+	switch (i) {
+	case RS_TEMPERATURE:
+	  call TempTrans.transmissionDone();
+	  break;
+	case RS_HUMIDITY:
+	  call HumTrans.transmissionDone();
+	  break;
+	case RS_CO2:
+	  call CO2Trans.transmissionDone();
+	  break;
+	default:
+	  break;
+	}
+    }
+    call ExpectSendDone.clearAll();
+#endif
     restartSenseTimer();
 
     if (call Configured.get(RS_POWER))
@@ -490,9 +776,7 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
-    
-
-
+ 
   event void HeatMeterControl.startDone(error_t error) {}
 
   event void HeatMeterControl.stopDone(error_t error) {}
@@ -502,38 +786,20 @@ implementation
   event void CurrentCostControl.stopDone(error_t error) { 
     if (packet_pending) { 
       packet_pending = FALSE;
-      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+      if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
+	//if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+#ifdef DEBUG
+	printf("sending begun at %lu\n", call LocalTime.get());
+	printfflush();
+#endif
 	sending = TRUE;
       }
     }
-
-  }
- 
- //receive sensing messages over the radio and forward to serial port
-  event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {    
-    message_t packet;	//message_t is the message type sent between nodes
-    AckMsg* rsm; //pointer to mesage to be sent
-
-    call Leds.led0Toggle();
-
-    rsm = (AckMsg*)call ACK.getPayload(&packet, sizeof(AckMsg));
-      
-    //make sure packet has been set up
-    if (rsm != NULL) {
-      //pass all data
-      rsm->node_id=TOS_NODE_ID;
-      rsm->timestamp = call LocalTime.get();
-      call Leds.led1Toggle();
-      //need to extract id from recieved 
-      //call AMSend.send(12, &packet, sizeof(AckMsg));
-      }
-
-    return bufPtr;
   }
 
-  //Packet has been sent
-  event void AMSend.sendDone(message_t* bufPtr, error_t error) {
+  /*receive sensing messages over the radio and forward to serial port
+  event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {
     call Leds.led2Toggle();
-  }
-    
+    return bufPtr;
+    }*/
 }

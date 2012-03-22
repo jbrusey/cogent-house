@@ -26,9 +26,9 @@ class BaseIF(object):
     def receive(self, src, msg):
         self.queue.put(msg)
 
-    def sendMsg(self, msg):
+    def sendMsg(self, msg, dest=0xffff):
         # assumption is that msg is a ConfigMsg
-        self.mif.sendMsg(self.source, 0xffff, msg.get_amType(), 0, msg)
+        self.mif.sendMsg(self.source, , msg.get_amType(), 0, msg)
 
     def finishAll(self):
         self.mif.finishAll()

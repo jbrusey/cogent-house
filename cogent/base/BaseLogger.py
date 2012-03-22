@@ -275,6 +275,13 @@ class BaseLogger(object):
 
             session.commit()
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
+
+            #send acknowledgement to base station to fwd to node
+            am = AckMsg()
+            am.set_node(n)
+            logger.debug("Sending Ack: %s, %s" % (n,hex(n)))
+            print hex(n)
+            self.bif.sendMsg(am,dest=hex(n))
         except Exception as e:
             session.rollback()
             logger.exception("during storing: " + str(e))
