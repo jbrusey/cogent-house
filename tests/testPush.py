@@ -131,8 +131,12 @@ class TestPush(testmeta.BaseTestCase):
         push = self.push
         push.syncNodes()
 
+        #Synchronise State
+        push.syncState()
+        
         #Synchronise Readings
         push.syncReadings()
+        
 
         #Check Everything is Equal
         lSession = self.localSession()

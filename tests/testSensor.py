@@ -144,7 +144,6 @@ class TestSensorType(testmeta.BaseTestCase):
         #See if we have a temperature Sensor
         theQry = session.query(models.SensorType).filter_by(name="Temperature").first()        
         self.assertEqual(theQry.id,0)
-
         #And the VOC Sensor
         theQry = session.query(models.SensorType).filter_by(id=10).first()
         self.assertEqual(theQry.name,"VOC")
