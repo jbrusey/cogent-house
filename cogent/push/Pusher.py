@@ -10,7 +10,10 @@ import cogent.base.model as models
 import cogent.base.model.meta as meta
 import datetime
 import subprocess
-import shlex
+
+import paramiko
+import sshClient
+import threading
 
 import time
 
@@ -49,6 +52,9 @@ class Pusher(object):
        Localhost worked on my machine,
        my connecting to Cogentee wanted 127.0.0.1
 
+    Moved ssh port forwarding to paramiko (see sshclient class) This should stop the 
+    errors when there is a connection problem.
+
     """
     def __init__(self):
         log.info("Initialise Push Object")
@@ -60,20 +66,44 @@ class Pusher(object):
     def sync(self):
         """Syncronise data"""
         #For Each remote connection
+        log.debug("Synch Data")
         session = self.LocalSession()
         theQry = session.query(models.UploadURL).all() #Session gets locked here, 
         session.close()
         for syncLoc in theQry:
             log.info("Sync Nodes for {0}".format(syncLoc))
             sshUrl = syncLoc.url
-            
-            subParams = ["ssh","-L","3307:localhost:3306", sshUrl]
+
             log.debug("--> Creating SSH Tunnel {0}".format(sshUrl))
-            log.debug("--> --> {0}".format(subParams))
+
+            #Old SSH Connection
+            #subParams = ["ssh","-L","3307:localhost:3306", sshUrl]
+            #log.info("--> --> {0}".format(" ".join(subParams)))
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
-            theProcess = subprocess.Popen(subParams,stdout=subprocess.PIPE,stdin=subprocess.PIPE)
-            #raw_input("GO")
-            time.sleep(5)
+            user,host = sshUrl.split("@")
+            #Connection
+            try:
+                ssh.connect(host,username=user)
+            except socket.error,e:
+                log.warning("Connection Error {0}".format(e))
+                break
+            except paramiko.AuthenticationException:
+                log.warning("Authentication Error")
+                break
+
+            log.debug("Connection Ok")
+            transport = ssh.get_transport()
+    
+            # #Next setup tunneling
+            server = sshClient.forward_tunnel(3307,"127.0.0.1",3306,transport)
+            serverThread = threading.Thread(target=server.serve_forever)
+            serverThread.daemon = True
+            serverThread.start()
+
+           
+
             log.debug("--> Initalise Remote Connection")
             dburl = syncLoc.dburl
             log.debug("--> {0}".format(dburl))
@@ -93,13 +123,18 @@ class Pusher(object):
             log.debug("-->--> State")
             #Synchronise State
             self.syncState()
-            log.debug("-->--> Readings")
             #Synchronise Readings
+            log.debug("-->--> Readings")
             self.syncReadings()
+
+
+            server.shutdown()
+            server.socket.close()
+            ssh.close()
 
             #raw_input("### Press Any Key to Continue")
             #theProcess.terminate()
-            theProcess.kill()
+            #theProcess.kill()
             time.sleep(1)
 
     def initRemote(self,remoteUrl):
@@ -169,7 +204,8 @@ class Pusher(object):
 
         #As the above query returns a list of tuples then we need to filter that down
         rQry = [x[0] for x in rQry]
-
+        print "Remove Nodes"
+        print rQry
         #Normally we would just issue a query, but having a empty query._in(<array>) 
         #Will issue a SQL statement.  Therefore have a guard here to keep DB activity
         #To a minimum
@@ -177,7 +213,10 @@ class Pusher(object):
             lQry = lSess.query(models.Node).filter(~models.Node.id.in_(rQry)).all()
             lQry = [x.id for x in lQry]
         else:
-            lQry = []
+            #This means there cannot be any nodes in the remote database
+            #Therefore return them all
+            lQry = lSess.query(models.Node).all()
+            lQry = [x.id for x in lQry]
         
         log.info("Nodes requiring sync: {0}".format(lQry))
 
@@ -536,8 +575,10 @@ if __name__ == "__main__":
     push = Pusher()
     try:
         while True:
+            t1= time.time()
             log.info("----- Synch at {0}".format(datetime.datetime.now()))
             push.sync()
+            log.info("---- Total Time Taken for Sync {0}".format(time.time() - t1))
             time.sleep(SYNC_TIME)
 
     except KeyboardInterrupt:

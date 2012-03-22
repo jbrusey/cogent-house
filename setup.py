@@ -2,7 +2,9 @@
 from setuptools import setup
 
 REQUIRES = ['SQLAlchemy',
-            "MySQL-python",]
+            "MySQL-python",
+            "paramiko",
+            ]
     
 setup(name='ch-base',
       version='1.0',
