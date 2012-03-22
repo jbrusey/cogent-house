@@ -12,6 +12,7 @@ import sqlalchemy.orm
 
 import logging
 log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 class RemoteBase(object):
    def __init__(self,**kwargs):
