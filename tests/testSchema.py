@@ -2,15 +2,31 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Float, Boolean
 from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
-from Bitset import Bitset
+
 import unittest
 from datetime import datetime, timedelta
 
+#Original Version used this namespace,
+#So I will too.
+#from cogent.base.model.Bitset import Bitset
+
+try:
+    import cogent
+except ImportError:
+    #Assume we are running from the test directory
+    print "Unable to Import Cogent Module Appending Path"
+    import sys
+    sys.path.append("../")
+
+
 from cogent.base.model import *
 
-from cogent.base.model.meta import Session, Base
+#from cogent.base.model.meta import Session, Base
 
-DBURL="sqlite:///:memory:"
+#DBURL="sqlite:///:memory:"
+
+import meta
+Session = meta.Session
 
 class TestNodeType(unittest.TestCase):
     def setUp(self):
@@ -32,7 +48,7 @@ class TestNodeType(unittest.TestCase):
         b[3] = True
         b[13] = True
 
-        r = NodeType(time=datetime.utcnow(),
+        r = NodeType(time=datetime.datetime.utcnow(),
                      id=0,
                      name="base",
                      seq=1,
@@ -56,7 +72,7 @@ class TestNodeType(unittest.TestCase):
         b[3] = True
         b[13] = True
 
-        r = NodeType(time=datetime.utcnow(),
+        r = NodeType(time=datetime.datetime.utcnow(),
                      id=0,
                      name="base",
                      seq=1,
@@ -112,7 +128,7 @@ class TestSchema(unittest.TestCase):
 
         dep = Deployment(name="TestDep",
                          description="Does this work",
-                         startDate=datetime.utcnow()
+                         startDate=datetime.datetime.utcnow()
                          , endDate=None)
         session.add(dep)
         session.commit()
@@ -138,7 +154,7 @@ class TestSchema(unittest.TestCase):
         #Add a house
         h = House(deploymentId=1,
                   address = "1 Sampson",
-                  startDate=datetime.utcnow())
+                  startDate=datetime.datetime.utcnow())
 
         session.add(h)
         session.commit()
@@ -160,7 +176,7 @@ class TestSchema(unittest.TestCase):
         occ=Occupier(houseId=1,
                      name="Mr Man",
                      contactNumber="01212342345",
-                     startDate=datetime.utcnow()
+                     startDate=datetime.datetime.utcnow()
                      )
 
         session.add(occ)
@@ -190,14 +206,14 @@ class TestSchema(unittest.TestCase):
         configured1[13] = True
         session.add_all(
             [
-                NodeType(time=datetime.utcnow(),
+                NodeType(time=datetime.datetime.utcnow(),
                          id=0,
                          name="base",
                          seq=1,
                          updated_seq=0,
                          period=15*1024,
                          configured=configured),
-                NodeType(time=datetime.utcnow(),
+                NodeType(time=datetime.datetime.utcnow(),
                          id=1,
                          name="cc",
                          seq=1,
@@ -231,7 +247,7 @@ class TestSchema(unittest.TestCase):
         session.add(st)
         session.commit()
 
-        tt = datetime.utcnow() - timedelta(minutes=(500))
+        tt = datetime.datetime.utcnow() - timedelta(minutes=(500))
         
         for i in range(100):
 
@@ -260,14 +276,15 @@ class TestSchema(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    # from sqlalchemy import create_engine
+    # from sqlalchemy.orm import sessionmaker
 
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
+  
 
-    engine = create_engine(DBURL, echo=False)
-    engine.execute("pragma foreign_keys=on")
-    init_model(engine)
-    metadata = Base.metadata
-    metadata.create_all(engine)
+    # engine = create_engine(DBURL, echo=False)
+    # engine.execute("pragma foreign_keys=on")
+    # init_model(engine)
+    # metadata = Base.metadata
+    # metadata.create_all(engine)
 
     unittest.main()

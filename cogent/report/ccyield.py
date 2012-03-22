@@ -4,7 +4,7 @@ from cogent.base.model import *
 
 
 
-def ccYield(session, missed_thresh=10, end_t=datetime.utcnow(), start_t=(datetime.utcnow() - timedelta(days=1))):
+def ccYield(session, missed_thresh=10, end_t=datetime.datetime.utcnow(), start_t=(datetime.datetime.utcnow() - timedelta(days=1))):
     html = []
 
     last_lost_nodes = session.query(LastReport).filter(LastReport.name=="lost-cc-nodes").first()
