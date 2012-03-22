@@ -13,7 +13,7 @@ module CogentHouseP
     //radio
     interface SplitControl as RadioControl;
     interface AMSend as StateSender;
-    // interface Receive;
+    interface Receive;
 				
    //SI Sensing
 #ifdef SI
@@ -676,7 +676,6 @@ implementation
       sense timer and restart the current-cost if it is needed.
   */
   event void StateSender.sendDone(message_t *msg, error_t ok) {
-    call RadioControl.stop();
 #ifdef SI
     int i;
 #endif
@@ -797,9 +796,10 @@ implementation
     }
   }
 
-  /*receive sensing messages over the radio and forward to serial port
+  //receive sensing messages over the radio and forward to serial port
   event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {
+    call RadioControl.stop();
     call Leds.led2Toggle();
     return bufPtr;
-    }*/
+  }
 }
