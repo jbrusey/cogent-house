@@ -77,7 +77,7 @@ def populate_data(session=None):
 
     :param session: Session to use to populate database"""
     if not session:
-        session = Session()
+        session = meta.Session()
 
     populateData.init_data(session)
 

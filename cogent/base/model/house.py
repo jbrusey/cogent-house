@@ -66,9 +66,10 @@ class House(Base,meta.InnoDBMix):
     def asJSON(self,parentId=""):
         theItem = {"id":"H_{0}".format(self.id),
                 "name":self.address,
+                "label":self.address,
                 "type":"house",
                 "parent": "D_{0}".format(self.deploymentId),
-                "children":False
+                "children":[]
                 }
 
         if not self.deploymentId:
@@ -88,6 +89,10 @@ class House(Base,meta.InnoDBMix):
         #outDict["children"] = children
         return outDict
 
+    def asTree(self):
+        thisItem = self.asJSON()
+        thisItem["children"] = [x.asTree() for x in self.locations]
+        return thisItem
 
     def asList(self,parentId = ""):
 

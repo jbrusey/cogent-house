@@ -1,7 +1,8 @@
 import logging
-logging.basicConfig(level=logging.INFO)
-#logging.basicConfig(filename="push.log")
+logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.INFO,filename="push.log")
 
+__version__ = "0.3.0"
 
 import sqlalchemy
 import remoteModels
@@ -23,12 +24,13 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 #log.setLevel(logging.DEBUG)
 
+#Reset Paramiko logging to reduce output cruft.
 plogger = paramiko.util.logging.getLogger()
 plogger.setLevel(logging.WARNING)
 
-#LOCAL_URL = "sqlite:///local.db"
+#URL of local database to connect to
 LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
-PUSH_LIMIT = 1000 #Limit on samples to transfer at any one time
+PUSH_LIMIT = 500 #Limit on samples to transfer at any one time
 SYNC_TIME = 60 #How often we want to call the sync
 
 class Pusher(object):
@@ -36,7 +38,7 @@ class Pusher(object):
 
     .. warning::
     
-        This will fail if the database type is SQLite, currently a connection cannot issue a
+        This will fail if the database type is SQ-Lite, currently a connection cannot issue a
         statement while another is open.  Therefore the loop through the readings, appending new items 
         fails with a DATABASE LOCKED error.
 
@@ -54,13 +56,22 @@ class Pusher(object):
         
     .. warning::
     
-       In My expereicne you may need to bugger about with conenction strings 
+       In My experience you may need to bugger about with connection strings 
        Checking either Localhost or 127.0.0.1  
        Localhost worked on my machine,
        my connecting to Cogentee wanted 127.0.0.1
 
-    Moved ssh port forwarding to paramiko (see sshclient class) This should stop the 
-    errors when there is a connection problem.
+    .. since 0.1::
+       Moved ssh port forwarding to paramiko (see sshclient class) This should stop the 
+       errors when there is a connection problem.
+       
+    .. since 0.2::
+       * Better error handling
+       * Pagination for sync results, transfer at most PUSH_LIMIT items at a time. 
+
+    .. since 0.3::
+       Moved Nodestate Sync into the main readings sync class, this should stop duplicate
+       nodestates turning up if there is a failiure
 
     """
     def __init__(self):
@@ -71,9 +82,9 @@ class Pusher(object):
 
 
     def sync(self):
-        """Syncronise data"""
+        """Synchronise data"""
         #For Each remote connection
-        log.debug("Synch Data")
+        log.debug("Sync Data")
         session = self.LocalSession()
         theQry = session.query(models.UploadURL)
         #theQry = theQry.filter_by(url="dang@127.0.0.1")
@@ -105,26 +116,18 @@ class Pusher(object):
             log.debug("Connection Ok")
             transport = ssh.get_transport()
     
-            # #Next setup tunneling
+            # #Next setup tunnelling
             server = sshClient.forward_tunnel(3307,"127.0.0.1",3306,transport)
             serverThread = threading.Thread(target=server.serve_forever)
             serverThread.daemon = True
             serverThread.start()
-
-           
-
-            log.debug("--> Initalise Remote Connection")
+          
+            log.debug("--> Initialise Remote Connection")
             dburl = syncLoc.dburl
             log.debug("--> {0}".format(dburl))
 
 
             self.initRemote(syncLoc)
-            
-            #And A Test Query
-            #rSession = self.RemoteSession()
-            #theQry = rSession.query(remoteModels.Deployment)
-            #for item in theQry:
-            #    print item
             
             log.debug("--> Synchronising Objects")
             log.debug("-->--> Nodes")
@@ -137,16 +140,16 @@ class Pusher(object):
                 ssh.close()
                 break
                 
-            log.debug("-->--> State")
-            #Synchronise State
-            try:
-                self.syncState()
-            except sqlalchemy.exc.OperationalError,e:
-                log.warning(e)
-                server.shutdown()
-                server.socket.close()
-                ssh.close()
-                break
+            # log.debug("-->--> State")
+            # #Synchronise State
+            # try:
+            #     self.syncState()
+            # except sqlalchemy.exc.OperationalError,e:
+            #     log.warning(e)
+            #     server.shutdown()
+            #     server.socket.close()
+            #     ssh.close()
+            #     break
             #Synchronise Readings
             log.debug("-->--> Readings")
             try:
@@ -164,28 +167,31 @@ class Pusher(object):
             server.socket.close()
             ssh.close()
 
-            #raw_input("### Press Any Key to Continue")
-            #theProcess.terminate()
-            #theProcess.kill()
-            time.sleep(1)
+            time.sleep(1) #Let things settle down
 
     def initRemote(self,remoteUrl):
         """Initialise a connection to the database and reflect all Remote Tables
 
         :param remoteUrl:  a :class:`models.remoteURL` object that we need to connect to
+
+        Timeout code may not be necessary (if we have a decent connection)
+        But trys to address the following problem.
+        1) Database is not available on connect [FAILS GRACEFULLY]
+        
+        2) Database is there on connect:
+           Database / Network goes away during query [HANGS]
+
+        I hope that putting a timeout on the querys will fix this.
+
+
+        .. since:: 0.3  
+            Connection timeout added.  
         """
         log.debug("Initialising Remote Engine")
         RemoteSession = sqlalchemy.orm.sessionmaker()
 
         self.rUrl = remoteUrl
 
-        #Put up an ssh tunnel
-        #theProcess = subprocess.Popen("ssh -L 3308:localhost:3307 dang@127.0.0.1",
-         #                             shell=True,
-          #                            close_fds=True)
-
-        #self.theProcess = theProcess        
-        
 
         engine = sqlalchemy.create_engine(remoteUrl.dburl)
         log.debug("--> Engine {0}".format(engine))
@@ -324,16 +330,17 @@ class Pusher(object):
 
 
 
-        :since 0.1: Fixed House Name based bug.
-            Consider the following
-            Say we have one house -> Deploymet combo (Say Summer Deplyments),  then revist at a later time (Winter Depooyments)
+        :since 0.1: Fixed House Name based bug.  Consider the
+            following Say we have one house -> Deployment combo (Say
+            Summer Deployments), then revisit at a later time (Winter
+            Deployments)
 
             The Following should happen,
         
             Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
             Deployment2 -> House2 --(Location2)->  Room1 -> Node1 ...
 
-            Our Original Code for syching locations did this:
+            Our Original Code for syncing locations did this:
 
             Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
             Deployment2 -> House1 --(Location1)->  Room1 -> Node1 ...
@@ -372,18 +379,9 @@ class Pusher(object):
 
         rSess.commit()
         log.debug("==> Remote Room is {0}".format(remoteRoom))
-
-        #remoteRoomId = remoteRoom.id
-        
-        #if localRoom != remoteRoom:
-        #    log.warning("Rooms Do Not Match !!!! L: {0} R: {1}".format(localRoom,
-        #                                                               remoteRoom))
-        #    sys.exit(0)
         
         #Then Check the House
         localHouse = theLocation.house
-    
-
         #To address the bug above, Add an intermediate step of checking the deployment
         localDeployment = localHouse.deployment
         log.debug("--> Local Deployment {0}".format(localDeployment))
@@ -417,12 +415,7 @@ class Pusher(object):
             rSess.commit()
 
         log.debug("--> Remote House is {0}".format(remoteHouse))
-        #rDep = rSess.query(remoteModels.Deployment).filter_by(id=remoteHouse.deploymentId).first()
-        #log.debug("--> Local Deployment {0}".format(localHouse.deployment))
-        #log.debug("--> Remote Deployment is {0}".format(rDep))
 
-
-        #remoteHouseId = remoteHouse.id
         remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouse.id,
                                                                       roomId=remoteRoom.id).first()
 
@@ -466,12 +459,7 @@ class Pusher(object):
             #. Else:
                 #. Add Sample
 
-        # If Sync is successful, fix the last update timestamp.
-
-        Additionally we need to Sync the Node-State Table
-
-
-        
+        # If Sync is successful, fix the last update timestamp and return 
         """
 
         lSess = self.LocalSession()
@@ -490,6 +478,8 @@ class Pusher(object):
                 cutTime = lastUpdate.lastUpdate
             else:
                 cutTime = None
+
+        #Update Node States
                   
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
@@ -550,13 +540,17 @@ class Pusher(object):
             log.warning("Commit Fails {0}".format(e))
             return -1
         
-
         lSess.close()
         session.close()
+
+        #Synchonise States
+        log.info("Synchronising Nodestate")
+        self.syncState(cutTime,lastTime)
+
         return True
         # pass
 
-    def syncState(self,cutTime=None):
+    def syncState(self,cutTime=None,endTime=None):
         """
         Synchronise any node state information
 
@@ -564,36 +558,30 @@ class Pusher(object):
         Actually this is pretty easy, as our constaints on unique node names mean that 
         We dont have to do any error checking.
 
-
         :param DateTime startTime: Time to start filtering the states from
         """
         lSess = self.LocalSession()
         session = self.RemoteSession()
 
-        #Find out what time we need to update from
-        # rUrl = self.rUrl
-        # lastUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
-        # log.info("--> Time Query {0}".format(lastUpdate))
-
-        # if lastUpdate:
-        #     cutTime = lastUpdate.lastUpdate
-        # else:
-        #     cutTime = None
-
         nodeStates = lSess.query(models.NodeState).order_by(models.NodeState.time)
         log.debug("Total Nodestates {0}".format(nodeStates.count()))
         if cutTime:
-            log.info("Filter all nodeStates since {0}".format(cutTime))
             nodeStates = nodeStates.filter(models.NodeState.time >= cutTime)
+        if endTime:
+            nodeStates = nodeStates.filter(models.NodeState.time <= endTime)
 
-        log.debug("Total NodeStates to Sync {0}".format(nodeStates.count()))
+        log.info("Total NodeStates to Sync {0}".format(nodeStates.count()))
                   
+        stateCount = 0
         for item in nodeStates:
             newState = remoteModels.NodeState(time=item.time,
                                               nodeId = item.nodeId,
                                               parent = item.parent,
                                               localtime = item.localtime)
             session.add(newState)
+            if stateCount == 500:
+                session.flush()
+                session.commit()
 
         session.flush()
         session.commit()
