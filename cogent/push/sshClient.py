@@ -1,4 +1,13 @@
-#Test ssh functionality with paramiko
+"""
+SSH Tunnelling functionality via paramiko
+
+This set of classes sets up an ssh tunnel,
+While it would be simpler to use the Popen function,
+Difficulties detecting when the network was down, connection failures etc.
+Made any error handing in the push function somewhat convoluted.
+
+Code based on the Paramiko Demos.
+"""
 
 import paramiko
 import SocketServer
@@ -61,42 +70,5 @@ def forward_tunnel(local_port, remote_host, remote_port, transport):
         chain_port = remote_port
         ssh_transport = transport
     theServer = ForwardServer(('', local_port), SubHander)
-    #th = threading.Thread(target=theServer.serve_forever)
-    #th.daemon=True
-    #th.start()
     return theServer
 
-
-if __name__ == "__main__":
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    #Connect to the Remote Server
-    print "Connecting to SSH"
-    #ssh.connect("127.0.0.1",port=3306,username="dang")
-
-    try:
-        ssh.connect("127.0.0.1",username="dang")
-        #ssh.connect("127.0.0",username="bern")
-        #ssh.connect("cogentee.coventry.ac.uk",username="dang")
-    except socket.error,e:
-        print "Connection Error {0}".format(e)
-        sys.exit(0)
-    except paramiko.AuthenticationException:
-        print "Authentication Error"
-        sys.exit(0)
-    
-    log.debug("Connection Ok")
-    transport = ssh.get_transport()
-    
-    # #Next setup tunneling
-    server = forward_tunnel(3307,"127.0.0.1",3306,transport)
-    serverThread = threading.Thread(target=server.serve_forever)
-    serverThread.daemon = True
-    serverThread.start()
-
-    
-    raw_input("Shutdown")
-    server.shutdown()
-    server.socket.close()
-    ssh.close()
