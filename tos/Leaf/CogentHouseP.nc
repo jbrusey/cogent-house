@@ -305,6 +305,7 @@ implementation
   void restartSenseTimer() {
     uint32_t stop_time = call LocalTime.get();
     uint32_t send_time, next_interval;
+
 #ifdef DEBUG
     printf("restartSenseTimer at %lu\n", call LocalTime.get());
     printfflush();
@@ -798,8 +799,8 @@ implementation
 
   //receive sensing messages over the radio and forward to serial port
   event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {
-    call RadioControl.stop();
     call Leds.led2Toggle();
+    call RadioControl.stop();
     return bufPtr;
   }
 }

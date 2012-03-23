@@ -27,8 +27,6 @@ from cogent.base.model import *
 
 logger = logging.getLogger("ch.base")
 
-F="/home/james/sa.db"
-#DBFILE = "sqlite:///" 
 DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
@@ -38,8 +36,6 @@ class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
         self.engine = create_engine(dbfile, echo=False)
         init_model(self.engine)
-        #if DBFILE[:7] == "sqlite:":
-        #    self.engine.execute("pragma foreign_keys=on")
         self.metadata = Base.metadata
 
         if bif is None:
@@ -166,38 +162,6 @@ class BaseLogger(object):
             session.commit()
         session.close()    
                              
-    # def update_settings(self):
-
-    #     x = self.setting_session.query(NodeType).filter(NodeType.seq != NodeType.updated_seq).first()
-    #     if x is not None:
-    #         cm = ConfigMsg()
-    #         max_nodetype = self.setting_session.query(func.max(NodeType.id)).one()[0] + 1
-    #         max_nodetype = min(max_nodetype, Packets.NODE_TYPE_MAX)
-    #         cm.set_typeCount(max_nodetype)
-    #         for i in range(max_nodetype):
-    #             nt = self.setting_session.query(NodeType).filter(NodeType.id==i).first()
-    #             if nt is not None:
-    #                 cm.setElement_byType_samplePeriod(i, nt.period)
-    #                 if nt.blink:
-    #                     cm.setElement_byType_blink(i, 1)
-    #                 else:
-    #                     cm.setElement_byType_blink(i, 0)
-                    
-    #                 for j in range(len(nt.configured.a)):
-    #                     cm.setElement_byType_configured(i, j, nt.configured.a[j])
-    #                 nt.updated_seq = nt.seq
-    #             else:
-    #                 logger.warning("no NodeType record for type %d - setting some default values" % (i))
-    #                 cm.setElement_byType_samplePeriod(i, 300 * 1024) # 300 seconds
-    #                 cm.setElement_byType_blink(i,1)
-    #                 for j in range(cm.numElements_byType_configured(1)):
-    #                     cm.setElement_byType_configured(i, j, 0)
-
-    #         cm.set_special(Packets.SPECIAL)
-    #         self.bif.sendMsg(cm)
-    #         logger.debug("sending config: %s" % cm)
-
-    #         self.setting_session.commit()
 
     def duplicate_packet(self, session, time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
@@ -232,7 +196,6 @@ class BaseLogger(object):
             node = session.query(Node).get(n)
             locId = None
             if node is None:
-                #(houseId,roomId,nodeTypeId) = self.getNodeDetails(n)
                 try:
                     session.add(Node(id=n,
                                      locationId=None,
@@ -250,7 +213,6 @@ class BaseLogger(object):
                                      localtime=localtime):
                 logger.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
                 return
-                #raise Exception("duplicate packet: %s, %s" % (str(msg), msg.data))
 
             ns = NodeState(time=t,
                            nodeId=n,
@@ -279,9 +241,8 @@ class BaseLogger(object):
             #send acknowledgement to base station to fwd to node
             am = AckMsg()
             am.set_node(n)
-            logger.debug("Sending Ack: %s, %s" % (n,hex(n)))
-            print hex(n)
-            self.bif.sendMsg(am)#,dest=hex(n))
+            logger.debug("Sending Ack: %s" % (n))
+            self.bif.sendMsg(am,dest=12)
         except Exception as e:
             session.rollback()
             logger.exception("during storing: " + str(e))
