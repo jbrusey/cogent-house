@@ -1,6 +1,6 @@
 import logging
-#logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(filename="push.log")
+logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(filename="push.log")
 
 
 import sqlalchemy
@@ -15,6 +15,7 @@ import subprocess
 import paramiko
 import sshClient
 import threading
+import socket
 
 import time
 
@@ -27,6 +28,8 @@ plogger.setLevel(logging.WARNING)
 
 #LOCAL_URL = "sqlite:///local.db"
 LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
+PUSH_LIMIT = 1000 #Limit on samples to transfer at any one time
+SYNC_TIME = 60 #How often we want to call the sync
 
 class Pusher(object):
     """Class to push updates to a remote database.
@@ -72,8 +75,9 @@ class Pusher(object):
         #For Each remote connection
         log.debug("Synch Data")
         session = self.LocalSession()
-        theQry = session.query(models.UploadURL).all() #Session gets locked here, 
-        print theQry
+        theQry = session.query(models.UploadURL)
+        #theQry = theQry.filter_by(url="dang@127.0.0.1")
+        
         session.close()
         for syncLoc in theQry:
             log.info("-------- Sync Nodes for {0} ----------------".format(syncLoc))
@@ -146,7 +150,9 @@ class Pusher(object):
             #Synchronise Readings
             log.debug("-->--> Readings")
             try:
-                self.syncReadings()
+                needsSync = True #Simple Pagination
+                while needsSync:
+                    needsSync = self.syncReadings()
             except sqlalchemy.exc.OperationalError,e:
                 log.warning(e)
                 server.shutdown()
@@ -441,6 +447,9 @@ class Pusher(object):
         """Synchronise readings between two databases
 
         :param DateTime cutTime: Time to start the Sync from
+        :return: True if sync was succesfull there are still nodes to sync
+                 False if there were no nodes to Sync
+                 -1 if there was an Error
 
         This assumes that Sync Nodes has been called.
 
@@ -469,6 +478,7 @@ class Pusher(object):
         session = self.RemoteSession()
 
         log.info("Synchronising Readings")
+        
 
         #Time stamp to check readings against
         if not cutTime:
@@ -489,7 +499,9 @@ class Pusher(object):
 
         log.info("Total Readings to Sync {0}".format(readings.count()))
         
-        readings = list(readings.all())
+        #Lets try the Limit
+        readings = readings.limit(PUSH_LIMIT)
+        
         #Init Temp Storage
         locationStore = {}
         newReading = None
@@ -502,7 +514,7 @@ class Pusher(object):
                 #And update the nodes Location
                 if not mapId:
                     log.warning("Error Creating Location {0}".format(reading.locationId))
-                    sys.exit(0)
+                    return -1
                                 
                 locationStore[reading.locationId] = mapId
             #Otherwise, We should just be able to sync the Reading
@@ -517,7 +529,7 @@ class Pusher(object):
 
         if newReading is None:
             #If we had no data to update
-            return
+            return False
 
         log.debug("Last Reading Added Was {0}".format(newReading))
 
@@ -536,10 +548,12 @@ class Pusher(object):
             log.info("Commit Successful Last update is {0}".format(newUpdate))
         except Exception, e:
             log.warning("Commit Fails {0}".format(e))
+            return -1
         
 
         lSess.close()
         session.close()
+        return True
         # pass
 
     def syncState(self,cutTime=None):
@@ -590,28 +604,14 @@ class Pusher(object):
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
     
-
-    #local
-    #remoteEngine = sqlalchemy.create_engine("sqlite:///remote.db")
-    #localEngine =  sqlalchemy.create_engine("sqlite:///test.db")
     import time
 
-    SYNC_TIME = 60
+    
     push = Pusher()
-    try:
-        while True:
-            t1= time.time()
-            log.info("----- Synch at {0}".format(datetime.datetime.now()))
-            push.sync()
-            log.info("---- Total Time Taken for Sync {0}".format(time.time() - t1))
-            time.sleep(SYNC_TIME)
+    while True: #Loop for everything
+        t1= time.time()
+        log.info("----- Synch at {0}".format(datetime.datetime.now()))
+        push.sync()
+        log.info("---- Total Time Taken for Sync {0}".format(time.time() - t1))
+        time.sleep(SYNC_TIME)
 
-    except KeyboardInterrupt:
-        log.debug("Shutting Down!!")
-        
-    #push = Pusher()
-    #push.initRemote(remoteEngine)
-    #push.initLocal(localEngine)
-    #push.testRemoteQuery()
-    #push.testLocalQuery()
-    pass
