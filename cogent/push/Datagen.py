@@ -16,8 +16,8 @@ import sqlalchemy
 import time
 import datetime
 
-READING_GAP = 5
-STATE_SWITCH = 10
+READING_GAP = 10
+STATE_SWITCH = 100
 
 class Datagen(object):
     def __init__(self):
