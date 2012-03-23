@@ -1,12 +1,14 @@
 // -*- c -*-
-#include "../Node/Packets.h"
+#include "../Leaf/Packets.h"
 configuration CogentRootC { }
 implementation
 {
   components CogentRootP, MainC, LedsC;
   components SerialActiveMessageC as Serial;
   components ActiveMessageC as Radio;
-  components new SerialAMReceiverC(AM_CONFIGMSG) as SettingsReceiver;
+  components new SerialAMReceiverC(AM_ACKMSG) as AckReceiver;
+  components new AMSenderC(AM_ACKMSG) as RadioSend;
+  components new AMReceiverC(AM_STATEMSG) as Receive;
 
   CogentRootP.Boot -> MainC;
 
@@ -14,27 +16,16 @@ implementation
   CogentRootP.UartSend -> Serial;
   CogentRootP.UartPacket -> Serial;
   CogentRootP.UartAMPacket -> Serial;
-  CogentRootP.UartSettingsReceive -> SettingsReceiver;
+  CogentRootP.UartAckReceive -> AckReceiver;
 
   CogentRootP.RadioControl -> Radio;
 
-#ifdef LOW_POWER_LISTENING
-  CogentRootP.LowPowerListening -> Radio;
-#endif
   CogentRootP.Leds -> LedsC;
 
-  components CollectionC; 
-  CogentRootP.CollectionControl -> CollectionC;
-  CogentRootP.RootControl -> CollectionC;
-  CogentRootP.CollectionPacket -> CollectionC;
-  CogentRootP.CollectionReceive -> CollectionC.Receive;
-  CogentRootP.RadioPacket -> CollectionC;
-#ifdef DISSEMINATION
-  components DisseminationC;
-  components new DisseminatorC(ConfigMsg, DIS_SETTINGS);
-  CogentRootP.DisseminationControl -> DisseminationC;
-  CogentRootP.SettingsUpdate -> DisseminatorC;
-#endif
+  CogentRootP.RadioSend -> RadioSend;
+  CogentRootP.RadioReceive -> Receive;
+  CogentRootP.RadioPacket -> Radio;
+  CogentRootP.RadioAMPacket -> Radio;
 
   components new QueueC(message_t*, SERIAL_QUEUE_SIZE);
   components new PoolC(message_t, SERIAL_QUEUE_SIZE);

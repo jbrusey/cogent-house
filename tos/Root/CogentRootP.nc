@@ -1,43 +1,30 @@
 // -*- c -*-
-module CogentRootP
-{
-  uses
-    {
-      interface Boot;
-      interface SplitControl as SerialControl;
-      interface SplitControl as RadioControl;
-#ifdef LOW_POWER_LISTENING
-      interface LowPowerListening;
-#endif
-      interface StdControl as CollectionControl;
-      interface RootControl;
+#include "AM.h"
+#include "Serial.h"
 
-      //receive interfaces
-      interface Receive as CollectionReceive[am_id_t id];
-      interface Packet as RadioPacket;
-      interface CollectionPacket;
-
-#ifdef DISSEMINATION
-      // dissemination
-      interface DisseminationUpdate<ConfigMsg> as SettingsUpdate;
-      interface StdControl as DisseminationControl;
-#endif
-
-      //data forwarding interfaces
-      interface AMSend as UartSend[am_id_t id];
-      interface Packet as UartPacket;
-      interface AMPacket as UartAMPacket;
-      interface Receive as UartSettingsReceive;
-
-
-
-      // queuing
-      interface Queue<message_t *>;
-      interface Pool<message_t>;
-
-      interface Timer<TMilli> as BlinkTimer;
-      interface Leds;
-    }
+module CogentRootP @safe() {
+  uses {
+    interface Boot;
+    interface SplitControl as SerialControl;
+    interface SplitControl as RadioControl;
+    
+    interface AMSend as UartSend[am_id_t id];
+    interface Receive as UartAckReceive;
+    interface Packet as UartPacket;
+    interface AMPacket as UartAMPacket;
+    
+    interface AMSend as RadioSend;
+    interface Receive as RadioReceive;
+    interface Packet as RadioPacket;
+    interface AMPacket as RadioAMPacket;
+    
+    // queuing
+    interface Queue<message_t *>;
+    interface Pool<message_t>;
+    
+    interface Timer<TMilli> as BlinkTimer;
+    interface Leds;
+  }
 }
 
 implementation
@@ -50,19 +37,12 @@ implementation
   {
     call SerialControl.start();
     call RadioControl.start();
-    call BlinkTimer.startOneShot(512L);
+    //call BlinkTimer.startOneShot(512L);
   }
 
   event void RadioControl.startDone(error_t error) {
     if (error == FAIL)
       call RadioControl.start();
-    else {
-      call CollectionControl.start();
-#ifdef DISSEMINATION
-      call DisseminationControl.start();
-#endif
-      call RootControl.setRoot();
-    }
   }
 	
   event void RadioControl.stopDone(error_t error) { }
@@ -76,8 +56,8 @@ implementation
       message_t* msg = call Queue.dequeue();
       uint8_t len = call RadioPacket.payloadLength(msg);
       void *radio_payload = call RadioPacket.getPayload(msg, len);
-      collection_id_t id = call CollectionPacket.getType(msg);
-      am_addr_t src = call CollectionPacket.getOrigin(msg);
+      am_id_t id = call RadioAMPacket.type(msg);
+      am_addr_t src = call RadioAMPacket.source(msg);
 
       if (radio_payload != NULL) { 
 	void *uart_payload;
@@ -109,9 +89,9 @@ implementation
       }
     }
   }
+  
 
-
-  event message_t *CollectionReceive.receive[collection_id_t id](message_t* msg, 
+  event message_t *RadioReceive.receive(message_t* msg, 
 						    void* payload, 
 						    uint8_t len)
   {
@@ -136,26 +116,19 @@ implementation
       post serialForwardTask();
   }
 
-  /** disseminate new settings */
-  event message_t *UartSettingsReceive.receive(message_t* msg, void* payload, uint8_t len)
+  /** send ack */
+  event message_t* UartAckReceive.receive(message_t* msg, void* payload, uint8_t len)
   {
-#ifdef DISSEMINATION
-    ConfigMsg *newSettings = payload;
+    am_addr_t addr = call UartAMPacket.destination(msg);
+    call Leds.led0Toggle();
 
-    if (len == sizeof(*newSettings))
-      {
-	if (newSettings->special == SPECIAL) {
-	  //call Leds.led2Toggle();
-	  call SettingsUpdate.change(newSettings);
-	}
-	else {
-#ifdef BLINKY
-	  call Leds.led2Toggle();
-#endif
-	}
-      }
-#endif
+    call RadioSend.send(addr, msg, len);
     return msg;
+  }
+
+
+  event void RadioSend.sendDone(message_t* msg, error_t error) {
+    call Leds.led2Toggle();
   }
 
   event void SerialControl.startDone(error_t error) {
