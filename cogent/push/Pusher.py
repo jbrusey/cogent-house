@@ -128,6 +128,9 @@ class Pusher(object):
                 self.syncNodes()
             except sqlalchemy.exc.OperationalError,e:
                 log.warning(e)
+                server.shutdown()
+                server.socket.close()
+                ssh.close()
                 break
                 
             log.debug("-->--> State")
@@ -136,6 +139,9 @@ class Pusher(object):
                 self.syncState()
             except sqlalchemy.exc.OperationalError,e:
                 log.warning(e)
+                server.shutdown()
+                server.socket.close()
+                ssh.close()
                 break
             #Synchronise Readings
             log.debug("-->--> Readings")
@@ -143,6 +149,9 @@ class Pusher(object):
                 self.syncReadings()
             except sqlalchemy.exc.OperationalError,e:
                 log.warning(e)
+                server.shutdown()
+                server.socket.close()
+                ssh.close()
                 break
 
             server.shutdown()
