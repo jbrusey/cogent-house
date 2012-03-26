@@ -1,37 +1,13 @@
-=============
+*************
 The Database
-=============
+*************
 
 Introduction
 =============
 
 The table classes represent the database schema used.
 
-
-Update Cascades
------------------
-
-Currently, we are using the mySQL's myISAM database, this does not
-support referential integrety.  to get updates to cascade though
-related objects I have turned on sqlalchemys support for this.
-   
-This means relationships are now defined using something along the lines of::
-
-     children = sqlalchemy.orm.relationship('Child',
-                                             cascade="all",
-      				             backref='parent',
-                                             passive_updates=False)
-
-Setting passive_updates to False, means SQLA issues SELECT and UPDATE
-statments for all related objects, this gives software side referential integrety.
-
-.. warning::
-
-   If a Database that automatically supports referential integrety (such as InnoDB) is used, 
-   Performace should be significantly improved by removing the *passive_updates* line
-
-		
-					  
+See :download:`Full Database Schema <NewSchema.pdf>` 
 
 
 .. _gen-model-functions:
@@ -39,9 +15,9 @@ statments for all related objects, this gives software side referential integret
 The Base Class
 ==============
 
-The :class:`models.meta.InnoDBMix` class defines parameters common to all model objects.
+The :class:`model.meta.InnoDBMix` class defines parameters common to all model objects.
 
-.. autoclass::	cogentviewer.models.meta.InnoDBMix
+.. autoclass::	model.meta.InnoDBMix
    :members:
 
 .. .. function:: model.asJSON(self,parentId)
