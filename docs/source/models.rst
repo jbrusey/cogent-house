@@ -1,108 +1,117 @@
-======
-Models
-======
+=============
+The Database
+=============
 
 Introduction
 =============
 
 The table classes represent the database schema used.
 
-While they are based on the code classes used in the sensing portion of the 
-project, they do contain extra funtionality to:
 
-#. Make the system compatable with Pyramid
-#. Implement various methods that will be needed in the display portion
-#. Fix things that seem a little backwards (to me anyway)
+Update Cascades
+-----------------
+
+Currently, we are using the mySQL's myISAM database, this does not
+support referential integrety.  to get updates to cascade though
+related objects I have turned on sqlalchemys support for this.
+   
+This means relationships are now defined using something along the lines of::
+
+     children = sqlalchemy.orm.relationship('Child',
+                                             cascade="all",
+      				             backref='parent',
+                                             passive_updates=False)
+
+Setting passive_updates to False, means SQLA issues SELECT and UPDATE
+statments for all related objects, this gives software side referential integrety.
 
 .. warning::
-   
-   All code should be backwards compatable, The majority of changes
-   are documentation, or functions. However, imports are very likely
-   to be different.  Copy the classes within the files not the files
-   themselves.
-	
+
+   If a Database that automatically supports referential integrety (such as InnoDB) is used, 
+   Performace should be significantly improved by removing the *passive_updates* line
+
+		
+					  
 
 
 .. _gen-model-functions:
 
-Generic Functions
-==================
+The Base Class
+==============
 
-There are several generic functions that each table / class will have,
-rather than do loads of docstings I have documented them here.
+The :class:`models.meta.InnoDBMix` class defines parameters common to all model objects.
 
-.. function:: model.update(self,**kwargs)
+.. autoclass::	cogentviewer.models.meta.InnoDBMix
+   :members:
 
-    :param kwargs:  Keyword arguments to initialise
+.. .. function:: model.asJSON(self,parentId)
 
-    .. warning::
+..    :param parentId:	Id string representing parent object
+..    :rtype:		A JSONable dictionary of model parameters.
 
-        There is currently no sanity checking on the named args!
-        This means we can use argumnents that are not in the Table 
-        But do not expect them to be saved in the database
+..    This does not return a JSON string representation of the object but
+..    rather a dictionary suitable for turning into a JSON string.  This
+..    means that things such as Datetimes are taken care of rather than
+..    causing BadThings(TM) to happen.
 
-    Update an object using keyword arguments::
+..    It is not expected that we call this function ourselves, rather it
+..    will be called by the :func:`model.flatten` and :func:`model.asList` methods.
 
-	foo = Template() # Create a blank object
-	foo.update(id=5,value=10) # Set id and value to 5,10 respectively	
+..    Primarily this is used by the Web Interface navigation tree class to 
+..    display the database in a navigatable format
 
-.. function:: model.asJSON(self,parentId)
+..    All Items returned by this function should have the following parameters::
 
-   :param parentId:	Id string representing parent object
-   :rtype:		A JSONable dictionary of model parameters.
-
-   This does not return a JSON string representation of the object but
-   rather a dictionary suitable for turning into a JSON string.  This
-   means that things such as Datetimes are taken care of rather than
-   causing BadThings(TM) to happen.
-
-   It is not expected that we call this function ourselves, rather it
-   will be called by the :func:`model.flatten` and :func:`model.asList` methods.
+..        {id: Id of Object Prefixed with the data type
+..        name: Name of Object to be displayed on the screen
+..        type: type of object (ie deployment)
+..        chldren: Boolean explaining if the object has children
+..        parent: Id of parent item (as returned by its asJSON() function
+..        }
 
   
-.. function:: model.flatten(self)
+.. .. function:: model.flatten(self)
    
-    .. todo::
+..     .. todo::
         
-	Write more Documentation for this
-	Also make sure we have python code as docstring style stuff.
+.. 	Write more Documentation for this
+.. 	Also make sure we have python code as docstring style stuff.
 
-    :rtype: A Flattened Tree Representation of this object and its children.
+..     :rtype: A Flattened Tree Representation of this object and its children.
 
-    .. seealso:: :func:`model.toJSON`
+..     .. seealso:: :func:`model.toJSON`
 
-    Return a flattened Tree Representaion of this object, This should
-    recursively travel down the database tree producing a nested list
-    of inter related objects.  Of the form
-    {Item:<NAME>,Children:[<Children*]} Not all data will be included
-    (stuff like metadata will be ignored) but
+..     Return a flattened Tree Representaion of this object, This should
+..     recursively travel down the database tree producing a nested list
+..     of inter related objects.  Of the form
+..     {Item:<NAME>,Children:[<Children*]} Not all data will be included
+..     (stuff like metadata will be ignored) but
 
-    For example condier the schema  Deployment 1->* Houses 1->* Node
+..     For example condier the schema  Deployment 1->* Houses 1->* Node
 
-    Calling Flatten on Node will return that node object.  Howerver,
-    callen Flatten on Deployment will return something along the lines
-    of::
+..     Calling Flatten on Node will return that node object.  Howerver,
+..     callen Flatten on Deployment will return something along the lines of::
 
-        {"item":<deploymentId>, children:[{"item:<child1>,children:[<.....>]},.....]}
+..         {"item":<deploymentId>, children:[{"item:<child1>,children:[<.....>]},.....]}
     
    
-    pprint is your friend to display this info.
+..     pprint is your friend to display this info.
     
 
-.. function:: model.asList(self,parentId)
+.. .. function:: model.asList(self,parentId)
 
-    .. todo::
+..     .. todo::
         
-	Write more Documentation for this
-	Also make sure we have python code as docstring style stuff.
+.. 	Write more Documentation for this
+.. 	Also make sure we have python code as docstring style stuff.
 
-    .. seealso:: :func:`model.toJSON`
+..     .. seealso:: :func:`model.toJSON`
 
-   Recusive method to turn the database tree into a list.
-   This is primary used for navigaion but may also be usefull elsewhere.
+..    Recusive method to turn the database tree into a list.
+..    This is primary used for navigaion but may also be usefull elsewhere.
 
 ========================
-The :mod:`model` Classes
+:mod:`model` Classes
 ========================
 
 ..
@@ -122,73 +131,70 @@ The :mod:`model` Classes
    #. NodeType
 
 
-
-
-
-
 Deployment Related Classes
 ==========================
 
+.. graphviz:: graphs/deployment.dot
 
-.. graphviz:: deployment.dot
-
-.. automodule::	cogent.base.model.deployment
+.. automodule::	cogentviewer.models.deployment
    :members:
 
-.. automodule:: cogent.base.model.deploymentmetadata
+
+.. automodule:: cogentviewer.models.deploymentmetadata
    :members:
+
 
 House Related Classes
 ======================
 
-.. graphviz:: house.dot
+.. graphviz:: graphs/house.dot
 
-.. automodule:: cogent.base.model.house
+.. automodule:: cogentviewer.models.house
    :members:
 
-.. automodule:: cogent.base.model.housemetadata
+.. automodule:: cogentviewer.models.housemetadata
    :members:
 
-.. automodule:: cogent.base.model.location
+.. automodule:: cogentviewer.models.location
    :members:
 
 
 Reading Related Classes
 ========================
 
-.. graphviz:: reading.dot
+.. graphviz:: graphs/reading.dot
 
-.. automodule:: cogent.base.model.reading
+.. automodule:: cogentviewer.models.reading
    :members:
 
 
 Room Related Classes
 =====================
 
-.. graphviz:: room.dot
+.. graphviz:: graphs/room.dot
 
-.. automodule:: cogent.base.model.room
+.. automodule:: cogentviewer.models.room
    :members:
 
-.. automodule:: cogent.base.model.roomtype
+.. automodule:: cogentviewer.models.roomtype
    :members:
 
 
 Node Related Classes
 =====================
 
-.. graphviz:: node.dot
+.. graphviz:: graphs/node.dot
 
-.. automodule:: cogent.base.model.node
+.. automodule:: cogentviewer.models.node
    :members:
 
-.. automodule:: cogent.base.model.nodetype
+.. automodule:: cogentviewer.models.nodetype
    :members:
 
-.. automodule:: cogent.base.model.nodehistory
+.. automodule:: cogentviewer.models.nodehistory
    :members:
 
-.. automodule:: cogent.base.model.nodestate
+.. automodule:: cogentviewer.models.nodestate
    :members:
 
 
@@ -196,20 +202,20 @@ Node Related Classes
 Occupier Related Classes
 =========================
 
-.. .. graphviz:: occupier.dot
+.. graphviz:: graphs/occupier.dot
 
-.. automodule:: cogent.base.model.occupier
+.. automodule:: cogentviewer.models.occupier
    :members:
 
 Sensor Related Classes
 =======================
 
-.. graphviz:: sensor.dot
+.. graphviz:: graphs/sensor.dot
 
-.. automodule:: cogent.base.model.sensor
+.. automodule:: cogentviewer.models.sensor
    :members:
 
-.. automodule:: cogent.base.model.sensortype
+.. automodule:: cogentviewer.models.sensortype
    :members:
 
 
@@ -219,24 +225,21 @@ Other Classes
 
 Classes that deal with other stuff
 
+.. graphviz:: graphs/other.dot
 
-.. graphviz:: other.dot
-
-.. other.dot
-
-.. automodule:: cogent.base.model.Bitset
+.. automodule:: cogentviewer.models.Bitset
    :members:
 
-.. automodule:: cogent.base.model.host
+.. automodule:: cogentviewer.models.host
    :members:
 
-.. automodule:: cogent.base.model.lastreport
+.. automodule:: cogentviewer.models.lastreport
    :members:
    
-.. automodule:: cogent.base.model.rawmessage
+.. automodule:: cogentviewer.models.rawmessage
    :members:
 
-.. automodule:: cogent.base.model.weather
+.. automodule:: cogentviewer.models.weather
    :members:
 
 
