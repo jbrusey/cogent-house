@@ -1,8 +1,8 @@
 """
 Classes used by the pushing object to reflect database Tables
 
-:author: Dan Goldsmith <djgoldsmith@googlemail.com>
-:date: March 2012
+..moduleauthor:: Dan Goldsmith <djgoldsmith@googlemail.com>
+..date:: March 2012
 """
 
 import sqlalchemy
@@ -15,139 +15,155 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 class RemoteBase(object):
-   def __init__(self,**kwargs):
-      """
-      Create an object using keyword arguments
-      """
-      for key,value in kwargs.iteritems():
-         setattr(self,key,value)
+    """Base Class for Remote Model Objects"""
+    def __init__(self,**kwargs):
+        """
+        Create an object using keyword arguments
+        """
+        for key,value in kwargs.iteritems():
+           setattr(self,key,value)
 
 class Node(RemoteBase):
-   pass
+    """Node class to map to"""
+    pass
 
 class Sensor(RemoteBase):
-   pass
+    """Sensor class to map to"""
+    pass
 
 class Room(RemoteBase):
-   def __str__(self):
-      return "Room ({0}) {1}".format(self.id,self.name)
+    """Room Class to map to"""
+    def __str__(self):
+       return "Room ({0}) {1}".format(self.id, self.name)
    
 class House(RemoteBase):
-   def __str__(self):
-      outStr = "House {0}  {1}  {2}-{3}".format(self.id,self.address,self.startDate,self.endDate)
-      return outStr
+    """House Class to map to"""
+    def __str__(self):
+       outStr = "House {0}  {1}  {2}-{3}".format(self.id,
+                                                 self.address,
+                                                 self.startDate,
+                                                 self.endDate)
+       return outStr
 
 class Location(RemoteBase):
-   def __str__(self):
-      return "RLocation {0} {1} {2}".format(self.id,self.houseId,self.roomId)
-   pass
+    """Location Class to map to"""
+    def __str__(self):
+        return "RLocation {0} {1} {2}".format(self.id,
+                                              self.houseId,
+                                              self.roomId)
 
 class Reading(RemoteBase):
-   def __str__(self):
-      return "Value: {0} Time: {1}".format(self.value,self.time)
-   pass
+    """Reading Class to map to"""
+    def __str__(self):
+       return "Value: {0} Time: {1}".format(self.value,
+                                            self.time)
 
 class RoomType(RemoteBase):
-   pass
+    """Room Typ class to map to"""
+    pass
 
 class Deployment(RemoteBase):
-   def __str__(self):
-      return "Deploy {0} {1}".format(self.id,self.name)
+    """ Deployment class to map to"""
+    def __str__(self):
+       return "Deploy {0} {1}".format(self.id,self.name)
 
-   def __eq__(self,other):
-      return self.name == other.name
-   pass
+    def __eq__(self,other):
+       return self.name == other.name
+   
 
 class NodeState(RemoteBase):
-   pass
+    """Node State Class to Map To"""
+    pass
         
 
 def reflectTables(engine,RemoteMetadata):
+    """Reflect all the tables in the remote database.
 
-   #RemoteMetadata.reflect(bind=engine)
-   #print RemoteMetadata.tables
-   #deployment = RemoteMetadata.tables["Deployment"]
-   #mapper(Deployment,deployment)
+    This function, connects to the remote database, 
+    reflects all relevant tables then sets up mappings to these classes.
 
+    Having mappings setup means that we can call 
+   
+    .. code-block:: python
+   
+        >>>foo = remoteModels.Deployment
+        >>>Id = foo.id
 
-   try:
-      mapped = sqlalchemy.orm.class_mapper(Deployment)
-      log.debug("Remote Classes allready mapped")
-      log.debug("> {0} <".format(mapped))
-      return
-   except sqlalchemy.orm.exc.UnmappedClassError: 
-      log.debug("Must Map Remote Classes")
+    Rather than
+   
+    .. code-block:: python
 
-   deployment = sqlalchemy.Table('Deployment',
+        >>>foo = remoteModels.meta.tables['deployment']
+        >>>id = foo['id']
+   
+    """
+
+    #Check if we have these tables mapped already.
+   
+    try:
+        mapped = sqlalchemy.orm.class_mapper(Deployment)
+        log.debug("Remote Classes already mapped")
+        log.debug("> {0} <".format(mapped))
+        return
+    except sqlalchemy.orm.exc.UnmappedClassError: 
+       log.debug("Must Map Remote Classes")
+
+    #Reflect Deployment Table
+    deployment = sqlalchemy.Table('Deployment',
+                                  RemoteMetadata,
+                                  autoload=True,
+                                  autoload_with=engine)
+    #Setup Mapper
+    mapper(Deployment,deployment)
+   
+    node = sqlalchemy.Table('Node',
+                            RemoteMetadata,
+                            autoload=True,
+                            autoload_with=engine)
+    mapper (Node,node)
+   
+    sensor = sqlalchemy.Table("Sensor",
+                              RemoteMetadata,
+                              autoload=True,
+                              autoload_with=engine)
+   
+    mapper(Sensor,sensor)
+   
+    room = sqlalchemy.Table('Room',
+                            RemoteMetadata,
+                            autoload=True,
+                            autoload_with=engine)
+    mapper(Room,room)
+   
+    house = sqlalchemy.Table('House',
+                             RemoteMetadata,
+                             autoload=True,
+                             autoload_with=engine)
+    mapper(House,house)
+   
+    location = sqlalchemy.Table('Location',
+                                RemoteMetadata,
+                                autoload=True,
+                                autoload_with=engine)
+    mapper(Location,location)
+    
+    roomType = sqlalchemy.Table('RoomType',
+                                RemoteMetadata,
+                                autoload=True,
+                                autoload_with=engine)
+    mapper(RoomType,roomType)
+    
+    reading = sqlalchemy.Table("Reading",
+                               RemoteMetadata,
+                               autoload=True,
+                               autoload_with=engine)
+    mapper(Reading,reading)
+   
+    nodeState = sqlalchemy.Table("NodeState",
                                  RemoteMetadata,
                                  autoload=True,
                                  autoload_with=engine)
    
-   mapper(Deployment,deployment)
-
-   
-   
-   node = sqlalchemy.Table('Node',
-                           RemoteMetadata,
-                           autoload=True,
-                           autoload_with=engine)
-   mapper (Node,node)
-   
-   sensor = sqlalchemy.Table("Sensor",
-                             RemoteMetadata,
-                             autoload=True,
-                             autoload_with=engine)
-   
-   mapper(Sensor,sensor)
-   
-   room = sqlalchemy.Table('Room',
-                           RemoteMetadata,
-                           autoload=True,
-                           autoload_with=engine)
-   mapper(Room,room)
-   
-   house = sqlalchemy.Table('House',
-                            RemoteMetadata,
-                            autoload=True,
-                            autoload_with=engine)
-   mapper(House,house)
-   
-   location = sqlalchemy.Table('Location',
-                               RemoteMetadata,
-                               autoload=True,
-                               autoload_with=engine)
-   mapper(Location,location)
-    
-   roomType = sqlalchemy.Table('RoomType',
-                               RemoteMetadata,
-                               autoload=True,
-                               autoload_with=engine)
-   mapper(RoomType,roomType)
-    
-   reading = sqlalchemy.Table("Reading",
-                              RemoteMetadata,
-                              autoload=True,
-                              autoload_with=engine)
-   mapper(Reading,reading)
-   
-   nodeState = sqlalchemy.Table("NodeState",
-                                RemoteMetadata,
-                                autoload=True,
-                                autoload_with=engine)
-   
-   mapper(NodeState,nodeState)
-
-# def initialise_sql(engine):
-#     """Intialise a connection to the database and reflect all Remote Tables
-
-#     :param String engine: Database String of Engine to Connect to
-#     """
-#     #print "Initalising Engine"
-#     RemoteSession.configure(bind=engine)
-#     #Metadata.bind = engine
-#     #Reflect Tables
-#     reflectTables(engine)
-#     pass
-
+    mapper(NodeState,nodeState)
 
         
