@@ -17,9 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0,os.path.abspath('../../'))
-#print "="*40
-#print sys.path
+#sys.path.insert(0,os.path.abspath('../../'))
 #sys.path.insert(0,"/home/dang/Progamming/Pyramid/cogent-viewer/")
 # -- General configuration -----------------------------------------------------
 
@@ -97,6 +95,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'default'
+#html_theme = 'pyramid'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -227,7 +226,7 @@ man_pages = [
 epub_title = u'Cogent Viewer'
 epub_author = u'Daniel Goldsmith'
 epub_publisher = u'Daniel Goldsmith'
-epub_copyright = u'2011, Daniel Goldsmith'
+epub_copyright = u'2012, Daniel Goldsmith'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
