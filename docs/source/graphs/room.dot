@@ -1,0 +1,27 @@
+digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname="Courier"];
+  Room[label=<
+	  <table border="0" cellborder="1" cellspacing="0">
+	  <tr><td><font face="Helvetica"><b>Room</b></font></td></tr>
+	  <tr><td port="id"><font color="red">id</font></td></tr> 	   
+	  <tr><td port="roomTypeId">roomTypeId</td></tr>
+	  <tr><td>Name</td></tr>
+	  <tr><td port="location"><font color="blue"><i>Location</i></font></td></tr>
+	  </table>>];
+  
+  Room:roomTypeId -> RoomType:id;
+  Room:location -> Location [style="dotted"];
+  
+  RoomType[label=<
+	   <table border="0" cellborder="1" cellspacing="0">
+	   <tr><td><font face="Helvetica"><b>RoomType</b></font></td></tr>
+	   <tr><td port="id"><font color="red">id</font></td></tr> 	   
+	   <tr><td>name</td></tr>
+	   <tr><td port="rooms"><font color="blue"><i>rooms</i></font></td></tr>
+	   </table>>];
+  RoomType:rooms -> Room [style="dotted"];
+  
+
+  
+}
