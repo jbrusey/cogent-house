@@ -29,7 +29,7 @@ plogger = paramiko.util.logging.getLogger()
 plogger.setLevel(logging.WARNING)
 
 #URL of local database to connect to
-LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
+LOCAL_URL = 'mysql://chuser@localhost/ch'
 PUSH_LIMIT = 500 #Limit on samples to transfer at any one time
 SYNC_TIME = 60*10  #How often we want to call the sync (Every 10 Mins)
 
