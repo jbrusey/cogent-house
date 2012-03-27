@@ -22,7 +22,6 @@ except ImportError:
     #STANDARD IMPORTS
     # SQLAlchemy session manager. Updated by model.init_model()
     Session = scoped_session(sessionmaker())
-    print "STANDARD SCOPED SESSION LOADED"
 
 # SQLAlchemy session manager. Updated by model.init_model()
 #Session = scoped_session(sessionmaker())
