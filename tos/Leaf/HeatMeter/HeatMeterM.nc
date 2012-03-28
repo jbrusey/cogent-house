@@ -85,7 +85,6 @@ implementation
 
 #ifdef DEBUG
   task void energyInterruptPrint(){
-    call Leds.led1Toggle();
     printf("Energy Interrupt Fired\n");
     printfflush();
   }
@@ -103,7 +102,6 @@ implementation
   
 #ifdef DEBUG
   task void volumeInterruptPrint(){
-    call Leds.led2Toggle();
     printf("Volume  Interrupt Fired\n");
     printfflush();
   }

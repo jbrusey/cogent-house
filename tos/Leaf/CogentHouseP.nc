@@ -159,7 +159,7 @@ implementation
       call PackState.add(SC_DUTY_TIME, last_duty);
 #endif
     if (last_errno != 1.) {
-      call PackState.add(SC_ERRNO, last_errno);
+      //call PackState.add(SC_ERRNO, last_errno);
     }
     last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
@@ -311,6 +311,7 @@ implementation
     uint32_t send_time, next_interval;
 
     retries=0;
+    sending = FALSE;
     //if so stop radio
     call RadioControl.stop();
 #ifdef DEBUG
@@ -456,8 +457,7 @@ implementation
 
     sense_start_time = call LocalTime.get();
 
-    if (my_settings->blink)
-      call Leds.led1On();
+    call Leds.led0Toggle();
 
     if (! sending) { 
 #ifdef DEBUG
@@ -713,7 +713,11 @@ implementation
 
 
   //Empty methods
-  event void RadioControl.stopDone(error_t ok) { call Leds.led1Toggle(); }
+  event void RadioControl.stopDone(error_t ok) { 
+    if (call Configured.get(RS_POWER))
+      call CurrentCostControl.start();
+    call Leds.led1Toggle(); 
+  }
 
 
 
@@ -722,14 +726,6 @@ implementation
       sense timer and restart the current-cost if it is needed.
   */
   event void StateSender.sendDone(message_t *msg, error_t ok) {
-#ifdef SI
-    int i;
-#endif
-#ifdef BN
-    int i;
-#endif
-    sending = FALSE;
-
     if (ok != SUCCESS) {
       call Leds.led0Toggle(); 
       reportError(ERR_SEND_FAILED);    
@@ -740,9 +736,6 @@ implementation
       else
 	last_errno = 1.;
     }
-
-    if (call Configured.get(RS_POWER))
-      call CurrentCostControl.start();
   }
 
 
@@ -808,18 +801,21 @@ implementation
 
   event void AckTimeoutTimer.fired() {
     if (retries < DEF_MAX_RETRIES) {
-      //cancel current send
-      if (call StateSender.cancel(&dataMsg) == SUCCESS) {
-	if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
-	  call AckTimeoutTimer.startOneShot(5L*1024L); // 5 sec sense/send timeout
 #ifdef DEBUG
-	  printf("resending begun at %lu\n", call LocalTime.get());
-	  printfflush();
+      printf("retry called at %lu\n", call LocalTime.get());
+      printfflush();
 #endif
-	  sending = TRUE;
-	}
-      }
+
       retries+=1;
+      call AckTimeoutTimer.startOneShot(5L*1024L); // 5 sec sense/send timeout
+
+      if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
+#ifdef DEBUG
+	printf("resending begun at %lu\n", call LocalTime.get());
+	printfflush();
+#endif
+	sending = TRUE;
+      }
     }
     else{
       //not going to get through, cancel send do not update SI/BN
@@ -828,5 +824,6 @@ implementation
     }  
   }
 
+  
 
 }

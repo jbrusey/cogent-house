@@ -11,7 +11,7 @@ PFLAGS += -DCC2420_DEF_CHANNEL=18
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
-#CFLAGS += -DDEBUG
+CFLAGS += -DDEBUG
 
 #Select protocol SS = Sense Send, SI = Spanish Inquisition, BN = Bare Necessities
 CFLAGS += -DDEF_CLUSTER_HEAD=1
@@ -49,7 +49,7 @@ CFLAGS += -DDEF_CO2_BAND_THRESH=10.
 
 
 # default sensing period 307200 = 5 mins
-CFLAGS += -DDEF_SENSE_PERIOD=10240
+CFLAGS += -DDEF_SENSE_PERIOD=30240
 include $(MAKERULES)
 
 
