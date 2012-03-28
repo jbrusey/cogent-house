@@ -1,9 +1,0 @@
-Running the test code:
-
-1. Connect to a telos mote an Minocal Combi Heat Meters reed switches or a Simulation of the Circuit.
-
-2. Install code int his directory to the mote
-
-3. Plug into usb port and run printf
-
-4. Each time a pulse is triggered a message should display on screen + led 1 will light for an energy pulse and led 2 will light for a volume pulse
