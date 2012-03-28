@@ -23,10 +23,9 @@ implementation
 	
   //import timers
   components new TimerMilliC() as SenseTimer;
-  components new TimerMilliC() as SendTimeoutTimer;
+  components new TimerMilliC() as AckTimeoutTimer;
   components new TimerMilliC() as BlinkTimer;
   components new TimerMilliC() as WarmUpTimer;   
-  components new TimerMilliC() as TimeOut;
   components RandomC;
   components new AMSenderC(AM_STATEMSG) as StateSender;
   components new AMReceiverC(AM_ACKMSG);
@@ -35,7 +34,7 @@ implementation
   CogentHouseP.StateSender -> StateSender;  
   CogentHouseP.Receive -> AMReceiverC;
   CogentHouseP.SenseTimer -> SenseTimer;
-  CogentHouseP.SendTimeoutTimer -> SendTimeoutTimer;
+  CogentHouseP.AckTimeoutTimer -> AckTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
   CogentHouseP.Leds -> LedsC;
   CogentHouseP.RadioControl -> ActiveMessageC;

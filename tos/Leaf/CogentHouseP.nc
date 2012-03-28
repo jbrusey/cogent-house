@@ -5,7 +5,7 @@ module CogentHouseP
   uses {
     //low-level stuff
     interface Timer<TMilli> as SenseTimer;
-    interface Timer<TMilli> as SendTimeoutTimer;
+    interface Timer<TMilli> as AckTimeoutTimer;
     interface Timer<TMilli> as BlinkTimer;
     interface Leds;
     interface Boot;
@@ -109,9 +109,9 @@ implementation
 
   message_t dataMsg;
   uint16_t message_size;
-  uint8_t msgCount = 0;
+  uint8_t msgSeq = 0;
   uint8_t retries = 0;
-  uint8_t exp_count = 0;
+  uint8_t expSeq = 0;
 
   struct nodeType nt;
 	
@@ -150,14 +150,13 @@ implementation
       reportError(ERR_SEND_WHILE_PACKET_PENDING);
       return;
     }
-    
     //we're going do a send so pack the msg count and then increment
-    exp_count = msgCount;
-    msgCount++;
+    expSeq = msgSeq;
+    msgSeq++;
 
 #ifdef SS
     if (call Configured.get(RS_DUTY))
-      call PackState.add(SC_DUTY_TIME, exp_count);
+      call PackState.add(SC_DUTY_TIME, last_duty);
 #endif
     if (last_errno != 1.) {
       call PackState.add(SC_ERRNO, last_errno);
@@ -169,7 +168,7 @@ implementation
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       newData->special = 0xc7;
-      newData->seq = exp_count;
+      newData->seq = expSeq;
       newData->timestamp = call LocalTime.get();
       newData->ctp_parent_id = DEF_CLUSTER_HEAD;
      
@@ -186,6 +185,7 @@ implementation
       }
       else {
 	if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
+	  call AckTimeoutTimer.startOneShot(5L*1024L); // 5 sec sense/send timeout
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
 	  printfflush();
@@ -306,13 +306,63 @@ implementation
       This method is called both when the send completes (sendDone)
       and when the send times out.
    */
-  void restartSenseTimer() {
+  void restartSenseTimer(error_t result) {
     uint32_t stop_time = call LocalTime.get();
     uint32_t send_time, next_interval;
 
+    retries=0;
+    //if so stop radio
+    call RadioControl.stop();
 #ifdef DEBUG
     printf("restartSenseTimer at %lu\n", call LocalTime.get());
     printfflush();
+#endif
+
+#ifdef SI
+    if (result==SUCCESS){
+      for (i = 0; i < RS_SIZE; i ++) {
+	if (call ExpectSendDone.get(i))
+	  switch (i) {
+	  case RS_TEMPERATURE:
+	    call TempTrans.transmissionDone();
+	    break;
+	  case RS_HUMIDITY:
+	    call HumTrans.transmissionDone();
+	    break;
+	  case RS_VOLTAGE:
+	    call VoltTrans.transmissionDone();
+	    break;
+	  case RS_CO2:
+	    call CO2Trans.transmissionDone();
+	    break;
+	  default:
+	    break;
+	  }
+      }
+      call ExpectSendDone.clearAll();
+    }
+#endif
+
+#ifdef BN
+    if (result==SUCCESS){
+      for (i = 0; i < RS_SIZE; i ++) {
+	if (call ExpectSendDone.get(i))
+	  switch (i) {
+	  case RS_TEMPERATURE:
+	    call TempTrans.transmissionDone();
+	    break;
+	  case RS_HUMIDITY:
+	    call HumTrans.transmissionDone();
+	    break;
+	  case RS_CO2:
+	    call CO2Trans.transmissionDone();
+	    break;
+	  default:
+	    break;
+	  }
+      }
+      call ExpectSendDone.clearAll();
+    }
 #endif
     
     if (stop_time < sense_start_time) // deal with overflow
@@ -374,7 +424,6 @@ implementation
 	  call RadioControl.start();
       }
       else {
-	call SendTimeoutTimer.stop();
 	restartSenseTimer();
       }
 #endif
@@ -391,7 +440,6 @@ implementation
 	  call RadioControl.start();
       }
       else {
-	call SendTimeoutTimer.stop();
 	restartSenseTimer();
       }
 #endif
@@ -408,7 +456,6 @@ implementation
 
     sense_start_time = call LocalTime.get();
 
-    call SendTimeoutTimer.startOneShot(30L*1024L); // 30 sec sense/send timeout
     if (my_settings->blink)
       call Leds.led1On();
 
@@ -683,8 +730,6 @@ implementation
 #endif
     sending = FALSE;
 
-    call SendTimeoutTimer.stop();
-
     if (ok != SUCCESS) {
       call Leds.led0Toggle(); 
       reportError(ERR_SEND_FAILED);    
@@ -696,64 +741,8 @@ implementation
 	last_errno = 1.;
     }
 
-#ifdef SI
-    for (i = 0; i < RS_SIZE; i ++) {
-      if (call ExpectSendDone.get(i))
-	switch (i) {
-	case RS_TEMPERATURE:
-	  call TempTrans.transmissionDone();
-	  break;
-	case RS_HUMIDITY:
-	  call HumTrans.transmissionDone();
-	  break;
-	case RS_VOLTAGE:
-	  call VoltTrans.transmissionDone();
-	  break;
-	case RS_CO2:
-	  call CO2Trans.transmissionDone();
-	  break;
-	default:
-	  break;
-	}
-    }
-    call ExpectSendDone.clearAll();
-#endif
-
-#ifdef BN
-    for (i = 0; i < RS_SIZE; i ++) {
-      if (call ExpectSendDone.get(i))
-	switch (i) {
-	case RS_TEMPERATURE:
-	  call TempTrans.transmissionDone();
-	  break;
-	case RS_HUMIDITY:
-	  call HumTrans.transmissionDone();
-	  break;
-	case RS_CO2:
-	  call CO2Trans.transmissionDone();
-	  break;
-	default:
-	  break;
-	}
-    }
-    call ExpectSendDone.clearAll();
-#endif
-    restartSenseTimer();
-
     if (call Configured.get(RS_POWER))
       call CurrentCostControl.start();
-  }
-
-  /** sending has taken too long and so we should stop trying
-   */
-  event void SendTimeoutTimer.fired() {
-    if (call StateSender.cancel(&dataMsg) == SUCCESS) 
-      sending = FALSE;
-    else {
-      reportError(ERR_SEND_CANCEL_FAIL);
-    }
-    reportError(ERR_SEND_TIMEOUT);
-    restartSenseTimer();
   }
 
 
@@ -795,10 +784,49 @@ implementation
     }
   }
 
+
+  //---------------- Deal with Acknowledgements --------------------------------
   //receive ack messages
   event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {
+    AckMsg* ackMsg = (AckMsg*)payload;
+    int ackSeq = ackMsg->seq;
+
     call Leds.led2Toggle();
-    call RadioControl.stop();
+
+    if (expSeq==ackSeq){
+      //and restart timer
+      restartSenseTimer(SUCCESS);
+    }
+    else{
+      //ignore packet
+      restartSenseTimer(FAIL);
+    }
     return bufPtr;
+
+    
   }
+
+  event void AckTimeoutTimer.fired() {
+    if (retries < DEF_MAX_RETRIES) {
+      //cancel current send
+      if (call StateSender.cancel(&dataMsg) == SUCCESS) {
+	if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
+	  call AckTimeoutTimer.startOneShot(5L*1024L); // 5 sec sense/send timeout
+#ifdef DEBUG
+	  printf("resending begun at %lu\n", call LocalTime.get());
+	  printfflush();
+#endif
+	  sending = TRUE;
+	}
+      }
+      retries+=1;
+    }
+    else{
+      //not going to get through, cancel send do not update SI/BN
+      reportError(ERR_SEND_TIMEOUT);
+      restartSenseTimer(FAIL); //need add a param in
+    }  
+  }
+
+
 }

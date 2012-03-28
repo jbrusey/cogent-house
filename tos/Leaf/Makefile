@@ -15,6 +15,8 @@ PFLAGS += -DCC2420_DEF_CHANNEL=18
 
 #Select protocol SS = Sense Send, SI = Spanish Inquisition, BN = Bare Necessities
 CFLAGS += -DDEF_CLUSTER_HEAD=1
+CFLAGS += -DDEF_MAX_RETRIES=3
+
 CFLAGS += -DSS
 
 #CFLAGS += -DSI  -DDEWMA #-DKALMAN
