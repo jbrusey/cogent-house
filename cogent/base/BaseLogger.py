@@ -241,7 +241,9 @@ class BaseLogger(object):
             #send acknowledgement to base station to fwd to node
             am = AckMsg()
             am.set_node(n)
-            logger.debug("Sending Ack: %s" % (n))
+            #am.set_count(msg.getElement_packed_state(12))
+            am.set_count(int(msg.get_seq()))
+            logger.debug("Sending Ack %s: %s" % (msg.get_seq(),n))
             self.bif.sendMsg(am,dest=12)
         except Exception as e:
             session.rollback()
