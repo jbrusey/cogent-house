@@ -147,7 +147,7 @@ typedef nx_struct ConfigMsg {
 
 typedef nx_struct AckMsg {
   nx_uint16_t node;
-  nx_uint8_t count;
+  nx_uint8_t seq;
 } AckMsg;
 
 
