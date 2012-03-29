@@ -16,8 +16,6 @@ Base = meta.Base
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime,Float
 from sqlalchemy.orm import relationship, backref
 
-import datetime
-
 class House(Base,meta.InnoDBMix):
     """
     Class to represent Houses
