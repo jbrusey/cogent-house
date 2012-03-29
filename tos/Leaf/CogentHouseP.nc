@@ -309,7 +309,7 @@ implementation
   void restartSenseTimer(error_t result) {
     uint32_t stop_time = call LocalTime.get();
     uint32_t send_time, next_interval;
-
+    int i =0;
     retries=0;
     sending = FALSE;
     //if so stop radio
@@ -425,7 +425,7 @@ implementation
 	  call RadioControl.start();
       }
       else {
-	restartSenseTimer();
+	restartSenseTimer(FAIL);
       }
 #endif
 
@@ -441,7 +441,7 @@ implementation
 	  call RadioControl.start();
       }
       else {
-	restartSenseTimer();
+	restartSenseTimer(FAIL);
       }
 #endif
     }
@@ -552,7 +552,7 @@ implementation
   {
     if (result == SUCCESS){
       call PackState.add(state_code, s->x);
-      call PackState.add(delta_state_code, s->dx);
+      //call PackState.add(delta_state_code, s->dx);
       call ExpectSendDone.set(raw_sensor);
     }
     call ExpectReadDone.clear(raw_sensor);
