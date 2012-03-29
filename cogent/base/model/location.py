@@ -15,9 +15,6 @@ Base = meta.Base
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime,Float
 from sqlalchemy.orm import relationship, backref
 
-import datetime
-
-
 class Location(Base,meta.InnoDBMix):
     """
     Location provides a link between houses and rooms.

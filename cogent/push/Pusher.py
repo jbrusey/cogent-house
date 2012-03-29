@@ -33,6 +33,15 @@ LOCAL_URL = 'mysql://chuser@localhost/ch'
 PUSH_LIMIT = 500 #Limit on samples to transfer at any one time
 SYNC_TIME = 60*10  #How often we want to call the sync (Every 10 Mins)
 
+#RSA KEY
+RSA_KEY = None
+RSA_KEY = "/home/dang/.ssh/id_rsa.pub"
+
+#Knwon Hosts file
+KNOWN_HOSTS = None
+KNOWN_HOSTS = "/home/dang/.ssh/known_hosts"
+
+
 class Pusher(object):
     """Class to push updates to a remote database.
 
@@ -99,13 +108,26 @@ class Pusher(object):
             #Old SSH Connection
             #subParams = ["ssh","-L","3307:localhost:3306", sshUrl]
             #log.info("--> --> {0}".format(" ".join(subParams)))
+            #if RSA_KEY:
+            #    key= paramiko.RSAKey.from_private_key_file(RSA_KEY)
+            #    agent = paramiko.Agent()
+            #    agent_keys = agent.get_keys(key,)
+            #if len(agent_keys) == 0:
+            #    log.warning("Unable to load Private Key")
+
+
+
             ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            #ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+            if KNOWN_HOSTS:
+                ssh.load_host_keys(KNOWN_HOSTS)
+                
             
             user,host = sshUrl.split("@")
             #Connection
             try:
-                ssh.connect(host,username=user)
+                ssh.connect(host,username=user,key_filename=RSA_KEY)
             except socket.error,e:
                 log.warning("Connection Error {0}".format(e))
                 break
@@ -500,11 +522,15 @@ class Pusher(object):
             mappedLoc = locationStore.get(reading.locationId,None)
             #Check if we have the location etc
             if mappedLoc is None:
-                mapId = self.syncLocation(reading.locationId)
-                #And update the nodes Location
-                if not mapId:
-                    log.warning("Error Creating Location {0}".format(reading.locationId))
-                    return -1
+                #Deal with readings that have no location
+                if reading.locationId is None:
+                    mapId = None
+                else:
+                    mapId = self.syncLocation(reading.locationId)
+                    #And update the nodes Location
+                    if not mapId:
+                        log.warning("Error Creating Location {0}".format(reading.locationId))
+                        return -1
                                 
                 locationStore[reading.locationId] = mapId
             #Otherwise, We should just be able to sync the Reading
