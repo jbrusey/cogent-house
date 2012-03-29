@@ -132,7 +132,7 @@ def tree(req, period='hour'):
         req.content_type = "image/svg+xml"
 #        req.content_type = "text/plain"
 
-        t = datetime.now() - timedelta(minutes=mins)
+        t = datetime.utcnow() - timedelta(minutes=mins)
 
         p = Popen("dot -Tsvg", shell=True, bufsize=4096,
 #        p = Popen("cat", shell=True, bufsize=4096,
@@ -291,7 +291,7 @@ def exportDataForm(err=None):
         s.append("Start Date: <input type=\"text\" name=\"StartDate\" value=\"\" />")
         s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('StartDate');\"></td><td>") 
 
-        s.append("End Date: <input type=\"text\" name=\"EndDate\" value=\""+(datetime.now()).strftime("%d/%m/%Y")+"\" />")
+        s.append("End Date: <input type=\"text\" name=\"EndDate\" value=\""+(datetime.utcnow()).strftime("%d/%m/%Y")+"\" />")
         s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('EndDate');\"><br/></td><tr></table>") 
 
         s.append("<p><input type=\"submit\" value=\"Get Data\"></p>")
@@ -390,7 +390,7 @@ def viewLog(req):
 
 def missing():
     try:
-        t = datetime.now() - timedelta(hours=1)
+        t = datetime.utcnow() - timedelta(hours=1)
         session = Session()
         s = ['<p>']
 
@@ -462,7 +462,7 @@ def yield24():
         s.extend(["<th>%s</th>" % x for x in headings])
         s.append("</tr>")
 
-        t = datetime.now() - timedelta(days=1)
+        t = datetime.utcnow() - timedelta(days=1)
 
         nodestateq = session.query(
             NodeState,
@@ -536,7 +536,7 @@ def dataYield():
         s.append("<table border=\"1\">")
         s.append("<tr><th>Node</th><th>Message Count</th><th>Yield</th></tr>")
 
-        t = datetime.now() - timedelta(days=1)
+        t = datetime.utcnow() - timedelta(days=1)
 
         for nid, cnt in session.query(
             NodeState.nodeId,
@@ -865,7 +865,7 @@ def lowbat(bat="2.6"):
             batlvl = float(bat)
         except:
             batlvl = 2.6
-        t = datetime.now() - timedelta(hours=1)
+        t = datetime.utcnow() - timedelta(hours=1)
         session = Session()
         s = []
         empty = True
@@ -944,7 +944,7 @@ def test(req,nid,typ,minsago):
         except Exception:
             minsago_i = timedelta(minutes=1)
 
-        startts = datetime.now() - minsago_i
+        startts = datetime.utcnow() - minsago_i
         
         (max_time_before,) = session.query(func.max(Reading.time)).filter(
             and_(Reading.nodeId == int(nid),
@@ -1040,7 +1040,7 @@ def _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTim
             pred_inc = float(duration)*(last_delta/300.)
         last_value += pred_inc
     
-        dt.append(datetime.now())
+        dt.append(datetime.utcnow())
         t.append(matplotlib.dates.date2num(dt[-1]))
         v.append(last_value)
         deltaTimeDict[t[-1]] = last_delta
@@ -1176,8 +1176,8 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
 
         debug = (debug is not None)
         week = timedelta(minutes=int(_periods["week"]))
-        startts = datetime.now() - minsago_i
-        deltats = (datetime.now() - minsago_i) - week
+        startts = datetime.utcnow() - minsago_i
+        deltats = (datetime.utcnow() - minsago_i) - week
 
         endts = startts + duration_i
 
@@ -1259,7 +1259,7 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
 
         debug = (debug is not None)
 
-        startts = datetime.now() - minsago_i
+        startts = datetime.utcnow() - minsago_i
         endts = startts + duration_i
 
         # find all the electricity readings for House n for the required period
