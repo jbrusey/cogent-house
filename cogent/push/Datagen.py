@@ -14,7 +14,7 @@ import cogent.base.model as models
 import cogent.base.model.meta as meta
 import sqlalchemy
 import time
-import datetime
+from datetime import datetime
 
 READING_GAP = 10
 STATE_SWITCH = 100
@@ -131,16 +131,16 @@ class Datagen(object):
         try:
             while True:
                 #Add a reading every N seconds
-                log.debug("Adding New Reading {0}".format(datetime.datetime.now()))
+                log.debug("Adding New Reading {0}".format(datetime.now()))
 
-                theReading = models.Reading(time = datetime.datetime.now(),
+                theReading = models.Reading(time = datetime.now(),
                                             nodeId = node37.id,
                                             locationId = node37.locationId,
                                             value = localCount,
                                             typeId = 0)
                 session.add(theReading)
 
-                theReading = models.Reading(time = datetime.datetime.now(),
+                theReading = models.Reading(time = datetime.now(),
                                             nodeId = node38.id,
                                             locationId = node38.locationId,
                                             value = 100-localCount,
@@ -153,25 +153,25 @@ class Datagen(object):
 
                     #Add a node state
                     if stateOne:
-                        theState = models.NodeState(time=datetime.datetime.now(),
+                        theState = models.NodeState(time=datetime.now(),
                                                     nodeId=node37.id,
                                                     parent = 1024,
                                                     localtime = 0)
                         session.add(theState)
 
-                        theState = models.NodeState(time=datetime.datetime.now(),
+                        theState = models.NodeState(time=datetime.now(),
                                                     nodeId=node38.id,
                                                     parent = 1024,
                                                     localtime = 0)
                         session.add(theState)        
                     else:
-                        theState = models.NodeState(time=datetime.datetime.now(),
+                        theState = models.NodeState(time=datetime.now(),
                                                     nodeId=node37.id,
                                                     parent = node38.id,
                                                     localtime = 0)
                         session.add(theState)
 
-                        theState = models.NodeState(time=datetime.datetime.now(),
+                        theState = models.NodeState(time=datetime.now(),
                                                     nodeId=node38.id,
                                                     parent = 1024,
                                                     localtime = 0)

@@ -9,7 +9,7 @@ See the pusher documentation for details
 
 #Python Library Imports
 import unittest
-import datetime
+from datetime import datetime, timedelta
 
 #Python Module Imports
 from sqlalchemy import create_engine
@@ -88,7 +88,7 @@ class TestPush(testmeta.BaseTestCase):
         #As our testing DB has 2 days worth of data in it, we need this to be now + 2 days
         #So Lets make it 5 days to be sure
         #return
-        now = datetime.datetime.now() + datetime.timedelta(days=5)
+        now = datetime.now() + timedelta(days=5)
 
         #Add a remote URL to the local database
         session = self.localSession()
@@ -158,7 +158,7 @@ class TestPush(testmeta.BaseTestCase):
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
 
-        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+        thisTime = theQry.lastUpdate + timedelta(days=1)
 
 
         lSession.flush()
@@ -181,7 +181,7 @@ class TestPush(testmeta.BaseTestCase):
                                         locationId = locationId,
                                         value=x)
             lSession.add(theReading)
-            thisTime += datetime.timedelta(seconds=1)
+            thisTime += timedelta(seconds=1)
 
         log.debug("--> End Time: {0}".format(thisTime))
 
@@ -225,7 +225,7 @@ class TestPush(testmeta.BaseTestCase):
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
   
-        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+        thisTime = theQry.lastUpdate + timedelta(days=1)
 
         #Build the dataset
         summerDeployment = models.Deployment(name="Summer")
@@ -292,7 +292,7 @@ class TestPush(testmeta.BaseTestCase):
         lSession.flush()
 
         for node in [node37,node38]:
-            theReading = models.Reading(time=thisTime + datetime.timedelta(days=1),
+            theReading = models.Reading(time=thisTime + timedelta(days=1),
                                         nodeId = node.id,
                                         locationId = node.locationId,
                                         value = 100,
@@ -354,7 +354,7 @@ class TestPush(testmeta.BaseTestCase):
         #Make Sure we update the last Synch Time so it plays nicely with unittest
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
-        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+        thisTime = theQry.lastUpdate + timedelta(days=1)
 
 
         #Get our Sensor Types
@@ -406,7 +406,7 @@ class TestPush(testmeta.BaseTestCase):
                                                 value=x)
                     lSession.add(theReading)
 
-            thisTime += datetime.timedelta(seconds=1)
+            thisTime += timedelta(seconds=1)
         
         log.debug("--> End Time: {0}".format(thisTime))
         lSession.flush()
@@ -426,7 +426,7 @@ class TestPush(testmeta.BaseTestCase):
         #Make Sure we update the last Synch Time so it plays nicely with unittest
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
-        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+        thisTime = theQry.lastUpdate + timedelta(days=1)
 
         #Get our Sensor Types
         tempType = lSession.query(models.SensorType).filter_by(name="Temperature").first()
@@ -487,7 +487,7 @@ class TestPush(testmeta.BaseTestCase):
                                                 locationId = node.locationId,
                                                 value=x)
                     lSession.add(theReading)
-            thisTime += datetime.timedelta(seconds=1)
+            thisTime += timedelta(seconds=1)
         
 
             
@@ -506,20 +506,20 @@ class TestPush(testmeta.BaseTestCase):
         Basically Ripped off from the testmeta.initDB class
         """
         
-        #thisTime = self.thisTime + datetime.timedelta(days=10)
+        #thisTime = self.thisTime + timedelta(days=10)
 
         session = self.localSession()
 
         theQry = session.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                            dburl=REMOTE_URL).first()
 
-        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+        thisTime = theQry.lastUpdate + timedelta(days=1)
 
         #-------- NABBED FROM initDB with some M-% 
 
         now = thisTime
-        deploymentEnd = now + datetime.timedelta(days=2)
-        house2Start = now + datetime.timedelta(days=1)
+        deploymentEnd = now + timedelta(days=2)
+        house2Start = now + timedelta(days=1)
 
 
         #See if we need to add these items
@@ -721,7 +721,7 @@ class TestPush(testmeta.BaseTestCase):
         locs = [node37,node38,node39]
         for x in range(2*24):
         #for x in range(3):
-            insertDate = now+datetime.timedelta(hours = x)
+            insertDate = now+timedelta(hours = x)
             for item in locs:
                 #Composite Key not working in Reading
                 session.add(models.Reading(time=insertDate,
@@ -735,7 +735,7 @@ class TestPush(testmeta.BaseTestCase):
         #For the first week it is in the Living Room
         node40.location = loc1_Living
         for x in range(1*24):
-            insertDate = now+datetime.timedelta(hours = x)
+            insertDate = now+timedelta(hours = x)
             session.add(models.Reading(time =insertDate,
                                        nodeId=node40.id,
                                        typeId=tempType.id,
@@ -746,7 +746,7 @@ class TestPush(testmeta.BaseTestCase):
         #But we then move it to the Master Kitchen
         node40.location = loc1_Master
         for x in range(1*24):
-            insertDate = house2Start+datetime.timedelta(hours = x)
+            insertDate = house2Start+timedelta(hours = x)
             session.add(models.Reading(time =insertDate,
                                        nodeId=node40.id,
                                        typeId=tempType.id,
@@ -764,7 +764,7 @@ class TestPush(testmeta.BaseTestCase):
         locs = [node69,node70]
         for x in range(1*24):
         #for x in range(3):
-            insertDate = house2Start+datetime.timedelta(hours = x)
+            insertDate = house2Start+timedelta(hours = x)
             for item in locs:
                 #Composite Key not working in Reading
                 session.add(models.Reading(time=insertDate,
@@ -792,7 +792,7 @@ class TestPush(testmeta.BaseTestCase):
         theQry = lSession.query(models.UploadURL).filter_by(url="127.0.0.1",
                                                             dburl=REMOTE_URL).first()
 
-        thisTime = theQry.lastUpdate + datetime.timedelta(days=1)
+        thisTime = theQry.lastUpdate + timedelta(days=1)
 
         #And Add some new nodestates
         for x in range(10):

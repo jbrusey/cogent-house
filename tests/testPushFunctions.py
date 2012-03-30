@@ -6,7 +6,7 @@ Test individual functions in the Push Module
 
 #Python Library Imports
 import unittest
-import datetime
+from datetime import datetime, timedelta
 
 #Python Module Imports
 from sqlalchemy import create_engine
@@ -75,7 +75,7 @@ class TestPushFunctions(testmeta.BaseTestCase):
         #And avoid problems with the testing script running stuff out of order
         #As our testing DB has 2 days worth of data in it, we need this to be now + 2 days
         #So Lets make it 5 days to be sure
-        now = datetime.datetime.now() + datetime.timedelta(days=5)
+        now = datetime.now() + timedelta(days=5)
 
         #Add a remote URL to the local database
         session = testmeta.Session()

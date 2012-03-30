@@ -6,7 +6,7 @@ DBURL = ['mysql://test_user:test_user@localhost/pushTest',
          'mysql://test_user:test_user@localhost/pushSource']
 
 #DBURL = ['mysql://dang:j4a77aec@127.0.0.1:3307/chtest']
-
+DBURL = ['mysql://chuser@127.0.0.1:3307/chpush']
 
 
 import sqlalchemy

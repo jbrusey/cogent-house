@@ -4,7 +4,7 @@ Test Cases for the Sensor Classes
 
 #Python Library Imports
 import unittest
-import datetime
+from datetime import datetime
 
 #Python Module Imports
 import sqlalchemy.exc
