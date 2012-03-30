@@ -159,7 +159,7 @@ implementation
       call PackState.add(SC_DUTY_TIME, last_duty);
 #endif
     if (last_errno != 1.) {
-      //call PackState.add(SC_ERRNO, last_errno);
+      call PackState.add(SC_ERRNO, last_errno);
     }
     last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
@@ -289,9 +289,7 @@ implementation
       call Configured.set(RS_CO2);
     }
 #endif
-    // if (nodeType > 0 && nodeType != 4) { 
-    // }    
-    //call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
     call SenseTimer.startOneShot(DEF_SENSE_PERIOD);
@@ -456,8 +454,9 @@ implementation
     int i;
 
     sense_start_time = call LocalTime.get();
-
+#ifdef BLINKY
     call Leds.led0Toggle();
+#endif
 
     if (! sending) { 
 #ifdef DEBUG
@@ -552,7 +551,7 @@ implementation
   {
     if (result == SUCCESS){
       call PackState.add(state_code, s->x);
-      //call PackState.add(delta_state_code, s->dx);
+      call PackState.add(delta_state_code, s->dx);
       call ExpectSendDone.set(raw_sensor);
     }
     call ExpectReadDone.clear(raw_sensor);
@@ -716,7 +715,9 @@ implementation
   event void RadioControl.stopDone(error_t ok) { 
     if (call Configured.get(RS_POWER))
       call CurrentCostControl.start();
+#ifdef BLINKY
     call Leds.led1Toggle(); 
+#endif
   }
 
 
@@ -727,7 +728,9 @@ implementation
   */
   event void StateSender.sendDone(message_t *msg, error_t ok) {
     if (ok != SUCCESS) {
+#ifdef BLINKY
       call Leds.led0Toggle(); 
+#endif
       reportError(ERR_SEND_FAILED);    
     }
     else {
@@ -783,8 +786,9 @@ implementation
   event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {
     AckMsg* ackMsg = (AckMsg*)payload;
     int ackSeq = ackMsg->seq;
-
+#ifdef BLINKY
     call Leds.led2Toggle();
+#endif
 
     if (expSeq==ackSeq){
       //and restart timer
