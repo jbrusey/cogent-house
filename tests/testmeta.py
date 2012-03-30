@@ -20,8 +20,8 @@ viewer = False
 
 
 
-DBURL = 'mysql://test_user:test_user@localhost/pushTest'
-#DBURL = 'sqlite:///:memory:'
+#DBURL = 'mysql://test_user:test_user@localhost/pushTest'
+DBURL = 'sqlite:///:memory:'
 #DBURL = "sqlite:///test.db"
 
 try:
@@ -49,7 +49,7 @@ else:
 
 #Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
-import datetime
+from datetime import datetime, timedelta
 
 engine = create_engine(DBURL)
 Session = sqlalchemy.orm.sessionmaker(bind=engine)
@@ -114,9 +114,9 @@ def createTestDB(session=False):
         session = Session()
 
 
-    now = datetime.datetime.now()
-    deploymentEnd = now + datetime.timedelta(days=2)
-    house2Start = now + datetime.timedelta(days=1)
+    now = datetime.now()
+    deploymentEnd = now + timedelta(days=2)
+    house2Start = now + timedelta(days=1)
     
     
     #See if we need to add these items
@@ -335,7 +335,7 @@ def createTestDB(session=False):
     #Lets also fake a rejig of the nodestate about a day into the depoyment
     #With a tree along the lines of <base> -> [node37,node38 -> [node39,node40]]
     for item in [node39,node40]:
-        theState = models.NodeState(time=now+datetime.timedelta(hours=24),
+        theState = models.NodeState(time=now+timedelta(hours=24),
                                     nodeId = item.id,
                                     parent = node38.id,
                                     localtime = 24)
@@ -347,7 +347,7 @@ def createTestDB(session=False):
     locs = [node37,node38,node39]
     for x in range(2*24):
     #for x in range(3):
-        insertDate = now+datetime.timedelta(hours = x)
+        insertDate = now+timedelta(hours = x)
         for item in locs:
             #Composite Key not working in Reading
             session.add(models.Reading(time=insertDate,
@@ -361,7 +361,7 @@ def createTestDB(session=False):
     #For the first week it is in the Living Room
     node40.location = loc1_Living
     for x in range(1*24):
-        insertDate = now+datetime.timedelta(hours = x)
+        insertDate = now+timedelta(hours = x)
         session.add(models.Reading(time =insertDate,
                                    nodeId=node40.id,
                                    typeId=tempType.id,
@@ -372,7 +372,7 @@ def createTestDB(session=False):
     #But we then move it to the Master Bedroom
     node40.location = loc1_Master
     for x in range(1*24):
-        insertDate = house2Start+datetime.timedelta(hours = x)
+        insertDate = house2Start+timedelta(hours = x)
         session.add(models.Reading(time =insertDate,
                                    nodeId=node40.id,
                                    typeId=tempType.id,
@@ -403,7 +403,7 @@ def createTestDB(session=False):
     locs = [node69,node70]
     for x in range(1*24):
     #for x in range(3):
-        insertDate = house2Start+datetime.timedelta(hours = x)
+        insertDate = house2Start+timedelta(hours = x)
         for item in locs:
             #Composite Key not working in Reading
             session.add(models.Reading(time=insertDate,

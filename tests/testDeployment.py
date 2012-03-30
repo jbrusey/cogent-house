@@ -23,7 +23,7 @@ If anyone comes up with a better way then let me know.
 
 #Python Library Imports
 import unittest
-import datetime
+from datetime import datetime
 
 #Python Module Imports
 import sqlalchemy.exc
@@ -55,7 +55,7 @@ class TestDeployment(testmeta.BaseTestCase):
         self.assertEqual(thisDeployment.description,"A Test Deployment")
 
         #Check if we can do multiple inserts and not loose previous stuff
-        today = datetime.datetime.now()
+        today = datetime.now()
         thisDeployment.update(startDate = today,endDate=today)
         self.assertEqual(thisDeployment.startDate,today)
         self.assertEqual(thisDeployment.endDate,today)

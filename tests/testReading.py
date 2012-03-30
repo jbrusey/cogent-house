@@ -7,7 +7,7 @@ Testing for the Deployment Module
 
 #Python Library Imports
 import unittest
-import datetime
+from datetime import datetime
 
 #Python Module Imports
 import sqlalchemy.exc
@@ -28,7 +28,7 @@ class TestReading(testmeta.BaseTestCase):
         :TODO: Fix integrity (Referential) error here"""
         pass
         """
-        theReading = models.Reading(time=datetime.datetime.now(),
+        theReading = models.Reading(time=datetime.now(),
                                     nodeId = 1,
                                     typeId = 1,
                                     locationId = 1,

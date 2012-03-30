@@ -16,8 +16,8 @@ def nodesInSet(session, node_set):
 def lowBat(session,
            bat_thresh=2.6,
            count_thresh=3,
-           end_t=datetime.datetime.utcnow(),
-           start_t=(datetime.datetime.utcnow() - timedelta(days=1))):
+           end_t=datetime.utcnow(),
+           start_t=(datetime.utcnow() - timedelta(days=1))):
     html = []
 
     last_lowbat = session.query(LastReport).filter(LastReport.name=="low-bat-nodes").first()

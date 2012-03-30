@@ -10,7 +10,7 @@ import remoteModels
 import cogent
 import cogent.base.model as models
 import cogent.base.model.meta as meta
-import datetime
+from datetime import datetime
 import subprocess
 
 import paramiko
@@ -624,7 +624,7 @@ if __name__ == "__main__":
     push = Pusher()
     while True: #Loop for everything
         t1= time.time()
-        log.info("----- Synch at {0}".format(datetime.datetime.now()))
+        log.info("----- Synch at {0}".format(datetime.now()))
         push.sync()
         log.info("---- Total Time Taken for Sync {0}".format(time.time() - t1))
         time.sleep(SYNC_TIME)

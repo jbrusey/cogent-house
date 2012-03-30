@@ -10,7 +10,7 @@ Testing for the Deployment Module
 
 #Python Library Imports
 import unittest
-import datetime
+from datetime import datetime
 
 #Python Module Imports
 import sqlalchemy.exc
@@ -40,7 +40,7 @@ class TestHouse(testmeta.BaseTestCase):
         self.assertEqual(thisHouse.address,"Main")       
 
         #And mupltiple attribs
-        today = datetime.datetime.now()
+        today = datetime.now()
         thisHouse.update(startDate = today,endDate=today)
         self.assertEqual(thisHouse.startDate,today)
         self.assertEqual(thisHouse.endDate,today)

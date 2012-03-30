@@ -6,7 +6,7 @@ Testing for the Deployment Module
 
 #Python Library Imports
 import unittest
-import datetime
+from datetime import datetime
 
 #Python Module Imports
 import sqlalchemy.exc

@@ -1,22 +1,13 @@
 
-#from sqlalchemy import create_engine, and_, distinct, func
+from sqlalchemy import create_engine
 #from sqlalchemy.orm import sessionmaker
 import urllib2
 import time
 from datetime import datetime, timedelta
-#from cogent.base.model import *
 
 import platform
 import smtplib
 import re
-#from email.mime.multipart import MIMEMultipart
-#from email.mime.text import MIMEText
-
-me = "yield@"+platform.node()+".local"
-_DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
-host=platform.node()
-you="chuser@localhost"
-batlvl = 2.6
 
 try:
     import cogent
@@ -29,10 +20,6 @@ except ImportError:
 
 from cogent.base.model import *
 from cogent.report import *
-
-#Create the Database through Metaclass
-import meta
-Session = meta.Session
 
 import unittest
 
@@ -98,7 +85,7 @@ def initDb():
         s.add(Node(id=4098, nodeTypeId=1, location=ll))
         s.add(Node(id=4099, nodeTypeId=1, location=ll))
 
-        t = datetime.datetime.utcnow() - timedelta(days=1)
+        t = datetime.utcnow() - timedelta(days=1)
         for i in range(288):
             ns = NodeState(time=t,
                            nodeId=23,
@@ -142,9 +129,9 @@ def initDb():
         
 if __name__ == "__main__":
     #initDb()
-    #engine = create_engine("sqlite:///", echo=False)
-    #Base.metadata.create_all(engine)
-    #init_model(engine)
+    engine = create_engine("sqlite:///", echo=False)
+    Base.metadata.create_all(engine)
+    init_model(engine)
     # try:
     #     s = Session()
     #     h = House(address="Test house")
