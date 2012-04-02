@@ -280,7 +280,11 @@ def createTestDB(session=False,now=False):
         node70 = models.Node(id=70)
         session.add(node70)
 
-
+    node50 = session.query(models.Node).filter_by(id=50).first()
+    if node50 is None:
+        node50 = models.Node(id=50)
+        session.add(node50)
+        
         
 
     #We want to work only with temperature database
@@ -289,6 +293,7 @@ def createTestDB(session=False,now=False):
         tempType = models.SensorType(id=0,name="Temperature")
         session.add(tempType)
     session.flush()
+    session.commit()
 
     #To make iterating through locations a little easier when adding samples
     locs = [node37,node38,node39,node40,node69,node70]
@@ -332,22 +337,26 @@ def createTestDB(session=False,now=False):
 
     #Add some node state information
     #To start a true star network
-    for item in [node37,node38,node39]:
+    for item in [37,38,39]:
         theState = models.NodeState(time=now,
-                                    nodeId = item.id,
+                                    nodeId = item,
                                     parent=40974,
                                     localtime = 0)
         session.add(theState)
+
     session.flush()
     
     #Lets also fake a rejig of the nodestate about a day into the depoyment
     #With a tree along the lines of <base> -> [node37,node38 -> [node39,node40]]
-    for item in [node39,node40]:
+    for item in [39,40]:
         theState = models.NodeState(time=now+timedelta(hours=24),
-                                    nodeId = item.id,
-                                    parent = node38.id,
-                                    localtime = 24)
+                                    nodeId = item,
+                                    parent = 38,
+                                    localtime = 48)
+
         session.add(theState)
+        session.flush()
+        print "State {0}".format(theState)
     session.flush()
     
     #Add Data (Deal with node 40 seperately as this is a corner case
@@ -398,12 +407,12 @@ def createTestDB(session=False,now=False):
     #Add some node state information here too
     # Chain base2( 40975) -> node69 -> node70
     session.add(models.NodeState(time=house2Start,
-                                 nodeId = node69.id,
+                                 nodeId = 69,
                                  parent = 40975,
                                  localtime = 0))
     session.add(models.NodeState(time=house2Start,
-                                 nodeId = node70.id,
-                                 parent = node69.id,
+                                 nodeId = 70,
+                                 parent = 69,
                                  localtime = 0))
     session.flush()
                 

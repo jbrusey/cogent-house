@@ -58,7 +58,12 @@ class NodeState(Base,meta.InnoDBMix):
 
 
     def __cmp__(self,other):
-        val = (self.time - other.time).seconds
-        val += self.nodeId - other.nodeId
-        val += self.parent - other.parent
-        return val
+        try:
+            val = (self.time - other.time).seconds
+            val += self.nodeId - other.nodeId
+            val += self.parent - other.parent
+            return val
+        except TypeError,e:
+            log.warning("Unable to Compate {0} {1}".format(self,other))
+        
+
