@@ -56,3 +56,9 @@ class NodeState(Base,meta.InnoDBMix):
                 str(self.parent) + "," +
                 str(self.localtime) + ")")
 
+
+    def __cmp__(self,other):
+        val = (self.time - other.time).seconds
+        val += self.nodeId - other.nodeId
+        val += self.parent - other.parent
+        return val
