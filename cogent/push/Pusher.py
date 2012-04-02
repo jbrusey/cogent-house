@@ -83,10 +83,12 @@ class Pusher(object):
        nodestates turning up if there is a failiure
 
     """
-    def __init__(self):
+    def __init__(self,localURL=None):
         log.info("Initialise Push Object")
         #Create a local session
-        localEngine = sqlalchemy.create_engine(LOCAL_URL)
+        if not localURL:
+            localURL = LOCAL_URL
+        localEngine = sqlalchemy.create_engine(localURL)
         self.initLocal(localEngine)
 
 

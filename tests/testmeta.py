@@ -20,10 +20,6 @@ viewer = False
 
 import ConfigParser
 
-#DBURL = 'mysql://test_user:test_user@localhost/pushTest'
-#DBURL = 'sqlite:///:memory:'
-#DBURL = "sqlite:///test.db"
-
 try:
     import cogentviewer
     viewer = True
@@ -43,16 +39,9 @@ else:
     import cogent.base.model.meta as meta   
     import cogent.base.model.populateData as populateData
 
-#engine = create_engine(DBURL)
-#models.initialise_sql(engine)
-#populateData.init_data()
-
-#Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 from datetime import datetime, timedelta
 
-#engine = create_engine(DBURL)
-#Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 class BaseTestCase(unittest.TestCase):
     """
@@ -85,6 +74,7 @@ class BaseTestCase(unittest.TestCase):
         self.engine = engine
         populateData.init_data()
         self.Session = sqlalchemy.orm.sessionmaker(bind=engine)
+
         createTestDB(self.Session())
 
     def setUp(self):
@@ -120,17 +110,19 @@ class BaseTestCase(unittest.TestCase):
 
 
 #Build a complete testing database
-def createTestDB(session=False):
+def createTestDB(session=False,now=False):
     """Create a complete Testing Database
     :param session: Session to use if not the global DB session
+    :param now: Time to use to setup the database
     """
 
     log.debug("Add Testing Data")
     if not session:
         session = Session()
 
-
-    now = datetime.now()
+        
+    if not now:
+        now = datetime.now()
     deploymentEnd = now + timedelta(days=2)
     house2Start = now + timedelta(days=1)
     
@@ -340,7 +332,7 @@ def createTestDB(session=False):
 
     #Add some node state information
     #To start a true star network
-    for item in [node37,node38,node39,node40]:
+    for item in [node37,node38,node39]:
         theState = models.NodeState(time=now,
                                     nodeId = item.id,
                                     parent=40974,
