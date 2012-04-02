@@ -18,10 +18,10 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 viewer = False
 
-
+import ConfigParser
 
 #DBURL = 'mysql://test_user:test_user@localhost/pushTest'
-DBURL = 'sqlite:///:memory:'
+#DBURL = 'sqlite:///:memory:'
 #DBURL = "sqlite:///test.db"
 
 try:
@@ -51,8 +51,8 @@ else:
 
 from datetime import datetime, timedelta
 
-engine = create_engine(DBURL)
-Session = sqlalchemy.orm.sessionmaker(bind=engine)
+#engine = create_engine(DBURL)
+#Session = sqlalchemy.orm.sessionmaker(bind=engine)
 
 class BaseTestCase(unittest.TestCase):
     """
@@ -64,6 +64,22 @@ class BaseTestCase(unittest.TestCase):
         This means that we can Init the testing database once per testsuite
         """
         
+        #Parse the Config File
+        try:
+            confFile = open("setup.conf")
+        except IOError:
+            confFile = open("tests/setup.conf")
+
+        config = ConfigParser.ConfigParser()
+        #Read the File
+        config.readfp(confFile)
+        
+        #And pull out the DB Url
+        dburl = config.get("TestDB","dbString")
+        log.debug("DB URL is {0}".format(dburl))
+
+        engine = create_engine(dburl)
+        self.engine = engine
         models.initialise_sql(engine)
         log.debug("Setup Testing Class with engine {0}".format(engine))
         self.engine = engine
@@ -83,7 +99,7 @@ class BaseTestCase(unittest.TestCase):
             self.config = testing.setUp()
         except:
             pass
-        connection = engine.connect()
+        connection = self.engine.connect()
         self.transaction = connection.begin()
         self.session = self.Session()
         self.session.bind=connection
