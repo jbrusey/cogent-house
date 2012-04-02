@@ -607,14 +607,14 @@ class Pusher(object):
                                               parent = item.parent,
                                               localtime = item.localtime)
             session.add(newState)
-            if stateCount == 500:
-                session.flush()
-                session.commit()
-
+            #log.info("--> Adding State {0}".format(newState))
+            
         session.flush()
         session.commit()
-        lSess.close()
         session.close()
+
+        lSess.close()
+
 
 
 if __name__ == "__main__":
