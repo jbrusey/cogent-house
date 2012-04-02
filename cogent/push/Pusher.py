@@ -11,6 +11,8 @@ import cogent
 import cogent.base.model as models
 import cogent.base.model.meta as meta
 from datetime import datetime
+from datetime import timedelta
+
 import subprocess
 
 import paramiko
@@ -552,7 +554,7 @@ class Pusher(object):
         log.debug("Last Reading Added Was {0}".format(newReading))
 
         try:
-            lastTime = newReading.time + datetime.timedelta(seconds = 1)
+            lastTime = newReading.time + timedelta(seconds = 1)
             session.flush()
             session.commit()
             session.close()
