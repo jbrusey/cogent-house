@@ -74,7 +74,6 @@ class BaseTestCase(unittest.TestCase):
         self.engine = engine
         populateData.init_data()
         self.Session = sqlalchemy.orm.sessionmaker(bind=engine)
-
         createTestDB(self.Session())
 
     def setUp(self):
@@ -284,7 +283,6 @@ def createTestDB(session=False,now=False):
     if node50 is None:
         node50 = models.Node(id=50)
         session.add(node50)
-        
         
 
     #We want to work only with temperature database
