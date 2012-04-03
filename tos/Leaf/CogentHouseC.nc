@@ -1,5 +1,5 @@
 // -*- c -*-
-#include "Packets.h"
+#include "../Packets.h"
 #include "PolyClass/horner.c"
 #include "CurrentCost/cc_struct.h"
 #include "Filter.h"
@@ -81,16 +81,16 @@ implementation
   HeatMeterM.VolumeInterrupt -> GIOInterrupt.Port23; //set to read from gio2
 
   //set up SI filters + event detectors for co2,temp,hum
-#ifdef SI
+#ifdef SIP
   components new FilterM() as TempFilterWrapper;
-  components new EventDetectorC(DEF_TEMP_THRESH) as TempDetector; 
+  components new EventDetectorC(SIP_TEMP_THRESH) as TempDetector; 
 #ifdef KALMAN
   components new KalmanC(0.,0.,FALSE,2.864665e-15,0.000410076, 0.) as TempKalmanC;
   TempFilterWrapper.Filter -> TempKalmanC;
   TempDetector -> TempKalmanC.Predict;
 #endif
 #ifdef DEWMA
-  components new DEWMAC(0., 0., FALSE, DEF_TEMP_ALPHA, DEF_TEMP_BETA) as TempDEWMAC;
+  components new DEWMAC(0., 0., FALSE, SIP_TEMP_ALPHA, SIP_TEMP_BETA) as TempDEWMAC;
   TempFilterWrapper.Filter -> TempDEWMAC;
   TempDetector -> TempDEWMAC.Predict;
 #endif
@@ -99,14 +99,14 @@ implementation
   TempFilterWrapper.LocalTime -> HilTimerMilliC;  
   TempDetector.FilterRead -> TempFilterWrapper.Read;
   components new FilterM() as HumFilterWrapper;
-  components new EventDetectorC(DEF_HUM_THRESH) as HumDetector;  
+  components new EventDetectorC(SIP_HUM_THRESH) as HumDetector;  
 #ifdef KALMAN
   components new KalmanC(0.,0.,FALSE, 2.713816e-13,0.01864952, 0.) as HumKalmanC;
   HumFilterWrapper.Filter -> HumKalmanC;
   HumDetector -> HumKalmanC.Predict;
 #endif
 #ifdef DEWMA
-  components new DEWMAC(0., 0., FALSE, DEF_HUM_ALPHA, DEF_HUM_BETA) as HumDEWMAC;  
+  components new DEWMAC(0., 0., FALSE, SIP_HUM_ALPHA, SIP_HUM_BETA) as HumDEWMAC;  
   HumFilterWrapper.Filter -> HumDEWMAC;
   HumDetector -> HumDEWMAC.Predict;
 #endif
@@ -116,14 +116,14 @@ implementation
   HumDetector.FilterRead -> HumFilterWrapper.Read;
  
   components new FilterM() as CO2FilterWrapper;
-  components new EventDetectorC(DEF_CO2_THRESH) as CO2Detector; 
+  components new EventDetectorC(SIP_CO2_THRESH) as CO2Detector; 
 #ifdef KALMAN
   components new KalmanC(0.,0.,FALSE, 5.090581e-10,12.49915, 0.) as CO2KalmanC;
   CO2FilterWrapper.Filter -> CO2KalmanC;
   CO2Detector -> CO2KalmanC.Predict;
 #endif
 #ifdef DEWMA
-  components new DEWMAC(0., 0., FALSE, DEF_CO2_ALPHA, DEF_CO2_BETA) as CO2DEWMAC; 
+  components new DEWMAC(0., 0., FALSE, SIP_CO2_ALPHA, SIP_CO2_BETA) as CO2DEWMAC; 
   CO2FilterWrapper.Filter -> CO2DEWMAC;
   CO2Detector -> CO2DEWMAC.Predict; 
 #endif
@@ -134,14 +134,14 @@ implementation
 
   //AQ  
   components new FilterM() as AQFilterWrapper;
-  components new EventDetectorC(DEF_AQ_THRESH) as AQDetector; 
+  components new EventDetectorC(SIP_AQ_THRESH) as AQDetector; 
 #ifdef KALMAN
   components new KalmanC(0.,0.,FALSE, 7.276443e-16, 0.003926976 , 0.) as AQKalmanC;
   AQFilterWrapper.Filter -> AQKalmanC;
   AQDetector -> AQKalmanC.Predict;
 #endif
 #ifdef DEWMA
-  components new DEWMAC(0., 0., FALSE, DEF_AQ_ALPHA, DEF_AQ_BETA) as AQDEWMAC; 
+  components new DEWMAC(0., 0., FALSE, SIP_AQ_ALPHA, SIP_AQ_BETA) as AQDEWMAC; 
   AQFilterWrapper.Filter -> CO2DEWMAC;
   AQDetector -> AQDEWMAC.Predict; 
 #endif
@@ -152,14 +152,14 @@ implementation
   
   //VOC
   components new FilterM() as VOCFilterWrapper;
-  components new EventDetectorC(DEF_VOC_THRESH) as VOCDetector; 
+  components new EventDetectorC(SIP_VOC_THRESH) as VOCDetector; 
 #ifdef KALMAN
   components new KalmanC(0.,0.,FALSE, 7.276443e-16, 0.003926976 , 0.) as VOCKalmanC;
   VOCFilterWrapper.Filter -> VOCKalmanC;
   VOCDetector -> VOCKalmanC.Predict;
 #endif
 #ifdef DEWMA
-  components new DEWMAC(0., 0., FALSE, DEF_VOC_ALPHA, DEF_VOC_BETA) as VOCDEWMAC; 
+  components new DEWMAC(0., 0., FALSE, SIP_VOC_ALPHA, SIP_VOC_BETA) as VOCDEWMAC; 
   VOCFilterWrapper.Filter -> VOCDEWMAC;
   VOCDetector -> VOCDEWMAC.Predict; 
 #endif
@@ -210,8 +210,8 @@ implementation
 
 #ifdef BN  
   //Temp
-  components new ExposureEventDetectorC(TEMP_BAND_LEN,DEF_TEMP_BAND_THRESH) as TempDetector;
-  components new ExposureC(TEMP_BAND_LEN, RS_TEMPERATURE, DEF_GAMMA) as TempExposure;
+  components new ExposureEventDetectorC(TEMP_BAND_LEN,BN_TEMP_BAND_THRESH) as TempDetector;
+  components new ExposureC(TEMP_BAND_LEN, RS_TEMPERATURE, BN_GAMMA) as TempExposure;
   
   TempExposure.GetValue -> ThermalSensingM.ReadTemp;
   TempDetector.ExposureRead -> TempExposure.Read;
@@ -219,8 +219,8 @@ implementation
   CogentHouseP.TempTrans -> TempDetector.TransmissionControl;
 
   //Hum
-  components new ExposureEventDetectorC(HUM_BAND_LEN,DEF_HUM_BAND_THRESH) as HumDetector;
-  components new ExposureC(HUM_BAND_LEN, RS_HUMIDITY, DEF_GAMMA) as HumExposure;
+  components new ExposureEventDetectorC(HUM_BAND_LEN,BN_HUM_BAND_THRESH) as HumDetector;
+  components new ExposureC(HUM_BAND_LEN, RS_HUMIDITY, BN_GAMMA) as HumExposure;
   
   HumExposure.GetValue -> ThermalSensingM.ReadHum;
   HumDetector.ExposureRead -> HumExposure.Read;
@@ -228,8 +228,8 @@ implementation
   CogentHouseP.HumTrans -> HumDetector.TransmissionControl;
 
   //Hum
-  components new ExposureEventDetectorC(CO2_BAND_LEN,DEF_CO2_BAND_THRESH) as CO2Detector;
-  components new ExposureC(CO2_BAND_LEN, RS_CO2, DEF_GAMMA) as CO2Exposure;
+  components new ExposureEventDetectorC(CO2_BAND_LEN,BN_CO2_BAND_THRESH) as CO2Detector;
+  components new ExposureC(CO2_BAND_LEN, RS_CO2, BN_GAMMA) as CO2Exposure;
   
   CO2Exposure.GetValue -> AirQualityM.ReadCO2;
   CO2Detector.ExposureRead -> CO2Exposure.Read;
