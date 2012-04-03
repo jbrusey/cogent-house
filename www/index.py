@@ -132,7 +132,7 @@ def tree(req, period='hour'):
         req.content_type = "image/svg+xml"
 #        req.content_type = "text/plain"
 
-        t = datetime.now() - timedelta(minutes=mins)
+        t = datetime.utcnow() - timedelta(minutes=mins)
 
         p = Popen("dot -Tsvg", shell=True, bufsize=4096,
 #        p = Popen("cat", shell=True, bufsize=4096,
@@ -291,7 +291,7 @@ def exportDataForm(err=None):
         s.append("Start Date: <input type=\"text\" name=\"StartDate\" value=\"\" />")
         s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('StartDate');\"></td><td>") 
 
-        s.append("End Date: <input type=\"text\" name=\"EndDate\" value=\""+(datetime.now()).strftime("%d/%m/%Y")+"\" />")
+        s.append("End Date: <input type=\"text\" name=\"EndDate\" value=\""+(datetime.utcnow()).strftime("%d/%m/%Y")+"\" />")
         s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('EndDate');\"><br/></td><tr></table>") 
 
         s.append("<p><input type=\"submit\" value=\"Get Data\"></p>")
@@ -390,7 +390,7 @@ def viewLog(req):
 
 def missing():
     try:
-        t = datetime.now() - timedelta(hours=1)
+        t = datetime.utcnow() - timedelta(hours=1)
         session = Session()
         s = ['<p>']
 
@@ -407,7 +407,7 @@ def missing():
             s.append("<table border=\"1\">")
             s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Last Heard</th><th></th></tr>"  )
 
-            for (ns, maxtime, nodeid, house, room) in session.query(NodeState,func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all():
+            for (ns, maxtime, nodeId, house, room) in session.query(NodeState,func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all():
                 u = _url("unregisterNode", [('node', nodeId)])
                 s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (nodeId, house, room, str(maxtime), u))
                   
@@ -462,7 +462,7 @@ def yield24():
         s.extend(["<th>%s</th>" % x for x in headings])
         s.append("</tr>")
 
-        t = datetime.now() - timedelta(days=1)
+        t = datetime.utcnow() - timedelta(days=1)
 
         nodestateq = session.query(
             NodeState,
@@ -536,7 +536,7 @@ def dataYield():
         s.append("<table border=\"1\">")
         s.append("<tr><th>Node</th><th>Message Count</th><th>Yield</th></tr>")
 
-        t = datetime.now() - timedelta(days=1)
+        t = datetime.utcnow() - timedelta(days=1)
 
         for nid, cnt in session.query(
             NodeState.nodeId,
@@ -865,7 +865,7 @@ def lowbat(bat="2.6"):
             batlvl = float(bat)
         except:
             batlvl = 2.6
-        t = datetime.now() - timedelta(hours=1)
+        t = datetime.utcnow() - timedelta(hours=1)
         session = Session()
         s = []
         empty = True
@@ -944,7 +944,7 @@ def test(req,nid,typ,minsago):
         except Exception:
             minsago_i = timedelta(minutes=1)
 
-        startts = datetime.now() - minsago_i
+        startts = datetime.utcnow() - minsago_i
         
         (max_time_before,) = session.query(func.max(Reading.time)).filter(
             and_(Reading.nodeId == int(nid),
@@ -980,184 +980,227 @@ def test(req,nid,typ,minsago):
         session.close()
 
 def _latest_reading_before(session, nid, typ, startts):
-
         # get latest reading / time that is before start time
+        try:
+            sq = session.query(func.max(Reading.time).label('maxtime')).filter(
+                and_(Reading.nodeId == nid,
+                     Reading.typeId == typ,
+                     Reading.time < startts)).subquery()
         
-        sq = session.query(func.max(Reading.time).label('maxtime')).filter(
-            and_(Reading.nodeId == nid,
-                 Reading.typeId == typ,
-                 Reading.time < startts)).subquery()
-        
-        (qt, qv,) = session.query(Reading.time,Reading.value).join(
-            sq, Reading.time==sq.c.maxtime).filter(
-            and_(Reading.nodeId == nid,
-                 Reading.typeId == typ)).first()
+            (qt, qv) = session.query(Reading.time,Reading.value).join(
+                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == typ)).first()
 
-        # get corresponding delta
-        (dt, dv,) = session.query(Reading.time,Reading.value).join(
-            sq, Reading.time==sq.c.maxtime).filter(
-            and_(Reading.nodeId == nid,
-                 Reading.typeId == deltaDict[typ])).first()
+            # get corresponding delta
+            (dt, dv) = session.query(Reading.time,Reading.value).join(
+                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == deltaDict[int(typ)])).first()
+            return qt,qv,dv
+        except:
+            return None,None,None
     
 
+thresholds = {
+    0 : 0.25,
+    2 : 1,
+    8 : 100,
+    6 : 0.1
+    }
 
-def _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTimeDict, startts, endts, debug, fmt, req, noData=False):
+sensor_types= {
+    0 : 0,
+    2 : 2,
+    8 : 8,
+    6 : 6
+    }
+
+type_delta={
+    0 : 1,
+    2 : 3,
+    8 : 20,
+    6 : 7
+}
+
+def _interp(data):
+    ft = data["time"]
+    fv = data["value"]
+    fd = data["delta"]
+
+    ctd = datetime.now()
+    duration = (ctd - ft).seconds
+
+    ft = matplotlib.dates.date2num(ft)
+    ct = matplotlib.dates.date2num(ctd)
+    cv = fv + (duration * fd)
+    
+    point={}
+    point["time"]=ctd
+    point["value"]=cv
+    point["delta"]=fd
+
+
+    return ct,cv,point
+
+
+def _calcSpline(first,last,typ):
+
+    thresh = thresholds[int(typ)]
+
+    samplePeriod = timedelta(seconds = 300)
+    halfPeriod = timedelta(seconds = 150)
+
+    codes = [Path.MOVETO,
+             Path.CURVE4,
+             Path.CURVE4,
+             Path.CURVE4,
+             ]
+
+    ft = first["time"]
+    fv = first["value"]
+    fd = first["delta"]
+
+    lt = last["time"]
+    lv = last["value"]
+    ld = last["delta"]
+
+    #get control point 1 time and point B
+    cp1t = lt - samplePeriod
+    Bv = fv + (fd * (cp1t - ft).seconds)
+
+    #limits
+    ul = Bv + thresh
+    ll = Bv - thresh
+
+    #get second control point (D)            
+    cp2t = lt  - halfPeriod # 1/2 sample back
+    c2v = lv - (ld * halfPeriod.seconds)
+
+    #get xc
+    xct = cp1t
+    xcv =  lv - (ld * samplePeriod.seconds)
+
+    #decide on c1v (B') actual value
+    if xcv < ll:
+        c1v = ll
+    elif xcv > ul:
+        c1v = ul
+    else:
+        c1v=(xcv+Bv)/2.
+        #c1v=Bv
+
+    ft = matplotlib.dates.date2num(ft)
+    cp1t = matplotlib.dates.date2num(cp1t)
+    cp2t = matplotlib.dates.date2num(cp2t)
+    lt = matplotlib.dates.date2num(lt)
+
+    verts = [
+        (ft, fv),  # P0
+        (cp1t, c1v), # P1
+        (cp2t, c2v), # P2
+        (lt, lv), # P3
+        ]
+
+    path = Path(verts, codes)
+    return path
+
+def getSplineData(session, node_id, reading_type, delta_type, sd, ed):
+    #get values    
+    data=[]
+    times=[]
+    xs=[]
+    
+    #get prev reading
+    (prev_time, prev_value, prev_delta) = _latest_reading_before(session, node_id, reading_type, sd)
+    if prev_time != None:
+        point={}
+        point["time"]=prev_time
+        times.append(prev_time)
+        point["value"]=prev_value
+        xs.append(prev_value)
+        point["delta"]=prev_delta/300.
+        data.append(point)
+        
+
+    delta_rows = session.query(Reading.time, Reading.value).filter(and_(
+            Reading.time >= sd,
+            Reading.time < ed,
+            Reading.nodeId == node_id,
+            Reading.typeId == delta_type)).with_labels().subquery()
+            
+    rows =  session.query(Reading.time, Reading.value, delta_rows.c.Reading_value).filter(and_(
+        Reading.time >= sd,
+        Reading.time < ed,
+        Reading.nodeId == node_id,
+        Reading.typeId == reading_type))
+                        
+    readings = rows.join((delta_rows, Reading.time == delta_rows.c.Reading_time))
+
+    for time,value,delta in readings:  
+        point={}
+        point["time"]=time
+        times.append(time)
+        point["value"]=value
+        xs.append(value)
+        point["delta"]=delta/300.
+        data.append(point)
+
+    points=[times,xs]
+    return (data,points)
+
+def _graphSplines(session, data, paths, current_point, start_time, end_time, reading_type, fmt, req):
+    fig = plt.figure()
+    fig.set_size_inches(7,4)
+    ax = fig.add_subplot(111)
+    ax.set_autoscalex_on(False)
+    ax.set_xlim((matplotlib.dates.date2num(start_time),
+                 matplotlib.dates.date2num(end_time)))
+
+    for p in paths:
+        patch = patches.PathPatch(p, facecolor='none', lw=2)
+        ax.add_patch(patch)
+
+    ax.plot_date(current_point[0], current_point[1], color='red', linestyle='dashed')   
+    ax.plot_date(data[0], data[1],fmt)
+
+
+    fig.autofmt_xdate()
+    ax.set_xlabel("Date")
+        
 
     try:
+        thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(reading_type)).one()
+        ax.set_ylabel("%s (%s)" % tuple(thistype))
+    except NoResultFound:
+        pass        
+
+    image = cStringIO.StringIO()
+    fig.savefig(image)
+    
+    req.content_type = "image/png"
+    return  [req.content_type, image.getvalue()]
+
+def _plotSplines(node_id, reading_type, delta_type, start_time, end_time, debug, fmt, req):
+    try:
         session = Session()
-        
-        #predict current point
-        if last_heard!=None:
-            duration = (endts - last_heard).seconds
+        data,points = getSplineData(session, node_id, reading_type, delta_type, start_time, end_time)
 
-
-        if qv is None or dv is None:
-            return
-   
-        dtp=[qt]
-        preTN=[matplotlib.dates.date2num(qt)]
-        preV=[qv]
-        
-        gotPastDelta=False
-        for qt, qv in dqry:
-            dtn = (matplotlib.dates.date2num(qt))
-            deltaTimeDict[dtn] = qv
-            gotPastDelta=True
-            break
-
-        if noData == True and gotPastDelta == False:
-            return False
-
-
-        if last_heard == None:
-            duration = (endts - dtp[0]).seconds
-            last_delta = deltaTimeDict[dtn]
-            last_value = preV[0]
-            
-
-        pred_inc = float(duration)*last_delta
-        if int(nid)==20:
-            pred_inc = float(duration)*(last_delta/300.)
-        last_value += pred_inc
-    
-        dt.append(datetime.now())
-        t.append(matplotlib.dates.date2num(dt[-1]))
-        v.append(last_value)
-        deltaTimeDict[t[-1]] = last_delta
-
-        if int(nid)==20:
-            newDeltaTimeDict={}
-            for k,dv in deltaTimeDict.iteritems():
-                newDeltaTimeDict[k]=float(dv)/300.
-            deltaTimeDict=newDeltaTimeDict
-            
-
-        #add to lists
-        if gotPastDelta == True:
-            dtp.extend(dt)
-            preTN.extend(t)
-            preV.extend(v)
-        
-            dt = dtp
-            t = preTN
-            v = preV
-            
-    
-        #construct verts arrays
-        paths=[]
+        paths = []
+        msgs=len(data)
         i=0
-        
-        codes = [Path.MOVETO,
-                 Path.CURVE4,
-                 Path.CURVE4,
-                 Path.CURVE4,
-                 ]
-
-
-        thresholds={0: 0.25, 2: 1., 6: 0.01, 8: 100}
-        while i+1 < len(v):
-            stn = t[i]
-            st=dt[i]
-            sv=v[i]
-            sd=deltaTimeDict[stn]
-            etn=t[i+1]
-            et=dt[i+1]
-            ev=v[i+1]
-            ed=deltaTimeDict[etn]
-            
-            tds = timedelta(seconds=(et - st).seconds - 300) #subtract off one smple period
-
-            c1t=st+tds
-            c1tn=matplotlib.dates.date2num(c1t)
-            c1v=sv+(sd*tds.seconds)
-            
-            #calculate upper or lower bands
-            thresh=+thresholds[int(typ)]
-            c1ub=c1v+thresh
-            c1lb=c1v-thresh
-
-            tds = timedelta(seconds= 300)
-            c2t=et-tds # one sample back
-            c2tn=matplotlib.dates.date2num(c2t)
-            c2v=ev-(ed*tds.seconds)
-
-            if c2v > c1ub:
-                c2v = c1ub
-            elif c2v < c1lb:
-                c2v = c1lb
-                
-            verts = [
-                (stn, sv),  # P0
-                (c1tn, c1v), # P1
-                (c2tn, c2v), # P2
-                (etn, ev), # P3
-                ]
-
-            path = Path(verts, codes)
-            paths.append(path)
+        req.content_type = "text/plain"
+        while i < msgs:
+            try:
+                path = _calcSpline(data[i],data[i+1],reading_type)
+                paths.append(path)
+            except IndexError:
+                current_point = _interp(data[i])
+                path = _calcSpline(data[i],current_point[2],reading_type)
+                paths.append(path)
+                break
             i+=1
-
-        if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscalex_on(False)
-                ax.set_xlim((matplotlib.dates.date2num(startts),
-                             matplotlib.dates.date2num(endts)))
-            
-
-                
-                for p in paths:
-                    patch = patches.PathPatch(p, facecolor='none', lw=2)
-                    ax.add_patch(patch)
-                
-                if len(t) > 0:    
-                    ax.plot_date(t, v, fmt)
-                ax.plot_date(endts, last_value, fmt, color='red', linestyle='dashed')                    
-                fig.autofmt_xdate()
-                ax.set_xlabel("Date")
-
-
-                try:
-                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
-                    ax.set_ylabel("%s (%s)" % tuple(thistype))
-                except NoResultFound:
-                    pass
-
-                image = cStringIO.StringIO()
-                fig.savefig(image)
-                
-                req.content_type = "image/png"
-                return  [req.content_type, image.getvalue()]
-        else:
-            req.content_type = "text/plain"
-            return [req.content_type , str(t)+ str(v) + repr(paths)]
+        if len(paths)>0:
+            return _graphSplines(session, points, paths, current_point, start_time, end_time, reading_type, fmt, req)
     finally:
         session.close()
-
-
-
+            
 def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
 
     try:
@@ -1176,8 +1219,8 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
 
         debug = (debug is not None)
         week = timedelta(minutes=int(_periods["week"]))
-        startts = datetime.now() - minsago_i
-        deltats = (datetime.now() - minsago_i) - week
+        startts = datetime.utcnow() - minsago_i
+        deltats = (datetime.utcnow() - minsago_i) - week
 
         endts = startts + duration_i
 
@@ -1188,7 +1231,6 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                  Reading.time <= endts)).order_by(Reading.time)
 
         
-        deltaTimeDict={}
         if int(typ) in deltaDict:
             dqry = session.query(Reading.time, Reading.value).filter(
                 and_(Reading.nodeId == int(node),
@@ -1197,13 +1239,8 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                      Reading.time <= endts)).order_by(Reading.time)
             
             #get most recent delta
-            last_heard=None
-            last_delta=None
             for (RT, RV) in dqry:
-                deltaTimeDict[matplotlib.dates.date2num(RT)]=RV
-                last_heard=RT;
-                last_delta=RV;
-                plotLines=True
+                plotSpline=True
 
 
         t = []
@@ -1224,13 +1261,10 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
         #will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
         nid=int(node)
         if len(t) == 0:  
-            res= _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTimeDict, startts, endts, debug, fmt, req, noData=True)
-            if res==False:
-                res=_plot(typ, t, v, startts, endts, debug, fmt, req)
-            req.content_type=res[0]
+            res=_plot(typ, t, v, startts, endts, debug, fmt, req)
             return res[1]
-        elif plotLines:
-            res= _splinePlot(typ, nid, t, v, dt, last_value, last_heard, last_delta, deltaTimeDict, startts, endts, debug, fmt, req)
+        elif plotSpline:
+            res = _plotSplines(nid, typ, type_delta[int(typ)], startts, endts, debug, fmt, req)
         else:
             res=_plot(typ, t, v, startts, endts, debug, fmt, req)
 
@@ -1259,7 +1293,7 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
 
         debug = (debug is not None)
 
-        startts = datetime.now() - minsago_i
+        startts = datetime.utcnow() - minsago_i
         endts = startts + duration_i
 
         # find all the electricity readings for House n for the required period

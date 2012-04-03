@@ -36,21 +36,6 @@ Header file containing all packet formats sent/received
 #define _PACKETS_H
 
 
-/*
-  SC_TEMP_HEALTH = 24,
-  SC_TEMP_COLD = 25,
-  SC_TEMP_COMFORT = 26,
-  SC_TEMP_WARM = 27,
-  SC_TEMP_OVER = 28,
-  SC_HUM_DRY = 29,
-  SC_HUM_COMFORT = 30,
-  SC_HUM_DAMP = 31,
-  SC_HUM_RISK = 32,
-  SC_CO2_ACC = 33,
-  SC_CO2_MINOR = 34,
-  SC_CO2_MEDIUM = 35,
-  SC_CO2_MAJOR = 36,*/
-
 // state codes
 enum {
   SC_TEMPERATURE = 0,
@@ -77,10 +62,19 @@ enum {
   SC_D_CO2 = 20,
   SC_D_VOC = 21,
   SC_D_AQ = 22,
-  SC_SIZE = 23 // SC_SIZE must be 1 greater than last entry
+  SC_SIZE = 23, // SC_SIZE must be 1 greater than last entry
+  
+  
+  //BN Codes
+  SC_TEMP_COUNT = 5,
+  SC_TEMP_FIRST = 0,
+  SC_HUM_COUNT = 4,
+  SC_HUM_FIRST = 0,
+  SC_CO2_COUNT = 4,
+  SC_CO2_FIRST = 0,
 };
 
-#include "PackState/packstate.h"
+#include "Leaf/PackState/packstate.h"
 
 // raw sensors
 enum { 
@@ -107,6 +101,7 @@ enum {
   AM_CONFIGMSG = 5,
   DIS_SETTINGS = 6,
   AM_STATEMSG = 7,
+  AM_BNMSG = 8,
   SPECIAL = 0xc7
 };
 
@@ -146,7 +141,6 @@ typedef nx_struct ConfigMsg {
 
 
 typedef nx_struct AckMsg {
-  nx_uint16_t node;
   nx_uint8_t seq;
 } AckMsg;
 

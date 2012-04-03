@@ -240,11 +240,10 @@ class BaseLogger(object):
 
             #send acknowledgement to base station to fwd to node
             am = AckMsg()
-            am.set_node(n)
             #am.set_count(msg.getElement_packed_state(12))
             am.set_seq(int(msg.get_seq()))
             logger.debug("Sending Ack %s: %s" % (msg.get_seq(),n))
-            self.bif.sendMsg(am,dest=12)
+            self.bif.sendMsg(am,dest=n)
         except Exception as e:
             session.rollback()
             logger.exception("during storing: " + str(e))

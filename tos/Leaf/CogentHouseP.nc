@@ -16,7 +16,7 @@ module CogentHouseP
     interface Receive;
 				
    //SI Sensing
-#ifdef SI
+#ifdef SIP
     interface Read<FilterState *> as ReadTemp;
     interface TransmissionControl as TempTrans;
     interface Read<FilterState *> as ReadHum;
@@ -61,7 +61,7 @@ module CogentHouseP
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
-#ifdef SI
+#ifdef SIP
     interface BitVector as ExpectSendDone;
 #endif
 #ifdef BN
@@ -150,9 +150,6 @@ implementation
       reportError(ERR_SEND_WHILE_PACKET_PENDING);
       return;
     }
-    //we're going do a send so pack the msg count and then increment
-    expSeq = msgSeq;
-    msgSeq++;
 
 #ifdef SS
     if (call Configured.get(RS_DUTY))
@@ -168,9 +165,12 @@ implementation
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       newData->special = 0xc7;
+      //we're going do a send so pack the msg count and then increment
+      expSeq = msgSeq;
+      msgSeq++;
       newData->seq = expSeq;
       newData->timestamp = call LocalTime.get();
-      newData->ctp_parent_id = DEF_CLUSTER_HEAD;
+      newData->ctp_parent_id = LEAF_CLUSTER_HEAD;
      
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
@@ -184,8 +184,8 @@ implementation
 	call CurrentCostControl.stop();
       }
       else {
-	if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
-	  call AckTimeoutTimer.startOneShot(5L*1024L); // 5 sec sense/send timeout
+	if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
+	  call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME*1024L); // 5 sec sense/send timeout
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
 	  printfflush();
@@ -245,7 +245,7 @@ implementation
       call HeatMeterControl.start();
     }
 #endif
-#ifdef SI
+#ifdef SIP
     if (nodeType == 0) { 
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -292,7 +292,7 @@ implementation
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
-    call SenseTimer.startOneShot(DEF_SENSE_PERIOD);
+    call SenseTimer.startOneShot(0);
   }
 
   /** Restart the sense timer as a one shot. Using a one shot here
@@ -317,7 +317,7 @@ implementation
     printfflush();
 #endif
 
-#ifdef SI
+#ifdef SIP
     if (result==SUCCESS){
       for (i = 0; i < RS_SIZE; i ++) {
 	if (call ExpectSendDone.get(i))
@@ -387,7 +387,7 @@ implementation
    */
   task void checkDataGathered() {
     bool allDone = TRUE;
-#ifdef SI
+#ifdef SIP
     bool toSend = FALSE;
 #endif
 #ifdef BN
@@ -411,7 +411,7 @@ implementation
       call RadioControl.start();
 #endif
 
-#ifdef SI
+#ifdef SIP
       for (i = 0; i < RS_SIZE; i++) {
 	if (call ExpectSendDone.get(i)) {
 	  toSend = TRUE;
@@ -495,7 +495,7 @@ implementation
 	    call ExpectReadDone.clear(i);
 #endif
 
-#ifdef SI
+#ifdef SIP
 	  if (i == RS_TEMPERATURE)
 	    call ReadTemp.read();
 	  else if (i == RS_HUMIDITY)
@@ -546,7 +546,7 @@ implementation
     post checkDataGathered();
   }
 
-#ifdef SI
+#ifdef SIP
   void do_readDone_delta(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
   {
     if (result == SUCCESS){
@@ -559,7 +559,7 @@ implementation
   }
 #endif
 
-#ifdef SI
+#ifdef SIP
   event void ReadTemp.readDone(error_t result, FilterState* data)
   {
     do_readDone_delta(result, data, RS_TEMPERATURE, SC_TEMPERATURE, SC_D_TEMPERATURE);
@@ -769,8 +769,7 @@ implementation
   event void CurrentCostControl.stopDone(error_t error) { 
     if (packet_pending) { 
       packet_pending = FALSE;
-      if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
-	//if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+      if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	printf("sending begun at %lu\n", call LocalTime.get());
 	printfflush();
@@ -785,18 +784,16 @@ implementation
   //receive ack messages
   event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {
     AckMsg* ackMsg = (AckMsg*)payload;
-    int ackSeq = ackMsg->seq;
+    if (len == sizeof(*ackMsg)){
+      int ackSeq = ackMsg->seq;
 #ifdef BLINKY
-    call Leds.led2Toggle();
+      call Leds.led2Toggle();
 #endif
-
-    if (expSeq==ackSeq){
-      //and restart timer
-      restartSenseTimer(SUCCESS);
-    }
-    else{
-      //ignore packet
-      restartSenseTimer(FAIL);
+      if (expSeq==ackSeq){
+	call AckTimeoutTimer.stop();
+	//and restart timer
+	restartSenseTimer(SUCCESS);
+      }
     }
     return bufPtr;
 
@@ -804,16 +801,16 @@ implementation
   }
 
   event void AckTimeoutTimer.fired() {
-    if (retries < DEF_MAX_RETRIES) {
+    if (retries < LEAF_MAX_RETRIES) {
 #ifdef DEBUG
       printf("retry called at %lu\n", call LocalTime.get());
       printfflush();
 #endif
 
       retries+=1;
-      call AckTimeoutTimer.startOneShot(5L*1024L); // 5 sec sense/send timeout
+      call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME*1024L); // 30 sec sense/send timeout
 
-      if (call StateSender.send(DEF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
+      if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	printf("resending begun at %lu\n", call LocalTime.get());
 	printfflush();
