@@ -229,7 +229,8 @@ class BaseLogger(object):
                 if mask[i]:
                 
                     if msg.get_amType()==8:
-                        tid=i+50
+                        if i != 6:
+                            tid=i+50
                     else:
                         tid=i
                     v = msg.getElement_packed_state(j)

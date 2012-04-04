@@ -379,7 +379,7 @@ implementation
   }
     
   event void ReadVolt.readDone(error_t result, float data) {
-    do_readDone(result,(data), RS_VOLTAGE, SC_BN_VOLTAGE);
+    do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
   }
 
   event void ReadAQ.readDone(error_t result, float data) {
