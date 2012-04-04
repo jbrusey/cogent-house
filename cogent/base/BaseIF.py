@@ -6,7 +6,7 @@
 import sys
 import os
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
-from cogent.node import StateMsg, StateV1Msg, ConfigMsg, Packets
+from cogent.node import StateMsg, StateV1Msg, ConfigMsg, Packets, BNMsg
 from tinyos.message import MoteIF 
 import time
 from cogent.base.model import *
@@ -21,6 +21,7 @@ class BaseIF(object):
         self.source = self.mif.addSource(source)
         self.mif.addListener(self, StateMsg)
         self.mif.addListener(self, StateV1Msg)
+        self.mif.addListener(self, BNMsg)
         self.queue = Queue()
 		
     def receive(self, src, msg):
@@ -34,32 +35,8 @@ class BaseIF(object):
     
 def store_state(msg):
     n = msg.getAddr()
-
     print "storing state ",n, msg
 
-config_changed_flag = True
-def config_changed():
-    global config_changed_flag
-    t = config_changed_flag
-    config_changed_flag = False
-    return t
-
-def get_config():
-    cm = ConfigMsg()
-    configured = Bitset(size=Packets.RS_SIZE)
-    configured[Packets.RS_TEMPERATURE] = True
-    configured[Packets.RS_HUMIDITY] = True
-    configured[Packets.RS_PAR] = True
-    configured[Packets.RS_TSR] = True
-    configured[Packets.RS_VOLTAGE] = True
-    configured[Packets.RS_DUTY] = True
-    cm.setElement_byType_samplePeriod(0,30*1024)
-    bytes = configured.a
-    for i in range(len(bytes)):
-        cm.setElement_byType_configured(0, i, bytes[i])
-
-    cm.set_typeCount(1)
-    return cm
 
 if __name__ == '__main__':
 

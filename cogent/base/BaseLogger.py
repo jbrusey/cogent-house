@@ -183,6 +183,8 @@ class BaseLogger(object):
                 nid / 4096)
     	
     def store_state(self, msg):
+    
+        logger.info(type(msg))
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
 
@@ -225,11 +227,16 @@ class BaseLogger(object):
             state = []
             for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
+                
+                    if msg.get_amType()==8:
+                        tid=i+50
+                    else:
+                        tid=i
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
                     r = Reading(time=t,
                                 nodeId=n,
-                                typeId=i,
+                                typeId=tid,
                                 locationId=locId,
                                 value=v)
                     session.add(r)

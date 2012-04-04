@@ -67,11 +67,12 @@ enum {
   
   //BN Codes
   SC_TEMP_COUNT = 5,
-  SC_TEMP_FIRST = 0,
+  SC_TEMP_FIRST = 1,
   SC_HUM_COUNT = 4,
-  SC_HUM_FIRST = 0,
+  SC_HUM_FIRST = 6,
   SC_CO2_COUNT = 4,
-  SC_CO2_FIRST = 0,
+  SC_CO2_FIRST = 10,
+  SC_BN_VOLTAGE = 0,
 };
 
 #include "Leaf/PackState/packstate.h"
@@ -104,6 +105,15 @@ enum {
   AM_BNMSG = 8,
   SPECIAL = 0xc7
 };
+
+typedef nx_struct BNMsg {
+  nx_uint16_t ctp_parent_id;
+  nx_uint32_t timestamp;
+  nx_uint8_t seq;
+  nx_uint8_t special;
+  nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
+  nx_float packed_state[SC_SIZE];
+} BNMsg; // varies depending on SC_SIZE 
 
 typedef nx_struct StateMsg {
   nx_uint16_t ctp_parent_id;
