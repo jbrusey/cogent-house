@@ -67,12 +67,11 @@ enum {
   
   //BN Codes
   SC_TEMP_COUNT = 5,
-  SC_TEMP_FIRST = 1,
+  SC_TEMP_FIRST = 7,
   SC_HUM_COUNT = 4,
-  SC_HUM_FIRST = 6,
+  SC_HUM_FIRST = 12,
   SC_CO2_COUNT = 4,
-  SC_CO2_FIRST = 10,
-  SC_BN_VOLTAGE = 0,
+  SC_CO2_FIRST = 16,
 };
 
 #include "Leaf/PackState/packstate.h"

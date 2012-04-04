@@ -1,5 +1,5 @@
 // -*- c -*-
-#include "../Leaf/Packets.h"
+#include "../Packets.h"
 configuration CogentRootC { }
 implementation
 {
@@ -8,7 +8,8 @@ implementation
   components ActiveMessageC as Radio;
   components new SerialAMReceiverC(AM_ACKMSG) as AckReceiver;
   components new AMSenderC(AM_ACKMSG) as RadioSend;
-  components new AMReceiverC(AM_STATEMSG) as Receive;
+  components new AMReceiverC(AM_STATEMSG) as SMReceive;
+  components new AMReceiverC(AM_BNMSG) as BNReceive;
 
   CogentRootP.Boot -> MainC;
 
@@ -23,7 +24,8 @@ implementation
   CogentRootP.Leds -> LedsC;
 
   CogentRootP.RadioSend -> RadioSend;
-  CogentRootP.RadioReceive -> Receive;
+  CogentRootP.SMRadioReceive -> SMReceive;
+  CogentRootP.BNRadioReceive -> BNReceive;
   CogentRootP.RadioPacket -> Radio;
   CogentRootP.RadioAMPacket -> Radio;
 
