@@ -1,0 +1,69 @@
+"""
+
+.. codeauthor::  Ross Wiklins 
+.. codeauthor::  James Brusey
+.. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
+"""
+
+import sqlalchemy
+import logging
+log = logging.getLogger(__name__)
+
+import meta
+Base = meta.Base
+
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime,Float
+from sqlalchemy.orm import relationship, backref
+
+class Location(Base,meta.InnoDBMix):
+    """
+    Location provides a link between houses and rooms.
+    This is needed if the node is moved, for example during multiple deployments.
+    
+    This table should be an "associatve array" transparrently linking houses and rooms
+
+
+    :var Integer id: Id of Location
+    :var Integer houseId: Link to :class:`cogentviewer.models.house.House` the room is in
+    :var Integer roomId: Link to :class:`cogentviewer.models.room.Room` this location corresponds to
+    """
+
+    __tablename__ = "Location"
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint('houseId', 'roomId'),
+        {'mysql_engine': 'InnoDB',
+         'mysql_charset':'utf8'},
+        )
+   
+    id = Column(Integer, primary_key=True)
+    houseId = Column(Integer,
+                     ForeignKey('House.id'))
+    roomId = Column(Integer,
+                    ForeignKey('Room.id'))
+
+    nodes = relationship("Node",backref=backref('location'))
+
+    def asJSON(self,parentId=""):
+        """
+        Differes from the standard asJSON model by returning the
+        name of the room as its name
+        """
+        theItem = {"id":"L_{0}".format(self.id),
+                   "name":"{0}".format(self.room.name),
+                   "type":"location",
+                   "parent": "H_{0}".format(self.houseId),
+                   "children":False
+                   }
+        return theItem
+        
+    def asList(self,parentId = ""):
+        outDict = [self.asJSON(parentId)]
+        if self.nodes:
+            outDict[0]["children"] = True
+            for item in self.nodes:
+                outDict.extend(item.asList(self.id))
+        return outDict
+       
+
+    def __str__(self):
+        return ("Loc ({0}): House {1} , Room {2}".format(self.id,self.houseId,self.roomId))
