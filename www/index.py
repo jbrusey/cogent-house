@@ -46,8 +46,9 @@ _navs = [
 
 _sidebars = [
     ("Temperature", "allGraphs?typ=0", "Show temperature graphs for all nodes"),
-    ("Temperature Exposure", "tempExposure", "Show temperature graphs for all nodes"),
+    ("Temperature Exposure", "tempExposure", "Show temperature exposure graphs for all nodes"),
     ("Humidity", "allGraphs?typ=2", "Show humidity graphs for all nodes"),
+    ("Humidity Exposure", "humExposure", "Show humidity exposure graphs for all nodes"),
     ("CO<sub>2</sub>", "allGraphs?typ=8", "Show CO2 graphs for all nodes"),
     ("AQ", "allGraphs?typ=9", "Show air quality graphs for all nodes"),
     ("VOC", "allGraphs?typ=10", "Show volatile organic compound (VOC) graphs for all nodes"),
@@ -189,6 +190,158 @@ def index():
     """)
     return _page('Home page', ''.join(s))
 
+
+
+
+
+
+def humExpNodeGraph(node=None):
+    try:
+        session = Session()
+
+        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        s = ['<p>']
+ 
+        u = _url("humExpGraph", [('node', node)])
+        s.append('<p><div id="grphtitle">%s</div><img src="%s" alt="graph for node %s" width="700" height="400"></p>' % (h + ": " + r + " (" + node + ")", u, node))
+
+        return _page('Time series graph', ''.join(s))
+    finally:
+        session.close()
+
+
+def humExpGraph(req,node='64', debug=None, fmt='bo'):
+    col=["#FF8C00", "#006400", "#6495ED", "#00008B"]
+    try:
+        session = Session()
+        
+        debug = (debug is not None)
+        
+        endts = datetime.utcnow()
+        
+        t=[]
+        bv=[]
+        dry=[]
+        comfort=[]
+        damp=[]
+        risk=[]
+        
+        dryqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 62)).order_by(Reading.time)
+            
+        for qt, qv in dryqry:
+            bv.append(100.0)
+            t.append(matplotlib.dates.date2num(qt))
+            dry.append(qv)
+            lastdry=qv
+        dry.append(lastdry)
+
+        comfortqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 63)).order_by(Reading.time)
+
+        for qt, qv in comfortqry:
+            comfort.append(qv)
+            lastcomfort=qv
+        comfort.append(lastcomfort)
+
+        dampqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 64)).order_by(Reading.time)
+
+        for qt, qv in dampqry:
+            damp.append(qv)
+            lastdamp=qv
+        damp.append(lastdamp)
+
+        riskqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 65)).order_by(Reading.time)
+
+        for qt, qv in riskqry:
+            risk.append(qv)
+            lastrisk=qv
+        risk.append(lastrisk)
+
+        #do additions to give relative locations on the graph
+        dry=np.array(dry)
+        comfort=np.array(comfort)+dry
+        damp=np.array(damp)+comfort
+        risk=np.array(risk)+damp
+
+        req.content_type = "image/png"
+
+        nid=int(node)
+        if not debug:
+            with _lock:
+                fig = plt.figure()
+                fig.set_size_inches(7,4)
+                ax = fig.add_subplot(111)
+                ax.set_autoscaley_on(False)
+                ax.set_autoscalex_on(False)
+                endts=matplotlib.dates.date2num(datetime.utcnow())
+                ax.set_xlim(t[0],endts)
+                ax.set_ylim(0,100)
+
+
+                if len(t) > 0:                            
+
+                    t.append(endts)
+                    bv.append(100.0)
+                    ax.fill_between(t, 0, risk, facecolor=col[3])
+                    ax.fill_between(t, 0, damp, facecolor=col[2])
+                    ax.fill_between(t, 0, comfort, facecolor=col[1])
+                    ax.fill_between(t, 0, dry, facecolor=col[0])
+
+                    ax.plot_date(t, dry, fmt, lw=2, linestyle="-", color=col[0])
+                    ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[1])
+                    ax.plot_date(t, damp, fmt, lw=2,  linestyle="-", color=col[2])
+                    ax.plot_date(t, risk, fmt, lw=2,  linestyle="-", color=col[3])
+
+
+                    fig.autofmt_xdate()
+                    ax.set_xlabel("Date")
+                    ax.set_ylabel("Percentage of time (%)")
+
+                    image = cStringIO.StringIO()
+                    fig.savefig(image)
+
+                    req.content_type = "image/png"
+                    return  image.getvalue()
+                else:
+                    req.content_type = "text/plain"
+                    return "debug"
+
+    finally:
+        session.close()
+
+
+def humExposure():
+    try:
+        session=Session()
+
+        s=['<p>']
+        is_empty = True
+        for (i, h, r) in session.query(Node.id, House.address, Room.name).join(Location, House, Room).order_by(House.address, Room.name):
+            is_empty = False
+
+            fr = session.query(Reading).filter(and_(Reading.nodeId==i,
+                                                    Reading.typeId==57)).first()
+
+            if fr is not None:
+                u = _url("humExpNodeGraph", [('node', i)])
+                u2 = _url("humExpGraph", [('node', i)])
+                s.append('<p><a href="%s"><div id="grphtitle">%s</div><img src="%s" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>' % (u,h + ": " + r + " (" + str(i) + ")", u2, i))
+                
+        if is_empty:
+            s.append("<p>No nodes have reported yet.</p>")
+            
+            
+        return _page('Time series graphs', ''.join(s))
+        
+    finally:
+        session.close()
 
 
 def tempExpNodeGraph(node=None):
