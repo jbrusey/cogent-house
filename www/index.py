@@ -13,6 +13,7 @@ import os
 os.environ['HOME']='/tmp'
 from threading import Lock
 _lock = Lock()
+import numpy as np
 
 # do this before importing pylab or pyplot
 import matplotlib
@@ -45,6 +46,7 @@ _navs = [
 
 _sidebars = [
     ("Temperature", "allGraphs?typ=0", "Show temperature graphs for all nodes"),
+    ("Temperature Exposure", "tempExposure", "Show temperature graphs for all nodes"),
     ("Humidity", "allGraphs?typ=2", "Show humidity graphs for all nodes"),
     ("CO<sub>2</sub>", "allGraphs?typ=8", "Show CO2 graphs for all nodes"),
     ("AQ", "allGraphs?typ=9", "Show air quality graphs for all nodes"),
@@ -56,7 +58,7 @@ _sidebars = [
 
     ("Network tree", "treePage", "Show a network tree diagram"),
     ("Missing and extra nodes", "missing", "Show unregistered nodes and missing nodes"),
-    ("Packet yield", "yield24", "Show network performance"),
+    ("Packet yield", "dataYield", "Show network performance"),
     ("Low batteries", "lowbat", "Report any low batteries"),
     ("View log", "viewLog", "View a detailed log"),
     ("Export data", "exportDataForm", "Export data to CSV"),
@@ -188,6 +190,171 @@ def index():
     return _page('Home page', ''.join(s))
 
 
+
+def tempExpNodeGraph(node=None):
+    try:
+        session = Session()
+
+        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        s = ['<p>']
+ 
+        u = _url("tempExpGraph", [('node', node)])
+        s.append('<p><div id="grphtitle">%s</div><img src="%s" alt="graph for node %s" width="700" height="400"></p>' % (h + ": " + r + " (" + node + ")", u, node))
+
+        return _page('Time series graph', ''.join(s))
+    finally:
+        session.close()
+
+
+def tempExpGraph(req,node='64', debug=None, fmt='bo'):
+    col=['#000080', '#3A5FCD', '#006400', '#FFFF00', '#8B0000']
+    try:
+        session = Session()
+        
+        debug = (debug is not None)
+        
+        endts = datetime.utcnow()
+        
+        t=[]
+        bv=[]
+        health=[]
+        cold=[]
+        comfort=[]
+        warm=[]
+        over=[]
+        
+        healthqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 57)).order_by(Reading.time)
+            
+        lasthealth=None
+        for qt, qv in healthqry:
+            bv.append(100.0)
+            t.append(matplotlib.dates.date2num(qt))
+            health.append(qv)
+            lasthealth=qv
+        health.append(lasthealth)
+
+        coldqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 58)).order_by(Reading.time)
+
+        for qt, qv in coldqry:
+            cold.append(qv)
+            lastcold=qv
+        cold.append(lastcold)
+
+        comfortqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 59)).order_by(Reading.time)
+
+        for qt, qv in comfortqry:
+            comfort.append(qv)
+            lastcomfort=qv
+        comfort.append(lastcomfort)
+
+        warmqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 60)).order_by(Reading.time)
+
+        for qt, qv in warmqry:
+            warm.append(qv)
+            lastwarm=qv
+        warm.append(lastwarm)
+
+        overqry = session.query(Reading.time,Reading.value).filter(
+            and_(Reading.nodeId == int(node),
+                 Reading.typeId == 61)).order_by(Reading.time)
+
+        for qt, qv in overqry:
+            over.append(qv)
+            lastover=qv
+        over.append(lastover)
+
+        #do additions to give relative locations on the graph
+        health=np.array(health)
+        cold=np.array(cold)+health
+        comfort=np.array(comfort)+cold
+        warm=np.array(warm)+comfort
+        over=np.array(over)+warm
+
+        req.content_type = "image/png"
+
+        nid=int(node)
+        if not debug:
+            with _lock:
+                fig = plt.figure()
+                fig.set_size_inches(7,4)
+                ax = fig.add_subplot(111)
+                ax.set_autoscaley_on(False)
+                ax.set_autoscalex_on(False)
+                endts=matplotlib.dates.date2num(datetime.utcnow())
+                ax.set_xlim(t[0],endts)
+                ax.set_ylim(0,100)
+
+
+                if len(t) > 0:                            
+
+                    t.append(endts)
+                    bv.append(100.0)
+                    ax.fill_between(t, 0, over, facecolor=col[4])
+                    ax.fill_between(t, 0, warm, facecolor=col[3])
+                    ax.fill_between(t, 0, comfort, facecolor=col[2])
+                    ax.fill_between(t, 0, cold, facecolor=col[1])
+                    ax.fill_between(t, 0, health, facecolor=col[0])
+
+                    ax.plot_date(t, health, fmt, lw=2, linestyle="-", color=col[0])
+                    ax.plot_date(t, cold, fmt, lw=2,  linestyle="-", color=col[1])
+                    ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[2])
+                    ax.plot_date(t, warm, fmt, lw=2,  linestyle="-", color=col[3])
+                    ax.plot_date(t, over, fmt, lw=2,  linestyle="-",fillstyle="full", color=col[4])
+
+                    #ax.bar(t,bv, color="black", width=0.01)
+
+                    fig.autofmt_xdate()
+                    ax.set_xlabel("Date")
+                    ax.set_ylabel("Percentage of time (%)")
+
+
+                    image = cStringIO.StringIO()
+                    fig.savefig(image)
+
+                    req.content_type = "image/png"
+                    return  image.getvalue()
+                else:
+                    req.content_type = "text/plain"
+                    return "debug"
+
+    finally:
+        session.close()
+
+
+
+def tempExposure():
+    try:
+        session=Session()
+
+        s=['<p>']
+        is_empty = True
+        for (i, h, r) in session.query(Node.id, House.address, Room.name).join(Location, House, Room).order_by(House.address, Room.name):
+            is_empty = False
+
+            fr = session.query(Reading).filter(and_(Reading.nodeId==i,
+                                                    Reading.typeId==57)).first()
+
+            if fr is not None:
+                u = _url("tempExpNodeGraph", [('node', i)])
+                u2 = _url("tempExpGraph", [('node', i)])
+                s.append('<p><a href="%s"><div id="grphtitle">%s</div><img src="%s" alt=\"graph for node %d\" width=\"700\" height=\"400\"></a></p>' % (u,h + ": " + r + " (" + str(i) + ")", u2, i))
+                
+        if is_empty:
+            s.append("<p>No nodes have reported yet.</p>")
+            
+            
+        return _page('Time series graphs', ''.join(s))
+        
+    finally:
+        session.close()
 
 def allGraphs(typ="0",period="day"):
     try:
@@ -529,25 +696,6 @@ def dataYield():
                 y = (cnt - 1) / (yield_secs / 300.0) * 100.0
                 
             s.append("<tr><td>%d</td><td>%s</td><td>%s</td><td>%d</td><td>%s</td><td>%s</td><td>%8.2f</td></tr>" % (nid, house, room, cnt, mintime, maxtime, y))
-
-        s.append("</table>")
-        s.append("<h3>Yield in last 24 hours</h3>")
-
-        s.append("<table border=\"1\">")
-        s.append("<tr><th>Node</th><th>Message Count</th><th>Yield</th></tr>")
-
-        t = datetime.utcnow() - timedelta(days=1)
-
-        for nid, cnt in session.query(
-            NodeState.nodeId,
-            func.count(NodeState)
-            ).filter(NodeState.time > t).group_by(NodeState.nodeId).all():
-            
-            yield_secs = (1 * 24 * 3600)
-
-            y = (cnt) / (yield_secs / 300.0) * 100.0
-                
-            s.append("<tr><td>%d</td><td>%d</td><td>%8.2f</td></tr>" % (nid, cnt, y))
 
         s.append("</table>")
         return _page('Yield since first heard', ''.join(s))
@@ -901,7 +1049,7 @@ def _calibrate(session,v,node,typ):
 
 
 
-deltaDict={0: 1, 2: 3, 6: 7, 8: 17} 
+_deltaDict={0: 1, 2: 3, 6: 7, 8: 17} 
 
 def _plot(typ, t, v, startts, endts, debug, fmt, req):
     if not debug:
@@ -992,7 +1140,7 @@ def _latest_reading_before(session, nid, typ, startts):
 
             # get corresponding delta
             (dt, dv) = session.query(Reading.time,Reading.value).join(
-                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == deltaDict[int(typ)])).first()
+                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == _deltaDict[typ])).first()
             return qt,qv,dv
         except:
             return None,None,None
@@ -1201,6 +1349,17 @@ def _plotSplines(node_id, reading_type, delta_type, start_time, end_time, debug,
     finally:
         session.close()
             
+def _isPlotSpline(session, node, typ, startts, endts):
+    if typ in _deltaDict:
+        dqry = session.query(Reading.time, Reading.value).filter(
+            and_(Reading.nodeId == node,
+                 Reading.typeId == _deltaDict[typ],
+                 Reading.time >= startts,
+                Reading.time <= endts)).first()
+        return dqry is not None
+    return False
+
+
 def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
 
     try:
@@ -1230,18 +1389,6 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
                  Reading.time >= startts,
                  Reading.time <= endts)).order_by(Reading.time)
 
-        
-        if int(typ) in deltaDict:
-            dqry = session.query(Reading.time, Reading.value).filter(
-                and_(Reading.nodeId == int(node),
-                     Reading.typeId == int(deltaDict[int(typ)]),
-                     Reading.time >= startts,
-                     Reading.time <= endts)).order_by(Reading.time)
-            
-            #get most recent delta
-            for (RT, RV) in dqry:
-                plotSpline=True
-
 
         t = []
         dt = []
@@ -1263,7 +1410,7 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
         if len(t) == 0:  
             res=_plot(typ, t, v, startts, endts, debug, fmt, req)
             return res[1]
-        elif plotSpline:
+        elif _isPlotSpline(session, int(node), int(typ), startts, endts):
             res = _plotSplines(nid, typ, type_delta[int(typ)], startts, endts, debug, fmt, req)
         else:
             res=_plot(typ, t, v, startts, endts, debug, fmt, req)
