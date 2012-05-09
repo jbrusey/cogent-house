@@ -2,7 +2,7 @@
 from setuptools import setup
 
 REQUIRES = ['SQLAlchemy',
-#            "MySQL-python",
+            'configobj',
             "paramiko",
             ]
     

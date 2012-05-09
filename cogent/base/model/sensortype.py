@@ -57,3 +57,6 @@ class SensorType(Base,meta.InnoDBMix):
                 "type":"sensorType",
                 "code":self.code,
                 "units":self.units}
+
+    def __str__(self):
+        return "{0}: {1} {2} {3}".format(self.id,self.name,self.code,self.units)
