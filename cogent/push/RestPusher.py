@@ -229,6 +229,11 @@ class Pusher(object):
             #Things to do, First we want to synchronise all Nodes
             self.syncNodes()
 
+            #Sync Deployment / House / Location etc
+
+            #Sync Node States
+
+            #Sync Readings
 
             #And run a test query
             
@@ -457,38 +462,6 @@ class Pusher(object):
         theQry = session.query(models.RoomType)
         return theQry.all()
 
-    def checkNodesOld(self):
-        """
-        Does the nodes in the remote database need syncing.
-
-        :return: A list of node objects that need synchronising
-        """
-        lSess = self.LocalSession()
-        rSess = self.RemoteSession()
-
-        #Get the Nodes we Know about on the Remote Connection
-        rQry = rSess.query(remoteModels.Node.id)
-
-        #As the above query returns a list of tuples then we need to filter that down
-        rQry = [x[0] for x in rQry]
-        #Normally we would just issue a query, but having a empty query._in(<array>) 
-        #Will issue a SQL statement.  Therefore have a guard here to keep DB activity
-        #To a minimum
-        if rQry:
-            lQry = lSess.query(models.Node).filter(~models.Node.id.in_(rQry)).all()
-            lQry = [x.id for x in lQry]
-        else:
-            #This means there cannot be any nodes in the remote database
-            #Therefore return them all
-            lQry = lSess.query(models.Node).all()
-            lQry = [x.id for x in lQry]
-        
-        log.info("Nodes requiring sync: {0}".format(lQry))
-
-        #lSess.close()
-        lSess.close()
-        return lQry
-
     def syncNodes(self):
         """Syncronise nodes:
 
@@ -499,6 +472,8 @@ class Pusher(object):
 
         1) Download a list of remote nodes / Sensors
         2) Diff and then use REST to add any new or missing items
+
+        We also need to consider what happens if a new sensor is added to a node. Currently our code doesn't support this.
         """
         lSess = self.LocalSession()
         rSess = self.RemoteSession()
@@ -538,84 +513,20 @@ class Pusher(object):
         
                 rSess.add(newSensor)
             rSess.flush()
-
-
         
         rSess.commit()
+
         return True
 
-    def syncNodesOld(self,syncNodes=False):
-        """
-        Synchronise the nodes in the remote and local databases
-        It is expected that this method takes the output of the :func:`checkNode` function 
-        Synchronising these nodes with the remote database
-        
-        If no list of nodes to synchronise is provided, then the function calls
-        :func:`checkNodes` to get a list of nodes to operate on
-
-        Basic operation is 
-
-        #.  Synchronise Nodes
-        #.  Ensure that any new nodes have the correct location.
-        #.  Ensure that the Node has the correct sensors attached to it.
-
-        .. note::
-         
-            This does not synchronise the sensor type id.
-            As this table does not appear to be used currently.
-
-        :param syncNodes: The Nodes to Synchronise
-        :return: True is the Sync is successful
-        """
-        rSess = self.RemoteSession()
-        lSess = self.LocalSession()
-
-        startTime = time.time()
-        if not syncNodes:
-            syncNodes = self.checkNodes()
-        
-        checkTime = time.time()
-
-        #Create the Remote Connection
-        for nId in syncNodes:
-            log.info("--> Sync Node Id {0} with remote database".format(nId))
-            node = lSess.query(models.Node).filter_by(id=nId).first()
-            #First we need to create the node itself
-            newNode = remoteModels.Node(id=node.id)
-            rSess.add(newNode)
-            rSess.flush()
-            if node.locationId:
-                newLocation = self.syncLocation(node.locationId)
-                newNode.locationId = newLocation
-                rSess.flush()
-            for sensor in node.sensors:
-                log.debug("--> --> Sync Sensor {0}".format(sensor))
-                #We shouldn't have to worry about sensor types as they should be global
-                newSensor = remoteModels.Sensor(sensorTypeId=sensor.sensorTypeId,
-                                                nodeId = newNode.id,
-                                                calibrationSlope = sensor.calibrationSlope,
-                                                calibrationOffset = sensor.calibrationOffset)
-                rSess.add(newSensor)
-                rSess.flush()
-                
-        endTime = time.time()
-        
-        nodeLog.debug("{},{},{},{},{},{},{}".format(self.currentUrl,
-                                                    startTime,
-                                                    endTime,
-                                                    endTime-startTime,
-                                                    len(syncNodes),
-                                                    checkTime - startTime,
-                                                    endTime - startTime))
-        rSess.commit()
-        rSess.close()
-        lSess.close()
-
-
+        #TO Ensure all sensors are updated
+        for node in lQuery:
+            log.debug("Checking sensors for Node {0}".format(node))
+                      
     def syncLocation(self,locId):
-        """Code to Synchronise Locations
+        """Code to Synchronise a given locations
 
-        Locations are a combination of Rooms/Houses
+        Locations are a combination of Rooms/Houses therefore they are also synchronised 
+        during this process.
         
         # Check we have a room of this (name/type) in the remote databases (Create)
         # Check we have a house of this (name/deployment) in the remote (Create)
@@ -641,96 +552,98 @@ class Pusher(object):
             Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
             Deployment2 -> House1 --(Location1)->  Room1 -> Node1 ...
         """
+
         lSess = self.LocalSession()
         rSess = self.RemoteSession()
+
 
         theLocation = lSess.query(models.Location).filter_by(id=locId).first()
         log.debug("{2} Synchronising Location {1} {2}".format(locId,theLocation,"="*10))
 
-        #This is a little unfortunate, but I cannot (without over complicating reflection) 
-        #Setup backrefs on the remote tables this should be a :TODO:
-        #So We need a long winded query
+        # #This is a little unfortunate, but I cannot (without over complicating reflection) 
+        # #Setup backrefs on the remote tables this should be a :TODO:
+        # #So We need a long winded query
 
-        localRoom = theLocation.room
-        log.debug("Local Room {0}".format(localRoom))
-        remoteRoom = rSess.query(remoteModels.Room).filter_by(name=localRoom.name).first()
-        if remoteRoom is None:
-            log.debug("--> No Such Room {0}".format(localRoom.name))
+        # localRoom = theLocation.room
+        # log.debug("Local Room {0}".format(localRoom))
+        # remoteRoom = rSess.query(remoteModels.Room).filter_by(name=localRoom.name).first()
+        # if remoteRoom is None:
+        #     log.debug("--> No Such Room {0}".format(localRoom.name))
 
-            localRoomType = localRoom.roomType
-            log.debug("--> Local Room Type {0}".format(localRoomType))
-            #We also cannot assume that the room type will exist so we need to check that
-            roomType = rSess.query(remoteModels.RoomType).filter_by(name=localRoomType.name).first()
-            if roomType is None:
-                log.debug("--> --> No Such Room Type {0}".format(localRoomType.name))
-                roomType = remoteModels.RoomType(name=localRoomType.name)
-                rSess.add(roomType)
-                rSess.flush()
+        #     localRoomType = localRoom.roomType
+        #     log.debug("--> Local Room Type {0}".format(localRoomType))
+        #     #We also cannot assume that the room type will exist so we need to check that
+        #     roomType = rSess.query(remoteModels.RoomType).filter_by(name=localRoomType.name).first()
+        #     if roomType is None:
+        #         log.debug("--> --> No Such Room Type {0}".format(localRoomType.name))
+        #         roomType = remoteModels.RoomType(name=localRoomType.name)
+        #         rSess.add(roomType)
+        #         rSess.flush()
 
-            remoteRoom = remoteModels.Room(name=localRoom.name,
-                                           roomTypeId = roomType.id)
+        #     remoteRoom = remoteModels.Room(name=localRoom.name,
+        #                                    roomTypeId = roomType.id)
 
-            rSess.add(remoteRoom)
-            rSess.flush()
+        #     rSess.add(remoteRoom)
+        #     rSess.flush()
 
-        rSess.commit()
-        log.debug("==> Remote Room is {0}".format(remoteRoom))
+        # rSess.commit()
+        # log.debug("==> Remote Room is {0}".format(remoteRoom))
         
-        #Then Check the House
-        localHouse = theLocation.house
-        #To address the bug above, Add an intermediate step of checking the deployment
-        localDeployment = localHouse.deployment
-        log.debug("--> Local Deployment {0}".format(localDeployment))
+        # #Then Check the House
+        # localHouse = theLocation.house
+        # #To address the bug above, Add an intermediate step of checking the deployment
+        # localDeployment = localHouse.deployment
+        # log.debug("--> Local Deployment {0}".format(localDeployment))
         
-        #Assume that all deployments will have a unique name
-        remoteDeployment = rSess.query(remoteModels.Deployment).filter_by(name=localDeployment.name).first()
+        # #Assume that all deployments will have a unique name
+        # remoteDeployment = rSess.query(remoteModels.Deployment).filter_by(name=localDeployment.name).first()
 
-        if remoteDeployment is None:
-            log.debug("--> --> Create new Deployment")
-            remoteDeployment = remoteModels.Deployment(name=localDeployment.name,
-                                                       description = localDeployment.description,
-                                                       startDate = localDeployment.startDate,
-                                                       endDate = localDeployment.endDate)
-            rSess.add(remoteDeployment)
-            rSess.commit()
+        # if remoteDeployment is None:
+        #     log.debug("--> --> Create new Deployment")
+        #     remoteDeployment = remoteModels.Deployment(name=localDeployment.name,
+        #                                                description = localDeployment.description,
+        #                                                startDate = localDeployment.startDate,
+        #                                                endDate = localDeployment.endDate)
+        #     rSess.add(remoteDeployment)
+        #     rSess.commit()
 
-        log.debug("--> Remote Deployment {0}".format(remoteDeployment))
+        # log.debug("--> Remote Deployment {0}".format(remoteDeployment))
         
-        remoteHouse = rSess.query(remoteModels.House).filter_by(deploymentId = remoteDeployment.id,
-                                                                address = localHouse.address).first()
+        # remoteHouse = rSess.query(remoteModels.House).filter_by(deploymentId = remoteDeployment.id,
+        #                                                         address = localHouse.address).first()
 
-        log.debug("--> Local House {0}".format(localHouse))   
+        # log.debug("--> Local House {0}".format(localHouse))   
 
-        if not remoteHouse:
-            #We should have created the deployment before   
-            log.debug("--> --> Create new House")
-            remoteHouse = remoteModels.House(address=localHouse.address,
-                                             deploymentId=remoteDeployment.id)
-            rSess.add(remoteHouse)
-            rSess.flush()
-            rSess.commit()
+        # if not remoteHouse:
+        #     #We should have created the deployment before   
+        #     log.debug("--> --> Create new House")
+        #     remoteHouse = remoteModels.House(address=localHouse.address,
+        #                                      deploymentId=remoteDeployment.id)
+        #     rSess.add(remoteHouse)
+        #     rSess.flush()
+        #     rSess.commit()
 
-        log.debug("--> Remote House is {0}".format(remoteHouse))
+        # log.debug("--> Remote House is {0}".format(remoteHouse))
 
-        remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouse.id,
-                                                                      roomId=remoteRoom.id).first()
+        # remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouse.id,
+        #                                                               roomId=remoteRoom.id).first()
 
-        log.debug("--> DB Remote Location {0}".format(remoteLocation))
-        rSess.flush()
-        if not remoteLocation:
-            remoteLocation = remoteModels.Location(houseId=remoteHouse.id,
-                                                   roomId = remoteRoom.id)
-            rSess.add(remoteLocation)
-            log.debug("Adding New Remote Location")
+        # log.debug("--> DB Remote Location {0}".format(remoteLocation))
+        # rSess.flush()
+        # if not remoteLocation:
+        #     remoteLocation = remoteModels.Location(houseId=remoteHouse.id,
+        #                                            roomId = remoteRoom.id)
+        #     rSess.add(remoteLocation)
+        #     log.debug("Adding New Remote Location")
             
-        log.debug("--> Remote Location is {0}".format(remoteLocation))
-        rSess.commit()
+        # log.debug("--> Remote Location is {0}".format(remoteLocation))
+        # rSess.commit()
 
-        locId = remoteLocation.id
-        lSess.close()
-        rSess.close()
-        return locId
-        pass
+        # locId = remoteLocation.id
+        # lSess.close()
+        # rSess.close()
+        # return locId
+        # pass
 
     def syncReadings(self,cutTime=None):
         """Synchronise readings between two databases
