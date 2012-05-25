@@ -38,6 +38,8 @@ import ConfigParser
 import configobj
 import os
 
+import dateutil.parser
+
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 #log.setLevel(logging.INFO)
@@ -190,9 +192,14 @@ class Pusher(object):
             if isBool:
                 log.debug("--> --> Location needs processing")
                 items = confParser[loc]
-                if items.get("lastupdate",None) is None:
+                if items.get("lastupdate",None) in [None,"None"]:
                     log.debug("Adding Last Update")
                     items["lastupdate"] = None
+                else:
+                    #We need to parse the last time
+                    #items["lastupdate"] = datetime.strptime("%Y2012-04-05 15:36:00
+                    theTime = dateutil.parser.parse(items["lastupdate"])
+                    items["lastupdate"] = theTime
                 log.debug(items)
                 syncDict[loc] = items
         # #Get the URLS we need to deal with
@@ -227,10 +234,10 @@ class Pusher(object):
             self.initRemote(value["dbstring"])
 
             #Things to do, First we want to synchronise all Nodes
-            self.syncNodes()
+            #self.syncNodes()
 
             #Sync Deployment / House / Location etc
-
+            self.mapLocations(value["lastupdate"])
             #Sync Node States
 
             #Sync Readings
@@ -249,6 +256,127 @@ class Pusher(object):
 
         #pprint.pprint(syncDict)
         #self.confParser.write()
+
+    def mapLocations(self,lastUpdate = None):
+        """Syncronise Locations
+        
+        This functions attempts to map the locations on the local server, to those on the remote server
+        
+        ..param:: lastUpdate timestamp of the last update
+        ..return:: Dictionaty of [<local>] :<remote> pairs
+
+        We start by examining the database for all Deplyoments / Houses that do
+        not have a finish date.  Or those where the finish date is after the
+        last update.  This should ensure that only properties that need updating
+        will be transfered.
+        
+        """
+
+        #Really the Houses, Deployments and Rooms are immaterial, BUT we need to update them to build a location
+        mappedDeployments = {}
+        mappedHouses = {}
+        mappedRooms = {}
+        mappedLocations = {}
+
+        lSess = self.LocalSession()
+        rSess = self.RemoteSession()
+
+        log.debug("Filtering Deployments based on {0}".format(lastUpdate))
+
+        #Get the list of deployments that may need updating
+        updateDeployments = lSess.query(models.Deployment)
+        if lastUpdate:
+            updateDeployments = updateDeployments.filter(sqlalchemy.or_(models.Deployment.endDate >= lastUpdate,
+                                                                        models.Deployment.endDate == None))
+
+        #Rather than use sqla tunneling, this may be a great oppotunity to use REST.GET statements
+        log.debug("Deployments to update:")
+        for item in updateDeployments:
+            #Make the assumption that all deplyoments will have unique names
+            rItem = rSess.query(remoteModels.Deployment).filter_by(name=item.name).first()
+            if rItem is None:
+                log.debug("--> No Item Exists, Creating")
+                rItem = remoteModels.Deployment(name=item.name)
+                rSess.add(rItem)
+            #While we are at it we can update the rest of the parameters
+            rItem.description = item.description
+            rItem.startDate = item.startDate
+            rItem.endDate = item.endDate
+
+            log.debug("--> {0} ## {1}".format(item,rItem))
+            mappedDeployments[item.id] = rItem
+
+        #We could fetch the houses by associating with each deployment,
+        #BUT it can be possible for a house not to have a parent deployment (when using the old myISAM engine)
+        #Therefore we fetch the houses here
+
+        #It is probably a good idea to do a flush here
+        rSess.flush()
+        
+        #import pprint
+        #print "="*20
+        #pprint.pprint(mappedDeployments)
+        #print "="*20
+
+        updateHouses = lSess.query(models.House)
+        if lastUpdate:
+            updateHouses = updateHouses.filter(sqlalchemy.or_(models.House.endDate >= lastUpdate,
+                                                              models.House.endDate == None))
+
+        #Houses we can make unique by linking to a deployment
+        log.debug("Houses to update:")
+        for item in updateHouses:
+            log.debug("--> {0}".format(item))
+            rItem = rSess.query(remoteModels.House).filter_by(address= item.address,
+                                                              deploymentId = mappedDeployments[item.deploymentId].id).first()
+            if rItem is None:
+                log.debug("No Item Exists, Creating")
+                rItem = remoteModels.House(address = item.address,
+                                           deploymentId = mappedDeployments[item.deploymentId].id)
+            #And update any other parameters
+            rItem.startDate = item.startDate
+            rItem.endDate = item.endDate
+
+            mappedHouses[item.id] = rItem
+
+        #After that we want to get all locations assoicated with a House
+        houseIds = [x.id for x in updateHouses]
+
+
+        updateLocations = lSess.query(models.Location)
+        log.debug("Total Locathons {0}".format(updateLocations.count()))
+        #Filter by the houses we need to update
+        updateLocations = updateLocations.filter(models.Location.houseId.in_(houseIds))
+
+        #We put off adding locations for the moment, instead making sure that we have the rooms sorted correctly
+            
+        #And all the rooms associated with a location
+        locationIds = set([x.roomId for x in updateLocations])
+        log.debug(locationIds)
+        updateRooms = lSess.query(models.Room)
+        updateRooms = updateRooms.filter(models.Room.id.in_(locationIds))
+
+        log.debug("Filtered Rooms")
+        for item in updateRooms:
+            log.debug("--> {0}".format(item))
+        
+        #And Room Types
+        roomTypeIds = set([x.roomTypeId for x in updateRooms])
+        updateRoomTypes = lSess.query(models.RoomType).filter(models.RoomType.id.in_(roomTypeIds))
+        
+        log.debug("Filtered Room Types")
+        for item in updateRoomTypes:
+            log.debug("--> {0}".format(item))
+
+
+        log.debug("Filtered Locations {0}".format(updateLocations.count()))
+        for item in updateLocations:
+            log.debug("--> {0}".format(item))
+                
+        #updateDeployments = lSess.query(remoteModels.Deployment).filter(sqlalchemy._or(remoteModels.Deployment.
+        
+        #Get the list of Houses that need updating.
+
 
     def _startTunnel(self,locDict):
         """Start an ssh tunnel based on parametrs given in locDict
