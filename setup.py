@@ -4,6 +4,8 @@ from setuptools import setup
 REQUIRES = ['SQLAlchemy',
             'configobj',
             "paramiko",
+            "python-dateutil==1.5",
+            "python-rest-client"
             ]
     
 setup(name='ch-base',
