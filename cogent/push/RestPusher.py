@@ -5,13 +5,71 @@ logging.basicConfig(level=logging.DEBUG)
 __version__ = "0.3.1"
 
 """
-Modified version of the push script that will fetch all items, 
+Modified version of the push script that will fetch all items,
 convert to JSON and (eventually) transfer across REST
 
 This replaces the ssh tunnel database access curretly used to transfer samples.
 
-However, for the moment syncronising the Locations etc (or the complex bit) is still done via SQLA
-As this takes a fraction of the transfer time its probably a good idea to leave it.
+However, for the moment syncronising the Locations etc (or the complex bit) is
+still done via SQLA. As this takes a fraction of the transfer time its probably
+a good idea to leave it.
+
+
+
+    .. warning::
+
+        This will fail if the database type is SQ-Lite, currently a connection
+        cannot issue a statement while another is open.  Therefore the loop
+        through the readings, appending new items fails with a DATABASE LOCKED
+        error.
+
+        I am at a loss of what to do to fix this.  However, as we will be
+        pushing to mySQL, its not really a problem except for some test cases
+
+    .. note::
+
+        I currently add 1 second to the time the last sample was transmitted,
+        this means that there is no chance that the query to get readings will
+        return an item that has all ready been synced, leading to an integrity
+        error.
+
+        I have tried lower values (0.5 seconds) but this pulls the last synced
+        item out, this is possibly a error induced by mySQL's datetime not
+        holding microseconds.
+
+    .. warning::
+
+       In My experience you may need to bugger about with connection strings
+       Checking either Localhost or 127.0.0.1 Localhost worked on my machine, my
+       connecting to Cogentee wanted 127.0.0.1
+
+    .. since 0.1::
+
+       Moved ssh port forwarding to paramiko (see sshclient class) This should
+       stop the errors when there is a connection problem.
+
+    .. since 0.2::
+
+       * Better error handling
+       * Pagination for sync results, transfer at most PUSH_LIMIT items at a
+         time.
+
+    .. since 0.3::
+
+       Moved Nodestate Sync into the main readings sync class, this should stop
+       duplicate nodestates turning up if there is a failiure
+
+    .. since 0.4::
+
+       Overhall of the system to make use of REST to upload samples rather than
+       transfer data across directly.
+
+    .. since 0.5::
+
+       Make use of an .ini style config file to set everything up
+
+       Split functionalility into a Daemon, and Upload classes.  This should
+       make maintainance of any local mappings a little easier to deal with.
 """
 
 import sqlalchemy
@@ -44,52 +102,6 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 #log.setLevel(logging.INFO)
 
-
-#Setup a second logger for profiling
-profileLog = logging.getLogger("profile")
-profileLog.setLevel(logging.DEBUG)
-
-profileHandler = logging.FileHandler("profile.log","w")
-profileLog.addHandler(profileHandler)
-
-nodeLog = logging.getLogger("Node")
-nodeLog.setLevel(logging.DEBUG)
-nodeHandler = logging.FileHandler("node_profile.log","w")
-nodeLog.addHandler(nodeHandler)
-
-readingLog = logging.getLogger("read_prof")
-readingLog.setLevel=(logging.DEBUG)
-readingHandler = logging.FileHandler("reading_profile.log","w")
-readingLog.addHandler(readingHandler)
-
-profileLog.debug("#{},{},{},{},{},{},{},{}".format("URL",
-                                                   "Start",
-                                                   "End",
-                                                   "Total",
-                                                   "Tunnel",
-                                                   "Remote",
-                                                   "Node",
-                                                   "Reading"))
-
-nodeLog.debug("#{},{},{},{},{},{},{}".format("URL",
-                                             "Start",
-                                             "End",
-                                             "Total",
-                                             "Num Nodes",
-                                             "Check",
-                                             "Sync"))
-
-
-readingLog.debug("#{},{},{},{},{},{},{},{},{}".format("URL",
-                                                  "Start",
-                                                  "End",
-                                                  "Total",
-                                                  "Fetch URL",
-                                                  "Make Qry",
-                                                  "Add Readings",
-                                                  "Commit",
-                                                  "Sync State"))
-
 #Reset Paramiko logging to reduce output cruft.
 plogger = paramiko.util.logging.getLogger()
 plogger.setLevel(logging.WARNING)
@@ -109,79 +121,78 @@ KNOWN_HOSTS = None
 KNOWN_HOSTS = "/home/dang/.ssh/known_hosts"
 
 
-class Pusher(object):
-    """Class to push updates to a remote database.
-
-    .. warning::
-    
-        This will fail if the database type is SQ-Lite, currently a connection cannot issue a
-        statement while another is open.  Therefore the loop through the readings, appending new items 
-        fails with a DATABASE LOCKED error.
-
-        I am at a loss of what to do to fix this.
-        However, as we will be pushing to mySQL, its not really a problem except for some test cases
-        
-    .. note::
-    
-        I currently add 1 second to the time the last sample was transmitted,  
-        this means that there is no chance that the query to get readings will return an
-        item that has all ready been synced, leading to an integrity error.
-
-        I have tried lower values (0.5 seconds) but this pulls the last synced item out, 
-        this is possibly a error induced by mySQL's datetime not holding microseconds.
-        
-    .. warning::
-    
-       In My experience you may need to bugger about with connection strings 
-       Checking either Localhost or 127.0.0.1  
-       Localhost worked on my machine,
-       my connecting to Cogentee wanted 127.0.0.1
-
-    .. since 0.1::
-       Moved ssh port forwarding to paramiko (see sshclient class) This should stop the 
-       errors when there is a connection problem.
-       
-    .. since 0.2::
-       * Better error handling
-       * Pagination for sync results, transfer at most PUSH_LIMIT items at a time. 
-
-    .. since 0.3::
-       Moved Nodestate Sync into the main readings sync class, this should stop duplicate
-       nodestates turning up if there is a failiure
-
-    .. since 0.4::
-       Overhall of the system to make use of REST rather than transfer data across directly.
-
-
+class PushServer(object):
     """
-    def __init__(self,localURL=None):
-        log.info("Initialise Push Object")
-        #Create a local session
-        if not localURL:
-            localURL = LOCAL_URL
+    Class to deal with pushing updates to a group of remote databases
 
+    This class is designed to be run as a daemon, managing a group of individual
+    pusher objects, and facilitating the transfer of data between remote and
+    local DB's
+    """
+
+    def __init__(self,localURL=None):
+        """Initialise the push server object
+
+        This should:
+
+        #. Create a connection to the local database,
+        #. Read the Configuration files.
+        #.Setup Necessary Pusher objects for each database that needs
+          synchronising.
+
+        :var localURL:  The DBString used to connect to the local database.
+                        This can be used to overwrite the url in the config file
+        """
+
+        log.info("Initialising Push Server")
+
+
+        #Read the Configuration File
+        generalConf,locationConfig = self.readConfig()
+
+        #Store the config
+        self.generalConf = generalConf
+
+        if not localURL:
+            localURL = generalConf["localUrl"]
+
+        log.debug("Connecting to local database at {0}".format(localURL))
+
+        #Initalise the local database connection
         log.debug("Initalise Session for {0}".format(localURL))
-        localEngine = sqlalchemy.create_engine(localURL)
-        self.initLocal(localEngine)
+        engine = sqlalchemy.create_engine(localURL)
+        models.initialise_sql(engine)
+        localSession = sqlalchemy.orm.sessionmaker(bind=engine)
+        self.localSession = localSession
+
+
+
+        #Create a new Pusher object for this each item given in the config
+        syncList = []
+        for item in locationConfig:
+            syncList.append(Pusher(localSession,item))
+
+        self.syncList = syncList
+        #self.theConfig = theConfig
 
     def readConfig(self):
-        """
-        Read configuration from the config file.
+        """Read configuration from the config file.
 
-        returns: A dictionary of parameters (as a list) where syncronisation is required
-        """
+        This will parse the synchronise.conf file, and produce a local
+        dictionary of all objects that need synchronising.
 
-        #configFile = open("synchronise.conf","r")
-        #confParser = ConfigParser.ConfigParser()
-        #confParser = cfgparse.ConfigParser()
-        #confParser.read("synchronise.conf")
+        :return: A dictionary of parameters (as a list) where syncronisation is
+        required
+        """
 
         confParser = configobj.ConfigObj("synchronise.conf")
-        print confParser
         log.debug("Processing Config File")
 
         #Dictionary to return
         syncDict = {}
+
+        generalOpts = confParser["general"]
+
 
         #Get the Locations
         locations = confParser["locations"]
@@ -190,69 +201,159 @@ class Pusher(object):
             isBool = locations.as_bool(loc)
             log.debug("--> Processing Location {0} {1}".format(loc,isBool))
             if isBool:
-                log.debug("--> --> Location needs processing")
                 items = confParser[loc]
                 if items.get("lastupdate",None) in [None,"None"]:
-                    log.debug("Adding Last Update")
                     items["lastupdate"] = None
                 else:
                     #We need to parse the last time
-                    #items["lastupdate"] = datetime.strptime("%Y2012-04-05 15:36:00
                     theTime = dateutil.parser.parse(items["lastupdate"])
                     items["lastupdate"] = theTime
-                log.debug(items)
                 syncDict[loc] = items
         # #Get the URLS we need to deal with
         # syncItems = confParser.items("locations")
         # syncDict = {}
         #confParser.write()
         self.confParser = confParser
-        return syncDict
+        return generalOpts,syncDict
+
+
+    def sync(self):
+        """
+        Run one instance of the synchroniseation mechnism,
+
+        For each item in the config file, perform synchronisation.
+
+        :return: True on success,  False otherwise
+        """
+        for item in self.syncList:
+            log.debug("Synchronising {0}".format(item))
+
+
+
+
+class Pusher(object):
+    """Class to push updates to a remote database.
+
+    This class contains the code to deal with the nuts and bolts of syncronising
+    remote and local databases
+
+    """
+
+    def __init__(self,localSession,config):
+        """Initalise a pusher object
+
+        :param localSession: A SQLA session, connected to the local database
+        :param config: Config File options for this particular pusher object
+        """
+
+        self.localSession = localSession
+        self.config = config
+
+    # def __init__(self,localURL=None):
+    #     pass
+
+    #     log.info("Initialise Push Object")
+    #     #Create a local session
+    #     if not localURL:
+    #         localURL = LOCAL_URL
+
+    #     log.debug("Initalise Session for {0}".format(localURL))
+    #     localEngine = sqlalchemy.create_engine(localURL)
+    #     self.initLocal(localEngine)
+
+
+    # def readConfig(self):
+    #     """
+    #     Read configuration from the config file.
+
+    #     returns: A dictionary of parameters (as a list) where syncronisation is required
+    #     """
+
+    #     #configFile = open("synchronise.conf","r")
+    #     #confParser = ConfigParser.ConfigParser()
+    #     #confParser = cfgparse.ConfigParser()
+    #     #confParser.read("synchronise.conf")
+
+    #     confParser = configobj.ConfigObj("synchronise.conf")
+    #     log.debug("Processing Config File")
+
+    #     #Dictionary to return
+    #     syncDict = {}
+
+    #     #Get the Locations
+    #     locations = confParser["locations"]
+
+    #     for loc in locations:
+    #         isBool = locations.as_bool(loc)
+    #         log.debug("--> Processing Location {0} {1}".format(loc,isBool))
+    #         if isBool:
+    #             log.debug("--> --> Location needs processing")
+    #             items = confParser[loc]
+    #             if items.get("lastupdate",None) in [None,"None"]:
+    #                 log.debug("Adding Last Update")
+    #                 items["lastupdate"] = None
+    #             else:
+    #                 #We need to parse the last time
+    #                 #items["lastupdate"] = datetime.strptime("%Y2012-04-05 15:36:00
+    #                 theTime = dateutil.parser.parse(items["lastupdate"])
+    #                 items["lastupdate"] = theTime
+    #             log.debug(items)
+    #             syncDict[loc] = items
+    #     # #Get the URLS we need to deal with
+    #     # syncItems = confParser.items("locations")
+    #     # syncDict = {}
+    #     #confParser.write()
+    #     self.confParser = confParser
+    #     return syncDict
 
     def sync(self):
         """Main loop for Synchronisation"""
+        log.debug("="*50)
         log.debug("Synchronising Data")
         session = self.LocalSession()
         syncDict = self.readConfig()
         import pprint
         pprint.pprint(syncDict)
 
+        
+        #return
+
         #And try to update something
         for key,value in syncDict.iteritems():
             log.debug("SYNC DICT ITEM {0}".format(value))
             
-            #First off create the ssh tunnel
-            theTunnel = self._startTunnel(value)
-            if theTunnel:
-                server,ssh = theTunnel
-            else:
-                log.warning("Unable to Sync")
-                return
-        #    value["lastupdate"] = datetime.now()
+        #     #First off create the ssh tunnel
+        #     theTunnel = self._startTunnel(value)
+        #     if theTunnel:
+        #         server,ssh = theTunnel
+        #     else:
+        #         log.warning("Unable to Sync")
+        #         return
+        # #    value["lastupdate"] = datetime.now()
         
-            #We can then Initialise the remote Location
-            self.initRemote(value["dbstring"])
+        #     #We can then Initialise the remote Location
+        #     self.initRemote(value["dbstring"])
 
-            #Things to do, First we want to synchronise all Nodes
-            #self.syncNodes()
+        #     #Things to do, First we want to synchronise all Nodes
+        #     #self.syncNodes()
 
-            #Sync Deployment / House / Location etc
-            self.mapLocations(value["lastupdate"])
-            #Sync Node States
+        #     #Sync Deployment / House / Location etc
+        #     self.mapLocations(value["lastupdate"])
+        #     #Sync Node States
 
-            #Sync Readings
+        #     #Sync Readings
 
-            #And run a test query
+        #     #And run a test query
             
-            #rSession = self.RemoteSession()
-            #qry = rSession.query(models.RoomType).all()
-            #for item in qry:
-            #    print item
+        #     #rSession = self.RemoteSession()
+        #     #qry = rSession.query(models.RoomType).all()
+        #     #for item in qry:
+        #     #    print item
 
-            log.debug("Shutting Down")
-            server.shutdown()
-            server.socket.close()
-            ssh.close()
+        #     log.debug("Shutting Down")
+        #     server.shutdown()
+        #     server.socket.close()
+        #     ssh.close()
 
         #pprint.pprint(syncDict)
         #self.confParser.write()
@@ -260,7 +361,8 @@ class Pusher(object):
     def mapLocations(self,lastUpdate = None):
         """Syncronise Locations
         
-        This functions attempts to map the locations on the local server, to those on the remote server
+        This functions attempts to map the locations on the local server, to
+        those on the remote server
         
         ..param:: lastUpdate timestamp of the last update
         ..return:: Dictionaty of [<local>] :<remote> pairs
@@ -272,7 +374,8 @@ class Pusher(object):
         
         """
 
-        #Really the Houses, Deployments and Rooms are immaterial, BUT we need to update them to build a location
+        #Really the Houses, Deployments and Rooms are immaterial, BUT we need to
+        #update them to build a location
         mappedDeployments = {}
         mappedHouses = {}
         mappedRooms = {}
@@ -306,9 +409,9 @@ class Pusher(object):
             log.debug("--> {0} ## {1}".format(item,rItem))
             mappedDeployments[item.id] = rItem
 
-        #We could fetch the houses by associating with each deployment,
-        #BUT it can be possible for a house not to have a parent deployment (when using the old myISAM engine)
-        #Therefore we fetch the houses here
+        #We could fetch the houses by associating with each deployment, BUT it
+        #can be possible for a house not to have a parent deployment (when using
+        #the old myISAM engine) Therefore we fetch the houses here
 
         #It is probably a good idea to do a flush here
         rSess.flush()
@@ -566,29 +669,30 @@ class Pusher(object):
         self.RemoteSession=RemoteSession
         
 
-    def initLocal(self,engine):
-        """Initialise a local connection"""
-        log.debug("Initialising Local Engine")
-        models.initialise_sql(engine)
-        LocalSession = sqlalchemy.orm.sessionmaker(bind=engine)
-        self.LocalSession = LocalSession
+    # ------------------ MOVED TO GLOBAL CLASS
+    # def initLocal(self,engine):
+    #     """Initialise a local connection"""
+    #     log.debug("Initialising Local Engine")
+    #     models.initialise_sql(engine)
+    #     LocalSession = sqlalchemy.orm.sessionmaker(bind=engine)
+    #     self.LocalSession = LocalSession
 
 
-    def testRemoteQuery(self):
-        """
-        Return all room types in our remote object (Test Method)
-        """
-        session = self.RemoteSession()
-        theQry = session.query(remoteModels.RoomType)
-        return theQry.all()
+    # def testRemoteQuery(self):
+    #     """
+    #     Return all room types in our remote object (Test Method)
+    #     """
+    #     session = self.RemoteSession()
+    #     theQry = session.query(remoteModels.RoomType)
+    #     return theQry.all()
 
-    def testLocalQuery(self):
-        """
-        Return all room types in our local object (Test Method)
-        """
-        session = self.LocalSession()
-        theQry = session.query(models.RoomType)
-        return theQry.all()
+    # def testLocalQuery(self):
+    #     """
+    #     Return all room types in our local object (Test Method)
+    #     """
+    #     session = self.LocalSession()
+    #     theQry = session.query(models.RoomType)
+    #     return theQry.all()
 
     def syncNodes(self):
         """Syncronise nodes:
@@ -951,13 +1055,16 @@ class Pusher(object):
 
 
 
+
+
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
     
-    import time
+    #import time
 
-    
-    push = Pusher()
+    server = PushServer()
+    server.sync()
+    #push = Pusher()
     #push.sync()
     #for x in range(10):
     #    push.sync()
@@ -968,4 +1075,4 @@ if __name__ == "__main__":
         #push.sync()
         #log.info("---- Total Time Taken for Sync {0}".format(time.time() - t1))
         #time.sleep(SYNC_TIME)
-    push.sync()
+    #push.sync()
