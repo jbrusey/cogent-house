@@ -272,18 +272,20 @@ class Pusher(object):
         #We can then Initialise the remote Location
         self.initRemote(config["dbstring"])
 
-
-        # #Lets try getting something from the remote server
-        # session = self.RemoteSession()
-        # theQry = session.query(models.House)
-        # log.debug("----- QUERY OUTPUT -----")
-        # for item in theQry:
-        #     log.debug("--> {0}".format(item))
-
-        # log.debug("----- QUERY OUTPUT -----")
-
         #The First Thing to do is to synchonise all nodes
         self.syncNodes()
+
+        #Map Locations
+        self.mapLocations()
+
+        #Synchronise Readings
+        #self.syncReadings()
+
+        #And Finally Sync node States
+        #self.syncNodeState()
+
+        #Last thing to do is update the config file
+
 
         #Sync Deployment / House / Location etc
         #self.mapLocations(value["lastupdate"])
@@ -298,70 +300,19 @@ class Pusher(object):
         #for item in qry:
         #    print item
 
+        #And Shutdown the sockets
         log.debug("Shutting Down")
         server.shutdown()
         server.socket.close()
         ssh.close()
 
 
-    def syncOld(self):
-        """Main loop for Synchronisation"""
-        log.debug("="*50)
-        log.debug("Synchronising Data")
-        session = self.LocalSession()
-        syncDict = self.readConfig()
-        import pprint
-        pprint.pprint(syncDict)
-
-        
-        #return
-
-        #And try to update something
-        for key,value in syncDict.iteritems():
-            log.debug("SYNC DICT ITEM {0}".format(value))
-            
-        #     #First off create the ssh tunnel
-        #     theTunnel = self._startTunnel(value)
-        #     if theTunnel:
-        #         server,ssh = theTunnel
-        #     else:
-        #         log.warning("Unable to Sync")
-        #         return
-        # #    value["lastupdate"] = datetime.now()
-        
-        #     #We can then Initialise the remote Location
-        #     self.initRemote(value["dbstring"])
-
-        #     #Things to do, First we want to synchronise all Nodes
-        #     #self.syncNodes()
-
-        #     #Sync Deployment / House / Location etc
-        #     self.mapLocations(value["lastupdate"])
-        #     #Sync Node States
-
-        #     #Sync Readings
-
-        #     #And run a test query
-            
-        #     #rSession = self.RemoteSession()
-        #     #qry = rSession.query(models.RoomType).all()
-        #     #for item in qry:
-        #     #    print item
-
-        #     log.debug("Shutting Down")
-        #     server.shutdown()
-        #     server.socket.close()
-        #     ssh.close()
-
-        #pprint.pprint(syncDict)
-        #self.confParser.write()
-
     def mapLocations(self,lastUpdate = None):
         """Syncronise Locations
-        
+
         This functions attempts to map the locations on the local server, to
         those on the remote server
-        
+
         ..param:: lastUpdate timestamp of the last update
         ..return:: Dictionaty of [<local>] :<remote> pairs
 
@@ -369,7 +320,7 @@ class Pusher(object):
         not have a finish date.  Or those where the finish date is after the
         last update.  This should ensure that only properties that need updating
         will be transfered.
-        
+
         """
 
         #Really the Houses, Deployments and Rooms are immaterial, BUT we need to
@@ -379,40 +330,79 @@ class Pusher(object):
         mappedRooms = {}
         mappedLocations = {}
 
-        lSess = self.LocalSession()
-        rSess = self.RemoteSession()
+        lSess = self.localSession()
+        rSess = self.remoteSession()
 
-        log.debug("Filtering Deployments based on {0}".format(lastUpdate))
+        log.debug("Mapping Locations")
+        log.debug("--> Filtering Deployments based on {0}".format(lastUpdate))
 
         #Get the list of deployments that may need updating
-        updateDeployments = lSess.query(models.Deployment)
+        Deployment = models.Deployment
+
+        depQuery = lSess.query(models.Deployment)
         if lastUpdate:
-            updateDeployments = updateDeployments.filter(sqlalchemy.or_(models.Deployment.endDate >= lastUpdate,
-                                                                        models.Deployment.endDate == None))
+            depQuery = depQuery.filter(sqlalchemy.or_(Deployment.endDate >= lastUpdate,
+                                                      Deployment.endDate == None))
 
-        #Rather than use sqla tunneling, this may be a great oppotunity to use REST.GET statements
-        log.debug("Deployments to update:")
-        for item in updateDeployments:
-            #Make the assumption that all deplyoments will have unique names
-            rItem = rSess.query(remoteModels.Deployment).filter_by(name=item.name).first()
-            if rItem is None:
-                log.debug("--> No Item Exists, Creating")
-                rItem = remoteModels.Deployment(name=item.name)
-                rSess.add(rItem)
-            #While we are at it we can update the rest of the parameters
-            rItem.description = item.description
-            rItem.startDate = item.startDate
-            rItem.endDate = item.endDate
+        for mapDep in depQuery:
+            log.debug("--> Syncronising Deployment {0}".format(mapDep))
 
-            log.debug("--> {0} ## {1}".format(item,rItem))
-            mappedDeployments[item.id] = rItem
+            #We need to assume that all deployments have a unique name
+            rDep = rSess.query(remoteModels.Deployment).filter_by(name = mapDep.name).first()
+            if rDep is None:
+                log.debug("-->--> No Such Deployment on Remote System")
+                rDep = remoteModels.Deployment(name=mapDep.name)
+                rSess.add(rDep)
+            #Update the rest of the parameters
+            rDep.description = mapDep.description
+            rDep.startDate = mapDep.startDate
+            rDep.endDate = mapDep.endDate
+
+            mappedDeployments[mapDep.id] = rDep
+
+
+        rSess.flush()
+        rSess.commit()
+        log.debug("Mapped Deployments")
+        for key,item in mappedDeployments.iteritems():
+            log.debug("{0} -> {1}".format(key,item))
+
+        #Next We Want to Map Houses
+
+
+        #First Split out deployment ID's so we can filter our houses by that
+        houseQuery = lSess.query(models.House)
+        log.debug("Sycnhronising Houses")
+        for mapHouse in houseQuery:
+            log.debug("--> Sych House {0}".format(mapHouse))
+
+            #mapHouse = rSess.query(
+        return
+        # return
+        # #Rather than use sqla tunneling, this may be a great oppotunity to use
+        # #REST.GET statements
+        # log.debug("Deployments to update:")
+        # for item in updateDeployments:
+        #     #Make the assumption that all deplyoments will have unique names
+        #     rItem = rSess.query(remoteModels.Deployment).filter_by(name=item.name).first()
+        #     if rItem is None:
+        #         log.debug("--> No Item Exists, Creating")
+        #         rItem = remoteModels.Deployment(name=item.name)
+        #         rSess.add(rItem)
+        #     #While we are at it we can update the rest of the parameters
+        #     rItem.description = item.description
+        #     rItem.startDate = item.startDate
+        #     rItem.endDate = item.endDate
+
+        #     log.debug("--> {0} ## {1}".format(item,rItem))
+        #     mappedDeployments[item.id] = rItem
 
         #We could fetch the houses by associating with each deployment, BUT it
         #can be possible for a house not to have a parent deployment (when using
         #the old myISAM engine) Therefore we fetch the houses here
 
         #It is probably a good idea to do a flush here
-        rSess.flush()
+        #rSess.flush()
         
         #import pprint
         #print "="*20
@@ -780,17 +770,15 @@ class Pusher(object):
     def syncLocation(self,locId):
         """Code to Synchronise a given locations
 
-        Locations are a combination of Rooms/Houses therefore they are also synchronised 
-        during this process.
-        
-        # Check we have a room of this (name/type) in the remote databases (Create)
-        # Check we have a house of this (name/deployment) in the remote (Create)
-        # Check we have a location with these parameters (create)
+        Locations are a combination of Rooms/Houses therefore they are also
+        synchronised during this process.
+
+        # Check we have a room of this (name/type) in the remote databases
+        # Check we have a house of this (name/deployment) in the remote
+        # Check we have a location with these parameters
 
         :param locId: LocationId to Synchronise
-        :return Equivalent Location Id in the Remote Database
-
-
+        :return: Equivalent Location Id in the Remote Database
 
         :since 0.1: Fixed House Name based bug.  Consider the
             following Say we have one house -> Deployment combo (Say
@@ -798,7 +786,7 @@ class Pusher(object):
             Deployments)
 
             The Following should happen,
-        
+
             Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
             Deployment2 -> House2 --(Location2)->  Room1 -> Node1 ...
 
