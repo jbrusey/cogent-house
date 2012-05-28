@@ -249,64 +249,54 @@ class Pusher(object):
         self.localSession = localSession
         self.config = config
 
-    # def __init__(self,localURL=None):
-    #     pass
-
-    #     log.info("Initialise Push Object")
-    #     #Create a local session
-    #     if not localURL:
-    #         localURL = LOCAL_URL
-
-    #     log.debug("Initalise Session for {0}".format(localURL))
-    #     localEngine = sqlalchemy.create_engine(localURL)
-    #     self.initLocal(localEngine)
-
-
-    # def readConfig(self):
-    #     """
-    #     Read configuration from the config file.
-
-    #     returns: A dictionary of parameters (as a list) where syncronisation is required
-    #     """
-
-    #     #configFile = open("synchronise.conf","r")
-    #     #confParser = ConfigParser.ConfigParser()
-    #     #confParser = cfgparse.ConfigParser()
-    #     #confParser.read("synchronise.conf")
-
-    #     confParser = configobj.ConfigObj("synchronise.conf")
-    #     log.debug("Processing Config File")
-
-    #     #Dictionary to return
-    #     syncDict = {}
-
-    #     #Get the Locations
-    #     locations = confParser["locations"]
-
-    #     for loc in locations:
-    #         isBool = locations.as_bool(loc)
-    #         log.debug("--> Processing Location {0} {1}".format(loc,isBool))
-    #         if isBool:
-    #             log.debug("--> --> Location needs processing")
-    #             items = confParser[loc]
-    #             if items.get("lastupdate",None) in [None,"None"]:
-    #                 log.debug("Adding Last Update")
-    #                 items["lastupdate"] = None
-    #             else:
-    #                 #We need to parse the last time
-    #                 #items["lastupdate"] = datetime.strptime("%Y2012-04-05 15:36:00
-    #                 theTime = dateutil.parser.parse(items["lastupdate"])
-    #                 items["lastupdate"] = theTime
-    #             log.debug(items)
-    #             syncDict[loc] = items
-    #     # #Get the URLS we need to deal with
-    #     # syncItems = confParser.items("locations")
-    #     # syncDict = {}
-    #     #confParser.write()
-    #     self.confParser = confParser
-    #     return syncDict
 
     def sync(self):
+        """
+        Perform one synchronisation step for this Pusher object
+
+        :return: True if the sync is successfull, False otherwise
+        """
+
+        config = self.config
+        log.debug("Sync with config {0}".format(config))
+
+        return
+
+        #First off create the ssh tunnel
+        theTunnel = self._startTunnel(value)
+        if theTunnel:
+            server,ssh = theTunnel
+        else:
+            log.warning("Unable to Sync")
+            return
+    #    value["lastupdate"] = datetime.now()
+
+        #We can then Initialise the remote Location
+        self.initRemote(value["dbstring"])
+
+        #Things to do, First we want to synchronise all Nodes
+        #self.syncNodes()
+
+        #Sync Deployment / House / Location etc
+        self.mapLocations(value["lastupdate"])
+        #Sync Node States
+
+        #Sync Readings
+
+        #And run a test query
+
+        #rSession = self.RemoteSession()
+        #qry = rSession.query(models.RoomType).all()
+        #for item in qry:
+        #    print item
+
+        log.debug("Shutting Down")
+        server.shutdown()
+        server.socket.close()
+        ssh.close()
+
+
+    def syncOld(self):
         """Main loop for Synchronisation"""
         log.debug("="*50)
         log.debug("Synchronising Data")
