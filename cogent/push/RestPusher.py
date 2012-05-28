@@ -169,7 +169,7 @@ class PushServer(object):
 
         #Create a new Pusher object for this each item given in the config
         syncList = []
-        for item in locationConfig:
+        for item in locationConfig.values():
             syncList.append(Pusher(localSession,item))
 
         self.syncList = syncList
@@ -227,6 +227,7 @@ class PushServer(object):
         """
         for item in self.syncList:
             log.debug("Synchronising {0}".format(item))
+            item.sync()
 
 
 
@@ -260,25 +261,32 @@ class Pusher(object):
         config = self.config
         log.debug("Sync with config {0}".format(config))
 
-        return
-
         #First off create the ssh tunnel
-        theTunnel = self._startTunnel(value)
+        theTunnel = self._startTunnel(config)
         if theTunnel:
             server,ssh = theTunnel
         else:
-            log.warning("Unable to Sync")
+            log.warning("Unable to start SSH tunnel")
             return
-    #    value["lastupdate"] = datetime.now()
 
         #We can then Initialise the remote Location
-        self.initRemote(value["dbstring"])
+        self.initRemote(config["dbstring"])
 
-        #Things to do, First we want to synchronise all Nodes
-        #self.syncNodes()
+
+        # #Lets try getting something from the remote server
+        # session = self.RemoteSession()
+        # theQry = session.query(models.House)
+        # log.debug("----- QUERY OUTPUT -----")
+        # for item in theQry:
+        #     log.debug("--> {0}".format(item))
+
+        # log.debug("----- QUERY OUTPUT -----")
+
+        #The First Thing to do is to synchonise all nodes
+        self.syncNodes()
 
         #Sync Deployment / House / Location etc
-        self.mapLocations(value["lastupdate"])
+        #self.mapLocations(value["lastupdate"])
         #Sync Node States
 
         #Sync Readings
@@ -473,13 +481,20 @@ class Pusher(object):
 
     def _startTunnel(self,locDict):
         """Start an ssh tunnel based on parametrs given in locDict
-        
-        .. param:: locDict Dictionary of values as per config file
+
+        This will start an ssh connection to the server given using paramiko,
+        This connection will then be connected to a custom threaded server,
+        that will be used to forward packets to the given address.
+
+        :var locDict: Dictionary of values as per config file
+        :return: Tuple of (Tunnel,Paramiko SSH Object)
+
+        OK
         """
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        
+
         #Try to load the known Hosts file
         dotSSH = locDict["sshfolder"]
         rsa = locDict["sshkey"]
@@ -490,14 +505,16 @@ class Pusher(object):
         ssh.load_host_keys(knownHosts)
 
         try:
-            ssh.connect(locDict["url"],username=locDict["sshuser"],key_filename=rsaKey)
+            ssh.connect(locDict["url"],
+                        username=locDict["sshuser"],
+                        key_filename=rsaKey)
         except socket.error,e:
             log.warning("Connection Error {0}".format(e))
             return None
         except paramiko.AuthenticationException:
             log.warning("Authentication error")
             return None
-        
+
         log.debug("Connection Ok")
         transport = ssh.get_transport()
 
@@ -505,9 +522,9 @@ class Pusher(object):
         server = sshClient.forward_tunnel(3307,"127.0.0.1",3306,transport)
         serverThread = threading.Thread(target=server.serve_forever)
         serverThread.daemon = True
-        serverThread.start()        
+        serverThread.start()
         return server,ssh
-        
+
     # def syncOLD(self):
     #     """Main Loop for Synchronisation"""
     #     #For Each remote connection
@@ -626,20 +643,22 @@ class Pusher(object):
     def initRemote(self,remoteUrl):
         """Initialise a connection to the database and reflect all Remote Tables
 
-        :param remoteUrl:  a :class:`models.remoteURL` object that we need to connect to
+        :param remoteUrl:  a :class:`models.remoteURL` object that we connect to
 
         Timeout code may not be necessary (if we have a decent connection)
-        But trys to address the following problem.
+        But trys to address the following problem:
+
         1) Database is not available on connect [FAILS GRACEFULLY]
-        
         2) Database is there on connect:
            Database / Network goes away during query [HANGS]
 
         I hope that putting a timeout on the querys will fix this.
 
 
-        .. since:: 0.3  
-            Connection timeout added.  
+        .. since:: 0.3
+            Connection timeout added.
+
+        OK
         """
 
         RemoteSession = sqlalchemy.orm.sessionmaker()
@@ -652,12 +671,11 @@ class Pusher(object):
         log.debug("--> Engine {0}".format(engine))
         RemoteSession.configure(bind=engine)
         RemoteMetadata = sqlalchemy.MetaData()
-        
-        
+
         log.debug("Reflecting Remote Tables")
         remoteModels.reflectTables(engine,RemoteMetadata)
-        self.RemoteSession=RemoteSession
-        
+        self.remoteSession=RemoteSession
+
 
     # ------------------ MOVED TO GLOBAL CLASS
     # def initLocal(self,engine):
@@ -687,26 +705,43 @@ class Pusher(object):
     def syncNodes(self):
         """Syncronise nodes:
 
-        Check if we need to syncronise Nodes
-        If there are any nodes missing, make sure they are created along with the relevant sensors
+        Check if we need to syncronise Nodes If there are any nodes missing,
+        make sure they are created along with the relevant sensors.
 
-        Ideas to deal with this without using SQLA would be
+        Currently this is a one way syncronisation. with only those nodes not
+        existing on the remote server uploaded. Given that node ID's are unique,
+        this should not be a problem.
 
-        1) Download a list of remote nodes / Sensors
-        2) Diff and then use REST to add any new or missing items
 
-        We also need to consider what happens if a new sensor is added to a node. Currently our code doesn't support this.
+        .. warning::
+
+            This method currently relies on the fact that all nodes will have a
+            unique ID,  if this ceases to be the case (for example if we replace
+            a node with a new node of the same ID, then it may be possible that
+            Calibration data etc, starts to fall apart.
+            Hopefully, this situation never arises.
+
+            Additionally, it relies on the fact that sensor types will also be
+            static between the local and remote databases, as these are created
+            using a global configuration file, this should also not be a problem
+
+            We also need to consider what happens if a new sensor is added to a
+            node. Currently our code doesn't support this, if a node exists then
+            we assume then there has been no change to the node itself.
+
         """
-        lSess = self.LocalSession()
-        rSess = self.RemoteSession()
-        
+        lSess = self.localSession()
+        rSess = self.remoteSession()
+
         #We can get away with just asking for Ids
         rQuery = [x[0] for x in rSess.query(remoteModels.Node.id)]
         log.debug("Remote Ids --> {0}".format(rQuery))
-        
-        #Have a check here, if the remote DB is empty, then using _in throws a Error
+
+        #Have a check here, if the remote DB is empty, then using _in throws a
+        #Error
         if rQuery:
-            lQuery = lSess.query(models.Node).filter(~models.Node.id.in_(rQuery))
+            lQuery = lSess.query(models.Node)
+            lQuery = lQuery.filter(~models.Node.id.in_(rQuery))
         else:
             lQuery = lSess.query(models.Node).all()
         #log.debug("Local Query -> {0}".format(lQuery.all()))
@@ -714,10 +749,10 @@ class Pusher(object):
         if lQuery is None:
             log.debug("No Nodes to Synchronise")
             return False
-        
-        #Otherwise we need to update a set of Nodes
+
         for node in lQuery:
-            log.debug("Creating node {0} on remote server".format(node))
+            log.debug("Node {0} does not exist on remote server".format(node))
+
             #Create the Node
             newNode = remoteModels.Node(id=node.id)
             rSess.add(newNode)
@@ -725,25 +760,23 @@ class Pusher(object):
 
             #And Any attached Sensors
             for sensor in node.sensors:
-                log.debug("Creating Sensor")
 
-                #We shouldn't have to worry about sensor types as they should be global
-                newSensor = remoteModels.Sensor(sensorTypeId=sensor.sensorTypeId,
-                                                nodeId = newNode.id,
-                                                calibrationSlope = sensor.calibrationSlope,
-                                                calibrationOffset = sensor.calibrationOffset)
-        
+
+                #We shouldn't have to worry about sensor types as they should be
+                #global
+                theModel = remoteModels.Sensor
+                newSensor = theModel(sensorTypeId=sensor.sensorTypeId,
+                                     nodeId = newNode.id,
+                                     calibrationSlope = sensor.calibrationSlope,
+                                     calibrationOffset = sensor.calibrationOffset)
+
+                log.debug("Creating Sensor {0}".format(newSensor))
                 rSess.add(newSensor)
             rSess.flush()
-        
-        rSess.commit()
 
+        rSess.commit()
         return True
 
-        #TO Ensure all sensors are updated
-        for node in lQuery:
-            log.debug("Checking sensors for Node {0}".format(node))
-                      
     def syncLocation(self,locId):
         """Code to Synchronise a given locations
 
