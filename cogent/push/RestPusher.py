@@ -343,7 +343,6 @@ class Pusher(object):
         if lastUpdate:
             depQuery = depQuery.filter(sqlalchemy.or_(Deployment.endDate >= lastUpdate,
                                                       Deployment.endDate == None))
-
         for mapDep in depQuery:
             log.debug("--> Syncronising Deployment {0}".format(mapDep))
 
@@ -369,45 +368,33 @@ class Pusher(object):
 
         #Next We Want to Map Houses
 
-
         #First Split out deployment ID's so we can filter our houses by that
-        houseQuery = lSess.query(models.House)
+        deploymentIds = [x.id for x in depQuery]
+        log.debug("Fiter houses using deployment Id {0}".format(deploymentIds))
+
+        House = models.House
+
+        houseQuery = lSess.query(House)
+        houseQuery = houseQuery.filter(House.deploymentId.in_(deploymentIds))
+
+
         log.debug("Sycnhronising Houses")
         for mapHouse in houseQuery:
             log.debug("--> Sych House {0}".format(mapHouse))
 
+            #Get the mapped deployment Id
+            depId = mappedDeployments[mapHouse.deploymentId].id
+            log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId,depId))
+
+            #Look for the remote version of this house or create a new one.
+            rHouse = rSess.query(remoteModels.House).filter_by(address=item.address,
+                                                               deploymentId = depId).first()
+            if rHouse is None:
+                log.debug("--> No Such House in Remote Database")
+
+
             #mapHouse = rSess.query(
         return
-        # return
-        # #Rather than use sqla tunneling, this may be a great oppotunity to use
-        # #REST.GET statements
-        # log.debug("Deployments to update:")
-        # for item in updateDeployments:
-        #     #Make the assumption that all deplyoments will have unique names
-        #     rItem = rSess.query(remoteModels.Deployment).filter_by(name=item.name).first()
-        #     if rItem is None:
-        #         log.debug("--> No Item Exists, Creating")
-        #         rItem = remoteModels.Deployment(name=item.name)
-        #         rSess.add(rItem)
-        #     #While we are at it we can update the rest of the parameters
-        #     rItem.description = item.description
-        #     rItem.startDate = item.startDate
-        #     rItem.endDate = item.endDate
-
-        #     log.debug("--> {0} ## {1}".format(item,rItem))
-        #     mappedDeployments[item.id] = rItem
-
-        #We could fetch the houses by associating with each deployment, BUT it
-        #can be possible for a house not to have a parent deployment (when using
-        #the old myISAM engine) Therefore we fetch the houses here
-
-        #It is probably a good idea to do a flush here
-        #rSess.flush()
-        
-        #import pprint
-        #print "="*20
-        #pprint.pprint(mappedDeployments)
-        #print "="*20
 
         updateHouses = lSess.query(models.House)
         if lastUpdate:
