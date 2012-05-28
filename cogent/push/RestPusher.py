@@ -130,7 +130,7 @@ class PushServer(object):
     local DB's
     """
 
-    def __init__(self,localURL=None):
+    def __init__(self, localURL=None):
         """Initialise the push server object
 
         This should:
@@ -148,7 +148,7 @@ class PushServer(object):
 
 
         #Read the Configuration File
-        generalConf,locationConfig = self.readConfig()
+        generalConf, locationConfig = self.readConfig()
 
         #Store the config
         self.generalConf = generalConf
@@ -170,7 +170,7 @@ class PushServer(object):
         #Create a new Pusher object for this each item given in the config
         syncList = []
         for item in locationConfig.values():
-            syncList.append(Pusher(localSession,item))
+            syncList.append(Pusher(localSession, item))
 
         self.syncList = syncList
         #self.theConfig = theConfig
@@ -199,7 +199,7 @@ class PushServer(object):
 
         for loc in locations:
             isBool = locations.as_bool(loc)
-            log.debug("--> Processing Location {0} {1}".format(loc,isBool))
+            log.debug("--> Processing Location {0} {1}".format(loc, isBool))
             if isBool:
                 items = confParser[loc]
                 if items.get("lastupdate",None) in [None,"None"]:
@@ -209,10 +209,7 @@ class PushServer(object):
                     theTime = dateutil.parser.parse(items["lastupdate"])
                     items["lastupdate"] = theTime
                 syncDict[loc] = items
-        # #Get the URLS we need to deal with
-        # syncItems = confParser.items("locations")
-        # syncDict = {}
-        #confParser.write()
+
         self.confParser = confParser
         return generalOpts,syncDict
 
@@ -240,7 +237,7 @@ class Pusher(object):
 
     """
 
-    def __init__(self,localSession,config):
+    def __init__(self,localSession, config):
         """Initalise a pusher object
 
         :param localSession: A SQLA session, connected to the local database
@@ -307,7 +304,7 @@ class Pusher(object):
         ssh.close()
 
 
-    def mapLocations(self,lastUpdate = None):
+    def mapLocations(self, lastUpdate = None):
         """Syncronise Locations
 
         This functions attempts to map the locations on the local server, to
@@ -325,10 +322,11 @@ class Pusher(object):
 
         #Really the Houses, Deployments and Rooms are immaterial, BUT we need to
         #update them to build a location
-        mappedDeployments = {}
-        mappedHouses = {}
+        mappedDeployments = {} #DONE
+        mappedHouses = {} #DONE
         mappedRooms = {}
         mappedLocations = {}
+        mappedRoomTypes = {}
 
         lSess = self.localSession()
         rSess = self.remoteSession()
@@ -344,12 +342,12 @@ class Pusher(object):
             depQuery = depQuery.filter(sqlalchemy.or_(Deployment.endDate >= lastUpdate,
                                                       Deployment.endDate == None))
         for mapDep in depQuery:
-            log.debug("--> Syncronising Deployment {0}".format(mapDep))
+            log.info("--> Syncronising Deployment {0}".format(mapDep))
 
             #We need to assume that all deployments have a unique name
             rDep = rSess.query(remoteModels.Deployment).filter_by(name = mapDep.name).first()
             if rDep is None:
-                log.debug("-->--> No Such Deployment on Remote System")
+                log.info("-->--> No Such Deployment on Remote System")
                 rDep = remoteModels.Deployment(name=mapDep.name)
                 rSess.add(rDep)
             #Update the rest of the parameters
@@ -363,8 +361,8 @@ class Pusher(object):
         rSess.flush()
         rSess.commit()
         log.debug("Mapped Deployments")
-        for key,item in mappedDeployments.iteritems():
-            log.debug("{0} -> {1}".format(key,item))
+        for key, item in mappedDeployments.iteritems():
+            log.debug("{0} -> {1}".format(key, item))
 
         #Next We Want to Map Houses
 
@@ -380,50 +378,103 @@ class Pusher(object):
 
         log.debug("Sycnhronising Houses")
         for mapHouse in houseQuery:
-            log.debug("--> Sych House {0}".format(mapHouse))
+            log.info("--> Sych House {0}".format(mapHouse))
 
             #Get the mapped deployment Id
             depId = mappedDeployments[mapHouse.deploymentId].id
-            log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId,depId))
+            log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId, depId))
 
             #Look for the remote version of this house or create a new one.
-            rHouse = rSess.query(remoteModels.House).filter_by(address=item.address,
+            rHouse = rSess.query(remoteModels.House).filter_by(address=mapHouse.address,
                                                                deploymentId = depId).first()
             if rHouse is None:
-                log.debug("--> No Such House in Remote Database")
+                log.info("--> No Such House in Remote Database")
+                rHouse = remoteModels.House(address = mapHouse.address,
+                                            deploymentId = depId)
+                rSess.add(rHouse)
 
+            #Again update any other parameters
+            rHouse.startDate = mapHouse.startDate
+            rHouse.endDate = mapHouse.endDate
+            mappedHouses[mapHouse.id] = rHouse
+            rSess.flush()
 
-            #mapHouse = rSess.query(
-        return
+        rSess.commit()
 
-        updateHouses = lSess.query(models.House)
-        if lastUpdate:
-            updateHouses = updateHouses.filter(sqlalchemy.or_(models.House.endDate >= lastUpdate,
-                                                              models.House.endDate == None))
+        log.debug("Mapped Houses")
+        for key, item in mappedHouses.iteritems():
+            log.debug("{0} -> {1}".format(key, item))
 
-        #Houses we can make unique by linking to a deployment
-        log.debug("Houses to update:")
-        for item in updateHouses:
-            log.debug("--> {0}".format(item))
-            rItem = rSess.query(remoteModels.House).filter_by(address= item.address,
-                                                              deploymentId = mappedDeployments[item.deploymentId].id).first()
-            if rItem is None:
-                log.debug("No Item Exists, Creating")
-                rItem = remoteModels.House(address = item.address,
-                                           deploymentId = mappedDeployments[item.deploymentId].id)
-            #And update any other parameters
-            rItem.startDate = item.startDate
-            rItem.endDate = item.endDate
-
-            mappedHouses[item.id] = rItem
 
         #After that we want to get all locations assoicated with a House
-        houseIds = [x.id for x in updateHouses]
+        houseIds = [x.id for x in houseQuery]
+
+        Location = models.Location
+
+        locQuery = lSess.query(Location)
+        locQuery = locQuery.filter(Location.houseId.in_(houseIds))
+
+        for mapLoc in locQuery:
+            log.info("Mapping Location {0}".format(mapLoc))
+
+            #The first thing we want to do is to see if we have a mapped Rooms
+            #For this Location
+
+            mapRoom = mappedRooms.get(mapLoc.roomId,None)
+            #If it doesn't exist create it
+            if mapRoom is None:
+                theRoom = mapLoc.room
+                log.info("Room {0} is not mapped, Creating".format(theRoom))
+
+                #WE also need to double check that the room type exists
+                roomType = mappedRoomTypes.get(theRoom.roomTypeId,None)
+                if roomType is None:
+                    log.info("--> RoomType {0} not mapped".format(theRoom.roomType))
+
+                    roomType = rSess.query(remoteModels.RoomType)
+                    roomType = roomType.filter_by(name=theRoom.roomType.name).first()
+                    if roomType is None:
+                        log.debug("No such room in Remote Database")
+                        roomType = remoteModels.RoomType(name=theRoom.roomType.name)
+                        rSess.add(roomType)
+                        rSess.flush()
+                    log.debug("--> --> mappingRoom {0}".format(roomType))
+
+                    mappedRoomTypes[theRoom.roomTypeId] = roomType
+
+                #Now We can create the room itself
+                mapRoom = rSess.query(models.Room)
+                mapRoom = mapRoom.filter_by(roomTypeId = roomType.id,
+                                            name=theRoom.name).first()
+                #And Create if that doesnt exist
+                if mapRoom is None:
+                    log.debug("No Such room in remote database")
+                    mapRoom = remoteModels.Room(name=theRoom.name,
+                                                roomTypeId = roomType.id)
+                    rSess.add(mapRoom)
+                    rSess.flush()
+                mappedRooms[theRoom.id] = mapRoom
+
+        #Lets Debug 
+        log.debug("--- MAPPED ROOM TYPES----")
+        for key,item in mappedRoomTypes.iteritems():
+            log.debug("{0} {1}".format(key,item))
+        
+        log.debug("--- Mapped Rooms ---")
+        for key,item in mappedRooms.iteritems():
+            log.debug("{0} -> {1}".format(key,item))
+        return
 
 
-        updateLocations = lSess.query(models.Location)
+        #updateLoc = lSess.query(models.Location)
+
+        #Filter to locations only in houses we are worried about
+        #updateLoc =
         log.debug("Total Locathons {0}".format(updateLocations.count()))
         #Filter by the houses we need to update
+        #log.debug("
+        return
+
         updateLocations = updateLocations.filter(models.Location.houseId.in_(houseIds))
 
         #We put off adding locations for the moment, instead making sure that we have the rooms sorted correctly
