@@ -247,6 +247,13 @@ class Pusher(object):
         self.localSession = localSession
         self.config = config
 
+        # Storage for mappings between local -> Remote
+        self.mappedDeployments = {} #DONE
+        self.mappedHouses = {} #DONE
+        self.mappedRooms = {}
+        self.mappedLocations = {}
+        self.mappedRoomTypes = {}
+
 
     def sync(self):
         """
@@ -256,6 +263,7 @@ class Pusher(object):
         """
 
         config = self.config
+        self.lastUpdate = config.get("lastUpdate",None)
         log.debug("Sync with config {0}".format(config))
 
         #First off create the ssh tunnel
@@ -272,8 +280,8 @@ class Pusher(object):
         #The First Thing to do is to synchonise all nodes
         self.syncNodes()
 
-        #Map Locations
-        self.mapLocations()
+        #Map theDatabase
+        self.mapDatabase()
 
         #Synchronise Readings
         #self.syncReadings()
@@ -304,8 +312,250 @@ class Pusher(object):
         ssh.close()
 
 
-    def mapLocations(self, lastUpdate = None):
-        """Syncronise Locations
+    def mapDeployments(self,localIds = None):
+        """
+        Map deployments in the local database to those in the remote database
+
+        If localIds are given, this will map the supplied Ids.
+        Otherwise, deployments with an endDate later than the last update,
+        or no endDate will be mapped.
+
+        :var localIds:  List of Id's for local database objects
+        :return: A List of delployment ID's that have been updated
+        """
+        log.debug("Mapping Deployments")
+        mappedDeployments = self.mappedDeployments
+        lSess = self.localSession()
+        rSess = self.remoteSession()
+
+        #Get the list of deployments that may need updating
+        Deployment = models.Deployment
+
+        depQuery = lSess.query(models.Deployment)
+
+        lastUpdate = self.lastUpdate
+
+        #Firstly if we are given a list of localIds:
+        if localIds:
+            depQuery = depQuery.filter(Deployment.id.in_(localIds))
+        elif lastUpdate:
+            #Filter based on the last Update
+            log.debug("Filter Based on {0}".format(lastUpdate))
+            depQuery = depQuery.filter(sqlalchemy.or_(Deployment.endDate >= lastUpdate,
+                                                      Deployment.endDate == None))
+
+
+        for mapDep in depQuery:
+
+            log.info("--> Syncronising Deployment {0}".format(mapDep))
+
+            theDeployment = mappedDeployments.get(mapDep.id,None)
+            if theDeployment is None:
+                log.debug("--> -->  Deployment Not Mapped")
+                #We need to assume that all deployments have a unique name
+                rDep = rSess.query(remoteModels.Deployment)
+                rDep = rDep.filter_by(name = mapDep.name).first()
+
+                if rDep is None:
+                    rDep = remoteModels.Deployment(name=mapDep.name)
+                    rSess.add(rDep)
+                #Update the rest of the parameters
+                rDep.description = mapDep.description
+                rDep.startDate = mapDep.startDate
+                rDep.endDate = mapDep.endDate
+                rSess.flush()
+                mappedDeployments[mapDep.id] = rDep
+
+        rSess.flush()
+        rSess.commit()
+
+        return [x.id for x in depQuery]
+
+
+    def mapHouses(self,localIds=None,deploymentIds=None):
+        """
+        Map between houses in local and remote database
+
+        If localIds are provided then this will map just those Id's
+
+        If deploymentIds are specified then only houses linked to these
+        deploymeents will be mapped Otherwise all houses will be mapped
+
+        :param localIds: Id of house objects to synchronise
+        :param deploymentIds: Sync houses attached to these deployments
+        :return: List of (local) houseId's that have been sync
+        """
+        log.debug("Mapping Houses")
+
+        mappedHouses = self.mappedHouses
+        mappedDeployments = self.mappedDeployments
+
+        lSess = self.localSession()
+        rSess = self.remoteSession()
+
+
+        House = models.House
+
+        houseQuery = lSess.query(House)
+
+        if localIds:
+            houseQuery = houseQuery.filter(House.id.in_(localIds))
+        elif deploymentIds:
+            houseQuery = houseQuery.filter(House.deploymentId.in_(deploymentIds))
+
+        log.debug("Sycnhronising Houses")
+        for mapHouse in houseQuery:
+            log.info("--> Mapping House {0}".format(mapHouse))
+
+            theHouse = mappedHouses.get(mapHouse.id,None)
+            if theHouse is None:
+                #Get the mapped deployment Id
+                log.debug("--> --> House Not Mapped")
+                depId = mappedDeployments[mapHouse.deploymentId].id
+                log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId, depId))
+
+                #Look for the remote version of this house or create a new one.
+                rHouse = rSess.query(remoteModels.House).filter_by(address=mapHouse.address,
+                                                                   deploymentId = depId).first()
+                if rHouse is None:
+                    log.info("--> No Such House in Remote Database")
+                    rHouse = remoteModels.House(address = mapHouse.address,
+                                                deploymentId = depId)
+                    rSess.add(rHouse)
+
+                #Again update any other parameters
+                rHouse.startDate = mapHouse.startDate
+                rHouse.endDate = mapHouse.endDate
+                mappedHouses[mapHouse.id] = rHouse
+                rSess.flush()
+
+        rSess.commit()
+
+        #After that we want to get all locations assoicated with a House
+        return [x.id for x in houseQuery]
+
+    def mapRooms(self,roomId):
+        """
+        Map a room between the Local and Remote Database
+
+        :param roomId: local Room Id to Map
+        :return: The remote version of this room
+        """
+        log.debug("Mapping Room {0}".format(roomId))
+
+
+
+    def mapLocations(self,localIds=None,houseIds=None):
+        """
+        Map between houses in local and remote database
+
+        If localIds are provided then this will map just those Id's
+
+        If HouseIds are specified then only locations linked to these
+        houses will be mapped
+
+        :param localIds: Id of Location objects to synchronise
+        :param houseIds:  Houses attached to these deployments
+        :return: List of (local) locationId's that have been sync
+        """
+        log.debug("Mapping Locations")
+
+        #mappedHouses = self.mappedHouses
+        #mappedDeployments = self.mappedDeployments
+
+        lSess = self.localSession()
+        rSess = self.remoteSession()
+
+        mappedLocations = self.mappedLocations
+        mappedRooms = self.mappedRooms
+        mappedHouses = self.mappedHouses
+
+        Location = models.Location
+
+        locQuery = lSess.query(Location)
+
+        if localIds:
+            locQuery = locQuery.filter(Location.id.in_(localIds))
+        elif houseIds:
+            locQuery = locQuery.filter(Location.houseId.in_(houseIds))
+
+        for mapLoc in locQuery:
+            log.info("Mapping Location {0}".format(mapLoc))
+
+
+            #Check we dont allready know about this
+            theLocation = mappedLocations.get(mapLoc.id,None)
+            if theLocation is None:
+                log.debug("--> Location not Known")
+                #The first thing we want to do is to see if we have a mapped Rooms
+                #For this Location
+
+                mapRoom = mappedRooms.get(mapLoc.roomId,None)
+                mapHouse = mappedHouses.get(mapLoc.houseId,None)
+                log.debug("--> Mapped Room {0}".format(mapRoom))
+                log.debug("--> Mapped House {0}".format(mapHouse))
+
+                if mapRoom is None:
+                    mapRoom = self.mapRooms(mapLoc.room.id)
+                    
+                    #We need to map the room
+                """
+                #If it doesn't exist create it
+                if mapRoom is None:
+                    theRoom = mapLoc.room
+                    log.info("Room {0} is not mapped, Creating".format(theRoom))
+
+                    #WE also need to double check that the room type exists
+                    roomType = mappedRoomTypes.get(theRoom.roomTypeId,None)
+                    if roomType is None:
+                        log.info("--> RoomType {0} not mapped".format(theRoom.roomType))
+
+                        roomType = rSess.query(remoteModels.RoomType)
+                        roomType = roomType.filter_by(name=theRoom.roomType.name).first()
+                        if roomType is None:
+                            log.debug("No such room in Remote Database")
+                            roomType = remoteModels.RoomType(name=theRoom.roomType.name)
+                            rSess.add(roomType)
+                            rSess.flush()
+                        log.debug("--> --> mappingRoom {0}".format(roomType))
+
+                        mappedRoomTypes[theRoom.roomTypeId] = roomType
+
+                    #Now We can create the room itself
+                    mapRoom = rSess.query(models.Room)
+                    mapRoom = mapRoom.filter_by(roomTypeId = roomType.id,
+                                                name=theRoom.name).first()
+                    #And Create if that doesnt exist
+                    if mapRoom is None:
+                        log.debug("No Such room in remote database")
+                        mapRoom = remoteModels.Room(name=theRoom.name,
+                                                    roomTypeId = roomType.id)
+                        rSess.add(mapRoom)
+                        rSess.flush()
+                    mappedRooms[theRoom.id] = mapRoom
+
+                #So We can now add the location to the Database
+                theHouse = mappedHouses[mapLoc.id]
+                newLocation = rSess.query(remoteModels.Location)
+                newLocation = newLocation.filter_by(houseId = theHouse.id,
+                                                    roomId = mapRoom.id)
+                newLocation = newLocation.first()
+                if not newLocation:
+                    #Add a new Location
+                    log.debug("Adding New Location")
+                    newLocation = remoteModels.Location(houseId = theHouse.id,
+                                                        roomId = mapRoom.id)
+                    rSess.add(newLocation)
+                    rSess.flush()
+                #Otherwise
+                mappedLocations[mapLoc.id] = newLocation
+            rSess.flush()
+            rSess.commit()
+            """
+
+
+    def mapDatabase(self, lastUpdate = None):
+        """Map objects in the Local database to their equivelant on remote server
 
         This functions attempts to map the locations on the local server, to
         those on the remote server
@@ -322,189 +572,64 @@ class Pusher(object):
 
         #Really the Houses, Deployments and Rooms are immaterial, BUT we need to
         #update them to build a location
-        mappedDeployments = {} #DONE
-        mappedHouses = {} #DONE
-        mappedRooms = {}
-        mappedLocations = {}
-        mappedRoomTypes = {}
 
-        lSess = self.localSession()
-        rSess = self.remoteSession()
+        #mappedDeployments = self.mappedDeployments = {} #DONE
+        #mappedHouses = self.mappedHouses = {} #DONE
+        #mappedRooms = self.mappedRooms = {}
+        #mappedLocations = self.mappedLocations = {}
+        #mappedRoomTypes = self.mappedRoomTypes = {}
 
-        log.debug("Mapping Locations")
-        log.debug("--> Filtering Deployments based on {0}".format(lastUpdate))
+        #lSess = self.localSession()
+        #rSess = self.remoteSession()
 
-        #Get the list of deployments that may need updating
-        Deployment = models.Deployment
+        log.debug("Mapping Database")
 
-        depQuery = lSess.query(models.Deployment)
-        if lastUpdate:
-            depQuery = depQuery.filter(sqlalchemy.or_(Deployment.endDate >= lastUpdate,
-                                                      Deployment.endDate == None))
-        for mapDep in depQuery:
-            log.info("--> Syncronising Deployment {0}".format(mapDep))
+        #Map Deployments
+        deployments = self.mapDeployments()
+        #Houses
+        houses = self.mapHouses(deploymentIds = deployments)
+        #And Locations
+        locations = self.mapLocations(houseIds = houses)
 
-            #We need to assume that all deployments have a unique name
-            rDep = rSess.query(remoteModels.Deployment).filter_by(name = mapDep.name).first()
-            if rDep is None:
-                log.info("-->--> No Such Deployment on Remote System")
-                rDep = remoteModels.Deployment(name=mapDep.name)
-                rSess.add(rDep)
-            #Update the rest of the parameters
-            rDep.description = mapDep.description
-            rDep.startDate = mapDep.startDate
-            rDep.endDate = mapDep.endDate
+        log.debug("---- Mapped Deloyments ---")
+        for key,item in self.mappedDeployments.iteritems():
+            log.debug("{0} : {1}".format(key,item))
 
-            mappedDeployments[mapDep.id] = rDep
-
-
-        rSess.flush()
-        rSess.commit()
-        log.debug("Mapped Deployments")
-        for key, item in mappedDeployments.iteritems():
+        #Lets Debug 
+        log.debug("---- Mapped Houses ----")
+        for key, item in self.mappedHouses.iteritems():
             log.debug("{0} -> {1}".format(key, item))
+
+
+        log.debug("--- Mapped Rooms ---")
+        for key,item in self.mappedRooms.iteritems():
+            log.debug("{0} -> {1}".format(key,item))
+
+        log.debug("--- MAPPED ROOM TYPES----")
+        for key,item in self.mappedRoomTypes.iteritems():
+            log.debug("{0} {1}".format(key,item))
+
+        log.debug("--- Mapped Locations --")
+        for key,item in self.mappedLocations.iteritems():
+            log.debug("{0} {1}".format(key,item))
+        log.debug("------------")
+
+        return
+
+        #log.debug("--> Filtering Deployments based on {0}".format(lastUpdate))
+
+
 
         #Next We Want to Map Houses
 
         #First Split out deployment ID's so we can filter our houses by that
-        deploymentIds = [x.id for x in depQuery]
-        log.debug("Fiter houses using deployment Id {0}".format(deploymentIds))
-
-        House = models.House
-
-        houseQuery = lSess.query(House)
-        houseQuery = houseQuery.filter(House.deploymentId.in_(deploymentIds))
+        #deploymentIds = [x.id for x in depQuery]
+        #log.debug("Fiter houses using deployment Id {0}".format(deploymentIds))
 
 
-        log.debug("Sycnhronising Houses")
-        for mapHouse in houseQuery:
-            log.info("--> Sych House {0}".format(mapHouse))
-
-            #Get the mapped deployment Id
-            depId = mappedDeployments[mapHouse.deploymentId].id
-            log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId, depId))
-
-            #Look for the remote version of this house or create a new one.
-            rHouse = rSess.query(remoteModels.House).filter_by(address=mapHouse.address,
-                                                               deploymentId = depId).first()
-            if rHouse is None:
-                log.info("--> No Such House in Remote Database")
-                rHouse = remoteModels.House(address = mapHouse.address,
-                                            deploymentId = depId)
-                rSess.add(rHouse)
-
-            #Again update any other parameters
-            rHouse.startDate = mapHouse.startDate
-            rHouse.endDate = mapHouse.endDate
-            mappedHouses[mapHouse.id] = rHouse
-            rSess.flush()
-
-        rSess.commit()
-
-        log.debug("Mapped Houses")
-        for key, item in mappedHouses.iteritems():
-            log.debug("{0} -> {1}".format(key, item))
-
-
-        #After that we want to get all locations assoicated with a House
-        houseIds = [x.id for x in houseQuery]
-
-        Location = models.Location
-
-        locQuery = lSess.query(Location)
-        locQuery = locQuery.filter(Location.houseId.in_(houseIds))
-
-        for mapLoc in locQuery:
-            log.info("Mapping Location {0}".format(mapLoc))
-
-            #The first thing we want to do is to see if we have a mapped Rooms
-            #For this Location
-
-            mapRoom = mappedRooms.get(mapLoc.roomId,None)
-            #If it doesn't exist create it
-            if mapRoom is None:
-                theRoom = mapLoc.room
-                log.info("Room {0} is not mapped, Creating".format(theRoom))
-
-                #WE also need to double check that the room type exists
-                roomType = mappedRoomTypes.get(theRoom.roomTypeId,None)
-                if roomType is None:
-                    log.info("--> RoomType {0} not mapped".format(theRoom.roomType))
-
-                    roomType = rSess.query(remoteModels.RoomType)
-                    roomType = roomType.filter_by(name=theRoom.roomType.name).first()
-                    if roomType is None:
-                        log.debug("No such room in Remote Database")
-                        roomType = remoteModels.RoomType(name=theRoom.roomType.name)
-                        rSess.add(roomType)
-                        rSess.flush()
-                    log.debug("--> --> mappingRoom {0}".format(roomType))
-
-                    mappedRoomTypes[theRoom.roomTypeId] = roomType
-
-                #Now We can create the room itself
-                mapRoom = rSess.query(models.Room)
-                mapRoom = mapRoom.filter_by(roomTypeId = roomType.id,
-                                            name=theRoom.name).first()
-                #And Create if that doesnt exist
-                if mapRoom is None:
-                    log.debug("No Such room in remote database")
-                    mapRoom = remoteModels.Room(name=theRoom.name,
-                                                roomTypeId = roomType.id)
-                    rSess.add(mapRoom)
-                    rSess.flush()
-                mappedRooms[theRoom.id] = mapRoom
-
-        #Lets Debug 
-        log.debug("--- MAPPED ROOM TYPES----")
-        for key,item in mappedRoomTypes.iteritems():
-            log.debug("{0} {1}".format(key,item))
-        
-        log.debug("--- Mapped Rooms ---")
-        for key,item in mappedRooms.iteritems():
-            log.debug("{0} -> {1}".format(key,item))
+      
         return
 
-
-        #updateLoc = lSess.query(models.Location)
-
-        #Filter to locations only in houses we are worried about
-        #updateLoc =
-        log.debug("Total Locathons {0}".format(updateLocations.count()))
-        #Filter by the houses we need to update
-        #log.debug("
-        return
-
-        updateLocations = updateLocations.filter(models.Location.houseId.in_(houseIds))
-
-        #We put off adding locations for the moment, instead making sure that we have the rooms sorted correctly
-            
-        #And all the rooms associated with a location
-        locationIds = set([x.roomId for x in updateLocations])
-        log.debug(locationIds)
-        updateRooms = lSess.query(models.Room)
-        updateRooms = updateRooms.filter(models.Room.id.in_(locationIds))
-
-        log.debug("Filtered Rooms")
-        for item in updateRooms:
-            log.debug("--> {0}".format(item))
-        
-        #And Room Types
-        roomTypeIds = set([x.roomTypeId for x in updateRooms])
-        updateRoomTypes = lSess.query(models.RoomType).filter(models.RoomType.id.in_(roomTypeIds))
-        
-        log.debug("Filtered Room Types")
-        for item in updateRoomTypes:
-            log.debug("--> {0}".format(item))
-
-
-        log.debug("Filtered Locations {0}".format(updateLocations.count()))
-        for item in updateLocations:
-            log.debug("--> {0}".format(item))
-                
-        #updateDeployments = lSess.query(remoteModels.Deployment).filter(sqlalchemy._or(remoteModels.Deployment.
-        
-        #Get the list of Houses that need updating.
 
 
     def _startTunnel(self,locDict):
@@ -1112,6 +1237,8 @@ if __name__ == "__main__":
     #import time
 
     server = PushServer()
+    server.sync()
+    log.debug("{0}".format("-"*50))
     server.sync()
     #push = Pusher()
     #push.sync()
