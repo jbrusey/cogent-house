@@ -1,8 +1,3 @@
-import logging
-logging.basicConfig(level=logging.DEBUG)
-#logging.basicConfig(level=logging.INFO,filename="push.log")
-
-__version__ = "0.3.1"
 
 """
 Modified version of the push script that will fetch all items,
@@ -71,6 +66,12 @@ a good idea to leave it.
        Split functionalility into a Daemon, and Upload classes.  This should
        make maintainance of any local mappings a little easier to deal with.
 """
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.INFO,filename="push.log")
+
+__version__ = "0.3.1"
 
 import sqlalchemy
 import remoteModels
@@ -412,11 +413,13 @@ class Pusher(object):
                 #Get the mapped deployment Id
                 log.debug("--> --> House Not Mapped")
                 depId = mappedDeployments[mapHouse.deploymentId].id
-                log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId, depId))
+                log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId,
+                                                            depId))
 
                 #Look for the remote version of this house or create a new one.
-                rHouse = rSess.query(remoteModels.House).filter_by(address=mapHouse.address,
-                                                                   deploymentId = depId).first()
+                rHouse = rSess.query(remoteModels.House)
+                rHouse = rHouse.filter_by(address=mapHouse.address,
+                                          deploymentId = depId).first()
                 if rHouse is None:
                     log.info("--> No Such House in Remote Database")
                     rHouse = remoteModels.House(address = mapHouse.address,
@@ -426,8 +429,10 @@ class Pusher(object):
                 #Again update any other parameters
                 rHouse.startDate = mapHouse.startDate
                 rHouse.endDate = mapHouse.endDate
-                mappedHouses[mapHouse.id] = rHouse
                 rSess.flush()
+
+                mappedHouses[mapHouse.id] = rHouse
+
 
         rSess.commit()
 
@@ -441,7 +446,51 @@ class Pusher(object):
         :param roomId: local Room Id to Map
         :return: The remote version of this room
         """
+
+        mappedRoomTypes = self.mappedRoomTypes
+        mappedRooms = self.mappedRooms
+
+        rSess = self.remoteSession()
+        lSess = self.localSession()
         log.debug("Mapping Room {0}".format(roomId))
+
+        theRoom = lSess.query(models.Room).filter_by(id=roomId).first()
+        log.debug("The Room {0}".format(theRoom))
+        #WE also need to double check that the room type exists
+        roomType = mappedRoomTypes.get(theRoom.roomTypeId,None)
+        log.debug("Mapped Room Type {0}".format(roomType))
+        if roomType is None:
+            log.info("--> RoomType {0} not mapped".format(theRoom.roomType))
+
+            roomType = rSess.query(remoteModels.RoomType)
+            roomType = roomType.filter_by(name=theRoom.roomType.name).first()
+            #Create if it doesn't exist
+            if roomType is None:
+                roomType = remoteModels.RoomType(name=theRoom.roomType.name)
+                rSess.add(roomType)
+                rSess.flush()
+
+            mappedRoomTypes[theRoom.roomTypeId] = roomType
+
+        log.debug(" Creating Room")
+            #Now We can create the room itself
+        mapRoom = rSess.query(models.Room)
+        mapRoom = mapRoom.filter_by(roomTypeId = roomType.id,
+                                        name=theRoom.name).first()
+
+        log.debug("Remote Room {0}".format(mapRoom))
+        # #And Create if that doesnt exist
+        if mapRoom is None:
+            log.debug("No Such room in remote database")
+            mapRoom = remoteModels.Room(name=theRoom.name,
+                                        roomTypeId = roomType.id)
+            rSess.add(mapRoom)
+            rSess.flush()
+
+        mappedRooms[theRoom.id] = mapRoom
+        return mapRoom
+        #     #So We can now add the location to the Database
+        #     #theHouse = mappedHouses[mapLoc.id]
 
 
 
@@ -470,6 +519,9 @@ class Pusher(object):
         mappedRooms = self.mappedRooms
         mappedHouses = self.mappedHouses
 
+        log.debug("=====> ROOMS {0}".format(mappedRooms))
+        log.debug("=====> HOUSES {0}".format(mappedHouses))
+
         Location = models.Location
 
         locQuery = lSess.query(Location)
@@ -482,76 +534,39 @@ class Pusher(object):
         for mapLoc in locQuery:
             log.info("Mapping Location {0}".format(mapLoc))
 
-
             #Check we dont allready know about this
             theLocation = mappedLocations.get(mapLoc.id,None)
+
             if theLocation is None:
                 log.debug("--> Location not Known")
                 #The first thing we want to do is to see if we have a mapped Rooms
                 #For this Location
 
+                #mapRoom = mappedRooms[mapLoc.roomId]
+                mapHouse = mappedHouses[mapLoc.houseId]
                 mapRoom = mappedRooms.get(mapLoc.roomId,None)
-                mapHouse = mappedHouses.get(mapLoc.houseId,None)
+                #mapHouse = mappedHouses.get(mapLoc.houseId,None)
                 log.debug("--> Mapped Room {0}".format(mapRoom))
                 log.debug("--> Mapped House {0}".format(mapHouse))
 
                 if mapRoom is None:
-                    mapRoom = self.mapRooms(mapLoc.room.id)
-                    
                     #We need to map the room
-                """
-                #If it doesn't exist create it
-                if mapRoom is None:
-                    theRoom = mapLoc.room
-                    log.info("Room {0} is not mapped, Creating".format(theRoom))
+                    mapRoom = self.mapRooms(mapLoc.room.id)
 
-                    #WE also need to double check that the room type exists
-                    roomType = mappedRoomTypes.get(theRoom.roomTypeId,None)
-                    if roomType is None:
-                        log.info("--> RoomType {0} not mapped".format(theRoom.roomType))
+                log.debug("--> MAPPED ROOM {0}".format(mapRoom))
+                #We can then get on with creating the Location
 
-                        roomType = rSess.query(remoteModels.RoomType)
-                        roomType = roomType.filter_by(name=theRoom.roomType.name).first()
-                        if roomType is None:
-                            log.debug("No such room in Remote Database")
-                            roomType = remoteModels.RoomType(name=theRoom.roomType.name)
-                            rSess.add(roomType)
-                            rSess.flush()
-                        log.debug("--> --> mappingRoom {0}".format(roomType))
+                theLocation = rSess.query(remoteModels.Location)
+                theLocation = theLocation.filter_by(houseId = mapHouse.id,
+                                                    roomId = mapRoom.id).first()
 
-                        mappedRoomTypes[theRoom.roomTypeId] = roomType
-
-                    #Now We can create the room itself
-                    mapRoom = rSess.query(models.Room)
-                    mapRoom = mapRoom.filter_by(roomTypeId = roomType.id,
-                                                name=theRoom.name).first()
-                    #And Create if that doesnt exist
-                    if mapRoom is None:
-                        log.debug("No Such room in remote database")
-                        mapRoom = remoteModels.Room(name=theRoom.name,
-                                                    roomTypeId = roomType.id)
-                        rSess.add(mapRoom)
-                        rSess.flush()
-                    mappedRooms[theRoom.id] = mapRoom
-
-                #So We can now add the location to the Database
-                theHouse = mappedHouses[mapLoc.id]
-                newLocation = rSess.query(remoteModels.Location)
-                newLocation = newLocation.filter_by(houseId = theHouse.id,
-                                                    roomId = mapRoom.id)
-                newLocation = newLocation.first()
-                if not newLocation:
-                    #Add a new Location
-                    log.debug("Adding New Location")
-                    newLocation = remoteModels.Location(houseId = theHouse.id,
+                if theLocation is None:
+                    theLocation = remoteModels.Location(houseId = mapHouse.id,
                                                         roomId = mapRoom.id)
-                    rSess.add(newLocation)
+                    rSess.add(theLocation)
                     rSess.flush()
-                #Otherwise
-                mappedLocations[mapLoc.id] = newLocation
-            rSess.flush()
-            rSess.commit()
-            """
+
+                mappedLocations[mapLoc.id] = theLocation
 
 
     def mapDatabase(self, lastUpdate = None):
@@ -591,27 +606,36 @@ class Pusher(object):
         #And Locations
         locations = self.mapLocations(houseIds = houses)
 
+        lSess = self.localSession()
+        rSess = self.remoteSession()
+        
+
+        #Lets Debug
+
         log.debug("---- Mapped Deloyments ---")
+        log.debug(self.mappedDeployments)
         for key,item in self.mappedDeployments.iteritems():
             log.debug("{0} : {1}".format(key,item))
 
-        #Lets Debug 
         log.debug("---- Mapped Houses ----")
+        log.debug(self.mappedHouses)
         for key, item in self.mappedHouses.iteritems():
             log.debug("{0} -> {1}".format(key, item))
 
-
-        log.debug("--- Mapped Rooms ---")
-        for key,item in self.mappedRooms.iteritems():
-            log.debug("{0} -> {1}".format(key,item))
-
         log.debug("--- MAPPED ROOM TYPES----")
+        log.debug(self.mappedRoomTypes)
         for key,item in self.mappedRoomTypes.iteritems():
             log.debug("{0} {1}".format(key,item))
 
+        log.debug("--- Mapped Rooms ---")
+        log.debug(self.mappedRooms)
+        #for key,item in self.mappedRooms.iteritems():
+        #    log.debug("{0} -> {1}".format(key,item))
+
         log.debug("--- Mapped Locations --")
-        for key,item in self.mappedLocations.iteritems():
-            log.debug("{0} {1}".format(key,item))
+        log.debug(self.mappedLocations)
+        #for key,item in self.mappedLocations.iteritems():
+        #    log.debug("{0} {1}".format(key,item))
         log.debug("------------")
 
         return
@@ -1238,8 +1262,8 @@ if __name__ == "__main__":
 
     server = PushServer()
     server.sync()
-    log.debug("{0}".format("-"*50))
-    server.sync()
+    #log.debug("{0}".format("-"*50))
+    #server.sync()
     #push = Pusher()
     #push.sync()
     #for x in range(10):

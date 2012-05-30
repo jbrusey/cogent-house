@@ -21,6 +21,7 @@ import select
 
 import logging
 log = logging.getLogger("__name__")
+log.setLevel(logging.DEBUG)
 
 class ForwardServer (SocketServer.ThreadingTCPServer):
     """Subclass Socket server to run in daemon mode"""
