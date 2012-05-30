@@ -71,7 +71,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 #logging.basicConfig(level=logging.INFO,filename="push.log")
 
-__version__ = "0.3.1"
+__version__ = "0.5.0"
 
 import sqlalchemy
 import remoteModels
@@ -99,6 +99,9 @@ import os
 
 import dateutil.parser
 
+import restful_lib
+import json
+
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 #log.setLevel(logging.INFO)
@@ -121,6 +124,7 @@ RSA_KEY = "/home/dang/.ssh/work_key.pub"
 KNOWN_HOSTS = None
 KNOWN_HOSTS = "/home/dang/.ssh/known_hosts"
 
+REST_URL = "127.0.0.1:6543/rest/"
 
 class PushServer(object):
     """
@@ -255,6 +259,7 @@ class Pusher(object):
         self.mappedLocations = {}
         self.mappedRoomTypes = {}
 
+        self.restSession = restful_lib.Connection("http://127.0.0.1:6543/rest/")
 
     def sync(self):
         """
@@ -281,8 +286,9 @@ class Pusher(object):
         #The First Thing to do is to synchonise all nodes
         self.syncNodes()
 
+        return
         #Map theDatabase
-        self.mapDatabase()
+        #self.mapDatabase()
 
         #Synchronise Readings
         #self.syncReadings()
@@ -601,13 +607,14 @@ class Pusher(object):
 
         #Map Deployments
         deployments = self.mapDeployments()
-        #Houses
-        houses = self.mapHouses(deploymentIds = deployments)
-        #And Locations
-        locations = self.mapLocations(houseIds = houses)
 
-        lSess = self.localSession()
-        rSess = self.remoteSession()
+        # #Houses
+        # houses = self.mapHouses(deploymentIds = deployments)
+        # #And Locations
+        # locations = self.mapLocations(houseIds = houses)
+
+        # lSess = self.localSession()
+        # rSess = self.remoteSession()
         
 
         #Lets Debug
@@ -909,50 +916,65 @@ class Pusher(object):
         """
         lSess = self.localSession()
         rSess = self.remoteSession()
+        restSession = self.restSession
 
-        #We can get away with just asking for Ids
-        rQuery = [x[0] for x in rSess.query(remoteModels.Node.id)]
-        log.debug("Remote Ids --> {0}".format(rQuery))
+        log.info("Synchronising Nodes")
 
+        #Get the Rest Objects
+        restQuery = restSession.request_get("Node/")
+
+        #Then filter out just ID's
+        restBody = json.loads(restQuery["body"])
+        rQuery = [x['id'] for x in restBody]
+        #log.debug(restBody)
+        log.debug(rQuery)
+
+        #return
+
+        #Map these against our Local Nodes
         #Have a check here, if the remote DB is empty, then using _in throws a
         #Error
         if rQuery:
             lQuery = lSess.query(models.Node)
             lQuery = lQuery.filter(~models.Node.id.in_(rQuery))
         else:
-            lQuery = lSess.query(models.Node).all()
-        #log.debug("Local Query -> {0}".format(lQuery.all()))
+            lQuery = lSess.query(models.Node)
+
+        lQuery = lQuery.all()
 
         if lQuery is None:
-            log.debug("No Nodes to Synchronise")
+            log.debug("--> No Nodes to Synchronise")
             return False
+        else:
+            log.debug("--> {0} Nodes to Synchronise".format(len(lQuery)))
+            log.debug(lQuery)
 
         for node in lQuery:
-            log.debug("Node {0} does not exist on remote server".format(node))
+            log.debug("--> --> Node {0} does not exist on remote server".format(node))
 
             #Create the Node
             newNode = remoteModels.Node(id=node.id)
-            rSess.add(newNode)
-            rSess.flush() #Avoid Integrety Error
+            #rSess.add(newNode)
+            #rSess.flush() #Avoid Integrety Error
 
-            #And Any attached Sensors
-            for sensor in node.sensors:
+        #     #And Any attached Sensors
+        #     for sensor in node.sensors:
 
 
-                #We shouldn't have to worry about sensor types as they should be
-                #global
-                theModel = remoteModels.Sensor
-                newSensor = theModel(sensorTypeId=sensor.sensorTypeId,
-                                     nodeId = newNode.id,
-                                     calibrationSlope = sensor.calibrationSlope,
-                                     calibrationOffset = sensor.calibrationOffset)
+        #         #We shouldn't have to worry about sensor types as they should be
+        #         #global
+        #         theModel = remoteModels.Sensor
+        #         newSensor = theModel(sensorTypeId=sensor.sensorTypeId,
+        #                              nodeId = newNode.id,
+        #                              calibrationSlope = sensor.calibrationSlope,
+        #                              calibrationOffset = sensor.calibrationOffset)
 
-                log.debug("Creating Sensor {0}".format(newSensor))
-                rSess.add(newSensor)
-            rSess.flush()
+        #         log.debug("Creating Sensor {0}".format(newSensor))
+        #         rSess.add(newSensor)
+        #     rSess.flush()
 
-        rSess.commit()
-        return True
+        # rSess.commit()
+        # return True
 
     def syncLocation(self,locId):
         """Code to Synchronise a given locations
