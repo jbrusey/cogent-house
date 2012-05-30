@@ -6,6 +6,10 @@ That saves the poor things getting confused with scope.
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+import logging
+log = logging.getLogger(__name__)
+
+
 #Functions provided by from meta import *
 __all__ = ['Base', 'Session']
 
@@ -34,6 +38,8 @@ import json
 
 # The declarative Base
 Base = declarative_base()
+
+
 
 class InnoDBMix(object):
     """
@@ -129,4 +135,9 @@ class InnoDBMix(object):
                 newValue = dateutil.parser.parse(newValue)
 
             #And set our variable
-            setattr(self,col.name,newValue)
+            
+            #And Deal with the corner case above
+            if self.__tablename__ == "Reading" and col.name == "type":
+                setattr(self,"typeId",newValue)
+            else:
+                setattr(self,col.name,newValue)

@@ -272,24 +272,23 @@ class Pusher(object):
         self.lastUpdate = config.get("lastUpdate",None)
         log.debug("Sync with config {0}".format(config))
 
-        #First off create the ssh tunnel
-        theTunnel = self._startTunnel(config)
-        if theTunnel:
-            server,ssh = theTunnel
-        else:
-            log.warning("Unable to start SSH tunnel")
-            return
+        # #First off create the ssh tunnel
+        # theTunnel = self._startTunnel(config)
+        # if theTunnel:
+        #     server,ssh = theTunnel
+        # else:
+        #     log.warning("Unable to start SSH tunnel")
+        #     return
 
-        #We can then Initialise the remote Location
-        self.initRemote(config["dbstring"])
+        # #We can then Initialise the remote Location
+        # self.initRemote(config["dbstring"])
 
         #The First Thing to do is to synchonise all nodes
-        self.syncNodes()
+        #self.syncNodes()
 
-        return
         #Map theDatabase
-        #self.mapDatabase()
-
+        self.mapDatabase()
+        return
         #Synchronise Readings
         #self.syncReadings()
 
@@ -330,10 +329,11 @@ class Pusher(object):
         :var localIds:  List of Id's for local database objects
         :return: A List of delployment ID's that have been updated
         """
-        log.debug("Mapping Deployments")
+        log.debug("----- Mapping Deployments ------")
         mappedDeployments = self.mappedDeployments
         lSess = self.localSession()
-        rSess = self.remoteSession()
+        restSession = self.restSession
+        #rSess = self.remoteSession()
 
         #Get the list of deployments that may need updating
         Deployment = models.Deployment
@@ -359,22 +359,26 @@ class Pusher(object):
             theDeployment = mappedDeployments.get(mapDep.id,None)
             if theDeployment is None:
                 log.debug("--> -->  Deployment Not Mapped")
+
                 #We need to assume that all deployments have a unique name
-                rDep = rSess.query(remoteModels.Deployment)
-                rDep = rDep.filter_by(name = mapDep.name).first()
+                params = {"name":mapDep.name}
 
-                if rDep is None:
-                    rDep = remoteModels.Deployment(name=mapDep.name)
-                    rSess.add(rDep)
-                #Update the rest of the parameters
-                rDep.description = mapDep.description
-                rDep.startDate = mapDep.startDate
-                rDep.endDate = mapDep.endDate
-                rSess.flush()
-                mappedDeployments[mapDep.id] = rDep
 
-        rSess.flush()
-        rSess.commit()
+        #         rDep = rSess.query(remoteModels.Deployment)
+        #         rDep = rDep.filter_by(name = mapDep.name).first()
+
+        #         if rDep is None:
+        #             rDep = remoteModels.Deployment(name=mapDep.name)
+        #             rSess.add(rDep)
+        #         #Update the rest of the parameters
+        #         rDep.description = mapDep.description
+        #         rDep.startDate = mapDep.startDate
+        #         rDep.endDate = mapDep.endDate
+        #         rSess.flush()
+        #         mappedDeployments[mapDep.id] = rDep
+
+        # rSess.flush()
+        # rSess.commit()
 
         return [x.id for x in depQuery]
 
@@ -661,231 +665,6 @@ class Pusher(object):
       
         return
 
-
-
-    def _startTunnel(self,locDict):
-        """Start an ssh tunnel based on parametrs given in locDict
-
-        This will start an ssh connection to the server given using paramiko,
-        This connection will then be connected to a custom threaded server,
-        that will be used to forward packets to the given address.
-
-        :var locDict: Dictionary of values as per config file
-        :return: Tuple of (Tunnel,Paramiko SSH Object)
-
-        OK
-        """
-
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        #Try to load the known Hosts file
-        dotSSH = locDict["sshfolder"]
-        rsa = locDict["sshkey"]
-        knownHosts = os.path.join(dotSSH,"known_hosts")
-        rsaKey = os.path.join(dotSSH,rsa)
-        log.debug("--> Known Hosts {0}".format(knownHosts))
-        log.debug("--> Key {0}".format(rsaKey))
-        ssh.load_host_keys(knownHosts)
-
-        try:
-            ssh.connect(locDict["url"],
-                        username=locDict["sshuser"],
-                        key_filename=rsaKey)
-        except socket.error,e:
-            log.warning("Connection Error {0}".format(e))
-            return None
-        except paramiko.AuthenticationException:
-            log.warning("Authentication error")
-            return None
-
-        log.debug("Connection Ok")
-        transport = ssh.get_transport()
-
-        #Next setup tunnelling
-        server = sshClient.forward_tunnel(3307,"127.0.0.1",3306,transport)
-        serverThread = threading.Thread(target=server.serve_forever)
-        serverThread.daemon = True
-        serverThread.start()
-        return server,ssh
-
-    # def syncOLD(self):
-    #     """Main Loop for Synchronisation"""
-    #     #For Each remote connection
-    #     log.debug("Sync Data")
-    #     session = self.LocalSession()
-    #     theQry = session.query(models.UploadURL)
-    #     #theQry = theQry.filter_by(url="dang@127.0.0.1")
-        
-    #     session.close()
-    #     for syncLoc in theQry[-1:]:
-    #         startTime = time.time()
-    #         log.info("-------- Sync Nodes for {0} ----------------".format(syncLoc))
-    #         sshUrl = syncLoc.url
-    #         self.currentUrl = sshUrl
-    #         log.debug("SSH URL: {0}".format(sshUrl))
-    #         log.info("--> Creating SSH Tunnel {0}".format(sshUrl))
-    #         ssh = paramiko.SSHClient()
-    #         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    #         if KNOWN_HOSTS:
-    #             ssh.load_host_keys(KNOWN_HOSTS)
-                
-            
-    #         user,host = sshUrl.split("@")
-    #         #Connection
-    #         try:
-    #             ssh.connect(host,username=user,key_filename=RSA_KEY)
-    #         except socket.error,e:
-    #             log.warning("Connection Error {0}".format(e))
-    #             break
-    #         except paramiko.AuthenticationException:
-    #             log.warning("Authentication Error")
-    #             break
-
-    #         log.debug("Connection Ok")
-    #         transport = ssh.get_transport()
-    
-    #         # #Next setup tunnelling
-    #         server = sshClient.forward_tunnel(3307,"127.0.0.1",3306,transport)
-    #         serverThread = threading.Thread(target=server.serve_forever)
-    #         serverThread.daemon = True
-    #         serverThread.start()
-            
-    #         tunnelTime = time.time()
-    #         log.info("--> Initialise Remote Connection")
-    #         dburl = syncLoc.dburl
-    #         log.debug("--> {0}".format(dburl))
-    #         #time.sleep(5)
-    #         #raw_input("Key to Continue")
-
-    #         #We need to wait for the connection to come update
-    #         self.initRemote(syncLoc)
-    #         remoteTime = time.time()
-
-
-            
-    #         log.debug("--> Synchronising Objects")
-    #         log.debug("-->--> Nodes")
-    #         try:
-    #             self.syncNodes()
-    #         except sqlalchemy.exc.OperationalError,e:
-    #             log.warning(e)
-    #             server.shutdown()
-    #             server.socket.close()
-    #             ssh.close()
-    #             break
-
-    #         nodeTime = time.time()
-    #         log.info("Nodes Synced")
-                
-    #         # log.debug("-->--> State")
-    #         # #Synchronise State
-    #         # try:
-    #         #     self.syncState()
-    #         # except sqlalchemy.exc.OperationalError,e:
-    #         #     log.warning(e)
-    #         #     server.shutdown()
-    #         #     server.socket.close()
-    #         #     ssh.close()
-    #         #     break
-
-
-    #         # #Synchronise Readings
-    #         # log.debug("-->--> Readings")
-    #         try:
-    #             needsSync = True #Simple Pagination
-    #             count = 0
-    #             while needsSync:
-    #                 needsSync = self.syncReadings()
-    #                 if count > 2:
-    #                     needsSync = False
-    #                 count+= 1
-    #         except sqlalchemy.exc.OperationalError,e:
-    #             log.warning(e)
-    #             server.shutdown()
-    #             server.socket.close()
-    #             ssh.close()
-    #         #     break
-    #         readingTime = time.time()
-
-    #         server.shutdown()
-    #         server.socket.close()
-    #         ssh.close()
-    #         endTime = time.time()
-    #         time.sleep(1) #Let things settle down
-    #         profileLog.debug("{},{},{},{},{},{},{},{}".format(sshUrl,
-    #                                                        startTime,
-    #                                                        endTime,
-    #                                                        endTime - startTime,
-    #                                                        tunnelTime - startTime,
-    #                                                        remoteTime - startTime,
-    #                                                        nodeTime - startTime,
-    #                                                        readingTime - startTime))
-        #End Location
-
-    def initRemote(self,remoteUrl):
-        """Initialise a connection to the database and reflect all Remote Tables
-
-        :param remoteUrl:  a :class:`models.remoteURL` object that we connect to
-
-        Timeout code may not be necessary (if we have a decent connection)
-        But trys to address the following problem:
-
-        1) Database is not available on connect [FAILS GRACEFULLY]
-        2) Database is there on connect:
-           Database / Network goes away during query [HANGS]
-
-        I hope that putting a timeout on the querys will fix this.
-
-
-        .. since:: 0.3
-            Connection timeout added.
-
-        OK
-        """
-
-        RemoteSession = sqlalchemy.orm.sessionmaker()
-
-        self.rUrl = remoteUrl
-        #log.info("Initialising Remote Engine {0}".format(remoteUrl.dburl))
-
-        #engine = sqlalchemy.create_engine(remoteUrl.dburl)
-        engine = sqlalchemy.create_engine(remoteUrl)
-        log.debug("--> Engine {0}".format(engine))
-        RemoteSession.configure(bind=engine)
-        RemoteMetadata = sqlalchemy.MetaData()
-
-        log.debug("Reflecting Remote Tables")
-        remoteModels.reflectTables(engine,RemoteMetadata)
-        self.remoteSession=RemoteSession
-
-
-    # ------------------ MOVED TO GLOBAL CLASS
-    # def initLocal(self,engine):
-    #     """Initialise a local connection"""
-    #     log.debug("Initialising Local Engine")
-    #     models.initialise_sql(engine)
-    #     LocalSession = sqlalchemy.orm.sessionmaker(bind=engine)
-    #     self.LocalSession = LocalSession
-
-
-    # def testRemoteQuery(self):
-    #     """
-    #     Return all room types in our remote object (Test Method)
-    #     """
-    #     session = self.RemoteSession()
-    #     theQry = session.query(remoteModels.RoomType)
-    #     return theQry.all()
-
-    # def testLocalQuery(self):
-    #     """
-    #     Return all room types in our local object (Test Method)
-    #     """
-    #     session = self.LocalSession()
-    #     theQry = session.query(models.RoomType)
-    #     return theQry.all()
-
     def syncNodes(self):
         """Syncronise nodes:
 
@@ -915,7 +694,7 @@ class Pusher(object):
 
         """
         lSess = self.localSession()
-        rSess = self.remoteSession()
+        #rSess = self.remoteSession()
         restSession = self.restSession
 
         log.info("Synchronising Nodes")
@@ -927,7 +706,7 @@ class Pusher(object):
         restBody = json.loads(restQuery["body"])
         rQuery = [x['id'] for x in restBody]
         #log.debug(restBody)
-        log.debug(rQuery)
+        log.debug("Remote Nodes :{0}".format(rQuery))
 
         #return
 
@@ -949,32 +728,34 @@ class Pusher(object):
             log.debug("--> {0} Nodes to Synchronise".format(len(lQuery)))
             log.debug(lQuery)
 
+        bulkUpload = []
         for node in lQuery:
             log.debug("--> --> Node {0} does not exist on remote server".format(node))
 
             #Create the Node
-            newNode = remoteModels.Node(id=node.id)
-            #rSess.add(newNode)
-            #rSess.flush() #Avoid Integrety Error
+            newNode = models.Node(id=node.id)
 
-        #     #And Any attached Sensors
-        #     for sensor in node.sensors:
+            bulkUpload.append(newNode)
 
+            #And Any attached Sensors
+            for sensor in node.sensors:
+                #We shouldn't have to worry about sensor types as they should be
+                #global
+                theModel = remoteModels.Sensor
+                newSensor = models.Sensor(sensorTypeId=sensor.sensorTypeId,
+                                          nodeId = node.id,
+                                          calibrationSlope = sensor.calibrationSlope,
+                                          calibrationOffset = sensor.calibrationOffset)
 
-        #         #We shouldn't have to worry about sensor types as they should be
-        #         #global
-        #         theModel = remoteModels.Sensor
-        #         newSensor = theModel(sensorTypeId=sensor.sensorTypeId,
-        #                              nodeId = newNode.id,
-        #                              calibrationSlope = sensor.calibrationSlope,
-        #                              calibrationOffset = sensor.calibrationOffset)
+                log.debug("Creating Sensor {0}".format(newSensor))
+                bulkUpload.append(newSensor)
 
-        #         log.debug("Creating Sensor {0}".format(newSensor))
-        #         rSess.add(newSensor)
-        #     rSess.flush()
+        jsonBody = json.dumps([x.toDict() for x in bulkUpload])
+        restQuery = restSession.request_post("Bulk/",
+                                             body=jsonBody)
 
-        # rSess.commit()
-        # return True
+        return restQuery['headers']['status'] == 201
+
 
     def syncLocation(self,locId):
         """Code to Synchronise a given locations
@@ -1284,8 +1065,9 @@ if __name__ == "__main__":
 
     server = PushServer()
     server.sync()
-    #log.debug("{0}".format("-"*50))
-    #server.sync()
+    log.debug("{0}".format("="*50))
+    log.debug("{0}".format("="*50))
+    server.sync()
     #push = Pusher()
     #push.sync()
     #for x in range(10):
