@@ -1,11 +1,13 @@
 """
 Classes to initialise the SQL and populate with default Sensors
 
-:version: 0.4
-:author: Dan Goldsmith
-:date: Feb 2012
+..version::    0.4
+..codeauthor:: Dan Goldsmith
+..date::       Feb 2012
 
-:since 0.4:  Models updated to use Mixin Class, This should ensure all new tables are created using INNODB
+..since 0.4:: 
+    Models updated to use Mixin Class, This should ensure all
+    new tables are created using INNODB
 """
 
 import logging
@@ -42,6 +44,8 @@ from weather import *
 from uploadurl import *
 
 import populateData
+
+import json
 
 #Setup Logging
 log = logging.getLogger(__name__)
@@ -86,3 +90,30 @@ def populate_data(session=None):
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     Session.configure(bind=engine)
+
+
+def clsFromJSON(theList):
+    """Generator object to convert JSON strings from a rest object
+    into database objects"""
+    #Convert from JSON encoded string
+    if type(theList) == str:
+        print "CONVERT TO DICT"
+        log.warning("Convert to Dict from JSON string")
+        theList = json.loads(theList)
+    
+    #Make the list object iterable
+    if not type(theList) == list:
+        theList = [theList]
+        
+    for item in theList:
+        #print "--> {0}".format(item)
+        #Convert to the correct type of object
+        if item["__table__"] == "Deployment":
+            theModel = Deployment()
+
+        theModel.fromJSON(item)
+        yield theModel
+            
+
+
+    
