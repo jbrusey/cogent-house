@@ -69,33 +69,26 @@ a good idea to leave it.
 
 import logging
 #logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,filename="push.log")
 
 __version__ = "0.5.0"
 
 import sqlalchemy
-import remoteModels
+#import remoteModels
 
 import cogent
 import cogent.base.model as models
 import cogent.base.model.meta as meta
-from datetime import datetime
+#from datetime import datetime
 from datetime import timedelta
-
-import subprocess
-
-import paramiko
-import sshClient
-import threading
-import socket
 
 import time
 
-import ConfigParser
+#import ConfigParser
 #To Parse Configuration files
-#import cfgparse
+
 import configobj
-import os
+
 
 import dateutil.parser
 
@@ -105,27 +98,23 @@ import urllib
 
 log = logging.getLogger(__name__)
 #log.setLevel(logging.DEBUG)
-log.setLevel(logging.INFO)
-
-#Reset Paramiko logging to reduce output cruft.
-plogger = paramiko.util.logging.getLogger()
-plogger.setLevel(logging.WARNING)
+#log.setLevel(logging.INFO)
 
 #URL of local database to connect to
-LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
-PUSH_LIMIT = 5000 #Limit on samples to transfer at any one time
-SYNC_TIME = 60*10  #How often we want to call the sync (Every 10 Mins)
+#LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
+#PUSH_LIMIT = 5000 #Limit on samples to transfer at any one time
+#SYNC_TIME = 60*10  #How often we want to call the sync (Every 10 Mins)
 
 #RSA KEY
-RSA_KEY = None
+#RSA_KEY = None
 #RSA_KEY = "/home/dang/.ssh/id_rsa.pub"
-RSA_KEY = "/home/dang/.ssh/work_key.pub"
+#RSA_KEY = "/home/dang/.ssh/work_key.pub"
 
 #Knwon Hosts file
-KNOWN_HOSTS = None
-KNOWN_HOSTS = "/home/dang/.ssh/known_hosts"
+#KNOWN_HOSTS = None
+#KNOWN_HOSTS = "/home/dang/.ssh/known_hosts"
 
-REST_URL = "127.0.0.1:6543/rest/"
+#REST_URL = "127.0.0.1:6543/rest/"
 
 class PushServer(object):
     """
@@ -180,7 +169,7 @@ class PushServer(object):
             syncList.append(Pusher(localSession,
                                    item,
                                    generalConf,
-                                   self.configParser))
+                                   ))
 
         self.syncList = syncList
         #self.theConfig = theConfig
@@ -236,16 +225,18 @@ class PushServer(object):
         log.info("Running Full Syncronise Cycle")
         for item in self.syncList:
             log.debug("Synchronising {0}".format(item))
-            tempcount = 0
             samples = 1
-            while samples > 0 and tempcount < 5:
+            while samples > 0:
                 t1 = time.time()
-                samples,lastTime = item.sync()
+                samples, lastTime = item.sync()
                 t2 = time.time()
                 log.info("Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
                                                                                                  samples,
                                                                                                  lastTime))
-                tempcount+=1
+
+                print "Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
+                                                                                                 samples,
+                                                                                                 lastTime)
                 self.confParser.write()
 
 class Pusher(object):
@@ -256,7 +247,7 @@ class Pusher(object):
 
     """
 
-    def __init__(self, localSession, config,generalConf,configObj):
+    def __init__(self, localSession, config, generalConf):
         """Initalise a pusher object
 
         :param localSession: A SQLA session, connected to the local database
@@ -268,7 +259,6 @@ class Pusher(object):
         self.localSession = localSession
         self.config = config
         self.generalConf = generalConf
-        self.configObj = configObj
 
         # Storage for mappings between local -> Remote
         self.mappedDeployments = {} #DONE
@@ -292,7 +282,6 @@ class Pusher(object):
         log.debug("Last Update Was {0}".format(self.lastUpdate))
 
         #Start to map the rest
-        #log.setLevel(logging.INFO)
         deployments = self.mapDeployments()
 
         # #Houses
@@ -300,24 +289,22 @@ class Pusher(object):
 
         # #And Locations
         self.mapLocations(houseIds = houses)
-        #log.setLevel(logging.DEBUG)
 
         #Pring some Debugging Information
         #self.debugMappings()
 
         #log.debug("Last update {0}".format(self.lastUpdate))
         #Synchronise Readings
-        samples,lastTime = self.syncReadings()
+        samples, lastTime = self.syncReadings()
 
         log.debug("Remaining Samples {0}".format(samples))
         log.debug("Last Sample Time {0}".format(lastTime))
 
-        
         #Finally update the config file. (Add an tiny Offset to avoid issues
         #with milisecond rounding)
-        self.config['lastupdate'] = lastTime + timedelta(seconds=1)
+        self.config['lastupdate'] = lastTime + timedelta(seconds = 1)
 
-        return samples,lastTime
+        return samples, lastTime
 
 
     def mapDeployments(self, localIds = None):
@@ -635,12 +622,12 @@ class Pusher(object):
         log.debug("--- Mapped Rooms ---")
         log.debug(self.mappedRooms)
         for key, item in self.mappedRooms.iteritems():
-           log.debug("{0} -> {1}".format(key, item))
+            log.debug("{0} -> {1}".format(key, item))
 
         log.debug("--- Mapped Locations --")
         log.debug(self.mappedLocations)
         for key, item in self.mappedLocations.iteritems():
-           log.debug("{0} {1}".format(key, item))
+            log.debug("{0} {1}".format(key, item))
         log.debug("------------")
 
         return
@@ -735,7 +722,7 @@ class Pusher(object):
         return restQuery['headers']['status'] == 201
 
 
-    def syncReadings(self,cutTime=None):
+    def syncReadings(self, cutTime=None):
         """Synchronise readings between two databases
 
         :param DateTime cutTime: Time to start the Sync from
@@ -772,9 +759,6 @@ class Pusher(object):
 
         log.info("Synchronising Readings from {0}".format(cutTime))
 
-        fetchLast = time.time()
-        #Update Node States
-
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
         if cutTime:
@@ -785,29 +769,20 @@ class Pusher(object):
 
         if remainingReadings == 0:
             log.info("No More Readings to Sync")
-            return (remainingReadings,cutTime)
+            return (remainingReadings, cutTime)
         #Limit by the number of items specified in the Config file
         readings = readings.limit(self.generalConf['pushlimit'])
-        #print readings.all()
-        #return
-
-        #allReadings = json.dumps([x.toDict() for x in allReadings])
-        #log.debug(allReadings)
-        #import sys
-        #log.debug(sys.getsizeof(allReadings))
 
         jsonList = []
         for reading in readings:
             #Convert to a JSON and remap the location
             dictReading = reading.toDict()
             dictReading['locationId'] = mappedLocations[reading.locationId]
-            #log.debug("{0} -> {1}".format(reading,dictReading))
             jsonList.append(dictReading)
 
-
-        #log.debug(jsonList)
         #And then try to bulk upload them
-        restQry = restSession.request_post("/bulk/",body=json.dumps(jsonList))
+        restQry = restSession.request_post("/bulk/",
+                                           body=json.dumps(jsonList))
         #log.debug(restQry)
         if restQry["headers"]["status"] == '404':
             log.warning("Upload Fails")
@@ -831,62 +806,11 @@ class Pusher(object):
 
         log.debug("Node States")
 
-        return remainingReadings,lastSample
+        return remainingReadings, lastSample
 
-    def syncState(self,cutTime=None,endTime=None):
-        """
-        Synchronise any node state information
-
-        Currently this just syncronises the node state table based on a given start date.
-        Actually this is pretty easy, as our constaints on unique node names mean that 
-        We dont have to do any error checking.
-
-        :param DateTime startTime: Time to start filtering the states from
-        """
-        lSess = self.LocalSession()
-        session = self.RemoteSession()
-
-        nodeStates = lSess.query(models.NodeState).order_by(models.NodeState.time)
-        log.debug("Total Nodestates {0}".format(nodeStates.count()))
-        if cutTime:
-            nodeStates = nodeStates.filter(models.NodeState.time >= cutTime)
-        if endTime:
-            nodeStates = nodeStates.filter(models.NodeState.time <= endTime)
-
-        log.debug("Total NodeStates to Sync {0}".format(nodeStates.count()))
-        stateCount = 0
-        for item in nodeStates:
-            newState = remoteModels.NodeState(time=item.time,
-                                              nodeId = item.nodeId,
-                                              parent = item.parent,
-                                              localtime = item.localtime)
-            session.add(newState)
-            #log.info("--> Adding State {0}".format(newState))
-        session.flush()
-        session.commit()
-        session.close()
-
-        lSess.close()
 
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
-    
-    #import time
 
     server = PushServer()
     server.sync()
-    #log.debug("{0}".format("="*50))
-    #log.debug("{0}".format("="*50))
-    #server.sync()
-    #push = Pusher()
-    #push.sync()
-    #for x in range(10):
-    #    push.sync()
-                       
-    #while True: #Loop for everything
-    #    t1= time.time()
-    #    log.info("----- Synch at {0}".format(datetime.now()))
-        #push.sync()
-        #log.info("---- Total Time Taken for Sync {0}".format(time.time() - t1))
-        #time.sleep(SYNC_TIME)
-    #push.sync()
