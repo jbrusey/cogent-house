@@ -68,8 +68,8 @@ a good idea to leave it.
 """
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-#logging.basicConfig(level=logging.INFO,filename="push.log")
+#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 __version__ = "0.5.0"
 
@@ -104,8 +104,8 @@ import json
 import urllib
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
-#log.setLevel(logging.INFO)
+#log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 #Reset Paramiko logging to reduce output cruft.
 plogger = paramiko.util.logging.getLogger()
@@ -152,6 +152,7 @@ class PushServer(object):
 
         log.info("Initialising Push Server")
 
+        self.configParser = configobj.ConfigObj("synchronise.conf")
 
         #Read the Configuration File
         generalConf, locationConfig = self.readConfig()
@@ -162,7 +163,7 @@ class PushServer(object):
         if not localURL:
             localURL = generalConf["localUrl"]
 
-        log.debug("Connecting to local database at {0}".format(localURL))
+        log.info("Connecting to local database at {0}".format(localURL))
 
         #Initalise the local database connection
         log.debug("Initalise Session for {0}".format(localURL))
@@ -176,7 +177,10 @@ class PushServer(object):
         #Create a new Pusher object for this each item given in the config
         syncList = []
         for item in locationConfig.values():
-            syncList.append(Pusher(localSession, item))
+            syncList.append(Pusher(localSession,
+                                   item,
+                                   generalConf,
+                                   self.configParser))
 
         self.syncList = syncList
         #self.theConfig = theConfig
@@ -191,7 +195,7 @@ class PushServer(object):
         required
         """
 
-        confParser = configobj.ConfigObj("synchronise.conf")
+        confParser = self.configParser
         log.debug("Processing Config File")
 
         #Dictionary to return
@@ -208,7 +212,7 @@ class PushServer(object):
             log.debug("--> Processing Location {0} {1}".format(loc, isBool))
             if isBool:
                 items = confParser[loc]
-                if items.get("lastupdate",None) in [None,"None"]:
+                if items.get("lastupdate", None) in [None, "None"]:
                     items["lastupdate"] = None
                 else:
                     #We need to parse the last time
@@ -217,7 +221,7 @@ class PushServer(object):
                 syncDict[loc] = items
 
         self.confParser = confParser
-        return generalOpts,syncDict
+        return generalOpts, syncDict
 
 
     def sync(self):
@@ -228,12 +232,21 @@ class PushServer(object):
 
         :return: True on success,  False otherwise
         """
+
+        log.info("Running Full Syncronise Cycle")
         for item in self.syncList:
             log.debug("Synchronising {0}".format(item))
-            item.sync()
-
-
-
+            tempcount = 0
+            samples = 1
+            while samples > 0 and tempcount < 5:
+                t1 = time.time()
+                samples,lastTime = item.sync()
+                t2 = time.time()
+                log.info("Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
+                                                                                                 samples,
+                                                                                                 lastTime))
+                tempcount+=1
+                self.confParser.write()
 
 class Pusher(object):
     """Class to push updates to a remote database.
@@ -243,15 +256,19 @@ class Pusher(object):
 
     """
 
-    def __init__(self,localSession, config):
+    def __init__(self, localSession, config,generalConf,configObj):
         """Initalise a pusher object
 
         :param localSession: A SQLA session, connected to the local database
         :param config: Config File options for this particular pusher object
+        :param generalConf: Global Configuration file for all Push Objest
+        :param configObj: Config Parser Object (To allow Writes)
         """
 
         self.localSession = localSession
         self.config = config
+        self.generalConf = generalConf
+        self.configObj = configObj
 
         # Storage for mappings between local -> Remote
         self.mappedDeployments = {} #DONE
@@ -270,66 +287,50 @@ class Pusher(object):
         """
 
         config = self.config
-        self.lastUpdate = config.get("lastUpdate",None)
         log.debug("Sync with config {0}".format(config))
+        self.lastUpdate = config.get("lastupdate", None)
+        log.debug("Last Update Was {0}".format(self.lastUpdate))
 
-        # #First off create the ssh tunnel
-        # theTunnel = self._startTunnel(config)
-        # if theTunnel:
-        #     server,ssh = theTunnel
-        # else:
-        #     log.warning("Unable to start SSH tunnel")
-        #     return
-
-        # #We can then Initialise the remote Location
-        # self.initRemote(config["dbstring"])
-
-        #The First Thing to do is to synchonise all nodes
-#        self.syncNodes()
-
-
-        #Start to map the rest 
+        #Start to map the rest
+        #log.setLevel(logging.INFO)
         deployments = self.mapDeployments()
 
-        #Map theDatabase
-        self.mapDatabase()
-        return
+        # #Houses
+        houses = self.mapHouses(deploymentIds = deployments)
+
+        # #And Locations
+        self.mapLocations(houseIds = houses)
+        #log.setLevel(logging.DEBUG)
+
+        #Pring some Debugging Information
+        #self.debugMappings()
+
+        #log.debug("Last update {0}".format(self.lastUpdate))
         #Synchronise Readings
-        #self.syncReadings()
+        samples,lastTime = self.syncReadings()
 
-        #And Finally Sync node States
-        #self.syncNodeState()
+        log.debug("Remaining Samples {0}".format(samples))
+        log.debug("Last Sample Time {0}".format(lastTime))
 
-        #Last thing to do is update the config file
+        
+        #Finally update the config file. (Add an tiny Offset to avoid issues
+        #with milisecond rounding)
+        self.config['lastupdate'] = lastTime + timedelta(seconds=1)
 
-
-        #Sync Deployment / House / Location etc
-        #self.mapLocations(value["lastupdate"])
-        #Sync Node States
-
-        #Sync Readings
-
-        #And run a test query
-
-        #rSession = self.RemoteSession()
-        #qry = rSession.query(models.RoomType).all()
-        #for item in qry:
-        #    print item
-
-        #And Shutdown the sockets
-        log.debug("Shutting Down")
-        server.shutdown()
-        server.socket.close()
-        ssh.close()
+        return samples,lastTime
 
 
-    def mapDeployments(self,localIds = None):
+    def mapDeployments(self, localIds = None):
         """
         Map deployments in the local database to those in the remote database
 
         If localIds are given, this will map the supplied Ids.
         Otherwise, deployments with an endDate later than the last update,
         or no endDate will be mapped.
+
+        .. warning::
+
+            We assume that deployments all have a unique name.
 
         :var localIds:  List of Id's for local database objects
         :return: A List of delployment ID's that have been updated
@@ -341,9 +342,7 @@ class Pusher(object):
 
         #Get the list of deployments that may need updating
         Deployment = models.Deployment
-
         depQuery = lSess.query(models.Deployment)
-
         lastUpdate = self.lastUpdate
 
         #Firstly if we are given a list of localIds:
@@ -357,64 +356,42 @@ class Pusher(object):
 
 
         for mapDep in depQuery:
+            log.debug("--> Syncronising Deployment {0}".format(mapDep))
 
-            log.info("--> Syncronising Deployment {0}".format(mapDep))
-
-            theDeployment = mappedDeployments.get(mapDep.id,None)
+            theDeployment = mappedDeployments.get(mapDep.id, None)
             if theDeployment is None:
                 log.debug("--> -->  Deployment Not Mapped")
 
-                #We need to assume that all deployments have a unique name
+
                 #And Build the Query
                 params = {"name":mapDep.name}
                 theUrl = "deployment/?{0}".format(urllib.urlencode(params))
 
-                #Just updating the item using the dictionary is not so good, 
-                #As it can overwrite the ID  We need to do a little manual munging 
-                #Here.
-
+                #If we are updating an item, sending the orignial dict overwrites
+                #The ID, therefore we remove it from the request body
                 theBody = mapDep.toDict()
-                #And Remove the Id
                 del theBody["id"]
-                print theBody
 
                 #Then we can ask the system to update / create this object
-                restQry = restSession.request_put(theUrl,body=json.dumps(theBody))
+                restQry = restSession.request_put(theUrl,
+                                                  body=json.dumps(theBody))
                 log.debug(restQry)
-                #returnItem = models.Deployment()
-                #returnItem.fromJSON(
-                
+
                 if restQry["headers"]["status"] == '404':
                     log.warning("Error Creating Deployment Item")
                     raise Exception ("Error Creating Deplyment Item")
-                #    #Then we do not have an Item
-                
+
+
                 #Then map the local and Remote Id's
                 restBody = json.loads(restQry['body'])
+                log.info("Deployment {0} mapped to {1}".format(mapDep.id,
+                                                               restBody['id']))
                 mappedDeployments[mapDep.id] = restBody['id']
-
-                #restQry = 
-
-        #         rDep = rSess.query(remoteModels.Deployment)
-        #         rDep = rDep.filter_by(name = mapDep.name).first()
-
-        #         if rDep is None:
-        #             rDep = remoteModels.Deployment(name=mapDep.name)
-        #             rSess.add(rDep)
-        #         #Update the rest of the parameters
-        #         rDep.description = mapDep.description
-        #         rDep.startDate = mapDep.startDate
-        #         rDep.endDate = mapDep.endDate
-        #         rSess.flush()
-        #         mappedDeployments[mapDep.id] = rDep
-
-        # rSess.flush()
-        # rSess.commit()
 
         return [x.id for x in depQuery]
 
 
-    def mapHouses(self,localIds=None,deploymentIds=None):
+    def mapHouses(self, localIds=None, deploymentIds=None):
         """
         Map between houses in local and remote database
 
@@ -422,6 +399,8 @@ class Pusher(object):
 
         If deploymentIds are specified then only houses linked to these
         deploymeents will be mapped Otherwise all houses will be mapped
+
+        We assume that houses are unique based on Address and deployment Id
 
         :param localIds: Id of house objects to synchronise
         :param deploymentIds: Sync houses attached to these deployments
@@ -433,11 +412,15 @@ class Pusher(object):
         mappedDeployments = self.mappedDeployments
 
         lSess = self.localSession()
-        rSess = self.remoteSession()
+        restSession = self.restSession
+        #rSess = self.remoteSession()
 
+        log.debug("Local Id Specified {0}".format(localIds))
+        log.debug("Deploymet Id's: {0}".format(deploymentIds))
 
         House = models.House
 
+        #Find the Houses we need to update
         houseQuery = lSess.query(House)
 
         if localIds:
@@ -445,42 +428,46 @@ class Pusher(object):
         elif deploymentIds:
             houseQuery = houseQuery.filter(House.deploymentId.in_(deploymentIds))
 
+
         log.debug("Sycnhronising Houses")
         for mapHouse in houseQuery:
-            log.info("--> Mapping House {0}".format(mapHouse))
+            log.debug("--> Mapping House {0}".format(mapHouse))
 
-            theHouse = mappedHouses.get(mapHouse.id,None)
+            theHouse = mappedHouses.get(mapHouse.id, None)
             if theHouse is None:
                 #Get the mapped deployment Id
                 log.debug("--> --> House Not Mapped")
-                depId = mappedDeployments[mapHouse.deploymentId].id
-                log.debug("--> Orig Id {0} Maps {1}".format(mapHouse.deploymentId,
-                                                            depId))
 
-                #Look for the remote version of this house or create a new one.
-                rHouse = rSess.query(remoteModels.House)
-                rHouse = rHouse.filter_by(address=mapHouse.address,
-                                          deploymentId = depId).first()
-                if rHouse is None:
-                    log.info("--> No Such House in Remote Database")
-                    rHouse = remoteModels.House(address = mapHouse.address,
-                                                deploymentId = depId)
-                    rSess.add(rHouse)
+                #Start to build our Query
+                depId = mappedDeployments[mapHouse.deploymentId]
+                log.debug("--> Mapped Deployment It {0}".format(depId))
+                params = {"address":mapHouse.address,
+                          "deploymentId":depId}
 
-                #Again update any other parameters
-                rHouse.startDate = mapHouse.startDate
-                rHouse.endDate = mapHouse.endDate
-                rSess.flush()
+                theUrl = "house/?{0}".format(urllib.urlencode(params))
 
-                mappedHouses[mapHouse.id] = rHouse
+                theBody = mapHouse.toDict()
+                del theBody["id"] #Remove Id
+                theBody["deploymentId"] = depId #Ensure we use the correct deployment Ids
+
+                restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
+                log.debug(restQry)
+
+                if restQry["headers"]["status"] == '404':
+                    log.warning("Error Creating Deployment Item")
+                    raise Exception ("Error Creating Deplyment Item")
 
 
-        rSess.commit()
+                #Then map the local and Remote Id's
+                restBody = json.loads(restQry['body'])
+                log.info("House {0} mapped to {1}".format(mapHouse.id,
+                                                          restBody['id']))
+                mappedHouses[mapHouse.id] = restBody['id']
 
         #After that we want to get all locations assoicated with a House
         return [x.id for x in houseQuery]
 
-    def mapRooms(self,roomId):
+    def mapRooms(self, roomId):
         """
         Map a room between the Local and Remote Database
 
@@ -491,51 +478,59 @@ class Pusher(object):
         mappedRoomTypes = self.mappedRoomTypes
         mappedRooms = self.mappedRooms
 
-        rSess = self.remoteSession()
+        #rSess = self.remoteSession()
         lSess = self.localSession()
-        log.debug("Mapping Room {0}".format(roomId))
+        restSession = self.restSession
+
+        #log.debug("Mapping Room {0}".format(roomId))
 
         theRoom = lSess.query(models.Room).filter_by(id=roomId).first()
-        log.debug("The Room {0}".format(theRoom))
+        log.debug("Mapping Room {0}".format(theRoom))
         #WE also need to double check that the room type exists
-        roomType = mappedRoomTypes.get(theRoom.roomTypeId,None)
-        log.debug("Mapped Room Type {0}".format(roomType))
-        if roomType is None:
-            log.info("--> RoomType {0} not mapped".format(theRoom.roomType))
+        mapType = mappedRoomTypes.get(theRoom.roomTypeId, None)
+        log.debug("Mapped Room Type {0}".format(mapType))
+        if mapType is None:
+            roomType = theRoom.roomType
+            log.debug("--> RoomType {0} not mapped".format(roomType))
 
-            roomType = rSess.query(remoteModels.RoomType)
-            roomType = roomType.filter_by(name=theRoom.roomType.name).first()
-            #Create if it doesn't exist
-            if roomType is None:
-                roomType = remoteModels.RoomType(name=theRoom.roomType.name)
-                rSess.add(roomType)
-                rSess.flush()
+            #Upload new room types
+            params = {"name":roomType.name}
+            theUrl = "roomType/?{0}".format(urllib.urlencode(params))
 
-            mappedRoomTypes[theRoom.roomTypeId] = roomType
+            theBody = roomType.toDict()
+            del theBody["id"]
 
-        log.debug(" Creating Room")
-            #Now We can create the room itself
-        mapRoom = rSess.query(models.Room)
-        mapRoom = mapRoom.filter_by(roomTypeId = roomType.id,
-                                        name=theRoom.name).first()
+            restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
+            log.debug(restQry)
+            restBody = json.loads(restQry['body'])
+            mapType = restBody['id']
+            log.info("Room Type {0} mapped to {1}".format(roomType.id,
+                                                          mapType))
+            mappedRoomTypes[roomType.id] = mapType
 
-        log.debug("Remote Room {0}".format(mapRoom))
-        # #And Create if that doesnt exist
-        if mapRoom is None:
-            log.debug("No Such room in remote database")
-            mapRoom = remoteModels.Room(name=theRoom.name,
-                                        roomTypeId = roomType.id)
-            rSess.add(mapRoom)
-            rSess.flush()
+        #Then Create the Room
+        params = {"name":theRoom.name,
+                  'roomTypeId':mapType}
+        log.debug("Creating Room with Parameters {0}".format(params))
+        theUrl = "room/?{0}".format(urllib.urlencode(params))
+        theBody = theRoom.toDict()
+        del theBody["id"]
+        theBody["roomTypeId"] = mapType
+
+        restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
+        log.debug(restQry)
+
+        restBody = json.loads(restQry['body'])
+        mapRoom = restBody['id']
+
+        log.info("Room {0} Mapped to {1}".format(theRoom.id,
+                                                 mapRoom))
 
         mappedRooms[theRoom.id] = mapRoom
+
         return mapRoom
-        #     #So We can now add the location to the Database
-        #     #theHouse = mappedHouses[mapLoc.id]
 
-
-
-    def mapLocations(self,localIds=None,houseIds=None):
+    def mapLocations(self, localIds=None, houseIds=None):
         """
         Map between houses in local and remote database
 
@@ -554,7 +549,7 @@ class Pusher(object):
         #mappedDeployments = self.mappedDeployments
 
         lSess = self.localSession()
-        rSess = self.remoteSession()
+        restSession = self.restSession
 
         mappedLocations = self.mappedLocations
         mappedRooms = self.mappedRooms
@@ -573,90 +568,59 @@ class Pusher(object):
             locQuery = locQuery.filter(Location.houseId.in_(houseIds))
 
         for mapLoc in locQuery:
-            log.info("Mapping Location {0}".format(mapLoc))
+            log.debug("Mapping Location {0}".format(mapLoc))
 
-            #Check we dont allready know about this
-            theLocation = mappedLocations.get(mapLoc.id,None)
+            # #Check we dont allready know about this
+            theLocation = mappedLocations.get(mapLoc.id, None)
 
             if theLocation is None:
                 log.debug("--> Location not Known")
-                #The first thing we want to do is to see if we have a mapped Rooms
-                #For this Location
 
-                #mapRoom = mappedRooms[mapLoc.roomId]
+                #The first thing we want to do is to see if we have a mapped
+                # Rooms / Houses for this location, Houses should have been
+                # taken care of above
+
                 mapHouse = mappedHouses[mapLoc.houseId]
-                mapRoom = mappedRooms.get(mapLoc.roomId,None)
-                #mapHouse = mappedHouses.get(mapLoc.houseId,None)
-                log.debug("--> Mapped Room {0}".format(mapRoom))
+                mapRoom = mappedRooms.get(mapLoc.roomId, None)
                 log.debug("--> Mapped House {0}".format(mapHouse))
+                log.debug("--> Mapped Room {0}".format(mapRoom))
 
                 if mapRoom is None:
-                    #We need to map the room
                     mapRoom = self.mapRooms(mapLoc.room.id)
 
                 log.debug("--> MAPPED ROOM {0}".format(mapRoom))
+
                 #We can then get on with creating the Location
 
-                theLocation = rSess.query(remoteModels.Location)
-                theLocation = theLocation.filter_by(houseId = mapHouse.id,
-                                                    roomId = mapRoom.id).first()
+                params = {"houseId":mapHouse,
+                          'roomId':mapRoom}
 
-                if theLocation is None:
-                    theLocation = remoteModels.Location(houseId = mapHouse.id,
-                                                        roomId = mapRoom.id)
-                    rSess.add(theLocation)
-                    rSess.flush()
+                log.debug("Creating Location with Parameters {0}".format(params))
+                theUrl = "location/?{0}".format(urllib.urlencode(params))
 
-                mappedLocations[mapLoc.id] = theLocation
+                theBody = mapLoc.toDict()
+
+                del theBody["id"]
+                theBody["houseId"] = mapHouse
+                theBody["roomId"] = mapRoom
+
+                restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
+                log.debug(restQry)
+
+                restBody = json.loads(restQry['body'])
+                restLoc = restBody['id']
+                mappedLocations[mapLoc.id] = restLoc
 
 
-    def mapDatabase(self, lastUpdate = None):
-        """Map objects in the Local database to their equivelant on remote server
-
-        This functions attempts to map the locations on the local server, to
-        those on the remote server
-
-        ..param:: lastUpdate timestamp of the last update
-        ..return:: Dictionaty of [<local>] :<remote> pairs
-
-        We start by examining the database for all Deplyoments / Houses that do
-        not have a finish date.  Or those where the finish date is after the
-        last update.  This should ensure that only properties that need updating
-        will be transfered.
-
+    def debugMappings(self):
         """
-
-        #Really the Houses, Deployments and Rooms are immaterial, BUT we need to
-        #update them to build a location
-
-        #mappedDeployments = self.mappedDeployments = {} #DONE
-        #mappedHouses = self.mappedHouses = {} #DONE
-        #mappedRooms = self.mappedRooms = {}
-        #mappedLocations = self.mappedLocations = {}
-        #mappedRoomTypes = self.mappedRoomTypes = {}
-
-        #lSess = self.localSession()
-        #rSess = self.remoteSession()
-
-        log.debug("Mapping Database")
-
-
-
-        # #Houses
-        # houses = self.mapHouses(deploymentIds = deployments)
-        # #And Locations
-        # locations = self.mapLocations(houseIds = houses)
-
-        # lSess = self.localSession()
-        # rSess = self.remoteSession()
-        
-
-        #Lets Debug
+        Helper Debug function to print mappings
+        """
 
         log.debug("---- Mapped Deloyments ---")
         log.debug(self.mappedDeployments)
-        for key,item in self.mappedDeployments.iteritems():
-            log.debug("{0} : {1}".format(key,item))
+        for key, item in self.mappedDeployments.iteritems():
+            log.debug("{0} : {1}".format(key, item))
 
         log.debug("---- Mapped Houses ----")
         log.debug(self.mappedHouses)
@@ -665,35 +629,22 @@ class Pusher(object):
 
         log.debug("--- MAPPED ROOM TYPES----")
         log.debug(self.mappedRoomTypes)
-        for key,item in self.mappedRoomTypes.iteritems():
-            log.debug("{0} {1}".format(key,item))
+        for key, item in self.mappedRoomTypes.iteritems():
+            log.debug("{0} {1}".format(key, item))
 
         log.debug("--- Mapped Rooms ---")
         log.debug(self.mappedRooms)
-        #for key,item in self.mappedRooms.iteritems():
-        #    log.debug("{0} -> {1}".format(key,item))
+        for key, item in self.mappedRooms.iteritems():
+           log.debug("{0} -> {1}".format(key, item))
 
         log.debug("--- Mapped Locations --")
         log.debug(self.mappedLocations)
-        #for key,item in self.mappedLocations.iteritems():
-        #    log.debug("{0} {1}".format(key,item))
+        for key, item in self.mappedLocations.iteritems():
+           log.debug("{0} {1}".format(key, item))
         log.debug("------------")
 
         return
 
-        #log.debug("--> Filtering Deployments based on {0}".format(lastUpdate))
-
-
-
-        #Next We Want to Map Houses
-
-        #First Split out deployment ID's so we can filter our houses by that
-        #deploymentIds = [x.id for x in depQuery]
-        #log.debug("Fiter houses using deployment Id {0}".format(deploymentIds))
-
-
-      
-        return
 
     def syncNodes(self):
         """Syncronise nodes:
@@ -738,8 +689,6 @@ class Pusher(object):
         #log.debug(restBody)
         log.debug("Remote Nodes :{0}".format(rQuery))
 
-        #return
-
         #Map these against our Local Nodes
         #Have a check here, if the remote DB is empty, then using _in throws a
         #Error
@@ -771,7 +720,6 @@ class Pusher(object):
             for sensor in node.sensors:
                 #We shouldn't have to worry about sensor types as they should be
                 #global
-                theModel = remoteModels.Sensor
                 newSensor = models.Sensor(sensorTypeId=sensor.sensorTypeId,
                                           nodeId = node.id,
                                           calibrationSlope = sensor.calibrationSlope,
@@ -787,141 +735,19 @@ class Pusher(object):
         return restQuery['headers']['status'] == 201
 
 
-    def syncLocation(self,locId):
-        """Code to Synchronise a given locations
-
-        Locations are a combination of Rooms/Houses therefore they are also
-        synchronised during this process.
-
-        # Check we have a room of this (name/type) in the remote databases
-        # Check we have a house of this (name/deployment) in the remote
-        # Check we have a location with these parameters
-
-        :param locId: LocationId to Synchronise
-        :return: Equivalent Location Id in the Remote Database
-
-        :since 0.1: Fixed House Name based bug.  Consider the
-            following Say we have one house -> Deployment combo (Say
-            Summer Deployments), then revisit at a later time (Winter
-            Deployments)
-
-            The Following should happen,
-
-            Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
-            Deployment2 -> House2 --(Location2)->  Room1 -> Node1 ...
-
-            Our Original Code for syncing locations did this:
-
-            Deployment1 -> House1 --(Location1)->  Room1 -> Node1 ...
-            Deployment2 -> House1 --(Location1)->  Room1 -> Node1 ...
-        """
-
-        lSess = self.LocalSession()
-        rSess = self.RemoteSession()
-
-
-        theLocation = lSess.query(models.Location).filter_by(id=locId).first()
-        log.debug("{2} Synchronising Location {1} {2}".format(locId,theLocation,"="*10))
-
-        # #This is a little unfortunate, but I cannot (without over complicating reflection) 
-        # #Setup backrefs on the remote tables this should be a :TODO:
-        # #So We need a long winded query
-
-        # localRoom = theLocation.room
-        # log.debug("Local Room {0}".format(localRoom))
-        # remoteRoom = rSess.query(remoteModels.Room).filter_by(name=localRoom.name).first()
-        # if remoteRoom is None:
-        #     log.debug("--> No Such Room {0}".format(localRoom.name))
-
-        #     localRoomType = localRoom.roomType
-        #     log.debug("--> Local Room Type {0}".format(localRoomType))
-        #     #We also cannot assume that the room type will exist so we need to check that
-        #     roomType = rSess.query(remoteModels.RoomType).filter_by(name=localRoomType.name).first()
-        #     if roomType is None:
-        #         log.debug("--> --> No Such Room Type {0}".format(localRoomType.name))
-        #         roomType = remoteModels.RoomType(name=localRoomType.name)
-        #         rSess.add(roomType)
-        #         rSess.flush()
-
-        #     remoteRoom = remoteModels.Room(name=localRoom.name,
-        #                                    roomTypeId = roomType.id)
-
-        #     rSess.add(remoteRoom)
-        #     rSess.flush()
-
-        # rSess.commit()
-        # log.debug("==> Remote Room is {0}".format(remoteRoom))
-        
-        # #Then Check the House
-        # localHouse = theLocation.house
-        # #To address the bug above, Add an intermediate step of checking the deployment
-        # localDeployment = localHouse.deployment
-        # log.debug("--> Local Deployment {0}".format(localDeployment))
-        
-        # #Assume that all deployments will have a unique name
-        # remoteDeployment = rSess.query(remoteModels.Deployment).filter_by(name=localDeployment.name).first()
-
-        # if remoteDeployment is None:
-        #     log.debug("--> --> Create new Deployment")
-        #     remoteDeployment = remoteModels.Deployment(name=localDeployment.name,
-        #                                                description = localDeployment.description,
-        #                                                startDate = localDeployment.startDate,
-        #                                                endDate = localDeployment.endDate)
-        #     rSess.add(remoteDeployment)
-        #     rSess.commit()
-
-        # log.debug("--> Remote Deployment {0}".format(remoteDeployment))
-        
-        # remoteHouse = rSess.query(remoteModels.House).filter_by(deploymentId = remoteDeployment.id,
-        #                                                         address = localHouse.address).first()
-
-        # log.debug("--> Local House {0}".format(localHouse))   
-
-        # if not remoteHouse:
-        #     #We should have created the deployment before   
-        #     log.debug("--> --> Create new House")
-        #     remoteHouse = remoteModels.House(address=localHouse.address,
-        #                                      deploymentId=remoteDeployment.id)
-        #     rSess.add(remoteHouse)
-        #     rSess.flush()
-        #     rSess.commit()
-
-        # log.debug("--> Remote House is {0}".format(remoteHouse))
-
-        # remoteLocation = rSess.query(remoteModels.Location).filter_by(houseId = remoteHouse.id,
-        #                                                               roomId=remoteRoom.id).first()
-
-        # log.debug("--> DB Remote Location {0}".format(remoteLocation))
-        # rSess.flush()
-        # if not remoteLocation:
-        #     remoteLocation = remoteModels.Location(houseId=remoteHouse.id,
-        #                                            roomId = remoteRoom.id)
-        #     rSess.add(remoteLocation)
-        #     log.debug("Adding New Remote Location")
-            
-        # log.debug("--> Remote Location is {0}".format(remoteLocation))
-        # rSess.commit()
-
-        # locId = remoteLocation.id
-        # lSess.close()
-        # rSess.close()
-        # return locId
-        # pass
-
     def syncReadings(self,cutTime=None):
         """Synchronise readings between two databases
 
         :param DateTime cutTime: Time to start the Sync from
-        :return: True if sync was succesfull there are still nodes to sync
-                 False if there were no nodes to Sync
-                 -1 if there was an Error
+        :return: (Number of Readings that remain to be synchronised,
+                  Timestamp of last reading)
 
         This assumes that Sync Nodes has been called.
 
         The Algorithm for this is:
 
         Initialise Temporary Storage, (Location = {})
-        
+
         #. Get the time of the most recent update from the local database
         #. Get all Local Readings after this time.
         #. For Each Reading
@@ -931,121 +757,81 @@ class Pusher(object):
             #. Else:
                 #. Add Sample
 
-        # If Sync is successful, fix the last update timestamp and return 
+        # If Sync is successful, fix the last update timestamp and return
         """
 
 
-        lSess = self.LocalSession()
-        session = self.RemoteSession()
+        lSess = self.localSession()
+        restSession = self.restSession
 
-        log.info("Synchronising Readings")
-        
-        startTime = time.time()
+        mappedLocations = self.mappedLocations
 
         #Time stamp to check readings against
         if not cutTime:
-            rUrl = self.rUrl
-            lastUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
-            log.info("--> Time Query {0}".format(lastUpdate))
+            cutTime = self.lastUpdate
 
-            if lastUpdate:
-                cutTime = lastUpdate.lastUpdate
-            else:
-                cutTime = None
+        log.info("Synchronising Readings from {0}".format(cutTime))
 
         fetchLast = time.time()
         #Update Node States
-                  
+
         #Get the Readings
         readings = lSess.query(models.Reading).order_by(models.Reading.time)
         if cutTime:
             log.debug("Filter all readings since {0}".format(cutTime))
             readings = readings.filter(models.Reading.time >= cutTime)
 
-        log.info("Total Readings to Sync {0}".format(readings.count()))
-        
-        #Lets try the Limit
-        readings = readings.limit(PUSH_LIMIT)
+        remainingReadings = readings.count()
 
-        makeQuery = time.time()
+        if remainingReadings == 0:
+            log.info("No More Readings to Sync")
+            return (remainingReadings,cutTime)
+        #Limit by the number of items specified in the Config file
+        readings = readings.limit(self.generalConf['pushlimit'])
+        #print readings.all()
+        #return
 
-        #Init Temp Storage
-        locationStore = {}
-        newReading = None
-        for reading in readings:  
-            #print reading
-            mappedLoc = locationStore.get(reading.locationId,None)
-            #Check if we have the location etc
-            if mappedLoc is None:
-                #Deal with readings that have no location
-                if reading.locationId is None:
-                    mapId = None
-                else:
-                    mapId = self.syncLocation(reading.locationId)
-                    #And update the nodes Location
-                    if not mapId:
-                        log.warning("Error Creating Location {0}".format(reading.locationId))
-                        return -1
-                                
-                locationStore[reading.locationId] = mapId
-            #Otherwise, We should just be able to sync the Reading
-            newReading = remoteModels.Reading(time = reading.time,
-                                              nodeId = reading.nodeId,
-                                              type = reading.typeId,
-                                              locationId = mapId,
-                                              value = reading.value)
-                     
-            session.add(newReading)
-            #session.commit()
+        #allReadings = json.dumps([x.toDict() for x in allReadings])
+        #log.debug(allReadings)
+        #import sys
+        #log.debug(sys.getsizeof(allReadings))
 
-        addReadings = time.time()
-        if newReading is None:
-            #If we had no data to update
-            return False
+        jsonList = []
+        for reading in readings:
+            #Convert to a JSON and remap the location
+            dictReading = reading.toDict()
+            dictReading['locationId'] = mappedLocations[reading.locationId]
+            #log.debug("{0} -> {1}".format(reading,dictReading))
+            jsonList.append(dictReading)
 
-        log.debug("Last Reading Added Was {0}".format(newReading))
 
-        try:
-            lastTime = newReading.time + timedelta(seconds = 1)
-            session.flush()
-            session.commit()
-            session.close()
-            #Update the Local Time stamp
+        #log.debug(jsonList)
+        #And then try to bulk upload them
+        restQry = restSession.request_post("/bulk/",body=json.dumps(jsonList))
+        #log.debug(restQry)
+        if restQry["headers"]["status"] == '404':
+            log.warning("Upload Fails")
+            raise Exception ("Bad Things Happen")
 
-            newUpdate = lSess.query(models.UploadURL).filter_by(url=self.rUrl.url).first()
-            #Add a bit of jitter otherwise we end up getting the same reading.
-            newUpdate.lastUpdate = lastTime
-            lSess.flush()
-            lSess.commit()
-            log.info("Commit Successful Last update is {0}".format(newUpdate))
-        except Exception, e:
-            log.warning("Commit Fails {0}".format(e))
-            return -1
-        
-        commitReadings = time.time()
-        lSess.close()
-        session.close()
+        #We also want to update the Node States
+        lastSample = readings[-1].time
+        log.debug("Last Sample Time {0}".format(lastSample))
 
-        #Synchonise States
-        log.info("Synchronising Nodestate")
-        self.syncState(cutTime,lastTime)
+        nodeStates = lSess.query(models.NodeState)
+        if cutTime:
+            nodeStates = nodeStates.filter(models.NodeState.time >= cutTime)
+        nodeStates = nodeStates.filter(models.NodeState.time <= lastSample)
 
-        syncTime = time.time()
+        restStates = [x.toDict() for x in nodeStates]
+        log.debug("Rest States {0}".format(restStates))
+        if restStates:
+            restQry = restSession.request_post("/bulk/",
+                                               body=json.dumps(restStates))
+            log.debug(restQry)
 
-        readingLog.warning("{},{},{},{},{},{},{},{},{}".format(self.currentUrl,
-                                                               startTime,
-                                                               syncTime,
-                                                               syncTime - startTime,
-                                                               fetchLast - startTime,
-                                                               makeQuery - startTime,
-                                                               addReadings - startTime,
-                                                               commitReadings - startTime,
-                                                               syncTime - startTime))                                                
+        log.debug("Node States")
 
-                                                        
-                                        
-        return True
-        # pass
+        return remainingReadings,lastSample
 
     def syncState(self,cutTime=None,endTime=None):
         """
@@ -1067,8 +853,7 @@ class Pusher(object):
         if endTime:
             nodeStates = nodeStates.filter(models.NodeState.time <= endTime)
 
-        log.info("Total NodeStates to Sync {0}".format(nodeStates.count()))
-                  
+        log.debug("Total NodeStates to Sync {0}".format(nodeStates.count()))
         stateCount = 0
         for item in nodeStates:
             newState = remoteModels.NodeState(time=item.time,
@@ -1077,16 +862,11 @@ class Pusher(object):
                                               localtime = item.localtime)
             session.add(newState)
             #log.info("--> Adding State {0}".format(newState))
-            
         session.flush()
         session.commit()
         session.close()
 
         lSess.close()
-
-
-
-
 
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
@@ -1095,8 +875,8 @@ if __name__ == "__main__":
 
     server = PushServer()
     server.sync()
-    log.debug("{0}".format("="*50))
-    log.debug("{0}".format("="*50))
+    #log.debug("{0}".format("="*50))
+    #log.debug("{0}".format("="*50))
     #server.sync()
     #push = Pusher()
     #push.sync()

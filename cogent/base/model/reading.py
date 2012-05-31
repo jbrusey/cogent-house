@@ -61,7 +61,12 @@ class Reading(Base,meta.InnoDBMix):
     value = Column(Float)    
 
     def __repr__(self):
-        return "Reading(" + str(self.time) + "," + str(self.nodeId) + "," + str(self.typeId) + "," + str(self.value) + ")"
+        #return "Reading(" + str(self.time) + "," + str(self.nodeId) + "," + str(self.typeId) + "," + str(self.value) + ")"
+        return "Reading {0}, {1}, {2}, {3} = {4}".format(self.time,
+                                                         self.nodeId,
+                                                         self.typeId,
+                                                         self.locationId,
+                                                         self.value)
         
         
     def asJSON(self,slope=1,offset=0):
