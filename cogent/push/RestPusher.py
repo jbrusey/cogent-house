@@ -101,6 +101,7 @@ import dateutil.parser
 
 import restful_lib
 import json
+import urllib
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -284,7 +285,11 @@ class Pusher(object):
         # self.initRemote(config["dbstring"])
 
         #The First Thing to do is to synchonise all nodes
-        #self.syncNodes()
+#        self.syncNodes()
+
+
+        #Start to map the rest 
+        deployments = self.mapDeployments()
 
         #Map theDatabase
         self.mapDatabase()
@@ -333,7 +338,6 @@ class Pusher(object):
         mappedDeployments = self.mappedDeployments
         lSess = self.localSession()
         restSession = self.restSession
-        #rSess = self.remoteSession()
 
         #Get the list of deployments that may need updating
         Deployment = models.Deployment
@@ -361,8 +365,35 @@ class Pusher(object):
                 log.debug("--> -->  Deployment Not Mapped")
 
                 #We need to assume that all deployments have a unique name
+                #And Build the Query
                 params = {"name":mapDep.name}
+                theUrl = "deployment/?{0}".format(urllib.urlencode(params))
 
+                #Just updating the item using the dictionary is not so good, 
+                #As it can overwrite the ID  We need to do a little manual munging 
+                #Here.
+
+                theBody = mapDep.toDict()
+                #And Remove the Id
+                del theBody["id"]
+                print theBody
+
+                #Then we can ask the system to update / create this object
+                restQry = restSession.request_put(theUrl,body=json.dumps(theBody))
+                log.debug(restQry)
+                #returnItem = models.Deployment()
+                #returnItem.fromJSON(
+                
+                if restQry["headers"]["status"] == '404':
+                    log.warning("Error Creating Deployment Item")
+                    raise Exception ("Error Creating Deplyment Item")
+                #    #Then we do not have an Item
+                
+                #Then map the local and Remote Id's
+                restBody = json.loads(restQry['body'])
+                mappedDeployments[mapDep.id] = restBody['id']
+
+                #restQry = 
 
         #         rDep = rSess.query(remoteModels.Deployment)
         #         rDep = rDep.filter_by(name = mapDep.name).first()
@@ -609,8 +640,7 @@ class Pusher(object):
 
         log.debug("Mapping Database")
 
-        #Map Deployments
-        deployments = self.mapDeployments()
+
 
         # #Houses
         # houses = self.mapHouses(deploymentIds = deployments)
@@ -1067,7 +1097,7 @@ if __name__ == "__main__":
     server.sync()
     log.debug("{0}".format("="*50))
     log.debug("{0}".format("="*50))
-    server.sync()
+    #server.sync()
     #push = Pusher()
     #push.sync()
     #for x in range(10):
