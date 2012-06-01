@@ -123,6 +123,7 @@ class Datagen(object):
 
     def addMany(self):
         """Add around 1 million records to the database"""
+        """Add about 2000 Records to the Database"""
         session = meta.Session()
         localCount = 0
         stateOne = True
@@ -133,9 +134,10 @@ class Datagen(object):
 
         totalCount = 0
         try:
-            while totalCount < 500000:
+            #while totalCount < 500000:
+            while totalCount < 100000:
                 #Add a reading every N seconds
-                log.debug("Adding New Reading {0}".format(fakeTime))
+                #log.debug("Adding New Reading {0}".format(fakeTime))
 
                 theReading = models.Reading(time = fakeTime,
                                             nodeId = node37.id,
