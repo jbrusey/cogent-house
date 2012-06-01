@@ -69,7 +69,8 @@ a good idea to leave it.
 
 import logging
 #logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.INFO,filename="push.log")
+#logging.basicConfig(level=logging.INFO,filename="push.log")
+logging.basicConfig(level=logging.INFO)
 
 __version__ = "0.5.0"
 
@@ -222,10 +223,16 @@ class PushServer(object):
         :return: True on success,  False otherwise
         """
 
+        loopStart = time.time()
+        avgTime = None
         log.info("Running Full Syncronise Cycle")
         for item in self.syncList:
             log.debug("Synchronising {0}".format(item))
             samples = 1
+
+            #samples,lastTime = item.sync()
+            
+            #return
             while samples > 0:
                 t1 = time.time()
                 samples, lastTime = item.sync()
@@ -237,7 +244,15 @@ class PushServer(object):
                 print "Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
                                                                                                  samples,
                                                                                                  lastTime)
-                self.confParser.write()
+                if avgTime is None:
+                    avgTime = t2-t1
+                else:
+                    avgTime = (avgTime + (t2-t1)) / 2.0
+                
+                self.confParser.write()    
+
+        loopEnd = time.time()
+        log.info("Total Time Taken {0} Avg {1}".format(loopEnd-loopStart,avgTime))
 
 class Pusher(object):
     """Class to push updates to a remote database.
@@ -268,6 +283,7 @@ class Pusher(object):
         self.mappedRoomTypes = {}
 
         self.restSession = restful_lib.Connection("http://127.0.0.1:6543/rest/")
+        #self.restSession = restful_lib.Connection("http://127.0.0.1/myapp/rest/")
 
     def sync(self):
         """
@@ -281,6 +297,9 @@ class Pusher(object):
         self.lastUpdate = config.get("lastupdate", None)
         log.debug("Last Update Was {0}".format(self.lastUpdate))
 
+        #Synchronise Nodes
+        nodes = self.syncNodes()
+
         #Start to map the rest
         deployments = self.mapDeployments()
 
@@ -291,7 +310,7 @@ class Pusher(object):
         self.mapLocations(houseIds = houses)
 
         #Pring some Debugging Information
-        #self.debugMappings()
+        self.debugMappings()
 
         #log.debug("Last update {0}".format(self.lastUpdate))
         #Synchronise Readings
@@ -786,6 +805,7 @@ class Pusher(object):
         #log.debug(restQry)
         if restQry["headers"]["status"] == '404':
             log.warning("Upload Fails")
+            log.info(restQry)
             raise Exception ("Bad Things Happen")
 
         #We also want to update the Node States
@@ -814,3 +834,4 @@ if __name__ == "__main__":
 
     server = PushServer()
     server.sync()
+    print "Done"
