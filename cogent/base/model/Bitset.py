@@ -33,13 +33,13 @@ class Bitset(object):
         if v:
             self.a[i / 8] |= (1 << (i % 8))
         else:
-            self.a[i / 8] &= ~(1 << (i % 8));
+            self.a[i / 8] &= ~(1 << (i % 8))
 
 
 class TestBitset(unittest.TestCase):
     def test1(self):
         b = Bitset(size=100)
-        for i in range(2,int(10)):
+        for i in range(2, int(10)):
             if not b[i]:
                 #print i, "is prime"
                 for j in range(2*i, 100, i):

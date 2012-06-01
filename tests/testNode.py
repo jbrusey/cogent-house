@@ -68,7 +68,6 @@ class TestNode(testmeta.BaseTestCase):
         
         # #Node 121 has been moved betwen the bathrooms
         # theQry = session.query(models.Node).filter_by(id=121).first()
-        # print "-------> ",theQry.location
         # self.assertEqual(theQry.location.id,4) #LocBath1
         # self.assertNotEqual(theQry.location.id,3) #LocBath2
 

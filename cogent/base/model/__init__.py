@@ -97,20 +97,29 @@ def clsFromJSON(theList):
     into database objects"""
     #Convert from JSON encoded string
     if type(theList) == str:
-        print "CONVERT TO DICT"
-        log.warning("Convert to Dict from JSON string")
         theList = json.loads(theList)
     
     #Make the list object iterable
     if not type(theList) == list:
         theList = [theList]
+
+
+    typeMap = {"deployment":Deployment,
+               "house":House,
+               "reading":Reading,
+               "node":Node,
+               "sensor":Sensor,
+               "nodestate":NodeState,
+               }
+
         
     for item in theList:
         #print "--> {0}".format(item)
         #Convert to the correct type of object
-        if item["__table__"] == "Deployment":
-            theModel = Deployment()
-
+        theType = item["__table__"]
+        theModel = typeMap[theType.lower()]()
+        #print theModel
+        
         theModel.fromJSON(item)
         yield theModel
             
