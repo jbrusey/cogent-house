@@ -4,7 +4,6 @@
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 """
 
-import sqlalchemy
 
 #SQL Alchemy Relevant information
 from sqlalchemy import Table,Column,Integer,String,DateTime,ForeignKey,Float
@@ -21,7 +20,7 @@ import meta
 Base = meta.Base
 
 
-class DeploymentMetadata(Base,meta.InnoDBMix):
+class DeploymentMetadata(Base, meta.InnoDBMix):
     """
     Table to hold metadata about a deployment
 
