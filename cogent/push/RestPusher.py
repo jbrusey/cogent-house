@@ -50,9 +50,9 @@ a good idea to leave it.
 """
 
 import logging
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 #logging.basicConfig(level=logging.INFO,filename="push.log")
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 
 __version__ = "0.5.0"
 
@@ -80,8 +80,8 @@ import json
 import urllib
 
 log = logging.getLogger(__name__)
-#log.setLevel(logging.DEBUG)
-#log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 #URL of local database to connect to
 #LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
@@ -149,10 +149,14 @@ class PushServer(object):
         #Create a new Pusher object for this each item given in the config
         syncList = []
         for item in locationConfig.values():
-            syncList.append(Pusher(localSession,
-                                   item,
-                                   generalConf,
-                                   ))
+            thePusher = Pusher(localSession,
+                               item,
+                               generalConf,
+                               )
+            
+            thePusher.validateData()
+
+            syncList.append(thePusher)
 
         self.syncList = syncList
         #self.theConfig = theConfig
@@ -267,6 +271,92 @@ class Pusher(object):
         self.restSession = restful_lib.Connection("http://127.0.0.1:6543/rest/")
         #self.restSession = restful_lib.Connection("http://127.0.0.1/myapp/rest/")
 
+    def validateData(self):
+        """
+        Do Some Basic Validation of the Data
+
+        For example, Looking for Samples without Nodes
+        """
+        log.debug("Performing Basic Database Validation")
+
+        badTypes = []
+        badNodes = []
+        
+        session = self.localSession()
+        restSession = self.restSession
+
+        #Our bigest problem is readings for Nodes etc that do not exist.
+
+        theQry = session.query(models.Deployment)
+
+        if theQry.count() == 0:
+            log.warning("WARNING: No Deployments in this Database")
+
+        #Look for missing sensor types
+            
+        #SELECT * FROM Reading LEFT OUTER JOIN SensorType ON Reading.type = SensorType.id WHERE SensorType.id IS null 
+        #Grows to SELECT DISTINCT type FROM ....
+
+        #mTypes = session.query(models.Reading)
+        mTypes = session.query(sqlalchemy.distinct(models.Reading.typeId))
+        mTypes = mTypes.outerjoin(models.SensorType)
+        mTypes = mTypes.filter(models.SensorType.id == None)
+
+
+        if mTypes.count() > 0:
+            badTypes = [x[0] for x in mTypes.all()]
+            log.warning("READINGS WITHOUT CORRESPONDING SENSOR TYPE: {0}".format(badTypes))
+
+
+        #And Missing Nodes
+        mNodes = session.query(sqlalchemy.distinct(models.Reading.nodeId))
+        mNodes = mNodes.outerjoin(models.Node)
+        mNodes = mNodes.filter(models.Node.id == None)
+
+        if mNodes.count() > 0:
+            badNodes = [x[0] for x in mNodes.all()]
+            log.warning("READINGS WITHOUT CORRESPONDING NODE: {0}".format(badNodes))
+
+        #We basically have the option of creating something new, 
+        #Or Deleting the data,  as I like Data I vote to create a new Object
+
+        for item in badTypes:
+            log.debug("Checking For Sensor Type {0} on Remote Server".format(item))
+            #I Suppose we take a look on the remote server to see if this type exists.
+            itemUrl = "/sensorType/{0}".format(item)
+            restQry = restSession.request_get(itemUrl)
+            if restQry["headers"]["status"] == "404":
+                log.info("--> No Such sensor type on remote server, Creating")
+                theSensorType = models.SensorType(id=item,
+                                                  name="UNKNOWN",
+                                                  )
+                #Do we add it to the local server, If we dont then it will
+                #Error each time the system is restarted
+                jsonString = json.dumps(theSensorType.toDict())
+                #log.debug(jsonString)
+                #We use a PUT to ensure the Id is as expected
+                restAdd = restSession.request_put(itemUrl,body=jsonString)
+                log.debug(restAdd)
+            else:
+                log.info("--> Sensor Exists on Remote Server, Ignoring")
+
+        #Similarly with Nodes
+        for newNode in badNodes:
+            log.debug("Checking for Node Id {0} on Remote Server".format(item))
+            itemUrl = "/node/{0}".format(newNode)
+            restQry = restSession.request_get(itemUrl)
+            if restQry["headers"]["status"] == "404":
+                log.info("--> No Such Node on Remote Server.  Creating")
+                theNode = models.Node(id=newNode)
+                jsonString = json.dumps(theNode.toDict())
+                restAdd = restSession.request_put(itemUrl,body=jsonString)
+                log.debug(restAdd)
+
+            else:
+                log.info("--> Node Exists on Remote:  Ignoring")
+
+        
+
     def sync(self):
         """
         Perform one synchronisation step for this Pusher object
@@ -285,15 +375,17 @@ class Pusher(object):
         #Start to map the rest
         deployments = self.mapDeployments()
 
-        # #Houses
+        #Houses
         houses = self.mapHouses(deploymentIds = deployments)
 
-        # #And Locations
+        #And Locations
+
         self.mapLocations(houseIds = houses)
 
-        #Pring some Debugging Information
+        #Print some Debugging Information
         self.debugMappings()
 
+        
         #log.debug("Last update {0}".format(self.lastUpdate))
         #Synchronise Readings
         samples, lastTime = self.syncReadings()
@@ -305,8 +397,8 @@ class Pusher(object):
         #with milisecond rounding)
         self.config['lastupdate'] = lastTime + timedelta(seconds = 1)
 
+        
         return samples, lastTime
-
 
     def mapDeployments(self, localIds = None):
         """
@@ -363,7 +455,7 @@ class Pusher(object):
                 #Then we can ask the system to update / create this object
                 restQry = restSession.request_put(theUrl,
                                                   body=json.dumps(theBody))
-                log.debug(restQry)
+                #log.debug(restQry)
 
                 if restQry["headers"]["status"] == '404':
                     log.warning("Error Creating Deployment Item")
@@ -376,6 +468,8 @@ class Pusher(object):
                                                                restBody['id']))
                 mappedDeployments[mapDep.id] = restBody['id']
 
+        lSess.flush()
+        lSess.close()
         return [x.id for x in depQuery]
 
 
@@ -415,6 +509,12 @@ class Pusher(object):
             houseQuery = houseQuery.filter(House.id.in_(localIds))
         elif deploymentIds:
             houseQuery = houseQuery.filter(House.deploymentId.in_(deploymentIds))
+        else:
+            #If we dont have either of these, fetch any Houses that are "current"
+            log.warning("No Out of date Deployments Found, Checking Houses")
+            if self.lastUpdate:
+                houseQuery = houseQuery.filter(sqlalchemy.or_(House.endDate >= self.lastUpdate,
+                                                              House.endDate == None))
 
 
         log.debug("Sycnhronising Houses")
@@ -427,8 +527,9 @@ class Pusher(object):
                 log.debug("--> --> House Not Mapped")
 
                 #Start to build our Query
-                depId = mappedDeployments[mapHouse.deploymentId]
-                log.debug("--> Mapped Deployment It {0}".format(depId))
+                #depId = mappedDeployments[mapHouse.deploymentId]
+                depId = mappedDeployments.get(mapHouse.deploymentId,None)
+                log.debug("--> Mapped Deployment Is {0}".format(depId))
                 params = {"address":mapHouse.address,
                           "deploymentId":depId}
 
@@ -437,9 +538,9 @@ class Pusher(object):
                 theBody = mapHouse.toDict()
                 del theBody["id"] #Remove Id
                 theBody["deploymentId"] = depId #Ensure we use the correct deployment Ids
-
+                log.debug("The URL {0}".format(theUrl))
                 restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
-                log.debug(restQry)
+                #log.debug(restQry)
 
                 if restQry["headers"]["status"] == '404':
                     log.warning("Error Creating Deployment Item")
@@ -452,6 +553,8 @@ class Pusher(object):
                                                           restBody['id']))
                 mappedHouses[mapHouse.id] = restBody['id']
 
+        lSess.flush()
+        lSess.close()
         #After that we want to get all locations assoicated with a House
         return [x.id for x in houseQuery]
 
@@ -473,7 +576,10 @@ class Pusher(object):
         #log.debug("Mapping Room {0}".format(roomId))
 
         theRoom = lSess.query(models.Room).filter_by(id=roomId).first()
-        log.debug("Mapping Room {0}".format(theRoom))
+        #log.debug("Mapping Room {0} ({1})".format(theRoom,roomId))
+        if theRoom is None:
+            log.warning("WTF,No such Room !!!")
+
         #WE also need to double check that the room type exists
         mapType = mappedRoomTypes.get(theRoom.roomTypeId, None)
         log.debug("Mapped Room Type {0}".format(mapType))
@@ -489,7 +595,7 @@ class Pusher(object):
             del theBody["id"]
 
             restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
-            log.debug(restQry)
+            #log.debug(restQry)
             restBody = json.loads(restQry['body'])
             mapType = restBody['id']
             log.info("Room Type {0} mapped to {1}".format(roomType.id,
@@ -506,7 +612,7 @@ class Pusher(object):
         theBody["roomTypeId"] = mapType
 
         restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
-        log.debug(restQry)
+        #log.debug(restQry)
 
         restBody = json.loads(restQry['body'])
         mapRoom = restBody['id']
@@ -516,6 +622,7 @@ class Pusher(object):
 
         mappedRooms[theRoom.id] = mapRoom
 
+        lSess.close()
         return mapRoom
 
     def mapLocations(self, localIds=None, houseIds=None):
@@ -573,8 +680,12 @@ class Pusher(object):
                 log.debug("--> Mapped House {0}".format(mapHouse))
                 log.debug("--> Mapped Room {0}".format(mapRoom))
 
+                log.debug("### Location to Map {0}".format(mapLoc))
+                log.debug("### ROOM {0}".format(mapLoc.roomId))
+
                 if mapRoom is None:
-                    mapRoom = self.mapRooms(mapLoc.room.id)
+                    log.debug("--> Mapping Room")
+                    mapRoom = self.mapRooms(mapLoc.roomId)
 
                 log.debug("--> MAPPED ROOM {0}".format(mapRoom))
 
@@ -599,6 +710,8 @@ class Pusher(object):
                 restLoc = restBody['id']
                 mappedLocations[mapLoc.id] = restLoc
 
+        lSess.flush()
+        lSess.close()
 
     def debugMappings(self):
         """
@@ -676,7 +789,6 @@ class Pusher(object):
         rQuery = [x['id'] for x in restBody]
         #log.debug(restBody)
         log.debug("Remote Nodes :{0}".format(rQuery))
-
         #Map these against our Local Nodes
         #Have a check here, if the remote DB is empty, then using _in throws a
         #Error
@@ -687,7 +799,6 @@ class Pusher(object):
             lQuery = lSess.query(models.Node)
 
         lQuery = lQuery.all()
-
         if lQuery is None:
             log.debug("--> No Nodes to Synchronise")
             return False
@@ -720,7 +831,14 @@ class Pusher(object):
         restQuery = restSession.request_post("Bulk/",
                                              body=jsonBody)
 
-        return restQuery['headers']['status'] == 201
+        lSess.flush()
+        lSess.close()
+
+        if restQuery['headers']['status'] == '201':
+            return True
+        else:
+            log.warning("Error Uploading Nodes {0}".format(restQuery['headers']))
+            raise Exception("Error Uploading Nodes")
 
 
     def syncReadings(self, cutTime=None):
@@ -778,7 +896,8 @@ class Pusher(object):
         for reading in readings:
             #Convert to a JSON and remap the location
             dictReading = reading.toDict()
-            dictReading['locationId'] = mappedLocations[reading.locationId]
+            #dictReading['locationId'] = mappedLocations[reading.locationId]
+            dictReading['locationId'] = mappedLocations.get(reading.locationId,None)
             jsonList.append(dictReading)
 
         #And then try to bulk upload them
