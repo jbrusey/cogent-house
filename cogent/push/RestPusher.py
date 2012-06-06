@@ -9,18 +9,6 @@ However, for the moment syncronising the Locations etc (or the complex bit) is
 still done via SQLA. As this takes a fraction of the transfer time its probably
 a good idea to leave it.
 
-
-
-    .. warning::
-
-        This will fail if the database type is SQ-Lite, currently a connection
-        cannot issue a statement while another is open.  Therefore the loop
-        through the readings, appending new items fails with a DATABASE LOCKED
-        error.
-
-        I am at a loss of what to do to fix this.  However, as we will be
-        pushing to mySQL, its not really a problem except for some test cases
-
     .. note::
 
         I currently add 1 second to the time the last sample was transmitted,
@@ -31,12 +19,6 @@ a good idea to leave it.
         I have tried lower values (0.5 seconds) but this pulls the last synced
         item out, this is possibly a error induced by mySQL's datetime not
         holding microseconds.
-
-    .. warning::
-
-       In My experience you may need to bugger about with connection strings
-       Checking either Localhost or 127.0.0.1 Localhost worked on my machine, my
-       connecting to Cogentee wanted 127.0.0.1
 
     .. since 0.1::
 
