@@ -380,8 +380,13 @@ class Pusher(object):
 
         #And Locations
 
+
         self.mapLocations(houseIds = houses)
 
+
+        #log.setLevel(logging.DEBUG)
+        self.updateNodeLocations()
+        #log.setLevel(logging.INFO)
         #Print some Debugging Information
         self.debugMappings()
 
@@ -657,6 +662,11 @@ class Pusher(object):
 
         locQuery = lSess.query(Location)
 
+
+        log.debug("Local Ids {0}".format(localIds))
+        log.debug("House Ids {0}".format(houseIds))
+
+
         if localIds:
             locQuery = locQuery.filter(Location.id.in_(localIds))
         elif houseIds:
@@ -710,14 +720,49 @@ class Pusher(object):
                 restLoc = restBody['id']
                 mappedLocations[mapLoc.id] = restLoc
 
+        #log.debug(mappedLocations)
         lSess.flush()
         lSess.close()
+
+    def updateNodeLocations(self):
+        """Update Nodes, to take account of the latest Locations"""
+        log.info("---- Updating Node Locations -----")
+        #for key,item in self.mappedLocations.iteritems():
+        #    log.debug("{0} {1}".format(key,item))
+        mappedLocations = self.mappedLocations
+        restSession = self.restSession
+
+        #Get a list of locations to update
+        locIds = mappedLocations.keys()
+        log.debug(locIds)
+        session = self.localSession()
+        theQry = session.query(models.Node).filter(models.Node.locationId.in_(locIds))
+        log.info(theQry)
+        for item in theQry:
+            #theNode = session.query(models.Node).filter_by(id=item).first()
+            theDict = item.toDict()
+            #Update the Location Id with a mapped location Id
+            theDict['locationId'] = mappedLocations[item.locationId]
+            #And for the moment remove the node types
+            theDict['nodeTypeId'] = None
+            
+
+            log.debug("Updating Node {0} {1}".format(item,theDict))            
+            #Then Update
+            theUrl  = "node/{0}".format(item.id)
+            restQry = restSession.request_put(theUrl,body=json.dumps(theDict))
+            log.debug(restQry)
+            if restQry["headers"]["status"] == "500":
+                sys.exit()
+            
+
+        log.info("Done")
 
     def debugMappings(self):
         """
         Helper Debug function to print mappings
         """
-
+        return
         log.debug("---- Mapped Deloyments ---")
         log.debug(self.mappedDeployments)
         for key, item in self.mappedDeployments.iteritems():
@@ -839,7 +884,7 @@ class Pusher(object):
         else:
             log.warning("Error Uploading Nodes {0}".format(restQuery['headers']))
             raise Exception("Error Uploading Nodes")
-
+        
 
     def syncReadings(self, cutTime=None):
         """Synchronise readings between two databases
