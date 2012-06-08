@@ -55,8 +55,8 @@ a good idea to leave it.
 """
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-#logging.basicConfig(level=logging.INFO,filename="push.log")
+#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO,filename="push.log")
 #logging.basicConfig(level=logging.INFO)
 
 __version__ = "0.4.2"
