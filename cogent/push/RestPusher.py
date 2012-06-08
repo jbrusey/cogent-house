@@ -41,12 +41,17 @@ a good idea to leave it.
        Overhall of the system to make use of REST to upload samples rather than
        transfer data across directly.
 
-    .. since 0.5::
+    .. since 0.4.1::
 
        Make use of an .ini style config file to set everything up
 
        Split functionalility into a Daemon, and Upload classes.  This should
        make maintainance of any local mappings a little easier to deal with.
+
+
+    .. since 0.4.2::
+
+       Store any mappings as a pickled object.
 """
 
 import logging
@@ -54,7 +59,7 @@ logging.basicConfig(level=logging.DEBUG)
 #logging.basicConfig(level=logging.INFO,filename="push.log")
 #logging.basicConfig(level=logging.INFO)
 
-__version__ = "0.5.0"
+__version__ = "0.4.2"
 
 import sqlalchemy
 #import remoteModels
@@ -66,6 +71,8 @@ import cogent.base.model.meta as meta
 from datetime import timedelta
 
 import time
+
+import os.path
 
 #import ConfigParser
 #To Parse Configuration files
@@ -227,9 +234,6 @@ class PushServer(object):
                                                                                                  samples,
                                                                                                  lastTime))
 
-                print "Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
-                                                                                                 samples,
-                                                                                                 lastTime)
                 if avgTime is None:
                     avgTime = t2-t1
                 else:
@@ -364,6 +368,9 @@ class Pusher(object):
         :return: True if the sync is successfull, False otherwise
         """
 
+        #Load our Stored Mappings
+        self.loadMappings()        
+
         config = self.config
         log.debug("Sync with config {0}".format(config))
         self.lastUpdate = config.get("lastupdate", None)
@@ -388,7 +395,13 @@ class Pusher(object):
         self.updateNodeLocations()
         #log.setLevel(logging.INFO)
         #Print some Debugging Information
-        self.debugMappings()
+        #self.debugMappings()
+
+        #log.setLevel(logging.DEBUG)
+
+
+
+        #log.setLevel(logging.INFO)
 
         
         #log.debug("Last update {0}".format(self.lastUpdate))
@@ -397,7 +410,7 @@ class Pusher(object):
 
         log.debug("Remaining Samples {0}".format(samples))
         log.debug("Last Sample Time {0}".format(lastTime))
-
+        self.dumpMappings()
         #Finally update the config file. (Add an tiny Offset to avoid issues
         #with milisecond rounding)
         self.config['lastupdate'] = lastTime + timedelta(seconds = 1)
@@ -791,7 +804,50 @@ class Pusher(object):
 
         return
 
+    def dumpMappings(self):
+        """Dump all our known mappings to a JSON file"""
+        # Storage for mappings between local -> Remote
+        dumpDict = {"dep":self.mappedDeployments.items(),
+                    "house":self.mappedHouses.items(),
+                    "room":self.mappedRooms.items(),
+                    "loc":self.mappedLocations.items(),
+                    "rType":self.mappedRoomTypes.items()}
+        log.debug("-- ORIG -- ")
+        log.debug(dumpDict)
+        #log.debug(json.dumps(dumpDict))
+        
+        log.debug(self.config)
+        with open("{0}.json".format(self.config["url"]),"wb") as fd:
+            json.dump(dumpDict,fd)
 
+
+
+
+    def loadMappings(self):
+        """Load known mappings from a JSON file"""
+        log.debug("Loading JSON Mappings")
+
+        fileStr = "{0}.json".format(self.config["url"])
+        
+        if not os.path.isfile(fileStr):
+            return 
+
+        with open(fileStr,"rb") as fd:
+            dumpDict = json.load(fd)
+            log.debug(dumpDict)
+            self.mappedDeployments.update(dict(dumpDict["dep"]))
+            self.mappedHouses.update(dict(dumpDict["house"]))
+            self.mappedRooms.update(dict(dumpDict["room"]))
+            self.mappedLocations.update(dict(dumpDict["loc"]))
+            self.mappedRoomTypes.update(dict(dumpDict["rType"]))
+
+        #log.debug(self.mappedHouses)
+        #log.debug(dumpDict)
+
+                      
+
+
+    
     def syncNodes(self):
         """Syncronise nodes:
 
