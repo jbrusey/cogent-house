@@ -5,6 +5,9 @@
 #
 # Ross Wilkins
 
+#DB_STRING = "mysql://test_user:test_user@127.0.0.1/testStore"
+DB_STRING = "sqlite:///test.db"
+
 import logging
 connected = False
 
@@ -20,6 +23,14 @@ from optparse import OptionParser,OptionGroup
 import serial.tools.list_ports as list_ports
 
 from datetime import datetime
+
+#Do The Database Magic
+import sqlalchemy
+
+import cogent
+import cogent.base.model as models
+import cogent.base.model.meta as meta
+import cogent.base.model.populateData as populateData
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -187,8 +198,11 @@ class PloggCollector(object):
         ploggList = self.ploggScan()
         self.ploggList = ploggList
 
-        #And that should be that
-
+        #Then we can sort out the database
+        engine = sqlalchemy.create_engine(DB_STRING)
+        #Create Models and Populate any Missing Base Data
+        
+        
      
     def connect(self,thePort):
         """Connect to a Serial Port
@@ -422,7 +436,7 @@ if __name__ == '__main__':
    
     #Create Plogg Object
     plogger = PloggCollector(options.srate,thePort)
-    plogger.run()
+    #plogger.run()
 
     sys.exit(0)
     port = connect(thePort)

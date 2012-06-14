@@ -20,7 +20,7 @@ import meta
 Base = meta.Base
 
 
-class Host(Base,meta.InnoDBMix):
+class Host(Base, meta.InnoDBMix):
     """
     Table to hold information about Hosts
 

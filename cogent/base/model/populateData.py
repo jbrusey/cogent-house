@@ -27,6 +27,10 @@ from sensor import *
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
+#Globals to hold potential locations of Calibration files
+CALIB_LOCS = [["cogent","base","Calibration"],
+              ["cogentviewer","calibration"],
+              ]
 
 def populateSensorTypes(session = False):
     """Populate the database with default sensing types,
@@ -167,10 +171,15 @@ def _parseCalibration(filename,sensorcode,session=False):
     #    session = meta.Session() 
 
     theFile = "{0}.csv".format(filename)
-    #thePath = os.path.join("cogentviewer","calibration",theFile)
-    thePath = os.path.join("cogent","base","Calibration",theFile)
-    
-    
+    basePath = None
+    for item in CALIB_LOCS:
+        thePath = os.path.join(*item)
+        if os.path.exists(thePath):
+            basePath = thePath
+            log.debug("Base Path is {0}".format(basePath))
+            break
+            
+    thePath = os.path.join(basePath,theFile)
 
     #Find the relevant sensor type
     sensorType = session.query(SensorType).filter_by(code=sensorcode).first()
@@ -263,7 +272,8 @@ def populateRoomTypes(session):
     if not session:
         session = meta.Session()
 
-    roomList = ["Bedroom",
+    roomList = ["NoRoom",
+                "Bedroom",
                 "Bathroom",
                 "Living Room",
                 "Kitchen",
@@ -287,6 +297,7 @@ def init_data(session=False):
 
     if not session:
         session = meta.Session()
+
     log.info("Populating Initial Data using session {0}".format(session))
     populateSensorTypes(session = session)
     populateRoomTypes(session = session)
