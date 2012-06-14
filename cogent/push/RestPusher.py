@@ -56,7 +56,7 @@ a good idea to leave it.
 
 import logging
 #logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.INFO,filename="push.log")
+logging.basicConfig(level=logging.INFO,filename="pushCogentee.log")
 #logging.basicConfig(level=logging.INFO)
 
 __version__ = "0.4.2"
@@ -87,8 +87,7 @@ import json
 import urllib
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
-log.setLevel(logging.INFO)
+#log.setLevel(logging.INFO)
 
 #URL of local database to connect to
 #LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
@@ -136,6 +135,9 @@ class PushServer(object):
         #Read the Configuration File
         generalConf, locationConfig = self.readConfig()
 
+        log.debug("General Conf: {0}".format(generalConf))
+        log.debug("Location Conf: {0}".format(locationConfig))
+
         #Store the config
         self.generalConf = generalConf
 
@@ -145,7 +147,6 @@ class PushServer(object):
         log.info("Connecting to local database at {0}".format(localURL))
 
         #Initalise the local database connection
-        log.debug("Initalise Session for {0}".format(localURL))
         engine = sqlalchemy.create_engine(localURL)
         models.initialise_sql(engine)
         localSession = sqlalchemy.orm.sessionmaker(bind=engine)
@@ -156,11 +157,13 @@ class PushServer(object):
         #Create a new Pusher object for this each item given in the config
         syncList = []
         for item in locationConfig.values():
+            log.info("--> Init Pusher for {0} {1} {2}".format(localSession,generalConf,item))
             thePusher = Pusher(localSession,
                                item,
                                generalConf,
                                )
             
+            thePusher.checkConnection()
             thePusher.validateData()
 
             syncList.append(thePusher)
@@ -239,7 +242,7 @@ class PushServer(object):
                 else:
                     avgTime = (avgTime + (t2-t1)) / 2.0
                 
-                self.confParser.write()    
+                self.confParser.write()
 
         loopEnd = time.time()
         log.info("Total Time Taken {0} Avg {1}".format(loopEnd-loopStart,avgTime))
@@ -272,8 +275,21 @@ class Pusher(object):
         self.mappedLocations = {}
         self.mappedRoomTypes = {}
 
-        self.restSession = restful_lib.Connection("http://127.0.0.1:6543/rest/")
-        #self.restSession = restful_lib.Connection("http://127.0.0.1/myapp/rest/")
+        restUrl = config["resturl"]
+        log.debug("Starting REST connection for {0}".format(restUrl))
+        #self.restSession = restful_lib.Connection("http://127.0.0.1:6543/rest/")
+        self.restSession = restful_lib.Connection(restUrl)
+
+
+    def checkConnection(self):
+        #Do we have a connection to the server
+        restSession = self.restSession
+        restQry = restSession.request_get("/deployment/0")
+        if restQry["headers"]["status"] == "503":
+            log.warning("No Connection to server available")
+            return False
+        return True
+
 
     def validateData(self):
         """

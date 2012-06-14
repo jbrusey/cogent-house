@@ -2,12 +2,12 @@
 Utility Function to remove all data from a given DB
 """
 
-DBURL = ['mysql://test_user:test_user@localhost/pushTest',
-         'mysql://test_user:test_user@localhost/pushSource']
+#DBURL = ['mysql://test_user:test_user@localhost/pushTest',
+#         'mysql://test_user:test_user@localhost/pushSource']
 
-#DBURL = ['mysql://dang:j4a77aec@127.0.0.1:3307/chtest']
+DBURL = ['mysql://dang:j4a77aec@127.0.0.1:3307/chtest']
 
-DBURL = ['mysql://test_user:test_user@localhost/pushTest']
+#DBURL = ['mysql://test_user:test_user@localhost/pushTest']
 
 
 import sqlalchemy
