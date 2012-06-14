@@ -157,27 +157,62 @@ if __name__ == '__main__':
     import sqlite3 as sqlite
     from optparse import OptionParser,OptionGroup
 
+
+    import serial.tools.list_ports as list_ports
+
     #logging.basicConfig(filename='plogg1.log',
     #                    filemode='a',
     #                    format='%(asctime)s %(levelname)s %(message)s')
     logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger("plogg")
+    log = logging.getLogger("plogg")
 
-    logger.info("starting plogg data gather")
+    log.info("starting plogg data gather")
 
     parser = OptionParser()
 
     group = OptionGroup(parser,"Sets Sampling Rate:","Set the sampling rate of the plogg sensors")
     
     group.add_option("-r","--rate",dest="srate",help="Set plogg sampling rate in seconds")
+    parser.add_option_group(group)
 
+
+    group = OptionGroup(parser,"Sets Serial Port for USB Dongle")
+    group.add_option("-p","--port",dest="port",help="Set Usb Port")
     parser.add_option_group(group)
     
     (options, args) = parser.parse_args()
 
 
+    log.debug("Options {0}".format(options))
+    log.debug("Args {0}".format(args))
+
+    #Try scanning for available ports
+    
+
     ploggId=[]
     #print "Found ports:"
+    
+    #If a port is specified
+    if options.port:
+        thePort = options.port
+    else:
+        log.debug("Scanning for Dongle")
+        #We know the Dongle will be a USB Device and have the following vendor Id
+        usbPorts = list_ports.grep('USB VID:PID=10c4:8293 SNR=010010C5')
+
+        #There should only be one port here
+        usbPorts = list(usbPorts)
+        if len(usbPorts) != 1:
+            log.warning("Error detecting usb Port")
+            sys.exit(0)
+        else:
+            log.debug("USB Port {0}".format(usbPorts))
+            thePort = usbPorts[0][0]
+
+    log.info("Connecting to port {0}".format(thePort))
+    
+    port = connect(thePort)
+
 
     #if(os.name == "posix"):
     #    port = connect("/dev/ttyUSB0")
@@ -185,17 +220,18 @@ if __name__ == '__main__':
     #    print "Found ports:"
     #    for s in scan():
     #        print "{0[0]:0>3d} - {0[1]}".format(s)
-    return
+    #import sys
+    #sys.exit(0)
 
-
+    log.debug("Scanning for Ploggs")
     #scan for ploggs try 3 times just in case of errors
     for s in range(3):
        ploggId=ploggScan()
        if ploggId != False:        
            break
 
-    logger.debug("List of Plogg ID's")
-    logger.debug(ploggId)
+    log.debug("List of Plogg ID's")
+    log.debug(ploggId)
 
     #create db
     connection = sqlite.connect('plogg.db')
@@ -232,9 +268,9 @@ if __name__ == '__main__':
             #loop through plogg id's
             for pid in ploggId:
                 # request data from plogg
-                logger.debug("Dealing with PID {0}".format(pid))
+                log.debug("Dealing with PID {0}".format(pid))
                 sid =str(pid)
-                logger.debug("Sending {0}".format("AT+UCAST:"+sid+"=yv\r"))
+                log.debug("Sending {0}".format("AT+UCAST:"+sid+"=yv\r"))
                 port.write("AT+UCAST:"+sid+"=yv\r")
                 time.sleep(2.5)  # really need to read with a timeout
                 n = port.inWaiting()
