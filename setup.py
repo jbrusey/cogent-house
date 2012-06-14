@@ -3,9 +3,10 @@ from setuptools import setup
 
 REQUIRES = ['SQLAlchemy',
             'configobj',
-            "paramiko",
             "python-dateutil==1.5",
-            "python-rest-client"
+            "python-rest-client",
+            "numpy",
+            "matplotlib",
             ]
     
 setup(name='ch-base',
