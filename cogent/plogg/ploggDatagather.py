@@ -236,9 +236,10 @@ class PloggCollector(object):
         else:
             data=""
             while n != 0:
-                log.debug(" --> Reading from Serial")
-                text = port.readline()
-                log.debug(" --> Read Complete")
+                log.debug(" --> Reading from Serial {0}".format(n))
+                #text = port.readline()
+                text = port.read(n)
+                log.debug(" --> Read Complete {0}".format(text))
                 if(text.count(sid+",")>0 or dFound==True):
                     dFound=True
                     data=data+text
