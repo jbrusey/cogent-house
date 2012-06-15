@@ -32,6 +32,7 @@ import cogent.base.model as models
 import cogent.base.model.meta as meta
 import cogent.base.model.populateData as populateData
 
+#logging.basicConfig(level=logging.INFO)
 logging.basicConfig(level=logging.DEBUG)
 
 # def connect(n):
@@ -88,6 +89,15 @@ class PloggCollector(object):
         """
         self.log = logging.getLogger("PloggCollector")
         log = self.log
+
+        #And Format the Log output a little nicer
+        ch = logging.StreamHandler()
+        
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+
+        log.addHandler(ch)
+
         log.debug("initialising Plogg Data Gatherer")
 
         log.debug("SampleRate")
@@ -117,7 +127,7 @@ class PloggCollector(object):
         :return: true on success, false otherwis
         """
         try:
-            p = serial.Serial(port=thePort, baudrate=19200, timeout=30)
+            p = serial.Serial(port=thePort, baudrate=19200, timeout=10)
         except serial.SerialException:
             self.log.warning("Error connecting to port")
             return False
@@ -168,6 +178,7 @@ class PloggCollector(object):
         pList = self.ploggList
         #Scan for new Ploggs
         pList = self.ploggScan(pList)
+
         log.info("Gathering Data for {0}".format(pList))
         for ploggId in pList:
             log.debug("-"*70)
@@ -219,13 +230,15 @@ class PloggCollector(object):
         time.sleep(2.5)  # really need to read with a timeout
         n = port.inWaiting()
         if n==0 or n==28:
+            log.info("No Data for Node {0}".format(ploggId))
             port.flushInput()
             return 
         else:
             data=""
             while n != 0:
+                log.debug(" --> Reading from Serial")
                 text = port.readline()
-                log.debug("Line Read {0}".format(text))
+                log.debug(" --> Read Complete")
                 if(text.count(sid+",")>0 or dFound==True):
                     dFound=True
                     data=data+text
