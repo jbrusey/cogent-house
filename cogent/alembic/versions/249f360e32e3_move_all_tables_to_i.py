@@ -15,6 +15,7 @@ down_revision = '406589edcb82'
 from alembic import op
 import sqlalchemy as sa
 
+from sqlalchemy.sql import table, column, text
 
 def upgrade():
     op.execute(text('ALTER TABLE Deployment ENGINE = INNODB;'))    
