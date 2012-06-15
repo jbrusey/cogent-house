@@ -46,23 +46,13 @@ logging.basicConfig(level=logging.DEBUG)
 
 #     return p
 
-def disconnect(p):
-    print "disconnecting port {0}".format(p.portstr)
-    
-    p.close()
-    
-    print "Port {0} disconnected".format(p.portstr)
-
-def tidy(p):
-    disconnect(p)
-
-def allindices(string, sub="FFD:", listindex=[], offset=0):
-    i = string.find(sub, offset)
-    while i >= 0:
-        listindex.append(i)
-        i = string.find(sub, i + 1)
-    return listindex
-
+#Map Node Addresses to Serial Numbers
+NODEMAP = {"000D6F000026B366":220295,
+           "000D6F0000263A0F":200299,
+           "0021ED00000463EF":200294,
+           "0021ED0000035BC6":200301
+           }
+           
 def toHex(s):
     lst = []
     for ch in s:
@@ -87,92 +77,6 @@ def hexArray(s):
 def uptimeProcess(d):
     t=time.strftime('%H:%M:%S', time.gmtime(d))
     return t           
-            
-
-# def ploggScan():
-#     pid=[]
-#     port.write("AT+SN\r")
-#     #print "Scanning for Nodes, (5Sec sleep)"
-#     time.sleep(10)
-#     while port.inWaiting() > 0:
-#         text = port.readline()
-#         #check for no errors
-
-#         text = text.rstrip('\n\r')
-#         if text[:5] == "ERROR":
-#             logging.error("error received from scan:"+text)
-#             return False
-#         #check for FFD
-#         elif text[:4] == "FFD:":
-#             p=text[4:]
-#             pid.append(p)
-#         elif text == 'AT+SN' or text == 'OK' or text == '':
-#             pass
-#         else:
-#             logging.error("unexpected line: "+text)
-#     return pid
-
-def processData(text):
-    #find 3d this is where the interesting data starts
-    data=toHex(text)
-    data=data[52:]
-    ha=hexArray(data)
-
-    if len(ha)==57:
-        print "Node:",sid
-        #print "Device Time", ha[1],ha[2],ha[3],ha[4] #is incorrect just use current time
-        device_time= time.ctime()
-        print "Device Time",device_time
-    
-        #ploggup = uptimeProcess((float(int(str(ha[5]+ha[6]),16))))
-        #print "Plogg Uptime",ploggup # strange one ignore for now, not really improtant
-                                
-        watts=(float(int(str(ha[7]+ha[8]+ha[9]+ha[10]),16))/1000)
-        print "Watts",watts
-        
-        kwhGen=(float(int(str(ha[11]+ha[12]+ha[13]+ha[14]),16))/10000)
-        print "kWh Generated",kwhGen
-        
-        kwhCon=(float(int(str(ha[15]+ha[16]+ha[17]+ha[18]),16))/10000)
-        print "kWh Consumed",kwhCon
-        
-        freq=(float(int(str(ha[19]+ha[20]+ha[21]+ha[22]),16))/10)
-        print "Frequency",freq
-        
-        rmsv=(float(int(str(ha[23]+ha[24]+ha[25]+ha[26]),16))/1000)
-        print "RMS Voltage",rmsv
-    
-        rmsc=(float(int(str(ha[27]+ha[28]+ha[29]+ha[30]),16))/1000)
-        print "RMS Current",rmsc
-    
-        #check first byte ha[35] for 80 rest to float then /1000
-        if int(ha[35])==80:
-            #deals ith negative values
-            rp=(float(int(str(ha[36]+ha[37]+ha[38]),16))/1000)
-            rp=rp*-1
-            print "Reactive Power",rp
-        else:
-            rp=(float(int(str(ha[36]+ha[37]+ha[38]),16))/1000)
-            print "Reactive Power",rp
-
-        varGen=(float(int(str(ha[39]+ha[40]+ha[41]+ha[42]),16))/10000)
-        print "VARh Generated",varGen
-    
-        varCon=(float(int(str(ha[43]+ha[44]+ha[45]+ha[46]),16))/10000)
-        print "VARh Consumed",varCon
-    
-        phase=(float(int(str(ha[47]+ha[48]+ha[49]+ha[50]),16)))
-        print "Phase Angle",phase
-    
-        equipup =uptimeProcess((float(int(str(ha[51]+ha[52]+ha[53]+ha[54]),16))/100))
-        print "Equip Up Time",equipup
-        print "\n\n"
-            
-        # try block needed with rollback
-        cursor.execute('INSERT INTO data VALUES ("'+ str(sid) +'","'+ device_time +'",'+str(watts)+','+str(kwhCon)+','+str(kwhGen)+','+str(freq)+','+str(rmsv)+','+str(rmsc)+','+str(rp)+','+str(varGen)+','+str(varCon)+','+str(phase)+',"'+str(equipup)+'")')
-        connection.commit()
-        
-        return True
 
 class PloggCollector(object):
     """Class to collect data from Plogg Objects"""
@@ -186,23 +90,25 @@ class PloggCollector(object):
         log = self.log
         log.debug("initialising Plogg Data Gatherer")
 
+        log.debug("SampleRate")
         self.sampleRate = sampleRate
+
+        self.nodeMap = {}
 
         #Attempt to connect to the Dongle
         self.connect(usbPort)
         
-        #We also need to write some code to connect to the Database here
-      
-
-        #Scan for Ploggs
-        ploggList = self.ploggScan()
-        self.ploggList = ploggList
-
         #Then we can sort out the database
         engine = sqlalchemy.create_engine(DB_STRING)
         #Create Models and Populate any Missing Base Data
-        
-        
+        models.initialise_sql(engine)
+        populateData.init_data()      
+
+        #Scan for Ploggs
+        #ploggList = self.ploggScan()
+        #self.ploggList = ploggList
+        self.ploggList = []
+       
      
     def connect(self,thePort):
         """Connect to a Serial Port
@@ -220,14 +126,16 @@ class PloggCollector(object):
         self.port = p
         return True
 
-    def ploggScan(self):
-        """Scan for Plogg Nodes"""
+    def ploggScan(self,pid = []):
+        """Scan for Plogg Nodes
+
+        :var pid: List of Existing Ploggs
+        """
         port = self.port        
         log = self.log
 
-        log.debug("Scanning for Nodes")
-        
-        pid=[]
+        log.debug("Scanning for Nodes") 
+
         port.write("AT+SN\r")
         #print "Scanning for Nodes, (5Sec sleep)"
         time.sleep(10)
@@ -243,7 +151,8 @@ class PloggCollector(object):
             elif text[:4] == "FFD:":
                 p=text[4:]
                 log.debug("Plogg Id: {0} Discovered".format(p))
-                pid.append(p)
+                if not p in pid:
+                    pid.append(p)
             elif text == 'AT+SN' or text == 'OK' or text == '':
                 pass
             else:
@@ -251,17 +160,48 @@ class PloggCollector(object):
 
         return pid
 
-
     def run(self):
         """Run an iteration of the main loop"""
-
         log = self.log
-
-        for ploggId in self.ploggList:
-            log.debug("-"*70)
+        log.debug("Start Loop")
+        
+        pList = self.ploggList
+        #Scan for new Ploggs
+        pList = self.ploggScan(pList)
+        log.info("Gathering Data for {0}".format(pList))
+        for ploggId in pList:
             log.debug("-"*70)
             log.debug("Running Data Gathering for {0}".format(ploggId))
-            self.ploggQuery(ploggId)
+            values = self.ploggQuery(ploggId)
+            log.debug("Values are {0}".format(values))
+            if values:
+                self.saveData(ploggId,values)
+            
+
+    def loop(self):
+        """Run forever"""
+        log = self.log
+
+        log.debug("Entering Main Loop")
+        while True:
+            try:
+                startTime = time.time()
+                self.run()
+                endTime = time.time()
+                #Work out how long to sleep for
+                loopTime = endTime - startTime
+                sleepTime = self.sampleRate - loopTime
+                log.info("Mainloop complete in {0} Sleeping for {1}".format(loopTime,sleepTime))
+                if sleepTime > 0:
+                    time.sleep(sleepTime)
+            except KeyboardInterrupt:
+                log.info("Exiting...")
+                break
+
+        #Shut Stuff Down Nicely
+        self.port.close()
+        log.info("Done")
+
 
     def ploggQuery(self,ploggId):
         """Ask a plogg for information
@@ -272,6 +212,7 @@ class PloggCollector(object):
         port = self.port
         log = self.log
         dFound = False
+        readings= None
 
         sid =str(ploggId)
         port.write("AT+UCAST:"+sid+"=yv\r")
@@ -284,6 +225,7 @@ class PloggCollector(object):
             data=""
             while n != 0:
                 text = port.readline()
+                log.debug("Line Read {0}".format(text))
                 if(text.count(sid+",")>0 or dFound==True):
                     dFound=True
                     data=data+text
@@ -291,10 +233,12 @@ class PloggCollector(object):
                     
             if len(data)>0:
                 #self.ploggDebug(data)
+                log.debug("Readings Collected: Parsing")
                 readings = self.ploggParseValue(data)
                 log.debug("Values for {0}: {1}".format(ploggId,readings))
                 dFound=False
 
+                return readings
         pass
 
     def ploggParseValue(self,text):
@@ -321,6 +265,69 @@ class PloggCollector(object):
             return (timestamp,watts,kwhCon,rmsc)
             
         pass
+
+    def saveData(self,nodeId,values):
+        """Save a reading in the Database
+
+        :var nodeId: String Containing the Current Cost Node Id
+        :var values: Tuple containing sensor values as returned by ploggParseValue
+        """
+        log = self.log
+        log.debug("Saving data for {0} {1}".format(nodeId,values))
+        session = meta.Session()
+        mappedId = NODEMAP[nodeId]
+        theNode = session.query(models.Node).filter_by(id = mappedId).first()
+        
+        #Fetch Sensor Types
+        wattSensor = session.query(models.SensorType).filter_by(name="Plogg Watts").first()
+        log.debug("Watt Sensor {0}".format(wattSensor))
+        kWhSensor = session.query(models.SensorType).filter_by(name="Plogg kWh").first()
+        log.debug("kW Sensor {0}".format(kWhSensor))
+        currentSensor = session.query(models.SensorType).filter_by(name="Plogg Current").first()
+        log.debug("A Sensor {0}".format(currentSensor))
+                                                          
+
+        #Create if it doesnt Exist
+        if not theNode:
+            log.info("Node {0} / {1} does not exist, Creating".format(nodeId,mappedId))
+            theNode = models.Node(id=mappedId,
+                                  locationId=None)
+            session.add(theNode)
+            session.flush()
+            log.debug("Node is {0}".format(theNode))
+            #And we need to add a set of sensors
+            for item in [wattSensor,kWhSensor,currentSensor]:
+                theSensor = models.Sensor(sensorTypeId=item.id,
+                                          nodeId = theNode.id,
+                                          calibrationSlope = 1.0,
+                                          calibrationOffset = 0.0)
+                session.add(theSensor)
+            session.flush()
+        
+        sampleTime,sampleWatts,samplekWh,sampleCurrent = values
+        #Then Add the Readings
+        theReading = models.Reading(time=sampleTime,
+                                    nodeId = theNode.id,
+                                    location = theNode.locationId,
+                                    typeId = wattSensor.id,
+                                    value = sampleWatts)
+        session.add(theReading)
+        
+        theReading = models.Reading(time=sampleTime,
+                                    nodeId = theNode.id,
+                                    location = theNode.locationId,
+                                    typeId = kWhSensor.id,
+                                    value = samplekWh)
+        session.add(theReading)
+
+        theReading = models.Reading(time=sampleTime,
+                                    nodeId = theNode.id,
+                                    location = theNode.locationId,
+                                    typeId = currentSensor.id,
+                                    value = sampleCurrent)
+        session.add(theReading)
+        session.flush()
+        session.commit()
 
     def ploggDebug(self,text):
         """
@@ -399,7 +406,7 @@ if __name__ == '__main__':
 
     group = OptionGroup(parser,"Sets Sampling Rate:","Set the sampling rate of the plogg sensors")
     
-    group.add_option("-r","--rate",dest="srate",help="Set plogg sampling rate in seconds")
+    group.add_option("-r","--rate",dest="srate",help="Set plogg sampling rate in seconds",default=60,type='int')
     parser.add_option_group(group)
 
 
@@ -413,6 +420,7 @@ if __name__ == '__main__':
     logging.debug("Options {0}".format(options))
     logging.debug("Args {0}".format(args))
 
+    #sys.exit(0)
     ploggId=[]
     #print "Found ports:"
     
@@ -437,100 +445,4 @@ if __name__ == '__main__':
     #Create Plogg Object
     plogger = PloggCollector(options.srate,thePort)
     #plogger.run()
-
-    sys.exit(0)
-    port = connect(thePort)
-
-
-    logging.debug("Scanning for Ploggs")
-    #scan for ploggs try 3 times just in case of errors
-    for s in range(3):
-       ploggId=ploggScan()
-       if ploggId != False:        
-           break
-
-    logging.debug("List of Plogg ID's")
-    logging.debug(ploggId)
-
-    #create db
-    connection = sqlite.connect('plogg.db')
-    
-    cursor = connection.cursor()
-
-    try:
-        cursor.execute('CREATE TABLE plogg (pid String PRIMARY KEY)')
-        cursor.execute('CREATE TABLE data (pid TEXT, Data_Time TEXT, Watts REAL, kWh_Consumed REAL, kWh_Generated REAL, Frequency REAL, RMS_Voltage REAL, RMS_Current REAL, Reactive_Power REAL, VARh_Generated REAL, VARh_Consumed REAL, Phase_Angle REAL, Equip_Up_Time TEXT);')
-    except:
-        print "Tables already Exist\n"
-
-
-    #store all found id's try/except to deal with id's which have prev been found
-    for pid in ploggId:
-        try:
-            cursor.execute('INSERT INTO plogg VALUES ("'+str(pid)+'")')
-            connection.commit()
-        except:
-            continue
-
-    if options.srate:
-        sampleRate=float(options.srate)
-        print "Sampling rate set to: "+str(sampleRate)+"s"
-    else:
-        sampleRate=60.0
-        print "Sampling rate set to: "+str(sampleRate)+"s"
-
-    #infinate loop to collate data
-    dFound=False
-    try:
-        lastRun=time.time()
-        while True:
-            #loop through plogg id's
-            for pid in ploggId:
-                # request data from plogg
-                logging.debug("Dealing with PID {0}".format(pid))
-                sid =str(pid)
-                logging.debug("Sending {0}".format("AT+UCAST:"+sid+"=yv\r"))
-                port.write("AT+UCAST:"+sid+"=yv\r")
-                time.sleep(2.5)  # really need to read with a timeout
-                n = port.inWaiting()
-                if n==0 or n==28:
-                    port.flushInput()
-                    continue
-                else:
-                    data=""
-                    while n != 0:
-                        text = port.readline()
-                        if(text.count(sid+",")>0 or dFound==True):
-                            dFound=True
-                            data=data+text
-                        n=port.inWaiting()
-                
-                if len(data)>0:
-                    processData(data)
-                dFound=False
-    
-            ploggId=[]
-            #scan for ploggs try 3 times just in case of errors                                                             
-            for s in range(3):
-                ploggId=ploggScan()
-                if ploggId != False:
-                    break
-            print ploggId
-
-            runTime=time.time()-lastRun
-            sleepTime=sampleRate-runTime
-            if sleepTime > 0:
-		print "sleep", sleepTime,"\n\n"
-                time.sleep(sleepTime)
-            lastRun=time.time()
-        tidy(port)
-                
-    except KeyboardInterrupt:
-        tidy(port)
-
-
-    #disconnect com port
-    tidy(port)
-    port_no = raw_input("Exit: ")
-
-
+    plogger.loop()
