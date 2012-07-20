@@ -1,5 +1,4 @@
 // -*- c -*- 
-#include "Filter.h"
 
 generic module ExposureEventDetectorC(uint8_t num_bands, float threshold) @safe()
 {

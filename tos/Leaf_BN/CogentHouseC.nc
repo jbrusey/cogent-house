@@ -2,7 +2,6 @@
 #include "../Packets.h"
 #include "PolyClass/horner.c"
 #include "CurrentCost/cc_struct.h"
-#include "Filter.h"
 #include "exposure.h"
 #include "HeatMeter/hm_struct.h"
 #include <stdio.h>

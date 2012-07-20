@@ -342,16 +342,6 @@ implementation
     //post checkDataGathered();
   }
 
-  void do_readDone_delta(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
-  {
-    if (result == SUCCESS){
-      call PackState.add(state_code, s->x);
-      call PackState.add(delta_state_code, s->dx);
-      call ExpectSendDone.set(raw_sensor);
-    }
-    call ExpectReadDone.clear(raw_sensor);
-    post checkDataGathered();
-  }
 
   void do_readDone_BN(error_t result, float* data,  uint raw_sensor,  uint state_count, uint state_first){
     int i;
