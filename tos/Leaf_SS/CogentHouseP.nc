@@ -14,7 +14,7 @@ module CogentHouseP
     interface SplitControl as RadioControl;
     interface AMSend as StateSender;
     interface AMSend as StateForwarder;
-    interface Receive;
+    interface Receive as AckReceiver;
     interface Receive as StateReceiver;
 				
     //Sensing
@@ -509,7 +509,7 @@ implementation
 
   //---------------- Deal with Acknowledgements --------------------------------
   //receive ack messages
-  event message_t* Receive.receive(message_t* bufPtr,void* payload, uint8_t len) {
+  event message_t* AckReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
     int hops;
     AckMsg* ackMsg = (AckMsg*)payload;
     if (len == sizeof(*ackMsg)){
@@ -562,7 +562,6 @@ implementation
 
   //---------------- Deal with State Message Forwarding---------------------
   event message_t* StateReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
-    StateMsg *newData;
     StateMsg* sMsg = (StateMsg*)payload;
     if (len == sizeof(*sMsg)){
 	sMsg->hops = (sMsg->hops)+1;
