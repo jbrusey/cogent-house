@@ -6,18 +6,18 @@ PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.p
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
-PFLAGS +=-DTOSH_DATA_LENGTH=92
+PFLAGS +=-DTOSH_DATA_LENGTH=110
 PFLAGS += -DCC2420_DEF_CHANNEL=18
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
-CFLAGS += -DDEBUG
+#CFLAGS += -DDEBUG
 
 # select node type
 #CFLAGS += -DLEAF
 CFLAGS += -DCLUSTER
 
-CFLAGS += -DLEAF_CLUSTER_HEAD=1
+CFLAGS += -DLEAF_CLUSTER_HEAD=2
 CFLAGS += -DLEAF_MAX_RETRIES=3
 
 #time out time in seconds
@@ -32,7 +32,7 @@ include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/BNMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BNMsg -o $@
-	
+
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
 

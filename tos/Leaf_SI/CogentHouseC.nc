@@ -27,11 +27,17 @@ implementation
   components new TimerMilliC() as WarmUpTimer;   
   components RandomC;
   components new AMSenderC(AM_STATEMSG) as StateSender;
-  components new AMReceiverC(AM_ACKMSG);
+  components new AMSenderC(AM_STATEMSG) as StateForwarder;
+  components new AMSenderC(AM_ACKMSG) as AckForwarder;
+  components new AMReceiverC(AM_ACKMSG) as AckReceiver;
+  components new AMReceiverC(AM_STATEMSG) as StateReceiver;
 
   CogentHouseP.Boot -> MainC.Boot;
   CogentHouseP.StateSender -> StateSender;  
-  CogentHouseP.Receive -> AMReceiverC;
+  CogentHouseP.StateForwarder -> StateForwarder;
+  CogentHouseP.AckForwarder -> AckForwarder;
+  CogentHouseP.AckReceiver -> AckReceiver;
+  CogentHouseP.StateReceiver -> StateReceiver;
   CogentHouseP.SenseTimer -> SenseTimer;
   CogentHouseP.AckTimeoutTimer -> AckTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;

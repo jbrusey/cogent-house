@@ -14,5 +14,5 @@ install:  all
 	a2ensite cogent-house
 	alembic -c cogent/alembic.ini upgrade head
 
- $(MIGPYFILES): tos/Node/Packets.h
-	make -C tos/Node telosb
+ $(MIGPYFILES): tos/Packets.h
+	make -C tos/Leaf_SS telosb

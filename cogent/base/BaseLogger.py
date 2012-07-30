@@ -80,15 +80,32 @@ class BaseLogger(object):
     	
     def store_state(self, msg):
     
+	logger.info(msg)
         logger.info(type(msg))
+
+	dest=0
+	for x in msg.get_route():
+		if int(x)>0:
+			dest=int(x)
+
+        #send acknowledgement to base station to fwd to node
+        am = AckMsg()
+        am.set_seq(int(msg.get_seq()))
+        am.set_route(msg.get_route())
+        am.set_hops(msg.get_hops())
+
+        self.bif.sendMsg(am,1)
+        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
 
         try:
             session = Session()
             t = datetime.utcnow()
-            n = msg.getAddr()
-            parent = msg.get_ctp_parent_id()
+            n=msg.get_route()[0]
+	    pid=msg.get_route()[1]
+
             localtime = msg.get_timestamp()
 
             node = session.query(Node).get(n)
@@ -109,12 +126,12 @@ class BaseLogger(object):
                                      time=t,
                                      nodeId=n,
                                      localtime=localtime):
-                logger.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
+                logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
                 return
 
             ns = NodeState(time=t,
                            nodeId=n,
-                           parent=msg.get_ctp_parent_id(),
+                           parent=pid,
                            localtime=msg.get_timestamp())
             session.add(ns)
 
@@ -123,10 +140,12 @@ class BaseLogger(object):
             state = []
             for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
-                
+                    tid=None
                     if msg.get_amType()==8:
                         if i != 6:
                             tid=i+50
+			else:
+			    tid=6
                     else:
                         tid=i
                     v = msg.getElement_packed_state(j)
@@ -142,13 +161,6 @@ class BaseLogger(object):
             session.commit()
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
 
-            #send acknowledgement to base station to fwd to node
-            am = AckMsg()
-            am.set_seq(int(msg.get_seq()))
-            am.set_route(msg.get_route())
-            am.set_hops(msg.get_hops())
-            logger.debug("Sending Ack %s: %s, %s" % (am.get_seq(),n,am.get_route()))
-            self.bif.sendMsg(am,dest=n)
         except Exception as e:
             session.rollback()
             logger.exception("during storing: " + str(e))

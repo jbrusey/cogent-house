@@ -14,6 +14,7 @@ module CogentHouseP
     interface SplitControl as RadioControl;
     interface AMSend as StateSender;
     interface AMSend as StateForwarder;
+    interface AMSend as AckForwarder;
     interface Receive as AckReceiver;
     interface Receive as StateReceiver;
 				
@@ -36,6 +37,7 @@ module CogentHouseP
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
     interface PackState;
+
 
     //Time
     interface LocalTime<TMilli>;
@@ -72,12 +74,12 @@ implementation
   uint8_t nodeType;
 
   bool sending;
-  bool forwarding;
 
   bool packet_pending = FALSE;
 
   message_t dataMsg;
   message_t fwdMsg;
+  message_t ackMsg;
   uint16_t message_size;
   uint8_t msgSeq = 0;
   uint8_t retries = 0;
@@ -124,12 +126,12 @@ implementation
 
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
-    if (last_errno != 1.) {
+    if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
-    }
+
     last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
-			
+		
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
@@ -140,13 +142,13 @@ implementation
       newData->seq = expSeq;
       newData->timestamp = call LocalTime.get();
       newData->hops = 0;
-      routeLen = sizeof(newData->route);
+      routeLen = sizeof(newData->route)/sizeof(uint16_t);
       for (i = 0; i < routeLen; i++) {
 	if (i==0) {
           newData->route[i] = TOS_NODE_ID;
         }
 	else {
-          newData->route[i]=-1;
+          newData->route[i]=0;
         }
       }
      
@@ -225,7 +227,7 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call HeatMeterControl.start();
     }
-    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+    //call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
     call SenseTimer.startOneShot(0);
@@ -266,6 +268,11 @@ implementation
     else
       next_interval = my_settings->samplePeriod - send_time;
 
+#ifdef DEBUG
+    printf("startOneShot at %lu\n", call LocalTime.get());
+    printf("interval of %lu\n", next_interval);
+    printfflush();
+#endif
     call SenseTimer.startOneShot(next_interval);
 
     if (my_settings->blink)
@@ -334,14 +341,14 @@ implementation
 	    call ReadPAR.read();
 	  else if (i == RS_TSR)
 	    call ReadTSR.read();
-	  else if (i == RS_VOLTAGE)
-	    call ReadVolt.read();
 	  else if (i == RS_CO2)
 	    call ReadCO2.read();
 	  else if (i == RS_AQ)
 	    call ReadAQ.read();
 	  else if (i == RS_VOC)
 	    call ReadVOC.read();
+	  else if (i == RS_VOLTAGE)
+	    call ReadVolt.read();
 	  else if (i == RS_POWER)
 	    call ReadWattage.read();
 	  else if (i == RS_HEATMETER)
@@ -422,8 +429,6 @@ implementation
     post checkDataGathered();
   }
 
-
- /* Once the radio starts, send to nodes head. */
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS)
       {
@@ -440,7 +445,7 @@ implementation
   }
 
 
-  //restart current cost
+  //Empty methods
   event void RadioControl.stopDone(error_t ok) { 
 #ifdef BLINKY
     call Leds.led1Toggle(); 
@@ -508,31 +513,65 @@ implementation
 
 
   //---------------- Deal with Acknowledgements --------------------------------
-  //receive ack messages
+  //receive ack message
   event message_t* AckReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
-    int hops;
-    AckMsg* ackMsg = (AckMsg*)payload;
-    if (len == sizeof(*ackMsg)){
-      //decrement hops
-      hops = (ackMsg->hops)-1;
-      if (hops==-1) {
-#ifdef BLINKY
-        call Leds.led2Toggle();
+    AckMsg *ackData;
+    int i;
+    int routeLen;
+    int h;
+    int prev_hop;
+    uint16_t dest;
+    AckMsg* aMsg;
+
+#ifdef DEBUG
+    call Leds.led2Toggle();
+    printf("ack packet rec at %lu\n", call LocalTime.get());
+    printfflush();
 #endif
-        if (expSeq==ackMsg->seq){
+    aMsg = (AckMsg*)payload;
+    
+    h=aMsg->hops;
+    message_size = len;
+    ackData = call AckForwarder.getPayload(&ackMsg, message_size);
+
+    if (ackData != NULL) {
+      if (h!=0){
+	call AckTimeoutTimer.stop();
+	prev_hop=(aMsg->hops)-1;
+	dest=aMsg->route[prev_hop];
+	ackData->hops=prev_hop;
+	ackData->seq = aMsg->seq;
+	routeLen = sizeof(ackData->route)/sizeof(uint16_t);
+	for (i = 0; i < routeLen; i++) {
+	  ackData->route[i] = aMsg->route[i];
+	}
+
+#ifdef DEBUG
+	printf("Forward ACK %lu\n", call LocalTime.get());
+	printf("Hops %u\n", h);
+	printf("NID %u\n", TOS_NODE_ID);
+	printf("Dest %u\n", dest);
+	printfflush();
+#endif
+	call AckForwarder.send(dest, &ackMsg, message_size);
+      }
+      else{
+	int ackSeq = aMsg->seq;
+
+	if (expSeq==ackSeq){
 	  call AckTimeoutTimer.stop();
 	  //and restart timer
-  	  restartSenseTimer(SUCCESS);
-        }
-      }
-      else {
-	ackMsg->hops = hops;
-	//forward
-	payload=ackMsg;
-        call StateForwarder.send(ackMsg->route[hops], payload, len);
-      }
+	  restartSenseTimer(SUCCESS);
+	}
+      } 
     }
     return bufPtr;    
+  }
+
+  event void AckForwarder.sendDone(message_t *msg, error_t ok) {
+    if (ok != SUCCESS) {
+      reportError(ERR_FWD_FAILED);    
+    }
   }
 
   event void AckTimeoutTimer.fired() {
@@ -557,39 +596,52 @@ implementation
       //not going to get through, cancel send do not update SI/BN
       reportError(ERR_SEND_TIMEOUT);
       restartSenseTimer(FAIL); //need add a param in
-    }  
+     }  
   }
 
   //---------------- Deal with State Message Forwarding---------------------
   event message_t* StateReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
-    StateMsg* sMsg = (StateMsg*)payload;
-    if (len == sizeof(*sMsg)){
-	sMsg->hops = (sMsg->hops)+1;
-	//add in new part of route
-	sMsg->route[sMsg->hops]=TOS_NODE_ID;
-	//forward
-	payload=sMsg;
-        call StateForwarder.send(LEAF_CLUSTER_HEAD, payload, len);
+    StateMsg *newData;
+    int i;
+    int pslen;
+    int routeLen;
+    int next_hop;
+    StateMsg* sMsg;
+    
+    sMsg = (StateMsg*)payload;
+          
+    message_size = len;
+    newData = call StateForwarder.getPayload(&fwdMsg, message_size);
+    if (newData != NULL) { 
+      next_hop=(sMsg->hops)+1;
+      newData->timestamp = sMsg->timestamp;
+      newData->special = sMsg->special;
+      newData->seq = sMsg->seq;
+      newData->hops = next_hop;
+      newData->route[next_hop]=TOS_NODE_ID;
+      
+      routeLen = sizeof(sMsg->route)/sizeof(uint16_t);
+      for (i = 0; i < routeLen; i++) {
+	if (i==next_hop) {
+	  newData->route[i] = TOS_NODE_ID;
+	}
+	else {
+	  newData->route[i]=sMsg->route[i];
+	}
+      }
+	
+      for (i = 0; i < sizeof sMsg->packed_state_mask; i++) { 
+	newData->packed_state_mask[i] = sMsg->packed_state_mask[i];
+      }
+      pslen = sizeof(sMsg->packed_state)/sizeof(float);
+      for (i = 0; i < pslen; i++) {
+	newData->packed_state[i] = sMsg->packed_state[i];
+      }
+      call StateForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg, message_size);
     }
     return bufPtr;    
   }
 
   event void StateForwarder.sendDone(message_t *msg, error_t ok) {
-    if (ok != SUCCESS) {
-#ifdef BLINKY
-      call Leds.led0Toggle(); 
-#endif
-      reportError(ERR_FWD_FAILED);    
-    }
-    else {
-      if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-	last_errno = last_errno / last_transmitted_errno;
-      else
-	last_errno = 1.;
-    }
-    forwarding=FALSE;
   }
-
-  
-
 }
