@@ -19,7 +19,6 @@
    <http://www.gnu.org/licenses/>.
 
 
-
 ===================
 Current cost clamp Module
 ===================
@@ -31,11 +30,6 @@ ClampM provides read method to read from a directly interfaced current cost clam
 :email: ross.wilkins87@googlemail.com
 :date:  6th January 2011
 */
-
-
-
-
-
 module ClampM
 {
 	provides 

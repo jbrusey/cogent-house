@@ -51,10 +51,18 @@ implementation
   components LightSensingM;
   components AirQualityM;
   components HeatMeterM;
+  components OptiSmartM;
 
   //sensor readings
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
+
+  OptiSmartM.Leds -> LedsC;
+  OptiSmartM.EnergyInput -> GIO.Port26;
+  OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+
+  CogentHouseP.ReadOpti->OptiSmartM.ReadOpti;
+  CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
 
   LightSensingM.GetPAR -> PAR;
   LightSensingM.GetTSR -> TSR;

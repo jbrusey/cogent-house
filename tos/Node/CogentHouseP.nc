@@ -36,6 +36,8 @@ module CogentHouseP
     interface Read<float> as ReadCO2;
     interface Read<float> as ReadVOC;
     interface Read<float> as ReadAQ;
+    interface SplitControl as OptiControl;
+    interface Read<float> as ReadOpti;
     interface SplitControl as CurrentCostControl;
     interface Read<ccStruct *> as ReadWattage;
     interface SplitControl as HeatMeterControl;
@@ -214,7 +216,12 @@ implementation
       call Configured.set(RS_HEATMETER);
       call Configured.set(RS_VOLTAGE);
     }
-    if (nodeType > 0 && nodeType != 4) { 
+   else if (nodeType == 5) { /* opti smart */
+      call Configured.set(RS_OPTI);
+      call Configured.set(RS_VOLTAGE);
+      call OptiControl.start();
+    }
+    if (nodeType > 0 && (nodeType != 4 || nodeType !=5)) { 
       call LowPowerListening.setLocalWakeupInterval(0);
     }
     call RadioControl.start();
@@ -293,6 +300,8 @@ implementation
 	    call ReadWattage.read();
 	  else if (i == RS_HEATMETER)
 	    call ReadHeatMeter.read();
+	  else if (i == RS_OPTI)
+	    call ReadOpti.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -356,6 +365,9 @@ implementation
     post checkDataGathered();
   }
 
+  event void ReadOpti.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_OPTI, SC_POWER_PULSE);
+  }
 
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
     if (result == SUCCESS) {
@@ -572,22 +584,14 @@ implementation
     if (packet_pending) { 
       packet_pending = FALSE;
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
-	/*
-#ifdef DEBUG
-	printf("sending begun after cc stop\n");
-	printfflush();
-#endif
-	*/
 	sending = TRUE;
       }
     }
 
   }
 
-  /* event void DebugLog.appendDone(void* buf, storage_len_t len, bool recordsLost, */
-  /* 				 error_t error) {} */
-  /* event void DebugLog.eraseDone(error_t error) {} */
-  /* event void DebugLog.syncDone(error_t error) {} */
-
+  event void OptiControl.startDone(error_t error) { }
+  
+  event void OptiControl.stopDone(error_t error) {}  
   
 }
