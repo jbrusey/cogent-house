@@ -2,6 +2,7 @@
 from setuptools import setup
 
 REQUIRES = ['SQLAlchemy',
+			"MySQL-python"
             'configobj',
             "python-dateutil==1.5",
             "python-rest-client",
