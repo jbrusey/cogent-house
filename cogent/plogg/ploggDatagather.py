@@ -6,7 +6,8 @@
 # Ross Wilkins
 
 #DB_STRING = "mysql://test_user:test_user@127.0.0.1/testStore"
-DB_STRING = "sqlite:///test.db"
+#DB_STRING = "sqlite:///test.db"
+DB_STRING = "mysql://chuser@localhost/localCh"
 
 import logging
 connected = False
@@ -51,7 +52,8 @@ logging.basicConfig(level=logging.DEBUG)
 NODEMAP = {"000D6F000026B366":220295,
            "000D6F0000263A0F":200299,
            "0021ED00000463EF":200294,
-           "0021ED0000035BC6":200301
+           "0021ED0000035BC6":200301,
+           "000D6F000026D4D0":200302,
            }
            
 def toHex(s):
@@ -177,6 +179,7 @@ class PloggCollector(object):
         
         pList = self.ploggList
         #Scan for new Ploggs
+        pList = [] #Reset the list of ploggs each time
         pList = self.ploggScan(pList)
 
         log.info("Gathering Data for {0}".format(pList))
@@ -224,7 +227,7 @@ class PloggCollector(object):
         log = self.log
         dFound = False
         readings= None
-
+        failCount = 0
         sid =str(ploggId)
         port.write("AT+UCAST:"+sid+"=yv\r")
         time.sleep(2.5)  # really need to read with a timeout
@@ -237,14 +240,33 @@ class PloggCollector(object):
             data=""
             while n != 0:
                 log.debug(" --> Reading from Serial {0}".format(n))
-                #text = port.readline()
-                text = port.read(n)
-                log.debug(" --> Read Complete {0}".format(text))
+                text = port.readline()
+                #text = port.read(n)
+                log.debug(" --> Read Complete >{0}<".format(text.strip()))
+                if n == 45:
+                    log.warning("Read of 45")
+                    return
+
+                if (text.count("NACK:")>0):
+                    log.warning("NACK Recieved")
+                    return
+                if (text.strip() == ""):
+                    log.debug("No Text Returned")
+                    failCount += 1
+                    if failCount == 5:
+                        log.warning("Fail Count Reached")
                 if(text.count(sid+",")>0 or dFound==True):
                     dFound=True
                     data=data+text
                     n=port.inWaiting()
-                    
+                    log.debug("{0} Bytes Remain".format(n))
+                #Otherwise assume there is a failiure in fteching the data
+                #else:
+                #    log.info("No Response from Node")
+                #    log.debug("{0}".format(text.strip()))
+                #    n=port.inWaiting()
+                #    port.flushInput()
+                #    return
             if len(data)>0:
                 #self.ploggDebug(data)
                 log.debug("Readings Collected: Parsing")
@@ -277,7 +299,8 @@ class PloggCollector(object):
             rmsc=(float(int(str(ha[27]+ha[28]+ha[29]+ha[30]),16))/1000)
             #log.debug("Time {0} Watts {1} KwH {2} A {3}".format(timestamp,watts,kwhCon,rmsc))
             return (timestamp,watts,kwhCon,rmsc)
-            
+        else:
+            log.warning("Invalid packet Size")
         pass
 
     def saveData(self,nodeId,values):
@@ -340,8 +363,17 @@ class PloggCollector(object):
                                     typeId = currentSensor.id,
                                     value = sampleCurrent)
         session.add(theReading)
+        
+        #And add a nodeState
+        theNodeState = models.NodeState(time=sampleTime,
+                                        nodeId=theNode.id,
+                                        parent=theNode.id,
+                                        localtime=sampleTime)
+
+        session.add(theNodeState)
         session.flush()
         session.commit()
+        session.close()
 
     def ploggDebug(self,text):
         """
@@ -404,7 +436,7 @@ class PloggCollector(object):
 
             equipup =uptimeProcess((float(int(str(ha[51]+ha[52]+ha[53]+ha[54]),16))/100))
             log.debug("Equip Up Time {0}".format(equipup))
-            print "\n\n"
+            #print "\n\n"
 
 if __name__ == '__main__':
 
@@ -448,6 +480,7 @@ if __name__ == '__main__':
         usbPorts = list_ports.grep('USB VID:PID=10c4:8293 SNR=010010C5')
 
         #There should only be one port here
+        logging.debug("USB Ports {0}".format(usbPorts))
         usbPorts = list(usbPorts)
         if len(usbPorts) != 1:
             logging.warning("Error detecting usb Dongle")
