@@ -4,13 +4,11 @@
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 """
 
-import sqlalchemy
 
 #SQL Alchemy Relevant information
-from sqlalchemy import Table,Column,Integer,String,DateTime,ForeignKey,Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 
 #And Backrefs and Relations.
-from sqlalchemy.orm import relationship,backref
 
 #Setup Logging
 import logging
@@ -21,7 +19,7 @@ import meta
 Base = meta.Base
 
 
-class DeploymentMetadata(Base,meta.InnoDBMix):
+class DeploymentMetadata(Base, meta.InnoDBMix):
     """
     Table to hold metadata about a deployment
 
@@ -41,12 +39,5 @@ class DeploymentMetadata(Base,meta.InnoDBMix):
     units = Column(String(255))
     value = Column(Float)
 
-    #I prefer to have the backrefs in the parent class
-    #deployment = relationship("Deployment", backref=("metadata"),order_by=id)
-
-    def update(self,**kwargs):
-        for key,value in kwargs.iteritems():
-            setattr(self,key,value)
-
     def __str__(self):
-        return "Meta {0}: {1}".format(self.id,self.deploymentId)
+        return "Meta {0}: {1}".format(self.id, self.deploymentId)
