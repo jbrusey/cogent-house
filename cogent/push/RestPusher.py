@@ -52,14 +52,20 @@ a good idea to leave it.
     .. since 0.4.2::
 
        Store any mappings as a pickled object.
+
+   .. since 0.5.0::
+       
+       New Functionality to manually sync a database from scratch
+       Some Changes to logging functionality
+
 """
 
 import logging
 #logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.INFO,filename="pushCogentee.log")
-#logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO,filename="pushCogentee.log")
+#logging.basicConfig(level=logging.WARNING)
 
-__version__ = "0.4.2"
+__version__ = "0.5.0"
 
 import sqlalchemy
 #import remoteModels
@@ -85,26 +91,7 @@ import dateutil.parser
 import restful_lib
 import json
 import urllib
-
-log = logging.getLogger(__name__)
-#log.setLevel(logging.INFO)
-
-#URL of local database to connect to
-#LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
-#PUSH_LIMIT = 5000 #Limit on samples to transfer at any one time
-#SYNC_TIME = 60*10  #How often we want to call the sync (Every 10 Mins)
-
-#RSA KEY
-#RSA_KEY = None
-#RSA_KEY = "/home/dang/.ssh/id_rsa.pub"
-#RSA_KEY = "/home/dang/.ssh/work_key.pub"
-
-#Knwon Hosts file
-#KNOWN_HOSTS = None
-#KNOWN_HOSTS = "/home/dang/.ssh/known_hosts"
-
-#REST_URL = "127.0.0.1:6543/rest/"
-
+        
 class PushServer(object):
     """
     Class to deal with pushing updates to a group of remote databases
@@ -128,15 +115,14 @@ class PushServer(object):
                         This can be used to overwrite the url in the config file
         """
 
+        self.log = logging.getLogger("__name__")
+        log = self.log
         log.info("Initialising Push Server")
 
         self.configParser = configobj.ConfigObj("synchronise.conf")
 
         #Read the Configuration File
         generalConf, locationConfig = self.readConfig()
-
-        log.debug("General Conf: {0}".format(generalConf))
-        log.debug("Location Conf: {0}".format(locationConfig))
 
         #Store the config
         self.generalConf = generalConf
@@ -152,19 +138,20 @@ class PushServer(object):
         localSession = sqlalchemy.orm.sessionmaker(bind=engine)
         self.localSession = localSession
 
-
-
         #Create a new Pusher object for this each item given in the config
         syncList = []
         for item in locationConfig.values():
-            log.info("--> Init Pusher for {0} {1} {2}".format(localSession,generalConf,item))
+            log.debug("")
+            log.info("--> Initalising pusher for {0} {1} {2}".format(localSession,generalConf,item))
             thePusher = Pusher(localSession,
-                               item,
-                               generalConf,
+                               item["resturl"],
+                               item["lastupdate"],
+                               generalConf["pushlimit"],
+                               item
                                )
             
             thePusher.checkConnection()
-            thePusher.validateData()
+            #thePusher.validateData()
 
             syncList.append(thePusher)
 
@@ -180,7 +167,7 @@ class PushServer(object):
         :return: A dictionary of parameters (as a list) where syncronisation is
         required
         """
-
+        log = self.log
         confParser = self.configParser
         log.debug("Processing Config File")
 
@@ -195,7 +182,7 @@ class PushServer(object):
 
         for loc in locations:
             isBool = locations.as_bool(loc)
-            log.debug("--> Processing Location {0} {1}".format(loc, isBool))
+            #log.debug("--> Processing Location {0} {1}".format(loc, isBool))
             if isBool:
                 items = confParser[loc]
                 if items.get("lastupdate", None) in [None, "None"]:
@@ -219,6 +206,7 @@ class PushServer(object):
         :return: True on success,  False otherwise
         """
 
+        log = self.log
         loopStart = time.time()
         avgTime = None
         log.info("Running Full Syncronise Cycle")
@@ -255,18 +243,31 @@ class Pusher(object):
 
     """
 
-    def __init__(self, localSession, config, generalConf):
+    def __init__(self, localSession, restUrl,lastUpdate=None, pushLimit=5000,configFile = None):
         """Initalise a pusher object
 
         :param localSession: A SQLA session, connected to the local database
-        :param config: Config File options for this particular pusher object
-        :param generalConf: Global Configuration file for all Push Objest
-        :param configObj: Config Parser Object (To allow Writes)
+        :param restUrl: URL of rest interface to upload to
+        #:param config: Config File options for this particular pusher object
+        :param lastUpdate: Time of last Update
+        #:param generalConf: Global Configuration file for all Push Objest
+        #:param configObj: Config Parser Object (To allow Writes)
+        :param configFile: Link to the Configuration file for this database
         """
 
+        self.log = logging.getLogger(__name__)
+        #self.log.setLevel(logging.INFO)
+        self.log.setLevel(logging.WARNING)
+        log = self.log
+        
+
+        log.debug("Initialising Push Object")
+        #Save the Parameters
         self.localSession = localSession
-        self.config = config
-        self.generalConf = generalConf
+        self.lastUpdate = lastUpdate
+        self.configFile = configFile
+        #self.generalConf = generalConf
+        self.pushLimit = pushLimit
 
         # Storage for mappings between local -> Remote
         self.mappedDeployments = {} #DONE
@@ -275,21 +276,24 @@ class Pusher(object):
         self.mappedLocations = {}
         self.mappedRoomTypes = {}
 
-        restUrl = config["resturl"]
+        #restUrl = config["resturl"]
         log.debug("Starting REST connection for {0}".format(restUrl))
+        self.restUrl = restUrl
         #self.restSession = restful_lib.Connection("http://127.0.0.1:6543/rest/")
         self.restSession = restful_lib.Connection(restUrl)
 
 
     def checkConnection(self):
         #Do we have a connection to the server
+        log = self.log
+
         restSession = self.restSession
         restQry = restSession.request_get("/deployment/0")
         if restQry["headers"]["status"] == "503":
             log.warning("No Connection to server available")
             return False
+        log.debug("Connection to rest server OK")
         return True
-
 
     def validateData(self):
         """
@@ -297,7 +301,9 @@ class Pusher(object):
 
         For example, Looking for Samples without Nodes
         """
-        log.debug("Performing Basic Database Validation")
+
+        log = self.log
+        log.info("Performing Basic Database Validation")
 
         badTypes = []
         badNodes = []
@@ -306,11 +312,10 @@ class Pusher(object):
         restSession = self.restSession
 
         #Our bigest problem is readings for Nodes etc that do not exist.
-
         theQry = session.query(models.Deployment)
 
         if theQry.count() == 0:
-            log.warning("WARNING: No Deployments in this Database")
+            log.warning("WARNING: No Deployments on the Local Database")
 
         #Look for missing sensor types
             
@@ -325,8 +330,13 @@ class Pusher(object):
 
         if mTypes.count() > 0:
             badTypes = [x[0] for x in mTypes.all()]
-            log.warning("READINGS WITHOUT CORRESPONDING SENSOR TYPE: {0}".format(badTypes))
-
+            log.warning("WARNING: Readings in local database found without corresponding sensor type")#: {0}".format(badTypes))
+            for item in badTypes:
+                #Perform some extra validation here
+                theQry = session.query(models.Reading).filter_by(typeId = item)
+                
+                log.warning("--> Missing Sensor Type is {0} A Total of {1} records affected".format(item,theQry.count()))
+               
 
         #And Missing Nodes
         mNodes = session.query(sqlalchemy.distinct(models.Reading.nodeId))
@@ -335,47 +345,20 @@ class Pusher(object):
 
         if mNodes.count() > 0:
             badNodes = [x[0] for x in mNodes.all()]
-            log.warning("READINGS WITHOUT CORRESPONDING NODE: {0}".format(badNodes))
+            log.warning("WARNING: Readings in local databsae without corresponding node: {0}".format(badNodes))
 
-        #We basically have the option of creating something new, 
-        #Or Deleting the data,  as I like Data I vote to create a new Object
+            for item in badNodes:
+                theQry = session.query(models.Reading).filter_by(nodeId=item)
+                log.warning("--> Missing Node is {0} A Total of {1} records affected".format(item,theQry.count()))              
+                
+                #We need to add this Node to the local Database otherwise it can cause problems later on 
+                newNode = models.Node(id=item)
+                session.add(newNode)
 
-        for item in badTypes:
-            log.debug("Checking For Sensor Type {0} on Remote Server".format(item))
-            #I Suppose we take a look on the remote server to see if this type exists.
-            itemUrl = "/sensorType/{0}".format(item)
-            restQry = restSession.request_get(itemUrl)
-            if restQry["headers"]["status"] == "404":
-                log.info("--> No Such sensor type on remote server, Creating")
-                theSensorType = models.SensorType(id=item,
-                                                  name="UNKNOWN",
-                                                  )
-                #Do we add it to the local server, If we dont then it will
-                #Error each time the system is restarted
-                jsonString = json.dumps(theSensorType.toDict())
-                #log.debug(jsonString)
-                #We use a PUT to ensure the Id is as expected
-                restAdd = restSession.request_put(itemUrl,body=jsonString)
-                log.debug(restAdd)
-            else:
-                log.info("--> Sensor Exists on Remote Server, Ignoring")
-
-        #Similarly with Nodes
-        for newNode in badNodes:
-            log.debug("Checking for Node Id {0} on Remote Server".format(item))
-            itemUrl = "/node/{0}".format(newNode)
-            restQry = restSession.request_get(itemUrl)
-            if restQry["headers"]["status"] == "404":
-                log.info("--> No Such Node on Remote Server.  Creating")
-                theNode = models.Node(id=newNode)
-                jsonString = json.dumps(theNode.toDict())
-                restAdd = restSession.request_put(itemUrl,body=jsonString)
-                log.debug(restAdd)
-
-            else:
-                log.info("--> Node Exists on Remote:  Ignoring")
-
-        
+        #TODO (UNCOMMENT THIS)
+        session.flush()
+        session.commit()
+        session.close()
 
     def sync(self):
         """
@@ -384,13 +367,19 @@ class Pusher(object):
         :return: True if the sync is successfull, False otherwise
         """
 
+        log = self.log
+        log.info("Performing sync")
         #Load our Stored Mappings
         self.loadMappings()        
 
-        config = self.config
-        log.debug("Sync with config {0}".format(config))
-        self.lastUpdate = config.get("lastupdate", None)
+        #config = self.config
+        #log.debug("Sync with config {0}".format(config))
+        #self.lastUpdate = config.get("lastupdate", None)
         log.debug("Last Update Was {0}".format(self.lastUpdate))
+
+
+        #Syncronise Sensor Types
+        self.syncSensorTypes()
 
         #Synchronise Nodes
         nodes = self.syncNodes()
@@ -407,6 +396,7 @@ class Pusher(object):
         self.mapLocations(houseIds = houses)
 
 
+
         #log.setLevel(logging.DEBUG)
         self.updateNodeLocations()
         #log.setLevel(logging.INFO)
@@ -414,7 +404,7 @@ class Pusher(object):
         #self.debugMappings()
 
         #log.setLevel(logging.DEBUG)
-
+        
 
 
         #log.setLevel(logging.INFO)
@@ -422,6 +412,7 @@ class Pusher(object):
         
         #log.debug("Last update {0}".format(self.lastUpdate))
         #Synchronise Readings
+        #return
         samples, lastTime = self.syncReadings()
 
         log.debug("Remaining Samples {0}".format(samples))
@@ -429,7 +420,8 @@ class Pusher(object):
         self.dumpMappings()
         #Finally update the config file. (Add an tiny Offset to avoid issues
         #with milisecond rounding)
-        self.config['lastupdate'] = lastTime + timedelta(seconds = 1)
+        #self.config['lastupdate'] = lastTime + timedelta(seconds = 1)
+        self.lastUpdate = lastTime + timedelta(seconds = 1)
 
         
         return samples, lastTime
@@ -449,6 +441,7 @@ class Pusher(object):
         :var localIds:  List of Id's for local database objects
         :return: A List of delployment ID's that have been updated
         """
+        log = self.log
         log.debug("----- Mapping Deployments ------")
         mappedDeployments = self.mappedDeployments
         lSess = self.localSession()
@@ -522,6 +515,7 @@ class Pusher(object):
         :param deploymentIds: Sync houses attached to these deployments
         :return: List of (local) houseId's that have been sync
         """
+        log = self.log
         log.debug("Mapping Houses")
 
         mappedHouses = self.mappedHouses
@@ -599,7 +593,7 @@ class Pusher(object):
         :param roomId: local Room Id to Map
         :return: The remote version of this room
         """
-
+        log = self.log
         mappedRoomTypes = self.mappedRoomTypes
         mappedRooms = self.mappedRooms
 
@@ -608,33 +602,37 @@ class Pusher(object):
         restSession = self.restSession
 
         #log.debug("Mapping Room {0}".format(roomId))
+        log.info("Mapping Room {0}".format(roomId))
 
         theRoom = lSess.query(models.Room).filter_by(id=roomId).first()
         #log.debug("Mapping Room {0} ({1})".format(theRoom,roomId))
         if theRoom is None:
             log.warning("WTF,No such Room !!!")
 
-        #WE also need to double check that the room type exists
-        mapType = mappedRoomTypes.get(theRoom.roomTypeId, None)
-        log.debug("Mapped Room Type {0}".format(mapType))
-        if mapType is None:
-            roomType = theRoom.roomType
-            log.debug("--> RoomType {0} not mapped".format(roomType))
+        if theRoom.roomType:
+            #WE also need to double check that the room type exists
+            mapType = mappedRoomTypes.get(theRoom.roomTypeId, None)
+            log.debug("Mapped Room Type {0}".format(mapType))
+            if mapType is None:
+                roomType = theRoom.roomType
+                log.debug("--> RoomType {0} not mapped".format(roomType))
 
-            #Upload new room types
-            params = {"name":roomType.name}
-            theUrl = "roomType/?{0}".format(urllib.urlencode(params))
 
-            theBody = roomType.toDict()
-            del theBody["id"]
+                params = {"name":roomType.name}
+                theUrl = "roomType/?{0}".format(urllib.urlencode(params))
 
-            restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
-            #log.debug(restQry)
-            restBody = json.loads(restQry['body'])
-            mapType = restBody['id']
-            log.info("Room Type {0} mapped to {1}".format(roomType.id,
-                                                          mapType))
-            mappedRoomTypes[roomType.id] = mapType
+                theBody = roomType.toDict()
+                del theBody["id"]
+
+                restQry = restSession.request_put(theUrl, body=json.dumps(theBody))
+                #log.debug(restQry)
+                restBody = json.loads(restQry['body'])
+                mapType = restBody['id']
+                log.info("Room Type {0} mapped to {1}".format(roomType.id,
+                                                              mapType))
+                mappedRoomTypes[roomType.id] = mapType
+        else:
+            mapType = None
 
         #Then Create the Room
         params = {"name":theRoom.name,
@@ -672,6 +670,7 @@ class Pusher(object):
         :param houseIds:  Houses attached to these deployments
         :return: List of (local) locationId's that have been sync
         """
+        log = self.log
         log.debug("Mapping Locations")
 
         #mappedHouses = self.mappedHouses
@@ -723,7 +722,7 @@ class Pusher(object):
                 log.debug("### ROOM {0}".format(mapLoc.roomId))
 
                 if mapRoom is None:
-                    log.debug("--> Mapping Room")
+                    log.info("--> ## Mapping Room {0}".format(mapLoc.roomId))
                     mapRoom = self.mapRooms(mapLoc.roomId)
 
                 log.debug("--> MAPPED ROOM {0}".format(mapRoom))
@@ -755,6 +754,7 @@ class Pusher(object):
 
     def updateNodeLocations(self):
         """Update Nodes, to take account of the latest Locations"""
+        log = self.log
         log.info("---- Updating Node Locations -----")
         #for key,item in self.mappedLocations.iteritems():
         #    log.debug("{0} {1}".format(key,item))
@@ -766,7 +766,6 @@ class Pusher(object):
         log.debug(locIds)
         session = self.localSession()
         theQry = session.query(models.Node).filter(models.Node.locationId.in_(locIds))
-        log.info(theQry)
         for item in theQry:
             #theNode = session.query(models.Node).filter_by(id=item).first()
             theDict = item.toDict()
@@ -774,9 +773,10 @@ class Pusher(object):
             theDict['locationId'] = mappedLocations[item.locationId]
             #And for the moment remove the node types
             theDict['nodeTypeId'] = None
+
             
 
-            log.debug("Updating Node {0} {1}".format(item,theDict))            
+            log.info("Updating Node {0} {1}".format(item,theDict))            
             #Then Update
             theUrl  = "node/{0}".format(item.id)
             restQry = restSession.request_put(theUrl,body=json.dumps(theDict))
@@ -823,6 +823,8 @@ class Pusher(object):
     def dumpMappings(self):
         """Dump all our known mappings to a JSON file"""
         # Storage for mappings between local -> Remote
+        log = self.log
+        return
         dumpDict = {"dep":self.mappedDeployments.items(),
                     "house":self.mappedHouses.items(),
                     "room":self.mappedRooms.items(),
@@ -832,20 +834,24 @@ class Pusher(object):
         log.debug(dumpDict)
         #log.debug(json.dumps(dumpDict))
         
-        log.debug(self.config)
-        with open("{0}.json".format(self.config["url"]),"wb") as fd:
+        #fileStr = "{0}.json".format(self.restUrl)
+        fileStr = "forceDump.json"
+        with open(fileStr,"wb") as fd:
             json.dump(dumpDict,fd)
-
-
-
 
     def loadMappings(self):
         """Load known mappings from a JSON file"""
+        log = self.log
         log.debug("Loading JSON Mappings")
 
-        fileStr = "{0}.json".format(self.config["url"])
+        restUrl = self.restUrl
         
+        #fileStr = "{0}.json".format(self.restUrl)
+        fileStr = "forceDump.json"        
+        return
+
         if not os.path.isfile(fileStr):
+            log.debug("No Mappings Found")
             return 
 
         with open(fileStr,"rb") as fd:
@@ -861,9 +867,93 @@ class Pusher(object):
         #log.debug(dumpDict)
 
                       
+    def syncSensorTypes(self):
+        """
+        Synchronise Sensor Types with the remote server
 
+        Sensor types should also be the same on all databases.  If this is not
+        the case this method attempts to rewrite sensor types to the correct
+        (those on the remote server) values
+        """
 
-    
+        log = self.log
+        log.debug("Synchronising sensor types")
+
+        session = self.localSession()
+        remoteSession = self.restSession
+
+        #First Fetch the List of sensor types from the remote server
+
+        remoteQry = remoteSession.request_get("sensortype/")
+        remoteItems = json.loads(remoteQry["body"]) 
+
+        #Store for bad items
+        matchedItems = {}
+        badItems = {}
+              
+
+        for item in remoteItems:
+            #log.debug("Processing Remote {0} {1}".format(item["id"],item["name"]))
+            theQry = session.query(models.SensorType).filter_by(name=item["name"]).first()
+            #print theQry
+            if theQry is None:
+                log.debug("Sensor Type {0} Missing".format(item))
+                #badItems[item["id"]] = (item,None)
+                #Add this sensor type to the list
+                newSensor = models.SensorType(id=item["id"],
+                                              name=item["name"],
+                                              code=item["code"],
+                                              units=item["units"],
+                                              c0 = item["c0"],
+                                              c1 = item["c1"],
+                                              c2 = item["c2"],
+                                              c3 = item["c3"])
+                session.add(newSensor)
+                session.flush()
+            else:
+                if not item["id"] == theQry.id:
+                    badItems[item["id"]] = (item,theQry)
+                else:
+                    matchedItems[theQry.id] = (item,theQry)
+
+        session.commit()
+        #We need to do it this way to avoid a problem in the iterator
+        keys = badItems.keys()
+        print "Keys ",keys
+
+        switchedItems = ()
+                
+        #for key,value in badItems.iteritems():
+        for key in keys:
+            value = badItems[key]
+            #print 
+            print key,value
+
+            remote,local = value
+
+            targetKey = remote["id"]
+            localKey = local.id
+            #If we have managed to switch keys over
+            if localKey in badItems:
+               log.warning("SOME KEYS HAVE BEEN SWITCHED {0} {1}".format(remote,local))
+               #TODO  Work out what to do if keys have been switched
+               sys.exit(0)
+
+            else:
+                #Update with the proper key
+                log.debug("Updating sensor type {0} to have key {1}".format(local,targetKey))
+                local.id = targetKey
+                session.flush()
+                del badItems[key]
+                matchedItems[key] = local
+                
+                #And update any Readings
+                theReadings = session.query(models.Reading).filter_by(typeId = key)
+                theReadings.update({"type": targetKey})
+                session.flush()
+
+        session.commit()
+                    
     def syncNodes(self):
         """Syncronise nodes:
 
@@ -892,6 +982,7 @@ class Pusher(object):
             we assume then there has been no change to the node itself.
 
         """
+        log = self.log
         lSess = self.localSession()
         #rSess = self.remoteSession()
         restSession = self.restSession
@@ -904,8 +995,10 @@ class Pusher(object):
         #Then filter out just ID's
         restBody = json.loads(restQuery["body"])
         rQuery = [x['id'] for x in restBody]
-        #log.debug(restBody)
-        log.debug("Remote Nodes :{0}".format(rQuery))
+
+        #log.debug("Remote Nodes :{0}".format(rQuery))
+        log.debug("Total of {0} Remote Nodes found".format(len(rQuery)))
+
         #Map these against our Local Nodes
         #Have a check here, if the remote DB is empty, then using _in throws a
         #Error
@@ -921,11 +1014,10 @@ class Pusher(object):
             return False
         else:
             log.debug("--> {0} Nodes to Synchronise".format(len(lQuery)))
-            log.debug(lQuery)
 
         bulkUpload = []
         for node in lQuery:
-            log.debug("--> --> Node {0} does not exist on remote server".format(node))
+            #log.debug("--> --> Node {0} does not exist on remote server".format(node.id))
 
             #Create the Node
             newNode = models.Node(id=node.id)
@@ -941,10 +1033,12 @@ class Pusher(object):
                                           calibrationSlope = sensor.calibrationSlope,
                                           calibrationOffset = sensor.calibrationOffset)
 
-                log.debug("Creating Sensor {0}".format(newSensor))
+                #log.debug("Creating Sensor {0}".format(newSensor))
                 bulkUpload.append(newSensor)
 
         jsonBody = json.dumps([x.toDict() for x in bulkUpload])
+
+        #return
         restQuery = restSession.request_post("Bulk/",
                                              body=jsonBody)
 
@@ -983,7 +1077,7 @@ class Pusher(object):
         # If Sync is successful, fix the last update timestamp and return
         """
 
-
+        log = self.log
         lSess = self.localSession()
         restSession = self.restSession
 
@@ -1001,13 +1095,39 @@ class Pusher(object):
             log.debug("Filter all readings since {0}".format(cutTime))
             readings = readings.filter(models.Reading.time >= cutTime)
 
+        #Skip Sensor Type of 14
+        readings = readings.filter(models.Reading.typeId != 14)
+            
         remainingReadings = readings.count()
+
+
 
         if remainingReadings == 0:
             log.info("No More Readings to Sync")
             return (remainingReadings, cutTime)
         #Limit by the number of items specified in the Config file
-        readings = readings.limit(self.generalConf['pushlimit'])
+        #readings = readings.limit(self.pushLimit)
+
+        #Its a bit of a pain in the Arse, but having this cutoff date makes life a tad tricky.
+        #Therefore we find the date of the last sample up to the limit.
+        log.setLevel(logging.DEBUG)
+        cutoffTime = readings.offset(self.pushLimit).first()
+        log.debug("Date of {1}th Reading is {0}".format(cutoffTime,self.pushLimit))
+        
+        #We can then rebuild our query to go up to this Date 
+        
+        readings = lSess.query(models.Reading).order_by(models.Reading.time)
+        readings = readings.filter(models.Reading.typeId != 14)
+        if cutTime:
+            readings = readings.filter(models.Reading.time >= cutTime)
+        if cutoffTime:
+            readings = readings.filter(models.Reading.time <= cutoffTime.time)
+            log.debug("Transfer a total of {0} Readings to {1}".format(readings.count(),cutoffTime.time))
+        
+        #sys.exit(0)
+        log.setLevel(logging.WARNING)
+
+
 
         jsonList = []
         for reading in readings:
@@ -1022,9 +1142,13 @@ class Pusher(object):
                                            body=json.dumps(jsonList))
         #log.debug(restQry)
         if restQry["headers"]["status"] == '404':
+            print "==="*80
             log.warning("Upload Fails")
-            log.info(restQry)
+            log.warning(restQry)
+
+            sys.exit(0)
             raise Exception ("Bad Things Happen")
+    
 
         #We also want to update the Node States
         lastSample = readings[-1].time
@@ -1036,20 +1160,184 @@ class Pusher(object):
         nodeStates = nodeStates.filter(models.NodeState.time <= lastSample)
 
         restStates = [x.toDict() for x in nodeStates]
+        for item in restStates:
+            item["id"] = None
+
         log.debug("Rest States {0}".format(restStates))
         if restStates:
             restQry = restSession.request_post("/bulk/",
                                                body=json.dumps(restStates))
-            log.debug(restQry)
+
+            if restQry["headers"]["status"] == '404':
+                print "==="*80
+                log.warning("Upload Fails")
+                log.warning(restQry)
+
+                sys.exit(0)
 
         log.debug("Node States")
 
         return remainingReadings, lastSample
 
+class PushManual(object):
+    """
+    Manually initiate a Push Cycle
+    """
+
+    def __init__(self,localURL,remoteServer="http://127.0.0.1:6543/rest/",stTime=None):
+        """Initilalise a Push Session
+
+        :var localURL: sqlalchemy URL to use for Sync
+        :var remoteServer: Base URL of the remote server
+        """
+
+        self.log = logging.getLogger("__name__")
+        log = self.log
+        log.debug("Creating Manual Push session for database {0} to {1}".format(localURL,remoteServer))
+
+        #Initalise the local database connection
+        engine = sqlalchemy.create_engine(localURL)
+        models.initialise_sql(engine)
+        localSession = sqlalchemy.orm.sessionmaker(bind=engine)
+        self.localSession = localSession
+        
+        #Create the Server
+        thePusher = Pusher(localSession,
+                           remoteServer,
+                           stTime,
+                           10000,
+                           #10,
+                           #1,
+                           )
+
+        thePusher.checkConnection()
+        thePusher.validateData()
+
+        self.thePusher = thePusher
+
+    def sync(self,fileStr,dumpDict,item):
+        """Synchronise the server"""
+
+        #ThePusher.sync()
+        samples = 10
+        while samples > 0:
+        #for x in range(5):
+            samples, lastTime = self.thePusher.sync()
+            print "Last Update {0}".format(lastTime)
+            dumpDict[item] = lastTime 
+
+            with open(fileStr,"wb") as fd:
+                pickle.dump(dumpDict,fd)
+
+            #print "Total Samples ",samples
+            #samples = -1
+        return lastTime,dumpDict
+
+    
+
+def compareReadings(localURL):
+    """Do a Quick bit of error checking across databases
+    To see where a previous update has been succesful
+    """
+    engine = sqlalchemy.create_engine("mysql://root:Ex3lS4ga@localhost/Gauss")
+    #models.initialise_sql(engine)
+    LocalSession = sqlalchemy.orm.sessionmaker(bind=engine)
+    
+    engineTwo = sqlalchemy.create_engine("mysql://root:Ex3lS4ga@localhost/ch")
+    #models.initialise_sql(engineTwo)
+    RemoteSession = sqlalchemy.orm.sessionmaker(bind=engine)
+
+    """
+    SELECT * FROM Gauss.Reading AS Otto INNER JOIN ch.Reading As Ch ON (Otto.nodeId = Ch.nodeId AND Otto.time = Ch.time AND Otto.type = Ch.type)
+WHERE Otto.nodeId = 69 AND Otto.type = 0 ORDER BY Otto.time DESC
+ LIMIT 10
+    """
+
+
+    localSession = LocalSession()
+    remoteSession = RemoteSession()
+    #Really its just readings we want to compare.
+    
+    #Get unique nodestates from the local database
+
+    theQry = localSession.query(sqlalchemy.distinct(models.NodeState.nodeId))
+    distinctNodes = theQry.all()
+    print "Distinct Node States"
+    print distinctNodes
+
+    #Then fetch the last node state for each node
+    for node in distinctNodes[:1]:
+        #Last Local
+        print "Checking Node {0}".format(node)
+        lastLocal = localSession.query(models.NodeState).filter_by(nodeId=node[0]).order_by(models.NodeState.time.desc())
+        
+        print lastLocal
+        print lastLocal.first()
+
+        lastRemote = remoteSession.query(models.NodeState).filter_by(nodeId=node[0]).order_by(models.NodeState.time.desc())
+        print lastRemote.first()
+
+        # serverState = remoteSession.query(models.NodeState).
+        # print "Last Nodestate for this node on server is"
+
+
+    #For each node get the last reading.
+    
+    
+
+    
+    
+    
 
 if __name__ == "__main__":
+    import datetime
+    import pickle
     logging.debug("Testing Push Classes")
 
-    server = PushServer()
-    server.sync()
-    print "Done"
+    #server = PushServer()
+    #server.sync()
+
+    theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format("Gauss")
+    compareReadings(theUrl)
+    #import sys
+    #sys.exit(0)
+    
+    #server = PushManual("mysql://root:Ex3lS4ga@localhost/Einstein")
+    #server = PushManual("mysql://root:Ex3lS4ga@localhost/Otto")
+    dumpDict = {}
+    #Push Mappings 
+    fileStr = "manualPush.pickle"
+    try:
+        with open(fileStr,"rb") as fd:
+            dumpDict = pickle.load(fd)
+    except:
+        print "NO PICKELED FILE"
+        
+
+    print dumpDict
+
+    servers = ["Einstein","Euclid","Euler","Gauss","Otto","Tesla"]
+    #servers = ["Euclid"]
+
+    for item in servers:
+        print "Dealing with {0}".format(item)
+        theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format(item)
+
+        startTime = dumpDict.get(item,None)
+        if startTime:
+            startTime = startTime + datetime.timedelta(seconds=1)
+        #startTime = datetime.datetime(2012,3,2,11,13,50)
+        server = PushManual(theUrl,stTime=startTime)
+        lastTime,dumpDict = server.sync(fileStr,dumpDict,item)
+
+#    dumpDict["Otto"] = datetime.datetime.now()
+    
+
+
+    #servers = ["Einstein","Euclid","Euler","Gauss","Tesla"]
+    
+    #for server in servers:
+
+    #server = PushManual("mysql://root:Ex3lS4ga@localhost/localCh")
+    #server.sync()
+    #print "Done"
