@@ -21,6 +21,7 @@ import select
 
 import logging
 log = logging.getLogger("__name__")
+log.setLevel(logging.DEBUG)
 
 class ForwardServer (SocketServer.ThreadingTCPServer):
     """Subclass Socket server to run in daemon mode"""
@@ -38,7 +39,7 @@ class Handler (SocketServer.BaseRequestHandler):
                                                    (self.chain_host, self.chain_port),
                                                    self.request.getpeername())
         except Exception, e:
-            law.warning('Incoming request to %s:%d failed: %s' % (self.chain_host,
+            log.warning('Incoming request to %s:%d failed: %s' % (self.chain_host,
                                                                   self.chain_port,
                                                                   repr(e)))
             return

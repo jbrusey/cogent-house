@@ -15,6 +15,7 @@ import cogent.base.model.meta as meta
 import sqlalchemy
 import time
 from datetime import datetime
+from datetime import timedelta
 
 READING_GAP = 10
 STATE_SWITCH = 100
@@ -120,6 +121,88 @@ class Datagen(object):
 
         session.commit()
 
+    def addMany(self):
+        """Add around 1 million records to the database"""
+        """Add about 2000 Records to the Database"""
+        session = meta.Session()
+        localCount = 0
+        stateOne = True
+        fakeTime = datetime.now()
+
+        node37 = self.node37
+        node38 = self.node38
+
+        totalCount = 0
+        try:
+            #while totalCount < 500000:
+            while totalCount < 100000:
+                #Add a reading every N seconds
+                #log.debug("Adding New Reading {0}".format(fakeTime))
+
+                theReading = models.Reading(time = fakeTime,
+                                            nodeId = node37.id,
+                                            locationId = node37.locationId,
+                                            value = localCount,
+                                            typeId = 0)
+                session.add(theReading)
+
+                theReading = models.Reading(time = fakeTime,
+                                            nodeId = node38.id,
+                                            locationId = node38.locationId,
+                                            value = 100-localCount,
+                                            typeId = 0)            
+                session.add(theReading)
+                session.flush()
+                if localCount == STATE_SWITCH:
+                    log.debug("Switching States")
+                    localCount = 0
+
+                    #Add a node state
+                    if stateOne:
+                        theState = models.NodeState(time=fakeTime,
+                                                    nodeId=node37.id,
+                                                    parent = 1024,
+                                                    localtime = 0)
+                        session.add(theState)
+
+                        theState = models.NodeState(time=fakeTime,
+                                                    nodeId=node38.id,
+                                                    parent = 1024,
+                                                    localtime = 0)
+                        session.add(theState)        
+                    else:
+                        theState = models.NodeState(time=fakeTime,
+                                                    nodeId=node37.id,
+                                                    parent = node38.id,
+                                                    localtime = 0)
+                        session.add(theState)
+
+                        theState = models.NodeState(time=fakeTime,
+                                                    nodeId=node38.id,
+                                                    parent = 1024,
+                                                    localtime = 0)
+                        session.add(theState)
+
+                    stateOne = not stateOne
+                    session.flush()
+                    session.commit
+                    log.debug("Commiting Samples {0}".format(totalCount))
+                else:
+                    localCount += 1
+
+                #time.sleep(READING_GAP)
+                totalCount += 1
+                fakeTime = fakeTime + timedelta(seconds=10)
+                #session.commit()
+        except KeyboardInterrupt:
+            log.debug("Closing Everything down")
+            session.flush()
+            session.commit()
+       
+
+        session.flush()
+        session.commit()
+
     def run(self):
         session = meta.Session()
         localCount = 0
@@ -192,4 +275,5 @@ class Datagen(object):
 
 if __name__ == "__main__":
     datagen = Datagen()
-    datagen.run()
+    #datagen.run()
+    datagen.addMany()

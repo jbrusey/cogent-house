@@ -44,27 +44,22 @@ class Node(Base,meta.InnoDBMix):
   
     stateHistory = relationship("NodeState", order_by="NodeState.id",backref="node")
     nodeHistory = relationship("NodeHistory",backref="node")
-    readings = relationship("Reading",backref="node",cascade="all")
-    sensors = relationship("Sensor", backref="node",cascade="all")
-   
+    readings = relationship("Reading",backref="node")
+    sensors = relationship("Sensor", backref=("node"))
+
+    #Add a backref to association Table
+    #locations = relationship("Location",secondary="location_node",backref="Nodes")
+    #locations = relationship("Location",secondary=LocationNode,backref="Nodes")   
+
     def update(self,**kwargs):
         for key,value in kwargs.iteritems():
             setattr(self,key,value)
 
     def __str__(self):
-        return "Node {0}".format(self.id)
+        return "Node {0} Loc {1}".format(self.id,self.locationId)
 
-    def __cmp__(self,other):
-        """Compare two nodes
-        
-        .. warning::
-        
-            As the nodes should all have unique ID's we just run the compare on Id.
-            If at some future point this changes, we need to ensure that this method is updated
-        """
-
-        return self.id - other.id
-        
+    def __eq__(self,other):
+        return self.id == other.id and self.locationId == other.locationId and self.nodeTypeId == other.nodeTypeId
 
     def asJSON(self,parentId=""):
         """Adds a Location Parameter to make sure we can link back to location when we come to get the data"""
