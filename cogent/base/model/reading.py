@@ -19,7 +19,7 @@ from sqlalchemy.orm import relationship, backref
 import time
 
 #To allow Calibration
-import sensor
+import sensor 
 import dateutil
 
 class Reading(Base,meta.InnoDBMix):
@@ -219,29 +219,61 @@ def calibrateReadings(theQuery):
     sensorParams = {}
 
     for reading in theQuery:
-        #log.debug("Original Reading {0}".format(reading))
+
         theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
+        log.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
         if not theSensor:
             theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
-            log.debug("--> Fetching Sensor {0}".format(theSensor))
-            if not theSensor:
-                theSensor = models.Sensor(calibrationSlope = 1, calibrationOffset=0)
-                log.debug("--> Using Default Sensor")
-            #print "USING SENSOR {0}".format(theSensor)
+            if theSensor is None:
+                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
             sensorParams[(reading.nodeId,reading.typeId)] = theSensor
 
-        cReading = Reading(time = reading.time,
+
+        #Then add the offset etc
+        cReading = Reading(time=reading.time,
                            nodeId = reading.nodeId,
                            typeId = reading.typeId,
                            locationId = reading.locationId,
-                           value = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value)
-                           #value = 10#theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value))
+                           value = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
                            )
-
+    
         yield cReading
                                   
+def calibJSON(theQuery):
+    """Generator object to calibate all readings,
+    hopefully this gathers all calibration based readings into one 
+    area
 
-def calibrateJSON(theQuery):
+    :param theQuery: SQLA query object containing Reading values"""
+
+    #Dictionary to hold all sensor paramters
+    session = meta.Session()
+    sensorParams = {}
+
+    for reading in theQuery:
+
+        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
+        #log.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        if not theSensor:
+            #theSensor = "FOO"
+            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
+            if theSensor is None:
+                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
+            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+
+
+        #Then add the offset etc
+        cReading = {"time":reading.time.isoformat(),
+                    "nodeId" : reading.nodeId,
+                    "typeId" : reading.typeId,
+                    "locationId" : reading.locationId,
+                    "value" : theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
+                    }
+    
+        yield cReading
+    
+
+def calibratePairs(theQuery):
     """Generator object to calibrate readings and return in JSON 
     friendly format
     
@@ -253,18 +285,19 @@ def calibrateJSON(theQuery):
     sensorParams = {}
 
     for reading in theQuery:
-        #log.debug("Original Reading {0}".format(reading))
+
         theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
+        log.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
         if not theSensor:
             theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
-            #log.debug("--> Fetching Sensor {0}".format(theSensor))
-            if not theSensor:
-                theSensor = models.Sensor(calibrationSlope = 1, calibrationOffset=0)
-                #log.debug("--> Using Default Sensor")
-                
+            if theSensor is None:
+                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
             sensorParams[(reading.nodeId,reading.typeId)] = theSensor
 
-        sVal = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value)
-                               
-        yield (time.mktime(reading.time.timetuple()) * 1000,sVal)
+        theTime = time.mktime(reading.time.timetuple())*1000.0
+        #theTime = reading.time.isoformat()
+        theValue = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value)
+        #theValue = reading.value
     
+    
+        yield (theTime,theValue)

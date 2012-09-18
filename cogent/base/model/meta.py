@@ -118,21 +118,29 @@ class InnoDBMix(object):
         """
 
         #Check if we have a string or dictonary
+        
+        log.debug("FROMJSON Demung {0}".format(jsonDict))
+
         if type(jsonDict) == str:
             jsonDict = json.loads(jsonDict)
-
+        if type(jsonDict) == list:
+            log.warning("WARNING LIST SUPPLIED {0}".format(jsonDict))
+            jsonDict = jsonDict[0]
         #For each column in the table
         for col in self.__table__.columns:
             #Check to see if the item exists in our dictionary
             newValue = jsonDict.get(col.name, None)
-
+            
             #Fix missing values
-            if newValue is None:
+            if col.name == "locationId":
+                setattr(self,col.name,newValue)
+            elif newValue is None:
                 pass
             else:
                 #Convert if it is a datetime object
                 if isinstance(col.type, sqlalchemy.DateTime) and newValue:
-                    newValue = dateutil.parser.parse(newValue)
-
+                    log.debug("{0} CASTING DATE {0}".format("-="*15))
+                    newValue = dateutil.parser.parse(newValue,ignoretz=True)
+                    log.debug("New Time {0}".format(newValue))
                 #And set our variable
                 setattr(self, col.name, newValue)

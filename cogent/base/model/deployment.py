@@ -68,6 +68,12 @@ class Deployment(Base, meta.InnoDBMix):
                                                       self.endDate)
 
 
+    def toList(self):
+        """Create a Flattened List represenstaion of this item"""
+        thisItem = self.asJSON()
+        thisItem["parent"] = "root"
+        return [thisItem]
+
     def asTree(self):
         """Recursively turn the deployments into a tree"""
         thisItem = self.asJSON()
