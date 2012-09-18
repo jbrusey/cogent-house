@@ -23,6 +23,7 @@ from sensortype import *
 from roomtype import *
 from node import *
 from sensor import *
+from room import *
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -48,7 +49,7 @@ def populateSensorTypes(session = False):
                   SensorType(id=1,name="Delta Temperature",
                              code="dT",
                              units="deg.C/s",
-                             c0=0., c1=1., c2=0., c3=0.),                              
+                             c0=0., c1=1., c2=0., c3=0.),                       
                   SensorType(id=2,name="Humidity",
                              code="RH",
                              units="%",
@@ -97,13 +98,17 @@ def populateSensorTypes(session = False):
                              code="DUT",
                              units="ms",
                              c0=0., c1=1., c2=0., c3=0.),
-                  SensorType(id=50,name="Plogg kWh",
+                 SensorType(id=20,name="Power pulses",
+                            code="POP",
+                            units="p",
+                            c0=0., c1=1., c2=0., c3=0.),
+                  SensorType(id=50,name="Plogg Power",
                              code="plogg_kwh",
                              units="kWh"),
                   SensorType(id=51,name="Plogg Current",
                              code="plogg_a",
                              units="A"),
-                  SensorType(id=52,name="Plogg Watts",
+                  SensorType(id=51,name="Plogg Wattage",
                              code="plogg_w",
                              units="W"),
                   SensorType(id=99,name="Gas Consumption",
@@ -187,9 +192,8 @@ def _parseCalibration(filename,sensorcode,session=False):
             basePath = thePath
             log.debug("Base Path is {0}".format(basePath))
             break
-
-    if basePath:
-        thePath = os.path.join(basePath,theFile)
+            
+    thePath = os.path.join(basePath,theFile)
 
     #Find the relevant sensor type
     sensorType = session.query(SensorType).filter_by(code=sensorcode).first()
@@ -282,17 +286,25 @@ def populateRoomTypes(session):
     if not session:
         session = meta.Session()
 
-    roomList = ["NoRoom",
-                "Bedroom",
-                "Bathroom",
-                "Living Room",
-                "Kitchen",
-                "Hallway",
-                "Spare Room"]
-    for item in roomList:
-        theQry = session.query(RoomType).filter_by(name=item).first()
-        if theQry is None:
-            session.add(RoomType(name=item))
+    roomTypes = [["Bedroom",["Master Bedroom","Second Bedroom","Third Bedroom"]],
+                 ["Living Area",["Living Room","Dining Room"]],
+                 ["Wet Room",["Bathroom","WC","Kitchen"]],
+                 ["Unocupied",["Hallway","Upstairs Hallway","Utility Room","Spare Room"]]
+                 ]
+
+    for roomType,rooms in roomTypes:
+        
+        theType = session.query(RoomType).filter_by(name=roomType).first()
+        if theType is None:
+            theType = RoomType(name=roomType)
+            session.add(theType)
+            session.flush()
+
+        for item in rooms:
+            theQry = session.query(Room).filter_by(name=item).first()
+            if theQry is None:
+                session.add(Room(name=item,roomTypeId=theType.id))
+        session.flush()
             
     session.flush()
     session.commit()

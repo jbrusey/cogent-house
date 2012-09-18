@@ -55,8 +55,14 @@ class Location(Base,meta.InnoDBMix):
                    "label":"({0}) {1}".format(self.id,self.room.name),
                    "type":"location",
                    "parent": "H_{0}".format(self.houseId),
-                   "children":[]
                    }
+       
+        try:
+            hasRead = self.readings[0]
+        except:
+            hasRead = False
+            #return None
+        #log.info(self.readings.count())
         return theItem
 
     def getReadings(self,typeId=None):
@@ -82,4 +88,12 @@ class Location(Base,meta.InnoDBMix):
 
 
     def __str__(self):
-        return ("Loc ({0}): House {1} , Room {2}".format(self.id,self.houseId,self.roomId))
+	    return "({0}) {1} : {2}".format(self.id,self.house.address,self.room.name)
+
+
+NodeLocation = sqlalchemy.Table("NodeLocation",Base.metadata,
+                                sqlalchemy.Column("LocationId",Integer,ForeignKey("Location.id")),
+                                sqlalchemy.Column("nodeId",Integer,ForeignKey("Node.id"))
+                                )
+                                                  
+
