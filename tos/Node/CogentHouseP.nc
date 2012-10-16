@@ -44,6 +44,7 @@ module CogentHouseP
     interface Read<hmStruct *> as ReadHeatMeter;
     interface Read<float> as ReadTempADC1;
     interface Read<float> as ReadTempADC2;
+    interface Read<float> as ReadBlackBulb;
 
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -237,6 +238,13 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call Configured.set(RS_DUTY);
     }
+    else if (nodeType == 7) { /* black bulb */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_BLACKBULB);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
 
     call RadioControl.start();
     
@@ -319,6 +327,8 @@ implementation
 	    call ReadTempADC1.read();
 	  else if (i == RS_TEMPADC2)
 	    call ReadTempADC2.read();
+	  else if (i == RS_BLACKBULB)
+	    call ReadBlackBulb.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -380,7 +390,10 @@ implementation
   event void ReadTempADC2.readDone(error_t result, float data) {
     do_readDone(result, data, RS_TEMPADC2, SC_TEMPADC2);
   }
-
+  
+  event void ReadBlackBulb.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_BLACKBULB, SC_BLACKBULB);
+  }
 
  event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
     if (result == SUCCESS) {

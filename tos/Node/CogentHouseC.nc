@@ -47,6 +47,7 @@ implementation
   components HplMsp430GeneralIOC as GIO;
   components new Temp_ADC1C() as Temp_ADC1;
   components new Temp_ADC2C() as Temp_ADC2;
+  components new BlackBulbC() as BlackBulbADC;
 
   //import sensing modules
   components ThermalSensingM;
@@ -55,6 +56,7 @@ implementation
   components WindowSensorM;
   components HeatMeterM;
   components OptiSmartM;
+  components BlackBulbM;
 
   //sensor readings
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -69,6 +71,7 @@ implementation
 
   WindowSensorM.GetTempADC1 -> Temp_ADC1;
   WindowSensorM.GetTempADC2 -> Temp_ADC2;
+  BlackBulbM.GetTemp -> BlackBulbADC;
   
   AirQualityM.GetCO2 -> CarbonDioxide;
   AirQualityM.GetVOC -> VOC;
@@ -94,6 +97,7 @@ implementation
   CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
   CogentHouseP.ReadTempADC1->WindowSensorM.ReadTempADC1;
   CogentHouseP.ReadTempADC2->WindowSensorM.ReadTempADC2;
+  CogentHouseP.ReadBlackBulb->BlackBulbM.ReadTemp;
 
   CogentHouseP.ReadHeatMeter->HeatMeterM.ReadHeatMeter;
   CogentHouseP.HeatMeterControl -> HeatMeterM.HeatMeterControl;
