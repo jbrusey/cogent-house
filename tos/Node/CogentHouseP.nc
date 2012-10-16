@@ -42,6 +42,8 @@ module CogentHouseP
     interface Read<ccStruct *> as ReadWattage;
     interface SplitControl as HeatMeterControl;
     interface Read<hmStruct *> as ReadHeatMeter;
+    interface Read<float> as ReadTempADC1;
+    interface Read<float> as ReadTempADC2;
 
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -197,12 +199,16 @@ implementation
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_DUTY);
       call Configured.set(RS_POWER);
+      //powered so set to always be awake
+      call LowPowerListening.setLocalWakeupInterval(0);
     } 
     else if (nodeType == 2) { /* co2 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_DUTY);
+      //powered so set to always be awake      
+      call LowPowerListening.setLocalWakeupInterval(0);
     }
     else if (nodeType == 3) { /* air quality */
       call Configured.set(RS_TEMPERATURE);
@@ -211,23 +217,30 @@ implementation
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
       call Configured.set(RS_DUTY);
+      //powered so set to always be awake      
+      call LowPowerListening.setLocalWakeupInterval(0);
     }
     else if (nodeType == 4) { /* heat meter */
       call Configured.set(RS_HEATMETER);
       call Configured.set(RS_VOLTAGE);
     }
-   else if (nodeType == 5) { /* opti smart */
+    else if (nodeType == 5) { /* opti smart */
       call Configured.set(RS_OPTI);
       call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
     }
-    if (nodeType > 0 && (nodeType != 4 || nodeType !=5)) { 
-      call LowPowerListening.setLocalWakeupInterval(0);
+    else if (nodeType == 6) { /* window sensor */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_TEMPADC1);
+      call Configured.set(RS_TEMPADC2);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
     }
+
     call RadioControl.start();
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
-
   }
 
 
@@ -302,6 +315,10 @@ implementation
 	    call ReadHeatMeter.read();
 	  else if (i == RS_OPTI)
 	    call ReadOpti.read();
+	  else if (i == RS_TEMPADC1)
+	    call ReadTempADC1.read();
+	  else if (i == RS_TEMPADC2)
+	    call ReadTempADC2.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -355,6 +372,15 @@ implementation
   event void ReadVolt.readDone(error_t result, uint16_t data) {	
     do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
   }
+  
+  event void ReadTempADC1.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_TEMPADC1, SC_TEMPADC1);
+  }
+
+  event void ReadTempADC2.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_TEMPADC2, SC_TEMPADC2);
+  }
+
 
  event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
     if (result == SUCCESS) {

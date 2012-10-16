@@ -59,7 +59,9 @@ enum {
   SC_HEAT_ENERGY = 18,
   SC_HEAT_VOLUME = 19,
   SC_POWER_PULSE = 20,
-  SC_SIZE = 21 // SC_SIZE must be 1 greater than last entry
+  SC_TEMPADC1 = 21,
+  SC_TEMPADC2 = 22,
+  SC_SIZE = 23 // SC_SIZE must be 1 greater than last entry
 };
 
 #include "PackState/packstate.h"
@@ -78,7 +80,9 @@ enum {
   RS_HEATMETER = 9,
   RS_DUTY = 10,
   RS_OPTI = 11,
-  RS_SIZE = 12 // must be 1 greater than last entry
+  RS_TEMPADC1 = 12,
+  RS_TEMPADC2 = 13,
+  RS_SIZE = 14 // must be 1 greater than last entry
 };
 
 
