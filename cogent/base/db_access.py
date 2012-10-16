@@ -73,7 +73,6 @@ fetch_calib('hum_coeffs.csv', 'humidity')
 fetch_calib('co2_coeffs.csv', 'co2')
 fetch_calib('voc_coeffs.csv', 'voc')
 fetch_calib('aq_coeffs.csv', 'aq')
-fetch_calib('cc_coeffs.csv', 'cc')
     
 # Get calibration constants from local files. Once Sampson Close is set up,
 # this (and the mess above) can go away.
