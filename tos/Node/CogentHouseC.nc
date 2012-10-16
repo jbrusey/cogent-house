@@ -45,11 +45,14 @@ implementation
   components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
+  components new Temp_ADC1C() as Temp_ADC1;
+  components new Temp_ADC2C() as Temp_ADC2;
 
   //import sensing modules
   components ThermalSensingM;
   components LightSensingM;
   components AirQualityM;
+  components WindowSensorM;
   components HeatMeterM;
   components OptiSmartM;
 
@@ -61,12 +64,12 @@ implementation
   OptiSmartM.EnergyInput -> GIO.Port26;
   OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
 
-  CogentHouseP.ReadOpti->OptiSmartM.ReadOpti;
-  CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
-
   LightSensingM.GetPAR -> PAR;
   LightSensingM.GetTSR -> TSR;
 
+  WindowSensorM.GetTempADC1 -> Temp_ADC1;
+  WindowSensorM.GetTempADC2 -> Temp_ADC2;
+  
   AirQualityM.GetCO2 -> CarbonDioxide;
   AirQualityM.GetVOC -> VOC;
   AirQualityM.GetAQ -> AQ;
@@ -87,6 +90,10 @@ implementation
   CogentHouseP.ReadCO2->AirQualityM.ReadCO2;
   CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
   CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
+  CogentHouseP.ReadOpti->OptiSmartM.ReadOpti;
+  CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
+  CogentHouseP.ReadTempADC1->WindowSensorM.ReadTempADC1;
+  CogentHouseP.ReadTempADC2->WindowSensorM.ReadTempADC2;
 
   CogentHouseP.ReadHeatMeter->HeatMeterM.ReadHeatMeter;
   CogentHouseP.HeatMeterControl -> HeatMeterM.HeatMeterControl;
