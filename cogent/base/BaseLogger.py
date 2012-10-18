@@ -147,7 +147,7 @@ class BaseLogger(object):
                             code="WT2",
                             units="deg.C",
                             c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=22,name="Black Bulb",
+                 SensorType(id=23,name="Black Bulb",
                             code="BBT",
                             units="deg.C",
                             c0=0., c1=1., c2=0., c3=0.),
