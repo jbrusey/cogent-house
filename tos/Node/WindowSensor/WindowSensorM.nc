@@ -15,9 +15,8 @@ implementation
 {
 	const float vref=3.3;
 	const float maxAdc=4096.0;
-	//temp=214.8803763x-189.5755272
-	float TempCoeffs[] = {-189.5755272,214.8803763
-};
+	//temp=100x-50
+	float TempCoeffs[] = {-50,100};
 
 	//Temp1
 	task void readTemp1Task()
