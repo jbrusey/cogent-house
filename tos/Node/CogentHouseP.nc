@@ -80,6 +80,8 @@ implementation
   float last_transmitted_errno;
   
   uint32_t sense_start_time;
+
+  bool phase_two_sensing = FALSE;
 	
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
@@ -267,11 +269,15 @@ implementation
     }
 		
     if (allDone) {
+      if (phaseTwoSensing) {
 #ifdef DEBUG
-      printf("allDone %lu\n", call LocalTime.get());
-      printfflush();
+	printf("allDone %lu\n", call LocalTime.get());
+	printfflush();
 #endif
-      sendState();
+	sendState();
+      }
+      else { /* phase one complete - start phase two */
+	post phaseTwoSensing();
     }
   }
 
@@ -296,8 +302,9 @@ implementation
 #endif
       call ExpectReadDone.clearAll();
       call PackState.clear();
+      phase_two_sensing = FALSE;
 
-
+      // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
 	  call ExpectReadDone.set(i);
@@ -311,12 +318,6 @@ implementation
 	    call ReadTSR.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
-	  else if (i == RS_CO2)
-	    call ReadCO2.read();
-	  else if (i == RS_AQ)
-	    call ReadAQ.read();
-	  else if (i == RS_VOC)
-	    call ReadVOC.read();
 	  else if (i == RS_POWER)
 	    call ReadWattage.read();
 	  else if (i == RS_HEATMETER)
@@ -340,6 +341,26 @@ implementation
 
     }
   }
+
+  /* perform any phase two sensing */
+  task void phaseTwoSensing() {
+
+      for (i = 0; i < RS_SIZE; i++) { 
+	if (call Configured.get(i)) {
+	  call ExpectReadDone.set(i);
+	  if (i == RS_CO2)
+	    call ReadCO2.read();
+	  else if (i == RS_AQ)
+	    call ReadAQ.read();
+	  else if (i == RS_VOC)
+	    call ReadVOC.read();
+	  else
+	    call ExpectReadDone.clear(i);
+	}
+      }
+      post checkDataGathered();
+  }
+
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
   {
@@ -435,7 +456,7 @@ implementation
 #ifdef DISSEMINATE
 	call DisseminationControl.start();
 #endif
-	call SenseTimer.startOneShot(DEF_SENSE_PERIOD);
+	call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
 	if (call Configured.get(RS_POWER)) 
 	  call CurrentCostControl.start();
 	if (call Configured.get(RS_HEATMETER)) 
