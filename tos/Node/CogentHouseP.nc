@@ -253,6 +253,7 @@ implementation
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
   }
 
+  task void phaseTwoSensing();
 
   /* checkDataGathered
    * - only transmit data once all sensors have been read
@@ -269,7 +270,7 @@ implementation
     }
 		
     if (allDone) {
-      if (phaseTwoSensing) {
+      if (phase_two_sensing) {
 #ifdef DEBUG
 	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
@@ -277,7 +278,9 @@ implementation
 	sendState();
       }
       else { /* phase one complete - start phase two */
+	phase_two_sensing = TRUE;
 	post phaseTwoSensing();
+      }
     }
   }
 
@@ -344,21 +347,21 @@ implementation
 
   /* perform any phase two sensing */
   task void phaseTwoSensing() {
-
-      for (i = 0; i < RS_SIZE; i++) { 
-	if (call Configured.get(i)) {
-	  call ExpectReadDone.set(i);
-	  if (i == RS_CO2)
-	    call ReadCO2.read();
-	  else if (i == RS_AQ)
-	    call ReadAQ.read();
-	  else if (i == RS_VOC)
-	    call ReadVOC.read();
-	  else
-	    call ExpectReadDone.clear(i);
-	}
+    int i;
+    for (i = 0; i < RS_SIZE; i++) { 
+      if (call Configured.get(i)) {
+	call ExpectReadDone.set(i);
+	if (i == RS_CO2)
+	  call ReadCO2.read();
+	else if (i == RS_AQ)
+	  call ReadAQ.read();
+	else if (i == RS_VOC)
+	  call ReadVOC.read();
+	else
+	  call ExpectReadDone.clear(i);
       }
-      post checkDataGathered();
+    }
+    post checkDataGathered();
   }
 
 
