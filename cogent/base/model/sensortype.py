@@ -47,9 +47,9 @@ class SensorType(Base,meta.InnoDBMix):
     c2 = Column(Float)
     c3 = Column(Float)
     
-    readings = relationship("Reading",backref="typ")
+    readings = relationship("Reading",backref="sensorType")
     sensors = relationship("Sensor",backref="sensorType")
-    
+
     def asJSON(self):
         return {"id":self.id,
                 "label":self.name,
@@ -57,3 +57,6 @@ class SensorType(Base,meta.InnoDBMix):
                 "type":"sensorType",
                 "code":self.code,
                 "units":self.units}
+
+    def __str__(self):
+        return "{0}: {1} {2} {3}".format(self.id,self.name,self.code,self.units)

@@ -31,7 +31,7 @@ class Room(Base,meta.InnoDBMix):
     __tablename__ = "Room"
 
     id = Column(Integer, primary_key=True)
-    roomTypeId = Column(Integer, ForeignKey('RoomType.id'))
+    roomTypeId = Column(Integer, ForeignKey('RoomType.id'), nullable=True)
     name = Column(String(20))
 
     location = relationship("Location",backref="room")

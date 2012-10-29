@@ -16,21 +16,26 @@ Base = meta.Base
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime,Float
 from sqlalchemy.orm import relationship, backref
 
-class House(Base,meta.InnoDBMix):
+class House(Base, meta.InnoDBMix):
     """
     Class to represent Houses
 
     :var Integer id: Id of House
-    :var Integer deploymentId: Id of :class:`cogentviewer.models.depoyment.Deployment` this belogs to
+
+    :var Integer deploymentId: Id of parent
+        :class:`cogentviewer.models.depoyment.Deployment`
+
     :var String address: Address of property
     :var DateTime startDate: start of deployment in this House
     :var endDate endDate: end of depoyment in this House
-    :var meta: *backref* :class:`cogentviewer.models.housemetadata.HouseMetadata` objects belonging to this House
-    :var occupiers: *backref* :class:`cogentviewer.models.occupier.Occupier` objects belonging to this house
 
-    .. warning::
-    
-        **meta** as originally **metas** this could break old code.
+    :var meta: *backref*
+        :class:`cogentviewer.models.housemetadata.HouseMetadata` objects
+        belonging to this House
+
+    :var occupiers: *backref*
+        :class:`cogentviewer.models.occupier.Occupier` objects belonging
+        to this house
 
     """
     __tablename__ = "House"
@@ -42,11 +47,14 @@ class House(Base,meta.InnoDBMix):
     endDate = Column(DateTime)
 
     #Backrefs
-    #deployment = relationship("Deployment", backref=("houses")) #Moved to deployment class
-    meta = relationship("HouseMetadata",order_by="HouseMetadata.id",backref="house")
-    occupiers = relationship("Occupier",backref="house")
-    locations = relationship("Location",backref="house")
+    meta = relationship("HouseMetadata",
+                        order_by="HouseMetadata.id",
+                        backref="house")
+    occupiers = relationship("Occupier", backref="house")
+    locations = relationship("Location", backref="house")
 
+    def __eq__(self,other):
+        return self.id == other.id and self.deploymentId == other.deploymentId and self.address == other.address
 
     def getRooms(self):
         """Function to get the Rooms this house has, This returns the
@@ -54,14 +62,14 @@ class House(Base,meta.InnoDBMix):
         :class:`cogentviewer.models.location.Location` table.  Meaning
         we can get the rooms in a simple standardised way
 
-        :return: List of :class:`cogentviewer.models.room.Room` objects in this house
+        :return: List of :class:`cogentviewer.models.room.Room` objects
         """
         
         return [x.room for x in self.locations]
         
 
 
-    def asJSON(self,parentId=""):
+    def asJSON(self, parentId=""):
         theItem = {"id":"H_{0}".format(self.id),
                 "name":self.address,
                 "label":self.address,
@@ -92,7 +100,7 @@ class House(Base,meta.InnoDBMix):
         thisItem["children"] = [x.asTree() for x in self.locations]
         return thisItem
 
-    def asList(self,parentId = ""):
+    def asList(self, parentId = ""):
 
         outDict = [self.asJSON(parentId)]
 
@@ -104,6 +112,9 @@ class House(Base,meta.InnoDBMix):
         return outDict
 
     def __str__(self):
-        outStr = "House {0}  {1}  {2}-{3}".format(self.id,self.address,self.startDate,self.endDate)
+        outStr = "House {0}  {1}  {2}-{3}".format(self.id,
+                                                  self.address,
+                                                  self.startDate,
+                                                  self.endDate)
         return outStr
 

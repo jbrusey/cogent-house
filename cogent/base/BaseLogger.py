@@ -276,7 +276,10 @@ class BaseLogger(object):
                 try:
                     session.add(Node(id=n,
                                      locationId=None,
-                                     nodeTypeId=(n / 4096)))
+                                     #nodeTypeId=(n / 4096)))
+                                     nodeTypeId=None,
+                                     )
+                                )
                     session.commit()
                 except:
                     session.rollback()

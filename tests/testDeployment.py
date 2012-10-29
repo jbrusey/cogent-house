@@ -16,7 +16,7 @@ If anyone comes up with a better way then let me know.
 """
 .. versionadded:: 0.1
     Found a better way than all those try catch blocks,
-    Move them into the meta class, and let that deal with the pain in 
+    Move them into the meta class, and let that deal with the pain in
     one place.
 
 """
@@ -30,6 +30,8 @@ import sqlalchemy.exc
 
 import testmeta
 
+import json
+
 models = testmeta.models
 
 class TestDeployment(testmeta.BaseTestCase):
@@ -41,37 +43,36 @@ class TestDeployment(testmeta.BaseTestCase):
         """Can we Create Deployments"""
 
         thisDeployment = models.Deployment()
-        self.assertIsInstance(thisDeployment,models.Deployment)
+        self.assertIsInstance(thisDeployment, models.Deployment)
 
         thisDeployment = models.Deployment(description="Test")
-        self.assertEqual(thisDeployment.description,"Test")
+        self.assertEqual(thisDeployment.description, "Test")
 
     def testDeploymentUpdate(self):
         """Can we update deployments"""
-    
+
         thisDeployment = models.Deployment()
-        
+
         thisDeployment.update(description="A Test Deployment")
         self.assertEqual(thisDeployment.description,"A Test Deployment")
 
         #Check if we can do multiple inserts and not loose previous stuff
         today = datetime.now()
-        thisDeployment.update(startDate = today,endDate=today)
-        self.assertEqual(thisDeployment.startDate,today)
-        self.assertEqual(thisDeployment.endDate,today)
-        self.assertEqual(thisDeployment.description,"A Test Deployment")
+        thisDeployment.update(startDate = today, endDate=today)
+        self.assertEqual(thisDeployment.startDate, today)
+        self.assertEqual(thisDeployment.endDate, today)
+        self.assertEqual(thisDeployment.description, "A Test Deployment")
 
-        
     def testDeploymentMeta(self):
         """Can we create deployment Meta objects"""
 
         thisMeta = models.DeploymentMetadata()
-        self.assertIsInstance(thisMeta,models.DeploymentMetadata)
+        self.assertIsInstance(thisMeta, models.DeploymentMetadata)
 
     def testFk(self):
         """Test if deployment foreign keys are stored correctly"""
         session = self.session
-        
+
         theDeployment = models.Deployment(name="TestDeployment",
                                           description="A Test Deployment")
 
@@ -95,28 +96,30 @@ class TestDeployment(testmeta.BaseTestCase):
         #Now see if we can get the stuff back
 
         session = self.session
-        depQuery = session.query(models.Deployment).filter_by(name="TestDeployment").first()       
-        
+        depQuery = session.query(models.Deployment)
+        depQuery=depQuery.filter_by(name="TestDeployment").first()
+
         #Now try and find the metaData
         depMeta = depQuery.meta
 
-        self.assertEqual(depMeta[0].name,"Test Metadata")
+        self.assertEqual(depMeta[0].name, "Test Metadata")
 
         houses = depQuery.houses
-        self.assertEqual(houses[0].address,"10 Greenhill st")
-                 
+        self.assertEqual(houses[0].address, "10 Greenhill st")
+
         #Similarly we should also get the parent object back when we query
-        self.assertEqual(depMeta[0].deployment.id,theDeployment.id)
+        self.assertEqual(depMeta[0].deployment.id, theDeployment.id)
         self.assertEqual(houses[0].deployment.id, theDeployment.id)
 
-        
+
     def testMetaInsert(self):
-        """Trial Function, can we insert metadata straight into the deployment object.
+        """Trial Function, can we insert metadata straight into the deployment
+        object.
 
         Turns out we can which is pretty frickin cool.
         """
         session = self.session
-        
+
         theDeployment = models.Deployment(name="TestDeployment",
                                           description="A Test Deployment")
 
@@ -127,17 +130,17 @@ class TestDeployment(testmeta.BaseTestCase):
         session.add(theDeployment)
         #Dont bother adding the metadata to the session, just append to backref
         theDeployment.meta.append(metaData)
-        
+
         theHouse = models.House()
         theDeployment.houses.append(theHouse)
         session.flush()
 
-        self.assertEqual(theDeployment.id,metaData.deploymentId)
-        self.assertEqual(theHouse.deploymentId,theDeployment.id)
+        self.assertEqual(theDeployment.id, metaData.deploymentId)
+        self.assertEqual(theHouse.deploymentId, theDeployment.id)
 
         #And References back to parent
-        self.assertEqual(metaData.deployment.id,theDeployment.id)
-        self.assertEqual(theHouse.deployment.id,theDeployment.id)
+        self.assertEqual(metaData.deployment.id, theDeployment.id)
+        self.assertEqual(theHouse.deployment.id, theDeployment.id)
 
 
     def testGlobals(self):
@@ -146,15 +149,24 @@ class TestDeployment(testmeta.BaseTestCase):
 
         theDeployment = session.query(models.Deployment).first()
 
-        self.assertIsInstance(theDeployment,models.Deployment)
-        
+        self.assertIsInstance(theDeployment, models.Deployment)
         #And Fetch Houses
         theHouses = session.query(models.House).all()
 
-        self.assertEqual(theHouses,theDeployment.houses)
+        self.assertEqual(theHouses, theDeployment.houses)
 
         for item in theDeployment.houses:
             self.assertEqual(item.deployment, theDeployment)
 
-if __name__ == "__main__":
-    unittest.main()
+    def testJSON(self):
+        theDeployment = models.Deployment(name="Foo",
+                                          startDate = datetime.now())
+        out =  theDeployment.toDict()
+
+        #And Back Again
+        newDeployment = models.Deployment()
+        newDeployment.fromJSON(out)
+        self.assertEqual(theDeployment, newDeployment)
+
+        newDeployment.fromJSON(json.dumps(out))
+        self.assertEqual(theDeployment, newDeployment)

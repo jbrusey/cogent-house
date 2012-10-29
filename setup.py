@@ -2,8 +2,13 @@
 from setuptools import setup
 
 REQUIRES = ['SQLAlchemy',
-#            "MySQL-python",
-#            "paramiko",
+            "MySQL-python",
+            'configobj',
+            "python-dateutil==1.5",
+            "python-rest-client",
+            "numpy",
+            "matplotlib",
+            "pyserial"
             ]
     
 setup(name='ch-base',

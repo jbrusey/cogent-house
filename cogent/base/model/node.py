@@ -44,27 +44,22 @@ class Node(Base,meta.InnoDBMix):
   
     stateHistory = relationship("NodeState", order_by="NodeState.id",backref="node")
     nodeHistory = relationship("NodeHistory",backref="node")
-    readings = relationship("Reading",backref="node",cascade="all")
-    sensors = relationship("Sensor", backref="node",cascade="all")
-   
+    readings = relationship("Reading",backref="node")
+    sensors = relationship("Sensor", backref=("node"))
+
+    #Add a backref to association Table
+    #locations = relationship("Location",secondary="location_node",backref="Nodes")
+    locations = relationship("Location",secondary="NodeLocation",backref="OldNodes")   
+
     def update(self,**kwargs):
         for key,value in kwargs.iteritems():
             setattr(self,key,value)
 
     def __str__(self):
-        return "Node {0}".format(self.id)
+        return "Node {0} Loc {1}".format(self.id,self.locationId)
 
-    def __cmp__(self,other):
-        """Compare two nodes
-        
-        .. warning::
-        
-            As the nodes should all have unique ID's we just run the compare on Id.
-            If at some future point this changes, we need to ensure that this method is updated
-        """
-
-        return self.id - other.id
-        
+    def __eq__(self,other):
+        return self.id == other.id and self.locationId == other.locationId and self.nodeTypeId == other.nodeTypeId
 
     def asJSON(self,parentId=""):
         """Adds a Location Parameter to make sure we can link back to location when we come to get the data"""
@@ -110,3 +105,36 @@ class Node(Base,meta.InnoDBMix):
 
     
     
+    def fromJSON(self,jsonDict):
+        super(Node,self).fromJSON(jsonDict)
+        log.debug("DEALING WITH NODE")
+
+        if type(jsonDict) == str:
+            jsonDict = json.loads(jsonDict)
+        if type(jsonDict) == list:
+            log.warning("WARNING LIST SUPPLIED {0}".format(jsonDict))
+            jsonDict = jsonDict[0]
+
+        locId = jsonDict.get("locationId",None)
+        #Lets Try Cheating here.
+
+        log.debug("Current Location {0}, New Id {1}  Associated Locations, {2}".format(self.location,
+                                                                                       locId,
+                                                                                       self.locations))
+
+        if self.location is None:
+            #Force an Update
+            log.debug("Forcing Location Update to {0}".format(locId))
+            self.locationId = locId
+            log.debug("New Loc {} {}".format(self.locationId,self.location))
+
+        elif self.location.id == locId:
+            log.debug("Location has been updated correctly")
+            if self.location in self.locations:
+                log.debug("We Know about this location")
+            else:
+                log.debug("No such Location in the List")
+                self.locations.append(self.location)
+        else:
+            log.warning("WTF Location Id {0} != locId {1}".format(self.location.id,locId))
+            sys.exit(0)
