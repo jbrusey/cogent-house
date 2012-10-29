@@ -45,7 +45,9 @@ implementation
   
   event void ReadOpti.readDone(error_t result, float data) {
     if (result == SUCCESS) {
+      printf("interupt count: ");
       printfloat(data);
+      printf("\n");
     }
     else
       printf("readDone no data\n");
