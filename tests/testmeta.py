@@ -31,6 +31,7 @@ if viewer:
     import transaction
     import cogentviewer.models as models
     import cogentviewer.models.meta as meta
+    import cogentviewer.models.populateData as populateData
     config = testing.setUp()
     config.scan('cogentviewer.models')
 else:
@@ -57,7 +58,11 @@ class BaseTestCase(unittest.TestCase):
         try:
             confFile = open("setup.conf")
         except IOError:
-            confFile = open("tests/setup.conf")
+            try:
+                confFile = open("tests/setup.conf")
+            except IOError:
+                confFile = open("cogentviewer/tests/setup.conf")
+
 
         config = ConfigParser.ConfigParser()
         #Read the File
@@ -354,7 +359,6 @@ def createTestDB(session=False,now=False):
 
         session.add(theState)
         session.flush()
-        print "State {0}".format(theState)
     session.flush()
     
     #Add Data (Deal with node 40 seperately as this is a corner case
