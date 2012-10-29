@@ -1,0 +1,332 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Testing Database &mdash; Cogent Viewer 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Cogent Viewer 0.1 documentation" href="index.html" />
+    <link rel="up" title="Cruft and Notes" href="cruft.html" />
+    <link rel="prev" title="Features to be Added" href="newFeatures.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="newFeatures.html" title="Features to be Added"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="cruft.html" accesskey="U">Cruft and Notes</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-testing-database">
+<h1>The Testing Database<a class="headerlink" href="#the-testing-database" title="Permalink to this headline">¶</a></h1>
+<p class="graphviz">
+<img src="_images/graphviz-9f2d302cb1cffbb7fcfb623d86db94ecdcca8c20.png" alt="digraph g{
+  node[shape=plaintext,fontname=&quot;Courier&quot;];
+  rankdir=&quot;LR&quot;;
+  //Deployment
+  deployment[label=&lt;
+	     &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	     
+	     &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Deployment&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;Name: 'test'&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;description: 'testing'&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;startDate: now()&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;endDate: now()+2&lt;/td&gt;&lt;/tr&gt;
+	     &lt;/table&gt;&gt;];
+  
+  //Types
+  subgraph cluster_RoomType {
+    label=&quot;Room / Types&quot;;
+    bedroomType[label=&quot;Bedroom&quot;,shape=&quot;ellipse&quot;];
+    livingType[label=&quot;Living Room&quot;,shape=&quot;ellipse&quot;];  
+    masterBed[label=&lt;
+	      &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	      &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Room&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	      &lt;tr&gt;&lt;td&gt;name: 'Master Bedroom'&lt;/td&gt;&lt;/tr&gt;
+	      &lt;/table&gt;&gt;];
+    
+    secondBed[label=&lt;
+	      &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	      &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Room&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	      &lt;tr&gt;&lt;td&gt;name: 'Second Bedroom'&lt;/td&gt;&lt;/tr&gt;
+	      &lt;/table&gt;&gt;];
+    
+    livingRoom[label=&lt;
+	       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Room&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	       &lt;tr&gt;&lt;td&gt;name: 'Living Room'&lt;/td&gt;&lt;/tr&gt;
+	       &lt;/table&gt;&gt;];
+    //
+    masterBed -&gt; bedroomType;
+    secondBed -&gt; bedroomType;
+    livingRoom -&gt; livingType;
+    };
+    //Each House
+    //Houses and locations
+    subgraph cluster_House1 {
+      label=&quot;House1&quot;;
+      house1[label=&lt;
+	     &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	     &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;House&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;address: 'add1'&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;startDate: now()&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;endDate: now()+2&lt;/td&gt;&lt;/tr&gt;
+	     &lt;/table&gt;&gt;];
+      subgraph cluster_house1Loc {
+	label=&quot;Locations&quot;
+	//Locations in this House
+	loc1_Master[shape=&quot;ellipse&quot;];
+	loc1_Living[shape=&quot;ellipse&quot;];
+	loc1_Second[shape=&quot;ellipse&quot;];
+	};
+	//
+	subgraph cluster_house1Nodes {
+	  label=&quot;Nodes&quot;
+	  node37 [label=&quot;Node 37&quot;,shape=&quot;ellipse&quot;];  
+	  node38 [label=&quot;Node 38&quot;,shape=&quot;ellipse&quot;];  
+	  node39 [label=&quot;Node 39&quot;,shape=&quot;ellipse&quot;];
+	  node40 [label=&quot;Node 40&quot;,shape=&quot;ellipse&quot;];
+	  };
+	  //
+	  subgraph cluster_house1Read{
+	    label=&quot;Readings&quot;
+	    depOneRead[label=&lt;
+		       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;     
+		       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Reading []&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+		       &lt;tr&gt;&lt;td&gt;From: now()&lt;/td&gt;&lt;/tr&gt;
+		       &lt;tr&gt;&lt;td&gt;To: now() + 2days&lt;/td&gt;&lt;/tr&gt;
+		       &lt;/table&gt;&gt;];
+	    node40ReadOne[label=&lt;
+			  &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;     
+			  &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Reading []&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+			  &lt;tr&gt;&lt;td&gt;From: now()&lt;/td&gt;&lt;/tr&gt;
+			  &lt;tr&gt;&lt;td&gt;To: now() + 1day&lt;/td&gt;&lt;/tr&gt;
+			  &lt;/table&gt;&gt;];
+	    
+	    node40ReadTwo[label=&lt;
+			  &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;     
+			  &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Reading []&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+			  &lt;tr&gt;&lt;td&gt;From: now()+1day&lt;/td&gt;&lt;/tr&gt;
+			  &lt;tr&gt;&lt;td&gt;To: now() + 2days&lt;/td&gt;&lt;/tr&gt;
+			  &lt;/table&gt;&gt;];
+	    };
+	    //
+	    house1 -&gt; loc1_Master;
+	    house1 -&gt; loc1_Second;
+	    house1 -&gt; loc1_Living;
+	    //
+	    loc1_Master -&gt; node37
+	    loc1_Second -&gt; node38;
+	    loc1_Living -&gt; node39;
+	    loc1_Living -&gt; node40;
+	    loc1_Master -&gt; node40;
+	    //
+	    node37-&gt;depOneRead;
+	    node38-&gt;depOneRead;
+	    node39-&gt;depOneRead;
+	    node40 -&gt; node40ReadOne;
+	    node40 -&gt; node40ReadTwo;
+	  }
+	  //      
+	  //House 2
+	  subgraph cluster_House2 {
+	    label=&quot;House2&quot;;
+	    house2[label=&lt;
+		   &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+		   &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;House&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+		   &lt;tr&gt;&lt;td&gt;address: 'add2'&lt;/td&gt;&lt;/tr&gt;
+		   &lt;tr&gt;&lt;td&gt;startDate: now()+1&lt;/td&gt;&lt;/tr&gt;
+		   &lt;tr&gt;&lt;td&gt;endDate: now()+2&lt;/td&gt;&lt;/tr&gt;
+		   &lt;/table&gt;&gt;];
+	    //Locations in this house
+	    subgraph cluster_NodeLoc2{
+	      label=&quot;Locations&quot;
+	      loc2_Master[shape=&quot;ellipse&quot;];
+	      loc2_Living[shape=&quot;ellipse&quot;];
+	      };
+	      //
+	      subgraph cluster_NodeHouse2 {
+		label=&quot;House2&quot;
+		node69 [label=&quot;Node 69&quot;,shape=&quot;ellipse&quot;];
+		node70 [label=&quot;Node 70&quot;,shape=&quot;ellipse&quot;];
+		};
+		house2 -&gt; loc2_Master -&gt; node69;
+		house2 -&gt; loc2_Living -&gt; node70;
+		//
+		subgraph cluster_House2_Readings{
+		  label=&quot;Readings&quot;
+		  depTwoRead[label=&lt;
+			     &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;     
+			     &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;Reading []&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+			     &lt;tr&gt;&lt;td&gt;From: now()+1day&lt;/td&gt;&lt;/tr&gt;
+			     &lt;tr&gt;&lt;td&gt;To: now() + 2days&lt;/td&gt;&lt;/tr&gt;
+			     &lt;/table&gt;&gt;];
+		  };
+		  node69-&gt;depTwoRead;
+		  node70-&gt;depTwoRead;
+		}
+		//Links
+		deployment -&gt; house1;
+		deployment -&gt; house2;
+		//
+		};//End of Graph" />
+</p>
+<div class="section" id="assumptions">
+<h2>Assumptions<a class="headerlink" href="#assumptions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>Each Sensor records 1 sample per hour</li>
+<li>Sample Value is (NodeId*X) [1,2,...N]</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="house-1">
+<h2>House 1<a class="headerlink" href="#house-1" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>Lasts for two weeks,</li>
+<li>Has a total of four Nodes</li>
+</ul>
+</div></blockquote>
+<div class="section" id="rooms-and-nodes">
+<h3>Rooms and Nodes<a class="headerlink" href="#rooms-and-nodes" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>Master Bedroom -&gt; Node37</li>
+<li>Second Bedroom -&gt; Node38</li>
+<li>Living Room -&gt; Node39</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="corner-case">
+<h3>Corner Case<a class="headerlink" href="#corner-case" title="Permalink to this headline">¶</a></h3>
+<p>During the Deployment we move one of the nodes,</p>
+<p>Week1: Node 40 is in the Living Room
+Week2: Node 40 Moves to the Master Bedroom</p>
+</div>
+</div>
+<div class="section" id="house-2">
+<h2>House 2<a class="headerlink" href="#house-2" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>Lasts for one week, (The Second Week of the Deployment)</li>
+<li>Has a total of two Nodes</li>
+</ul>
+</div></blockquote>
+<div class="section" id="id1">
+<h3>Rooms and Nodes<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>Master Bedroom -&gt; Node69</li>
+<li>Living Room -&gt; Node70</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Testing Database</a><ul>
+<li><a class="reference internal" href="#assumptions">Assumptions</a></li>
+<li><a class="reference internal" href="#house-1">House 1</a><ul>
+<li><a class="reference internal" href="#rooms-and-nodes">Rooms and Nodes</a></li>
+<li><a class="reference internal" href="#corner-case">Corner Case</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#house-2">House 2</a><ul>
+<li><a class="reference internal" href="#id1">Rooms and Nodes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="newFeatures.html"
+                        title="previous chapter">Features to be Added</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/testing.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="newFeatures.html" title="Features to be Added"
+             >previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="cruft.html" >Cruft and Notes</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Daniel Goldsmith.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
