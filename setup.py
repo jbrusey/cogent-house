@@ -2,12 +2,12 @@
 from setuptools import setup
 
 REQUIRES = ['SQLAlchemy',
-			"MySQL-python"
+            "MySQL-python",
             'configobj',
             "python-dateutil==1.5",
             "python-rest-client",
-            "numpy",
-            "matplotlib",
+            #"numpy",
+            #"matplotlib",
             "pyserial"
             ]
     
