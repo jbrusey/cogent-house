@@ -66,6 +66,8 @@ implementation
   float last_transmitted_errno;
   
   uint32_t sense_start_time;
+
+  bool phase_two_sensing = FALSE;
 	
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
@@ -128,6 +130,7 @@ implementation
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
+
     last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
 		
@@ -192,10 +195,6 @@ implementation
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_VOLTAGE);
     }
-    else if (nodeType == 1) { /* current cost */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-    } 
     else if (nodeType == 2) { /* co2 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -212,7 +211,7 @@ implementation
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
-    call SenseTimer.startOneShot(0);
+    call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
 
   /** Restart the sense timer as a one shot. Using a one shot here
@@ -287,6 +286,7 @@ implementation
       call Leds.led1Off();
   }
 
+  task void phaseTwoSensing();
 
   /* checkDataGathered
    * - only transmit data once all sensors have been read
@@ -304,9 +304,10 @@ implementation
     }
 		
     if (allDone) {
+      if (phase_two_sensing) {
 #ifdef DEBUG
-      printf("allDone %lu\n", call LocalTime.get());
-      printfflush();
+	printf("allDone %lu\n", call LocalTime.get());
+	printfflush();
 #endif
       for (i = 0; i < RS_SIZE; i++) {
 	if (call ExpectSendDone.get(i)) {
@@ -317,14 +318,15 @@ implementation
 
       if (toSend){
 #ifdef LEAF
-	call RadioControl.start();
+      call RadioControl.start();
 #endif
 #ifdef CLUSTER
-	sendState();
+     sendState();
 #endif
-      }
-      else {
-	restartSenseTimer(FAIL);
+    }
+    else { /* phase one complete - start phase two */
+	phase_two_sensing = TRUE;
+	post phaseTwoSensing();
       }
     }
   }
@@ -349,8 +351,9 @@ implementation
 #endif
       call ExpectReadDone.clearAll();
       call PackState.clear();
+      phase_two_sensing = FALSE;
 
-
+      // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
 	  call ExpectReadDone.set(i);
@@ -358,12 +361,6 @@ implementation
 	    call ReadTemp.read();
 	  else if (i == RS_HUMIDITY)
 	    call ReadHum.read();
-	  else if (i == RS_CO2)
-	    call ReadCO2.read();
-	  else if (i == RS_AQ)
-	    call ReadAQ.read();
-	  else if (i == RS_VOC)
-	    call ReadVOC.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
 	  else
@@ -377,6 +374,26 @@ implementation
 
     }
   }
+
+  /* perform any phase two sensing */
+  task void phaseTwoSensing() {
+    int i;
+    for (i = 0; i < RS_SIZE; i++) { 
+      if (call Configured.get(i)) {
+	call ExpectReadDone.set(i);
+	if (i == RS_CO2)
+	  call ReadCO2.read();
+	else if (i == RS_AQ)
+	  call ReadAQ.read();
+	else if (i == RS_VOC)
+	  call ReadVOC.read();
+	else
+	  call ExpectReadDone.clear(i);
+      }
+    }
+    post checkDataGathered();
+  }
+
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
   {
@@ -493,6 +510,7 @@ implementation
     int prev_hop;
     uint16_t dest;
     AckMsg* aMsg;
+
 #ifdef DEBUG
     call Leds.led2Toggle();
     printf("ack packet rec at %lu\n", call LocalTime.get());
