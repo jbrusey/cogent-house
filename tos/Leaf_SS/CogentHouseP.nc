@@ -66,6 +66,8 @@ implementation
   float last_transmitted_errno;
   
   uint32_t sense_start_time;
+
+  bool phase_two_sensing = FALSE;
 	
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
@@ -227,10 +229,10 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call HeatMeterControl.start();
     }
-    //call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
-    call SenseTimer.startOneShot(0);
+    call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
 
   /** Restart the sense timer as a one shot. Using a one shot here
@@ -279,6 +281,7 @@ implementation
       call Leds.led1Off();
   }
 
+  task void phaseTwoSensing();
 
   /* checkDataGathered
    * - only transmit data once all sensors have been read
@@ -295,9 +298,10 @@ implementation
     }
 		
     if (allDone) {
+      if (phase_two_sensing) {
 #ifdef DEBUG
-      printf("allDone %lu\n", call LocalTime.get());
-      printfflush();
+	printf("allDone %lu\n", call LocalTime.get());
+	printfflush();
 #endif
 #ifdef LEAF
       call RadioControl.start();
@@ -305,6 +309,11 @@ implementation
 #ifdef CLUSTER
      sendState();
 #endif
+    }
+    else { /* phase one complete - start phase two */
+	phase_two_sensing = TRUE;
+	post phaseTwoSensing();
+      }
     }
   }
 
@@ -328,8 +337,9 @@ implementation
 #endif
       call ExpectReadDone.clearAll();
       call PackState.clear();
+      phase_two_sensing = FALSE;
 
-
+      // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
 	  call ExpectReadDone.set(i);
@@ -341,12 +351,6 @@ implementation
 	    call ReadPAR.read();
 	  else if (i == RS_TSR)
 	    call ReadTSR.read();
-	  else if (i == RS_CO2)
-	    call ReadCO2.read();
-	  else if (i == RS_AQ)
-	    call ReadAQ.read();
-	  else if (i == RS_VOC)
-	    call ReadVOC.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
 	  else if (i == RS_POWER)
@@ -364,6 +368,26 @@ implementation
 
     }
   }
+
+  /* perform any phase two sensing */
+  task void phaseTwoSensing() {
+    int i;
+    for (i = 0; i < RS_SIZE; i++) { 
+      if (call Configured.get(i)) {
+	call ExpectReadDone.set(i);
+	if (i == RS_CO2)
+	  call ReadCO2.read();
+	else if (i == RS_AQ)
+	  call ReadAQ.read();
+	else if (i == RS_VOC)
+	  call ReadVOC.read();
+	else
+	  call ExpectReadDone.clear(i);
+      }
+    }
+    post checkDataGathered();
+  }
+
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
   {
@@ -402,7 +426,7 @@ implementation
     do_readDone(result, data, RS_VOC, SC_VOC);
   }
 
-  event void ReadVolt.readDone(error_t result, float data) {	
+  event void ReadVolt.readDone(error_t result, float data) {
     do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
   }
 
@@ -491,7 +515,9 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
- 
+    
+
+
   event void HeatMeterControl.startDone(error_t error) {}
 
   event void HeatMeterControl.stopDone(error_t error) {}
