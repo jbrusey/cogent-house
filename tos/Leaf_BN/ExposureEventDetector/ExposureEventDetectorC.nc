@@ -12,6 +12,7 @@ implementation
   float prevPct[num_bands];
   bool first = TRUE;
   bool transmitExpected = FALSE;
+  uint32 periodsToHeartbeat=HEARTBEAT_PERIOD;
 
   command error_t Read.read(){
     return call ExposureRead.read();
@@ -34,10 +35,16 @@ implementation
       first=FALSE;
       for ( x = 0; x < num_bands; x++ ) {
 	prevPct[x]=0;
-      }
-      
+      }     
     }
     
+    //read done so decrease periods To Heartbeat
+    periodsToHeartbeat=periodsToHeartbeat-1;
+
+    if (periodsToHeartbeat==0){
+      transmitExpected = TRUE 
+    }
+
     currentPct = data;
     
     //last packet not sent so trigger a send
@@ -62,6 +69,9 @@ implementation
     uint8_t x;
     //Successful transmission so clear flag
     transmitExpected = FALSE;
+
+    //reset heartbeat period
+    periodsToHeartbeat=HEARTBEAT_PERIOD;
 
     //update the sink state
     for ( x = 0; x < num_bands; x++ ) {
