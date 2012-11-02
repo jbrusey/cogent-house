@@ -12,7 +12,7 @@ implementation
   float prevPct[num_bands];
   bool first = TRUE;
   bool transmitExpected = FALSE;
-  uint32 periodsToHeartbeat=HEARTBEAT_PERIOD;
+  int periodsToHeartbeat=HEARTBEAT_PERIOD;
 
   command error_t Read.read(){
     return call ExposureRead.read();
@@ -42,7 +42,7 @@ implementation
     periodsToHeartbeat=periodsToHeartbeat-1;
 
     if (periodsToHeartbeat==0){
-      transmitExpected = TRUE 
+      transmitExpected = TRUE;
     }
 
     currentPct = data;
