@@ -309,8 +309,8 @@ implementation
 #ifdef CLUSTER
      sendState();
 #endif
-    }
-    else { /* phase one complete - start phase two */
+      }
+      else { /* phase one complete - start phase two */
 	phase_two_sensing = TRUE;
 	post phaseTwoSensing();
       }

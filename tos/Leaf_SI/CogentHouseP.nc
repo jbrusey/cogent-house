@@ -17,8 +17,8 @@ module CogentHouseP
     interface AMSend as AckForwarder;
     interface Receive as AckReceiver;
     interface Receive as StateReceiver;
-				
-   //SI Sensing
+    
+    //SI Sensing
     interface Read<FilterState *> as ReadTemp;
     interface TransmissionControl as TempTrans;
     interface Read<FilterState *> as ReadHum;
@@ -57,10 +57,10 @@ implementation
     ERR_SEND_WHILE_SENDING = 11,
     ERR_FWD_FAILED = 13,
   };
-
+  
   //variables
   float last_duty = 0.;
-
+  
   float last_errno = 1.;
 
   float last_transmitted_errno;
@@ -163,8 +163,8 @@ implementation
       if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
 	call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME*1024L); // 5 sec sense/send timeout
 #ifdef DEBUG
-	  printf("sending begun at %lu\n", call LocalTime.get());
-	  printfflush();
+	printf("sending begun at %lu\n", call LocalTime.get());
+	printfflush();
 #endif
 	sending = TRUE;
       }
@@ -181,7 +181,7 @@ implementation
 #endif
 
 #ifdef CLUSTER
-      call RadioControl.start();
+    call RadioControl.start();
 #endif
 
     nodeType = TOS_NODE_ID >> 12;
@@ -207,9 +207,9 @@ implementation
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
     }
-
+    
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
-
+    
     sending = FALSE;
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
@@ -239,8 +239,8 @@ implementation
 
     if (result==SUCCESS){
 #ifdef DEBUG
-        printf("Recieved ack updating\n");
-        printfflush();
+      printf("Recieved ack updating\n");
+      printfflush();
 #endif
       for (i = 0; i < RS_SIZE; i ++) {
 	if (call ExpectSendDone.get(i))
@@ -263,7 +263,7 @@ implementation
       }
       call ExpectSendDone.clearAll();
     }
-
+    
     if (stop_time < sense_start_time) // deal with overflow
       send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
     else
@@ -281,7 +281,7 @@ implementation
     printfflush();
 #endif
     call SenseTimer.startOneShot(next_interval);
-
+    
     if (my_settings->blink)
       call Leds.led1Off();
   }
@@ -295,36 +295,38 @@ implementation
     bool allDone = TRUE;
     bool toSend = FALSE;
     uint8_t i;
-
+    
     for (i = 0; i < RS_SIZE; i++) {
       if (call ExpectReadDone.get(i)) {
 	allDone = FALSE;
 	break;
       }
     }
-		
+    
     if (allDone) {
       if (phase_two_sensing) {
 #ifdef DEBUG
 	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
 #endif
-      for (i = 0; i < RS_SIZE; i++) {
-	if (call ExpectSendDone.get(i)) {
-	  toSend = TRUE;
-	  break;
+	
+	for (i = 0; i < RS_SIZE; i++) {
+	  if (call ExpectSendDone.get(i)) {
+	    toSend = TRUE;
+	    break;
+	  }
 	}
-      }
 
-      if (toSend){
+	if (toSend){
 #ifdef LEAF
-      call RadioControl.start();
+	  call RadioControl.start();
 #endif
 #ifdef CLUSTER
-     sendState();
+	  sendState();
 #endif
-    }
-    else { /* phase one complete - start phase two */
+	}
+      }
+      else { /* phase one complete - start phase two */
 	phase_two_sensing = TRUE;
 	post phaseTwoSensing();
       }
@@ -335,10 +337,10 @@ implementation
    *
    * - begin sensing cycle by requesting, in parallel, for all active
        sensors to start reading.
-   */
+  */
   event void SenseTimer.fired() {
     int i;
-
+    
     sense_start_time = call LocalTime.get();
 #ifdef BLINKY
     call Leds.led0Toggle();
@@ -352,7 +354,7 @@ implementation
       call ExpectReadDone.clearAll();
       call PackState.clear();
       phase_two_sensing = FALSE;
-
+      
       // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
@@ -374,7 +376,7 @@ implementation
 
     }
   }
-
+  
   /* perform any phase two sensing */
   task void phaseTwoSensing() {
     int i;
@@ -486,9 +488,9 @@ implementation
   // Produce a nice pattern on start-up
   //
   uint8_t blink_state = 0;
-
+  
   uint8_t gray[] = { 0, 1, 3, 2, 6, 7, 5, 4 };
-
+  
   event void BlinkTimer.fired() { 
     if (blink_state >= 60) { /* 30 seconds */
       call Leds.set(0);
@@ -499,7 +501,7 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
-
+  
   //---------------- Deal with Acknowledgements --------------------------------
   //receive ack message
   event message_t* AckReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
@@ -510,7 +512,7 @@ implementation
     int prev_hop;
     uint16_t dest;
     AckMsg* aMsg;
-
+    
 #ifdef DEBUG
     call Leds.led2Toggle();
     printf("ack packet rec at %lu\n", call LocalTime.get());
@@ -533,7 +535,7 @@ implementation
 	for (i = 0; i < routeLen; i++) {
 	  ackData->route[i] = aMsg->route[i];
 	}
-
+	
 #ifdef DEBUG
 	printf("Forward ACK %lu\n", call LocalTime.get());
 	printf("Hops %u\n", h);
@@ -545,7 +547,7 @@ implementation
       }
       else{
 	int ackSeq = aMsg->seq;
-
+	
 	if (expSeq==ackSeq){
 	  call AckTimeoutTimer.stop();
 	  //and restart timer
@@ -568,10 +570,10 @@ implementation
       printf("retry called at %lu\n", call LocalTime.get());
       printfflush();
 #endif
-
+      
       retries+=1;
       call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME*1024L); // 30 sec sense/send timeout
-
+      
       if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	printf("resending begun at %lu\n", call LocalTime.get());
@@ -584,7 +586,7 @@ implementation
       //not going to get through, cancel send do not update SI/BN
       reportError(ERR_SEND_TIMEOUT);
       restartSenseTimer(FAIL); //need add a param in
-     }  
+    }  
   }
 
   //---------------- Deal with State Message Forwarding---------------------
@@ -630,6 +632,5 @@ implementation
     return bufPtr;    
   }
 
-  event void StateForwarder.sendDone(message_t *msg, error_t ok) {
-  }
+  event void StateForwarder.sendDone(message_t *msg, error_t ok) {}
 }
