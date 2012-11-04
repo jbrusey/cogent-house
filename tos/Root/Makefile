@@ -1,7 +1,6 @@
 COMPONENT=CogentRootC
 
 PFLAGS +=-DTOSH_DATA_LENGTH=110
-PFLAGS += -DCC2420_DEF_CHANNEL=18
 
 # turn on leds for debugging?
 CFLAGS += -DBLINKY
