@@ -14,9 +14,11 @@ module CogentHouseP
     interface SplitControl as RadioControl;
     interface AMSend as StateSender;
     interface AMSend as StateForwarder;
+    interface AMSend as BNForwarder;
     interface AMSend as AckForwarder;
     interface Receive as AckReceiver;
     interface Receive as StateReceiver;
+    interface Receive as BNReceiver;
     
     //SI Sensing
     interface Read<FilterState *> as ReadTemp;
@@ -589,6 +591,61 @@ implementation
     }  
   }
 
+
+  //---------------- Deal with BN Message Forwarding---------------------
+  event message_t* BNReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
+    StateMsg *newData;
+    int i;
+    int pslen;
+    int routeLen;
+    int next_hop;
+    StateMsg* sMsg;
+
+#ifdef DEBUG
+      printf("BN Received at %lu\n", call LocalTime.get());
+      printfflush();
+#endif
+    
+    sMsg = (StateMsg*)payload;
+          
+    message_size = len;
+    newData = call BNForwarder.getPayload(&fwdMsg, message_size);
+    if (newData != NULL) { 
+      next_hop=(sMsg->hops)+1;
+      newData->timestamp = sMsg->timestamp;
+      newData->special = sMsg->special;
+      newData->seq = sMsg->seq;
+      newData->hops = next_hop;
+      newData->route[next_hop]=TOS_NODE_ID;
+      
+      routeLen = sizeof(sMsg->route)/sizeof(uint16_t);
+      for (i = 0; i < routeLen; i++) {
+	if (i==next_hop) {
+	  newData->route[i] = TOS_NODE_ID;
+	}
+	else {
+	  newData->route[i]=sMsg->route[i];
+	}
+      }
+	
+      for (i = 0; i < sizeof sMsg->packed_state_mask; i++) { 
+	newData->packed_state_mask[i] = sMsg->packed_state_mask[i];
+      }
+      pslen = sizeof(sMsg->packed_state)/sizeof(float);
+      for (i = 0; i < pslen; i++) {
+	newData->packed_state[i] = sMsg->packed_state[i];
+      }
+      call BNForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg, message_size);
+#ifdef DEBUG
+      printf("BN Forward at %lu\n", call LocalTime.get());
+      printf("BN Forward to %lu\n", LEAF_CLUSTER_HEAD);
+      printfflush();
+#endif
+    }
+    return bufPtr;    
+  }
+
+
   //---------------- Deal with State Message Forwarding---------------------
   event message_t* StateReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
     StateMsg *newData;
@@ -597,6 +654,11 @@ implementation
     int routeLen;
     int next_hop;
     StateMsg* sMsg;
+
+#ifdef DEBUG
+      printf("Received at %lu\n", call LocalTime.get());
+      printfflush();
+#endif
     
     sMsg = (StateMsg*)payload;
           
@@ -628,9 +690,15 @@ implementation
 	newData->packed_state[i] = sMsg->packed_state[i];
       }
       call StateForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg, message_size);
+#ifdef DEBUG
+      printf("Forward at %lu\n", call LocalTime.get());
+      printf("Forward to %lu\n", LEAF_CLUSTER_HEAD);
+      printfflush();
+#endif
     }
     return bufPtr;    
   }
 
   event void StateForwarder.sendDone(message_t *msg, error_t ok) {}
+  event void BNForwarder.sendDone(message_t *msg, error_t ok) {}
 }

@@ -31,13 +31,17 @@ implementation
   components new AMSenderC(AM_ACKMSG) as AckForwarder;
   components new AMReceiverC(AM_ACKMSG) as AckReceiver;
   components new AMReceiverC(AM_STATEMSG) as StateReceiver;
+  components new AMReceiverC(AM_BNMSG) as BNReceiver;
+  components new AMSenderC(AM_BNMSG) as BNForwarder;
 
   CogentHouseP.Boot -> MainC.Boot;
   CogentHouseP.StateSender -> StateSender;  
   CogentHouseP.StateForwarder -> StateForwarder;
+  CogentHouseP.BNForwarder -> BNForwarder;
   CogentHouseP.AckForwarder -> AckForwarder;
   CogentHouseP.AckReceiver -> AckReceiver;
   CogentHouseP.StateReceiver -> StateReceiver;
+  CogentHouseP.BNReceiver -> BNReceiver;
   CogentHouseP.SenseTimer -> SenseTimer;
   CogentHouseP.AckTimeoutTimer -> AckTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
