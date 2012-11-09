@@ -68,6 +68,7 @@ implementation
   //sensor readings
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
+
   LightSensingM.GetPAR -> PAR;
   LightSensingM.GetTSR -> TSR;
   BatterySensingM.GetVoltage -> Volt;
@@ -82,6 +83,7 @@ implementation
   HeatMeterM.VolumeInput -> GIO.Port23;
   HeatMeterM.VolumeInterrupt -> GIOInterrupt.Port23; //set to read from gio2
 
+  //link modules to main file
   CogentHouseP.ReadTemp->ThermalSensingM.ReadTemp;
   CogentHouseP.ReadHum->ThermalSensingM.ReadHum;
   CogentHouseP.ReadPAR->LightSensingM.ReadPAR;
@@ -133,5 +135,4 @@ implementation
 
   PackState.Mask -> ABV;
   CogentHouseP.PackState -> PackState;
-
 }
