@@ -106,6 +106,30 @@ enum {
   MAX_HOPS = 4
 };
 
+
+/* error codes should be prime. As each error occurs during a sense
+   cycle, it is multiplied into last_errno. Factorising the
+   resulting value gives both the number of occurences and the type.
+*/
+
+enum {
+  ERR_SEND_CANCEL_FAIL = 2,
+  ERR_SEND_TIMEOUT = 3,
+  ERR_SEND_FAILED = 5,
+  ERR_SEND_WHILE_PACKET_PENDING = 7,
+  ERR_SEND_WHILE_SENDING = 11,
+  ERR_FWD_FAILED = 13,
+  ERR_ACK_HOP_SIZE=17,
+  ERR_PACKET_STATE_SIZE=19,
+  ERR_PACKET_ACK_SIZE=23,
+  ERR_STATE_HOP_SIZE=29
+};
+
+
+enum {
+  NODE_TYPE_MAX = 10
+};
+
 typedef nx_struct BNMsg {
   nx_uint32_t timestamp;
   nx_uint8_t special;
@@ -126,10 +150,6 @@ typedef nx_struct StateMsg {
   nx_float packed_state[SC_SIZE];
 } StateMsg; // varies depending on SC_SIZE 
 
-
-enum {
-  NODE_TYPE_MAX = 10
-};
 
 typedef nx_struct ConfigPerType {
   nx_uint32_t samplePeriod;
