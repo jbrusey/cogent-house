@@ -42,6 +42,8 @@ class Location(Base,meta.InnoDBMix):
                     ForeignKey('Room.id'))
 
     nodes = relationship("Node",backref=backref('location'))
+    readings = relationship("Reading",backref=backref('location'))
+    filtReadings = relationship("Reading",lazy='dynamic')
 
     def asJSON(self,parentId=""):
         """
@@ -50,11 +52,31 @@ class Location(Base,meta.InnoDBMix):
         """
         theItem = {"id":"L_{0}".format(self.id),
                    "name":"{0}".format(self.room.name),
+                   "label":"({0}) {1}".format(self.id,self.room.name),
                    "type":"location",
                    "parent": "H_{0}".format(self.houseId),
-                   "children":False
                    }
+       
+        try:
+            hasRead = self.readings[0]
+        except:
+            hasRead = False
+            #return None
+        #log.info(self.readings.count())
         return theItem
+
+    def getReadings(self,typeId=None):
+        """Attempt to return only readings of a certain type
+
+        :param typeId: Type If of object to filter by
+        """
+        if typeId:
+            return self.filtReadings.filter_by(typeId = typeId).all()
+        else:
+            return self.readings
+
+    def asTree(self):
+        return self.asJSON()
         
     def asList(self,parentId = ""):
         outDict = [self.asJSON(parentId)]
@@ -63,7 +85,15 @@ class Location(Base,meta.InnoDBMix):
             for item in self.nodes:
                 outDict.extend(item.asList(self.id))
         return outDict
-       
+
 
     def __str__(self):
-        return ("Loc ({0}): House {1} , Room {2}".format(self.id,self.houseId,self.roomId))
+	    return "({0}) {1} : {2}".format(self.id,self.house.address,self.room.name)
+
+
+NodeLocation = sqlalchemy.Table("NodeLocation",Base.metadata,
+                                sqlalchemy.Column("LocationId",Integer,ForeignKey("Location.id")),
+                                sqlalchemy.Column("nodeId",Integer,ForeignKey("Node.id"))
+                                )
+                                                  
+

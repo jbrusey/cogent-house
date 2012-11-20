@@ -36,10 +36,15 @@ module CogentHouseP
     interface Read<float> as ReadCO2;
     interface Read<float> as ReadVOC;
     interface Read<float> as ReadAQ;
+    interface SplitControl as OptiControl;
+    interface Read<float> as ReadOpti;
     interface SplitControl as CurrentCostControl;
     interface Read<ccStruct *> as ReadWattage;
     interface SplitControl as HeatMeterControl;
     interface Read<hmStruct *> as ReadHeatMeter;
+    interface Read<float> as ReadTempADC1;
+    interface Read<float> as ReadTempADC2;
+    interface Read<float> as ReadBlackBulb;
 
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -75,6 +80,8 @@ implementation
   float last_transmitted_errno;
   
   uint32_t sense_start_time;
+
+  bool phase_two_sensing = FALSE;
 	
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
@@ -195,12 +202,16 @@ implementation
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_DUTY);
       call Configured.set(RS_POWER);
+      //powered so set to always be awake
+      call LowPowerListening.setLocalWakeupInterval(0);
     } 
     else if (nodeType == 2) { /* co2 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_DUTY);
+      //powered so set to always be awake      
+      call LowPowerListening.setLocalWakeupInterval(0);
     }
     else if (nodeType == 3) { /* air quality */
       call Configured.set(RS_TEMPERATURE);
@@ -209,20 +220,40 @@ implementation
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
       call Configured.set(RS_DUTY);
+      //powered so set to always be awake      
+      call LowPowerListening.setLocalWakeupInterval(0);
     }
     else if (nodeType == 4) { /* heat meter */
       call Configured.set(RS_HEATMETER);
       call Configured.set(RS_VOLTAGE);
     }
-    if (nodeType > 0 && nodeType != 4) { 
-      call LowPowerListening.setLocalWakeupInterval(0);
+    else if (nodeType == 5) { /* opti smart */
+      call Configured.set(RS_OPTI);
+      call Configured.set(RS_VOLTAGE);
+      call OptiControl.start();
     }
+    else if (nodeType == 6) { /* window sensor */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_TEMPADC1);
+      call Configured.set(RS_TEMPADC2);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
+    else if (nodeType == 7) { /* black bulb */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_BLACKBULB);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
+
     call RadioControl.start();
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
-
   }
 
+  task void phaseTwoSensing();
 
   /* checkDataGathered
    * - only transmit data once all sensors have been read
@@ -239,11 +270,17 @@ implementation
     }
 		
     if (allDone) {
+      if (phase_two_sensing) {
 #ifdef DEBUG
-      printf("allDone %lu\n", call LocalTime.get());
-      printfflush();
+	printf("allDone %lu\n", call LocalTime.get());
+	printfflush();
 #endif
-      sendState();
+	sendState();
+      }
+      else { /* phase one complete - start phase two */
+	phase_two_sensing = TRUE;
+	post phaseTwoSensing();
+      }
     }
   }
 
@@ -268,8 +305,9 @@ implementation
 #endif
       call ExpectReadDone.clearAll();
       call PackState.clear();
+      phase_two_sensing = FALSE;
 
-
+      // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
 	  call ExpectReadDone.set(i);
@@ -283,16 +321,18 @@ implementation
 	    call ReadTSR.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
-	  else if (i == RS_CO2)
-	    call ReadCO2.read();
-	  else if (i == RS_AQ)
-	    call ReadAQ.read();
-	  else if (i == RS_VOC)
-	    call ReadVOC.read();
 	  else if (i == RS_POWER)
 	    call ReadWattage.read();
 	  else if (i == RS_HEATMETER)
 	    call ReadHeatMeter.read();
+	  else if (i == RS_OPTI)
+	    call ReadOpti.read();
+	  else if (i == RS_TEMPADC1)
+	    call ReadTempADC1.read();
+	  else if (i == RS_TEMPADC2)
+	    call ReadTempADC2.read();
+	  else if (i == RS_BLACKBULB)
+	    call ReadBlackBulb.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -304,6 +344,26 @@ implementation
 
     }
   }
+
+  /* perform any phase two sensing */
+  task void phaseTwoSensing() {
+    int i;
+    for (i = 0; i < RS_SIZE; i++) { 
+      if (call Configured.get(i)) {
+	call ExpectReadDone.set(i);
+	if (i == RS_CO2)
+	  call ReadCO2.read();
+	else if (i == RS_AQ)
+	  call ReadAQ.read();
+	else if (i == RS_VOC)
+	  call ReadVOC.read();
+	else
+	  call ExpectReadDone.clear(i);
+      }
+    }
+    post checkDataGathered();
+  }
+
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
   {
@@ -346,6 +406,18 @@ implementation
   event void ReadVolt.readDone(error_t result, uint16_t data) {	
     do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
   }
+  
+  event void ReadTempADC1.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_TEMPADC1, SC_TEMPADC1);
+  }
+
+  event void ReadTempADC2.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_TEMPADC2, SC_TEMPADC2);
+  }
+  
+  event void ReadBlackBulb.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_BLACKBULB, SC_BLACKBULB);
+  }
 
  event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
     if (result == SUCCESS) {
@@ -356,6 +428,9 @@ implementation
     post checkDataGathered();
   }
 
+  event void ReadOpti.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_OPTI, SC_POWER_PULSE);
+  }
 
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
     if (result == SUCCESS) {
@@ -384,7 +459,7 @@ implementation
 #ifdef DISSEMINATE
 	call DisseminationControl.start();
 #endif
-	call SenseTimer.startOneShot(DEF_SENSE_PERIOD);
+	call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
 	if (call Configured.get(RS_POWER)) 
 	  call CurrentCostControl.start();
 	if (call Configured.get(RS_HEATMETER)) 
@@ -572,22 +647,14 @@ implementation
     if (packet_pending) { 
       packet_pending = FALSE;
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
-	/*
-#ifdef DEBUG
-	printf("sending begun after cc stop\n");
-	printfflush();
-#endif
-	*/
 	sending = TRUE;
       }
     }
 
   }
 
-  /* event void DebugLog.appendDone(void* buf, storage_len_t len, bool recordsLost, */
-  /* 				 error_t error) {} */
-  /* event void DebugLog.eraseDone(error_t error) {} */
-  /* event void DebugLog.syncDone(error_t error) {} */
-
+  event void OptiControl.startDone(error_t error) { }
+  
+  event void OptiControl.stopDone(error_t error) {}  
   
 }

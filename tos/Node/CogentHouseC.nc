@@ -45,20 +45,34 @@ implementation
   components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
+  components new Temp_ADC1C() as Temp_ADC1;
+  components new Temp_ADC2C() as Temp_ADC2;
+  components new BlackBulbC() as BlackBulbADC;
 
   //import sensing modules
   components ThermalSensingM;
   components LightSensingM;
   components AirQualityM;
+  components WindowSensorM;
   components HeatMeterM;
+  components OptiSmartM;
+  components BlackBulbM;
 
   //sensor readings
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
 
+  OptiSmartM.Leds -> LedsC;
+  OptiSmartM.EnergyInput -> GIO.Port26;
+  OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+
   LightSensingM.GetPAR -> PAR;
   LightSensingM.GetTSR -> TSR;
 
+  WindowSensorM.GetTempADC1 -> Temp_ADC1;
+  WindowSensorM.GetTempADC2 -> Temp_ADC2;
+  BlackBulbM.GetTemp -> BlackBulbADC;
+  
   AirQualityM.GetCO2 -> CarbonDioxide;
   AirQualityM.GetVOC -> VOC;
   AirQualityM.GetAQ -> AQ;
@@ -79,6 +93,11 @@ implementation
   CogentHouseP.ReadCO2->AirQualityM.ReadCO2;
   CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
   CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
+  CogentHouseP.ReadOpti->OptiSmartM.ReadOpti;
+  CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
+  CogentHouseP.ReadTempADC1->WindowSensorM.ReadTempADC1;
+  CogentHouseP.ReadTempADC2->WindowSensorM.ReadTempADC2;
+  CogentHouseP.ReadBlackBulb->BlackBulbM.ReadTemp;
 
   CogentHouseP.ReadHeatMeter->HeatMeterM.ReadHeatMeter;
   CogentHouseP.HeatMeterControl -> HeatMeterM.HeatMeterControl;

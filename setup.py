@@ -2,10 +2,13 @@
 from setuptools import setup
 
 REQUIRES = ['SQLAlchemy',
+            "MySQL-python",
             'configobj',
-            "paramiko",
             "python-dateutil==1.5",
-            "python-rest-client"
+            "python-rest-client",
+            "numpy",
+            "matplotlib",
+            "pyserial"
             ]
     
 setup(name='ch-base',
@@ -20,7 +23,7 @@ setup(name='ch-base',
                 'cogent.report',
                 'cogent.node'],
       package_data={'cogent.base' : ['Calibration/*.csv']},
-      data_files=[('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf']),
+      data_files=[('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf', '/etc/noip2.conf']),
                   ('/etc/cron.daily', ['etc/ch-daily-email']),
                   ('/etc/apache2/sites-available', ['etc/cogent-house']),
                   ('/var/www/cogent-house', ['www/index.py']),
