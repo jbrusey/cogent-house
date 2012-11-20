@@ -66,4 +66,3 @@ class NodeState(Base,meta.InnoDBMix):
         except TypeError,e:
             log.warning("Unable to Compate {0} {1}".format(self,other))
         
-

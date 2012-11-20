@@ -50,9 +50,8 @@ import json
 #Setup Logging
 log = logging.getLogger(__name__)
 
-Session = sqlalchemy.orm.sessionmaker()
 
-def initialise_sql(engine,dropTables=False,session=False):
+def initialise_sql(engine, dropTables=False):
     """Initialise the database
 
     :param engine: Engine to use for the database
@@ -68,8 +67,8 @@ def initialise_sql(engine,dropTables=False,session=False):
 
     """
     log.info("Initialising Database")
-    Session.configure(bind=engine)
-    Base.metadata.bind=engine
+    meta.Session.configure(bind = engine)
+    Base.metadata.bind = engine
 
     if dropTables:
         Base.metadata.drop_all(engine)
@@ -80,8 +79,13 @@ def populate_data(session=None):
     """Populate the database with some initial data
 
     :param session: Session to use to populate database"""
+    log.info("Populating Data")
+
+    #Create a brand new session, not linked to any sort of transaction managers
     if not session:
-        session = meta.Session()
+        tMaker = sqlalchemy.orm.sessionmaker()
+        session = tMaker()
+    
 
     populateData.init_data(session)
 

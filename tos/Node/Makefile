@@ -1,18 +1,18 @@
-PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter
+PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./OptiSmart -I./WindowSensor -I./BlackBulb
 COMPONENT=CogentHouseC
 PYTHON_TARGET_DIR=../../cogent/node
 PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py StateV1Msg.py ConfigMsg.py Packets.py)
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
-PFLAGS +=-DTOSH_DATA_LENGTH=92
+PFLAGS +=-DTOSH_DATA_LENGTH=106
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
 #CFLAGS += -DDEBUG
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_SENSE_PERIOD=307200
-#CFLAGS += -DDEF_SENSE_PERIOD=10240
+CFLAGS += -DDEF_FIRST_PERIOD=30720
 
 CFLAGS += -DLOW_POWER_LISTENING
 CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=1024
