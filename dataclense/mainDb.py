@@ -14,7 +14,7 @@ import models.meta as meta
 import models.populateData as popData
 
 #DB
-THEDB = "mysql://chuser:foobar@127.0.0.1/transferStore"
+THEDB = "mysql://chuser@127.0.0.1/transferTest"
 
 
 def initDB():
@@ -26,5 +26,8 @@ def initDB():
     meta.Base.metadata.create_all(engine)
 
 
-    #popData.init_data()
+    
 
+if __name__ == "__main__":
+    initDB()
+    popData.init_data()

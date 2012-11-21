@@ -116,8 +116,13 @@ class CurrentCostParser():
         self.theHouse = theHouse
         #Create a location for this particular node
         
-        theRoom = session.query(models.Room).filter_by(name="Utility Room").first()
-        log.debug("Utility Room is {0}".format(theRoom))
+        theRoom = session.query(models.Room).filter_by(name="External").first()
+        if theRoom is None:
+            theRoom = models.Room(name="External",roomTypeId=1)
+            session.add(theRoom)
+            session.flush()
+
+        log.debug("External Room is {0}".format(theRoom))
 
         #theLocation = models.Location(houseId = theHouse.id,roomId = theRoom.id)
         theLocation = session.query(models.Location).filter_by(houseId=theHouse.id,
@@ -141,13 +146,16 @@ class CurrentCostParser():
         self.theNode = theNode
 
         sensorType = session.query(models.SensorType).filter_by(name="Power").first()
-        self.sensorType = sensorType
+        self.avgType = sensorType
         log.debug("Sensor is {0}".format(sensorType))
         
-        session.commit()
+        sensorType = session.query(models.SensorType).filter_by(name="Power Min").first()
+        self.minType = sensorType
 
-        
-        
+        sensorType = session.query(models.SensorType).filter_by(name="Power Max").first()
+        self.maxType = sensorType
+
+        session.commit()
 
     def getReadings(self):
         session = self.Session()
@@ -155,9 +163,11 @@ class CurrentCostParser():
         mainSession = models.meta.Session()
         theNode = self.theNode
         theLocation = self.theLocation
-        sensorType = self.sensorType
+        avgType = self.avgType
+        minType = self.minType
+        maxType = self.maxType
 
-        theQry = session.query(CCData)
+        theQry = session.query(CCData).limit(100)
         startTime = None
         readingArray = []
         #outArray = []
@@ -170,17 +180,35 @@ class CurrentCostParser():
             #log.debug("item: {0}  Start {1} Delta {2}".format(item,startTime,timeDelta))
             if timeDelta.total_seconds() >= (60*5): #5 Min Interval
                 log.debug("Time Jump")
-                log.debug("Array is {0}".format(readingArray))
                 avg = sum(readingArray) / len(readingArray)
+                minVal = min(readingArray)
+                maxVal = max(readingArray)
                 log.debug("Average {0}".format(avg))
                 #outArray.append([startTime,avg])
                 
-                theSample = models.Reading(time = startTime,
+                avgSample = models.Reading(time = startTime,
                                            nodeId = theNode.id,
-                                           typeId = sensorType.id,
+                                           typeId = avgType.id,
                                            locationId = theLocation.id,
                                            value = avg)
-                mainSession.add(theSample)
+                mainSession.add(avgSample)
+
+                minSample = models.Reading(time=startTime,
+                                           nodeId = theNode.id,
+                                           typeId = minType.id,
+                                           locationId = theLocation.id,
+                                           value=minVal)
+                mainSession.add(minSample)
+                
+                maxSample = models.Reading(time=startTime,
+                                           nodeId = theNode.id,
+                                           typeId = maxType.id,
+                                           locationId = theLocation.id,
+                                           value=maxVal)
+                
+                mainSession.add(maxSample)
+                
+
                 mainSession.flush()
                 startTime = theTime
                 readingArray = []
@@ -197,6 +225,5 @@ if __name__ == "__main__":
     theParser = CurrentCostParser("41PriorPark.db","41 Prior Park")
     theParser.createDeployment()
     theParser.getReadings()
-    #theParser.storeReadings()
-    
+
     
