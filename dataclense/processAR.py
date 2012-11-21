@@ -316,6 +316,8 @@ class ArchRockDB(object):
         #Create Sessions
         session = meta.Session()
         arSession = self.Session()
+
+        
                 
 #         sampleTable = models.sample.Sample
 
@@ -657,3 +659,4 @@ if __name__ == "__main__":
     theDb = ArchRockDB(database="PriorPark41",address="41PriorPark")
     theDb.listTables()
     theDb.createDatabase()
+    theDb.transferData()
