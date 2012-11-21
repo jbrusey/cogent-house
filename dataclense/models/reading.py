@@ -57,6 +57,7 @@ class Reading(Base,meta.InnoDBMix):
 
     locationId = Column(Integer,
                         ForeignKey('Location.id'),
+                        primary_key = True,
                         autoincrement=False)
 
     value = Column(Float)    

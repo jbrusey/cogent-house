@@ -13,8 +13,10 @@ import logging
 log = logging.getLogger(__name__) 
 log.setLevel(logging.DEBUG)
 
-import orbit_viewer.models as models
-import orbit_viewer.models.meta as meta
+#import orbit_viewer.models as models
+#import orbit_viewer.models.meta as meta
+
+
 
 #And for the local connection
 import sqlalchemy

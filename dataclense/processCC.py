@@ -167,10 +167,28 @@ class CurrentCostParser():
         minType = self.minType
         maxType = self.maxType
 
-        theQry = session.query(CCData).limit(100)
+
+
+        theQry = session.query(CCData).order_by(CCData.DateTime)
+
+        #Check if there are allready readings for this House in the Database
+        remoteQry = mainSession.query(models.Reading).filter_by(nodeId=theNode.id,
+                                                                typeId = avgType.id,
+                                                                locationId = theLocation.id,
+                                                                )
+
+        log.debug("Count of Data CC {0}  Remote {1}".format(theQry.count(),
+                                                            remoteQry.count()))
+
+        if remoteQry.count() > 100:
+            log.warning("***** Looks like we have uploaded {0} *****".format(self.theHouse))
+            return
+
+
         startTime = None
         readingArray = []
         #outArray = []
+        timestamps = {}
         for item in theQry:
             theTime = item.DateTime
             if startTime == None:
@@ -179,42 +197,57 @@ class CurrentCostParser():
             timeDelta = theTime - startTime
             #log.debug("item: {0}  Start {1} Delta {2}".format(item,startTime,timeDelta))
             if timeDelta.total_seconds() >= (60*5): #5 Min Interval
-                log.debug("Time Jump")
+                #log.debug("Time Jump")
                 avg = sum(readingArray) / len(readingArray)
                 minVal = min(readingArray)
                 maxVal = max(readingArray)
-                log.debug("Average {0}".format(avg))
+                #log.debug("Average {0}".format(avg))
                 #outArray.append([startTime,avg])
                 
-                avgSample = models.Reading(time = startTime,
-                                           nodeId = theNode.id,
-                                           typeId = avgType.id,
-                                           locationId = theLocation.id,
-                                           value = avg)
-                mainSession.add(avgSample)
+                if startTime in timestamps:
+                    log.warning("Duplicate sample found for time {0} Avg is {1}/{2}".format(theTime,avg,timestamps[startTime]))
+                    pass
+                else:
+                    hasSample = mainSession.query(models.Reading).filter_by(time=startTime,
+                                                                            nodeId = theNode.id,
+                                                                            typeId = avgType.id,
+                                                                            locationId = theLocation.id).first()
+                    if hasSample:
+                        log.warning("Existing Sample {0}: {1} {2}".format(hasSample,avg,startTime))
+                    else:
+                        avgSample = models.Reading(time = startTime,
+                                                   nodeId = theNode.id,
+                                                   typeId = avgType.id,
+                                                   locationId = theLocation.id,
+                                                   value = avg)
+                        #log.debug(avgSample)
+                        mainSession.add(avgSample)
+                        timestamps[startTime] = avg
 
-                minSample = models.Reading(time=startTime,
-                                           nodeId = theNode.id,
-                                           typeId = minType.id,
-                                           locationId = theLocation.id,
-                                           value=minVal)
-                mainSession.add(minSample)
-                
-                maxSample = models.Reading(time=startTime,
-                                           nodeId = theNode.id,
-                                           typeId = maxType.id,
-                                           locationId = theLocation.id,
-                                           value=maxVal)
-                
-                mainSession.add(maxSample)
-                
+                        minSample = models.Reading(time=startTime,
+                                                   nodeId = theNode.id,
+                                                   typeId = minType.id,
+                                                   locationId = theLocation.id,
+                                                   value=minVal)
+                        mainSession.add(minSample)
 
-                mainSession.flush()
+                        maxSample = models.Reading(time=startTime,
+                                                   nodeId = theNode.id,
+                                                   typeId = maxType.id,
+                                                   locationId = theLocation.id,
+                                                   value=maxVal)
+
+                        mainSession.add(maxSample)
+
+
+                        mainSession.flush()
+                    
                 startTime = theTime
                 readingArray = []
 
 
             readingArray.append(item.Watts)
+        log.debug("Committing")
         mainSession.commit()
         #self.outArray = outArray
             
@@ -222,8 +255,27 @@ if __name__ == "__main__":
     #And initialise the other DB
     mainDb.initDB()
 
-    theParser = CurrentCostParser("41PriorPark.db","41 Prior Park")
-    theParser.createDeployment()
-    theParser.getReadings()
+    EXCLUDE = ["/home/dang/svn/ArchrockDeployments/Data/CurrentCost/117+119Jodrell.db",]
+
+    
+    import glob 
+    import os.path
+    files = glob.glob("/home/dang/svn/ArchrockDeployments/Data/CurrentCost/*.db")
+    #log.debug("Files are {0}".format(files))
+
+    for fd in files:
+        if fd in EXCLUDE:
+            continue
+        else:
+            baseName = os.path.basename(fd)
+            depName = baseName.split(".")[0]
+            log.debug("Path {0} Base {1} House {2}".format(fd,baseName,depName))
+
+            theParser = CurrentCostParser(fd,depName)
+            theParser.createDeployment()
+            theParser.getReadings()
+    #theParser = CurrentCostParser("/home/dang/svn/ArchrockDeployments/Data/CurrentCost/117Jodrell.db","117 Jodrell Street")
+    #theParser.createDeployment()
+    #theParser.getReadings()
 
     
