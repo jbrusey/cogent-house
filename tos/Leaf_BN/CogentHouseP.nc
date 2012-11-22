@@ -294,7 +294,7 @@ implementation
 
     if (! sending) { 
 #ifdef DEBUG
-      printf("sensing begun at %lu\n", sense_start_time);
+      printf("\nsensing begun at %lu\n", sense_start_time);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
