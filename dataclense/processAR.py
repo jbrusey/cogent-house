@@ -14,6 +14,20 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__) 
 log.setLevel(logging.DEBUG)
 
+#Multiple Logging
+fh = logging.FileHandler("transfer.log")
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+fh.setFormatter(formatter)
+
+log.addHandler(ch)
+log.addHandler(fh)
+
 #import orbit_viewer.models as models
 #import orbit_viewer.models.meta as meta
 
@@ -170,7 +184,7 @@ class ArchRockDB(object):
         """Create the Required Database Objects"""
         session = models.meta.Session()
         arSession = self.Session()
-
+        log.setLevel(logging.WARNING)
         deploymentName = "archRock"
         houseName = self.houseAddress
 
@@ -273,7 +287,7 @@ class ArchRockDB(object):
                 sensorMap[item.datasource_key] = sensorTypeMap[item.source]
 
         self.sensorMap = sensorMap
-                
+        log.setLevel(logging.DEBUG)
         
 
                           
@@ -299,8 +313,74 @@ class ArchRockDB(object):
         session.flush()
         session.commit()
 
+    def removeDupes(self):
+        """Remove Duplicate Items"""
+        print "Removing Dupes"
 
-    def transferData(self,deploymentName,startDate = None,endDate = None):
+        from sqlalchemy.orm import aliased
+
+        session = self.Session()
+
+        a1 = aliased(Data)
+        a2 = aliased(Data)
+
+        query = session.query(a1,a2)
+        query = query.filter(a1.datasource_key == a2.datasource_key) #Data sources should be unique
+        query = query.filter(a1.node_key == a2.node_key)
+        query = query.filter(a1.timestamp == a2.timestamp)
+        query = query.filter(a1.data_key < a2.data_key)
+        #query = query.limit(10)
+        log.debug("Count of Items {0}".format(query.count()))
+        #print query.limit(10).all()
+
+        keyList = [item[1].data_key for item in query.all()]
+        #log.debug(keyList)
+
+        theQry = session.query(Data).filter(Data.data_key.in_(keyList))
+        
+        delItems = theQry.delete(False)
+        log.debug("Total of {0} items deleted".format(delItems))
+        
+        session.commit()
+#        for item in query.limit(10):
+            
+            #log.debug("{0} == {1}".format(item[0],item[1]))
+        return
+
+        # nodeIds = []
+        # for item in query.all():
+        #     print "{0}\n{1}\n".format(item[0],item[1])
+        #     nodeIds.append(item[0].data_key)
+
+        # query = session.query(Data).filter(Data.data_key.in_(nodeIds))
+        # for item in query.all():
+        #     print item
+        
+        # query = session.query(Data).filter(Data.data_key.in_(nodeIds))
+        #delItems = query.delete()
+        #print "Total Duplicates {0}".format(delItems)
+
+        #nodeIds = [n.data_key for n in query.all()]
+        #print "Node Id's Retrieved {0}".format(time.time()-t1)
+        
+        #query = session.query(Data)
+        #query.filter(Data.data_key.in_(nodeIds))
+        #delItems = query.delete()
+        #print "Items Deleted ",delItems
+        #transaction.begin()
+        #for item in query:
+        #    print item
+        #    session.delete(item)
+
+        #    print "{0}\n{1}\n".format(item[0],item[1])
+        #query.delete()
+        #session.flush()
+        #transaction.commit()
+        #session.close()
+
+
+
+    def transferData(self):
         """
         Transfer Data from the DB
 
@@ -308,17 +388,60 @@ class ArchRockDB(object):
         @param startDate: If we have more than one deployment can filter here
         @param endDate: as Above
         """
-        log = self.log
-        status = {"deployment":None,
-                  "nodes":[],
-                  "sensors":[]}
+        #log = self.log
+        #status = {"deployment":None,
+        #          "nodes":[],
+        #          "sensors":[]}
 
         #Create Sessions
-        session = meta.Session()
+        session = models.meta.Session()
         arSession = self.Session()
 
+        nodeMap = self.nodeMap
+        sensorMap = self.sensorMap
+
+        theQry = arSession.query(Data)
+        theQry = theQry.order_by(Data.timestamp)
+        log.debug("Total Of {0} Items in Database!!".format(theQry.count()))
         
-                
+        #Lets try stripping that to only include data types we want
+        nodeKeys = nodeMap.keys()
+        dsKeys = sensorMap.keys()
+        
+        theQry = theQry.filter(Data.node_key.in_(nodeKeys))
+        theQry = theQry.filter(Data.datasource_key.in_(dsKeys))
+        #log.debug(theQry)
+        totSamples = theQry.count()
+        log.debug("Total of {0} samples with filtering".format(totSamples))
+
+        #Try to use Cursors on the Postgress side
+        theQry = theQry.yield_per(1000)
+
+        #Probably better to do 
+        #theQry = theQry.limit(10)
+        objCount = 0
+        commitCount = 0
+        for item in theQry:
+            #log.debug(item)
+            #Turn this into a "proper" Reading
+            thisNode = nodeMap[item.node_key]
+            thisSensor = sensorMap[item.datasource_key]
+            theReading = models.Reading(time = item.timestamp,
+                                        nodeId = thisNode[0].id,
+                                        typeId = thisSensor.id,
+                                        locationId = thisNode[1].id,
+                                        value = item.value)
+            #log.debug(theReading)
+            session.add(theReading)
+            session.flush()
+            objCount += 1
+            if objCount == 10000:
+                commitCount += 1
+                log.debug("Commiting ~{0}".format(commitCount * objCount))
+                objCount = 0
+                session.commit()
+        
+        session.commit()
 #         sampleTable = models.sample.Sample
 
         
@@ -656,7 +779,51 @@ if __name__ == "__main__":
     mainDb.initDB()
 
     log.debug("Connecting to Postgresql")
-    theDb = ArchRockDB(database="PriorPark41",address="41PriorPark")
-    theDb.listTables()
-    theDb.createDatabase()
-    theDb.transferData()
+
+    import time
+
+    #List of Databases etc.
+
+    #Ones with current cost
+    #DBLIST = [
+    #          ["41PriorPark","PriorPark41"],
+    #          ["603SwanLane","SwanLane603"],
+    #          ["605SwanLane","SwanLane605"],
+    #          ["117Jodrell","jodrell117"],
+    #          ["119Jodrell","jodrell119"],
+    #          ["127Jodrell","jodrell127"],
+    #          ["133Jodrell","jodrell133"],
+    #          ]
+
+    #Ones without current cost
+    DBLIST = [["Elm Road","elm"],
+              ["58Elliot","fiftyeight_elliot_summer"],
+              ["Leam","leam"],
+              ["School","schoolnew"],
+              ["TheGreen","thegreen"],
+              ["Town Ground","town_ground"],
+              ]
+
+    #Ones with duplicates
+    # DBLIST = [["brays laneA","brays2010"],
+    #           ["brays laneB","braysdec2010"],
+    #           ["brays laneC","oldBraysFeb"],
+    #           ["thirty_elliot_summer","thirty_elliot_summer"]
+    #           ["thirty_elliot_winter","thirty_elliot_winter"]
+    #           ["weston","weston"]
+    #           ["westonlane","westonlane"]]
+
+    for item in DBLIST:
+        log.debug("Working for item {0}".format(item))
+        theDb = ArchRockDB(database=item[1],address=item[0])
+        theDb.createDatabase()
+        theDb.removeDupes()
+        theDb.transferData()
+
+
+
+    #theDb = ArchRockDB(database="PriorPark41",address="41PriorPark")
+    #theDb.listTables()
+    #theDb.createDatabase()
+    #theDb.removeDupes()
+    #theDb.transferData()
