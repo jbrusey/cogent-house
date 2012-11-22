@@ -175,7 +175,7 @@ implementation
 	  newData->timestamp = sMsg->timestamp;
 	  newData->special = sMsg->special;
 	  newData->hops = next_hop;
-	  
+
 	  //loop through and pack the route adding this node on at the end
 	  for (i = 0; i < MAX_HOPS; i++) {
 	    if (i==next_hop) {
@@ -188,6 +188,13 @@ implementation
 	  
 	  memcpy(newData->packed_state_mask, sMsg->packed_state_mask,sizeof sMsg->packed_state_mask);
 	  memcpy(newData->packed_state, sMsg->packed_state,sizeof sMsg->packed_state);
+
+#ifdef DEBUG
+	  printf("Forward SM %lu\n", call LocalTime.get());
+	  printf("Dest %u\n", LEAF_CLUSTER_HEAD);
+	  printfflush();
+#endif
+
 	  if (call StateForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg,  sizeof(fwdMsg))==SUCCESS){
 	    sending = TRUE;
 	  }
@@ -255,6 +262,12 @@ implementation
 	  
 	  memcpy(newData->packed_state_mask, sMsg->packed_state_mask,sizeof sMsg->packed_state_mask);
 	  memcpy(newData->packed_state, sMsg->packed_state,sizeof sMsg->packed_state);
+
+#ifdef DEBUG
+	  printf("Forward BN %lu\n", call LocalTime.get());
+	  printf("Dest %u\n", LEAF_CLUSTER_HEAD);
+	  printfflush();
+#endif
 	  if (call BNForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg,  sizeof(fwdMsg))==SUCCESS){
 	    sending = TRUE;
 	  }
