@@ -135,7 +135,6 @@ enum {
 typedef nx_struct BNMsg {
   nx_uint32_t timestamp;
   nx_uint8_t special;
-  nx_uint8_t seq;
   nx_uint8_t hops;
   nx_uint16_t route[MAX_HOPS];
   nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
