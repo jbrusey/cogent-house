@@ -137,7 +137,7 @@ class BaseLogger(object):
                         if i not in [6,23]:
                             tid=i+50
 			else:
-			    tid=6
+			    tid=i
                     else:
                         tid=i
 
