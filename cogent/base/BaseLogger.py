@@ -164,8 +164,8 @@ class BaseLogger(object):
             am.set_route(msg.get_route())
             am.set_hops(msg.get_hops())
 
-        self.bif.sendMsg(am,dest)
-        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+            self.bif.sendMsg(am,dest)
+            logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
 
         except Exception as e:
