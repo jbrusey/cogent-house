@@ -112,6 +112,9 @@ implementation
     msgSeq++;
     call PackState.add(SC_SEQ, expSeq);
 
+    if (periodsToHeartbeat<=0)
+      call PackState.add(SC_HEARTBEAT, 1);
+
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
@@ -145,7 +148,7 @@ implementation
 	newData->packed_state[i] = ps.p[i];
       }
       if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
-	call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME*1024L); // 5 sec sense/send timeout
+	call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME); 
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
 	  printf("sending to %lu\n", LEAF_CLUSTER_HEAD);
@@ -263,6 +266,10 @@ implementation
 	
 	for (i = 0; i < RS_SIZE; i++) {
 	  if (call ExpectSendDone.get(i)) {
+#ifdef DEBUG
+	    printf("expect send %u\n", i);
+	    printfflush();
+#endif
 	    toSend = TRUE;
 	    break;
 	  }
@@ -271,6 +278,8 @@ implementation
 	if (toSend){
 	  call RadioControl.start();
 	}
+	else
+	  restartSenseTimer();
       }
       else { /* phase one complete - start phase two */
 	phase_two_sensing = TRUE;
@@ -297,7 +306,9 @@ implementation
 
     if (! sending) { 
 #ifdef DEBUG
+      printf("\n");
       printf("sensing begun at %lu\n", sense_start_time);
+      printf("periodsToHeartbeat %u\n", periodsToHeartbeat);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
@@ -357,6 +368,7 @@ implementation
   void do_readDone_delta(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
   {
     if (result == SUCCESS || periodsToHeartbeat<=0){
+
       call PackState.add(state_code, s->x);
       call PackState.add(delta_state_code, s->dx);
       call ExpectSendDone.set(raw_sensor);
@@ -454,9 +466,10 @@ implementation
   event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
     int h;
     AckMsg* aMsg;
+    int i;
     
     aMsg = (AckMsg*)payload;
-    if (len == sizeof(aMsg)){
+    if (len == sizeof(AckMsg)){
       
 #ifdef DEBUG
       call Leds.led2Toggle();
@@ -473,8 +486,31 @@ implementation
 
 	  my_settings->samplePeriod = DEF_SENSE_PERIOD;
 	  retries=0;
+	  //update txcontrol
+	  for (i = 0; i < RS_SIZE; i ++) {
+	    if (call ExpectSendDone.get(i))
+	      switch (i) {
+	      case RS_TEMPERATURE:
+		call TempTrans.transmissionDone();
+		break;
+	      case RS_HUMIDITY:
+		call HumTrans.transmissionDone();
+		break;
+	      case RS_VOLTAGE:
+		call VoltTrans.transmissionDone();
+		break;
+	      case RS_CO2:
+		call CO2Trans.transmissionDone();
+		break;
+	      default:
+		break;
+	      }
+	  }
+	  call ExpectSendDone.clearAll();
+
 	  //reset heartbeat period
 	  periodsToHeartbeat=HEARTBEAT_PERIOD;
+
 	  restartSenseTimer();
 	}
       }
@@ -492,6 +528,11 @@ implementation
    */
   event void AckTimeoutTimer.fired() {
     //if retries < max retries send else give up
+
+#ifdef DEBUG
+      printf("timeout at %lu\n", call LocalTime.get());
+      printfflush();
+#endif
     if (retries < LEAF_MAX_RETRIES) {
       retries+=1;
       call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);

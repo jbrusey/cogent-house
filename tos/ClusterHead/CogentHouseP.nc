@@ -93,6 +93,8 @@ implementation
     }
   }
 
+  task void SMForwardTask();
+  task void BNForwardTask();
   //---------------- Deal with Acknowledgements --------------------------------
 
    task void AckForwardTask() { 
@@ -172,7 +174,6 @@ implementation
 	if (next_hop<=MAX_HOPS){
 	  newData->timestamp = sMsg->timestamp;
 	  newData->special = sMsg->special;
-	  newData->seq = sMsg->seq;
 	  newData->hops = next_hop;
 	  
 	  //loop through and pack the route adding this node on at the end
@@ -240,7 +241,6 @@ implementation
 	if (next_hop<=MAX_HOPS){
 	  newData->timestamp = sMsg->timestamp;
 	  newData->special = sMsg->special;
-	  newData->seq = sMsg->seq;
 	  newData->hops = next_hop;
 	  
 	  //loop through and pack the route adding this node on at the end
