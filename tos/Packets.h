@@ -62,7 +62,8 @@ enum {
   SC_D_CO2 = 20,
   SC_D_VOC = 21,
   SC_D_AQ = 22,
-  SC_SIZE = 23, // SC_SIZE must be 1 greater than last entry
+  SC_SEQ = 23,
+  SC_SIZE = 24, // SC_SIZE must be 1 greater than last entry
   
   
   //BN Codes
@@ -143,7 +144,6 @@ typedef nx_struct BNMsg {
 typedef nx_struct StateMsg {
   nx_uint32_t timestamp;
   nx_uint8_t special;
-  nx_uint8_t seq;
   nx_uint8_t hops;
   nx_uint16_t route[MAX_HOPS];
   nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];

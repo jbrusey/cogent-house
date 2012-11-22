@@ -88,14 +88,6 @@ class BaseLogger(object):
 		if int(x)>0:
 			dest=int(x)
 
-        #send acknowledgement to base station to fwd to node
-        am = AckMsg()
-        am.set_seq(int(msg.get_seq()))
-        am.set_route(msg.get_route())
-        am.set_hops(msg.get_hops())
-
-        self.bif.sendMsg(am,dest)
-        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
 
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
@@ -134,7 +126,7 @@ class BaseLogger(object):
                            parent=pid,
                            localtime=msg.get_timestamp())
             session.add(ns)
-
+            seq=0	    
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
             state = []
@@ -148,8 +140,13 @@ class BaseLogger(object):
 			    tid=6
                     else:
                         tid=i
+
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
+
+		    if tid==23:
+			seq=v
+
                     r = Reading(time=t,
                                 nodeId=n,
                                 typeId=tid,
@@ -158,7 +155,17 @@ class BaseLogger(object):
                     session.add(r)
                     j += 1
 
+
             session.commit()
+
+            #send acknowledgement to base station to fwd to node
+            am = AckMsg()
+            am.set_seq(int(seq))
+            am.set_route(msg.get_route())
+            am.set_hops(msg.get_hops())
+
+        self.bif.sendMsg(am,dest)
+        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
 
         except Exception as e:

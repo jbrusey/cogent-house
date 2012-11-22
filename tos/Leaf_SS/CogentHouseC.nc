@@ -26,21 +26,11 @@ implementation
   components new TimerMilliC() as WarmUpTimer;   
   components RandomC;
   components new AMSenderC(AM_STATEMSG) as StateSender;
-  components new AMSenderC(AM_STATEMSG) as StateForwarder;
-  components new AMSenderC(AM_ACKMSG) as AckForwarder;
   components new AMReceiverC(AM_ACKMSG) as AckReceiver;
-  components new AMReceiverC(AM_STATEMSG) as StateReceiver;
-  components new AMReceiverC(AM_BNMSG) as BNReceiver;
-  components new AMSenderC(AM_BNMSG) as BNForwarder;
 
   CogentHouseP.Boot -> MainC.Boot;
   CogentHouseP.StateSender -> StateSender;  
-  CogentHouseP.StateForwarder -> StateForwarder;
-  CogentHouseP.BNForwarder -> BNForwarder;
-  CogentHouseP.AckForwarder -> AckForwarder;
   CogentHouseP.AckReceiver -> AckReceiver;
-  CogentHouseP.StateReceiver -> StateReceiver;
-  CogentHouseP.BNReceiver -> BNReceiver;
   CogentHouseP.SenseTimer -> SenseTimer;
   CogentHouseP.AckTimeoutTimer -> AckTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
@@ -63,7 +53,6 @@ implementation
   components LightSensingM;
   components AirQualityM;
   components BatterySensingM;
-  components HeatMeterM;
 
   //sensor readings
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -77,11 +66,6 @@ implementation
   AirQualityM.GetAQ -> AQ;
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
-
-  HeatMeterM.EnergyInput -> GIO.Port26;
-  HeatMeterM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
-  HeatMeterM.VolumeInput -> GIO.Port23;
-  HeatMeterM.VolumeInterrupt -> GIOInterrupt.Port23; //set to read from gio2
 
   //link modules to main file
   CogentHouseP.ReadTemp->ThermalSensingM.ReadTemp;
@@ -113,10 +97,6 @@ implementation
   
   CogentHouseP.ReadWattage->CurrentCostM.ReadWattage;
   CogentHouseP.CurrentCostControl -> CurrentCostM.CurrentCostControl;
-
-  //Heat Meter
-  CogentHouseP.ReadHeatMeter->HeatMeterM.ReadHeatMeter;
-  CogentHouseP.HeatMeterControl -> HeatMeterM.HeatMeterControl;
 
 
   //Configured

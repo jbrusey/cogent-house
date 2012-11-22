@@ -13,12 +13,7 @@ module CogentHouseP
     //radio
     interface SplitControl as RadioControl;
     interface AMSend as StateSender;
-    interface AMSend as StateForwarder;
-    interface AMSend as BNForwarder;
-    interface AMSend as AckForwarder;
     interface Receive as AckReceiver;
-    interface Receive as StateReceiver;
-    interface Receive as BNReceiver;
     //Sensing
     interface Read<float> as ReadTemp;
     interface Read<float> as ReadHum;
@@ -31,8 +26,6 @@ module CogentHouseP
 
     interface SplitControl as CurrentCostControl;
     interface Read<ccStruct *> as ReadWattage;
-    interface SplitControl as HeatMeterControl;
-    interface Read<hmStruct *> as ReadHeatMeter;
 
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -110,6 +103,11 @@ implementation
       return;
     }
 
+    //increment and pack seq
+    expSeq = msgSeq;
+    msgSeq++;
+    call PackState.add(SC_SEQ, expSeq);
+
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
@@ -122,10 +120,6 @@ implementation
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       newData->special = 0xc7;
-      //we're going do a send so pack the msg count and then increment
-      expSeq = msgSeq;
-      msgSeq++;
-      newData->seq = expSeq;
       newData->timestamp = call LocalTime.get();
       newData->hops = 0;
 
@@ -173,10 +167,6 @@ implementation
     printfflush();
 #endif
 
-#ifdef CLUSTER
-      call RadioControl.start();
-#endif
-
     nodeType = TOS_NODE_ID >> 12;
     my_settings = &settings.byType[nodeType];
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
@@ -210,11 +200,7 @@ implementation
       call Configured.set(RS_VOC);
       call Configured.set(RS_DUTY);
     }
-    else if (nodeType == 4) { /* heat meter */
-      call Configured.set(RS_HEATMETER);	  
-      call Configured.set(RS_VOLTAGE);
-      call HeatMeterControl.start();
-    }
+    
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
@@ -285,12 +271,7 @@ implementation
 	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
 #endif
-#ifdef LEAF
       call RadioControl.start();
-#endif
-#ifdef CLUSTER
-     sendState();
-#endif
       }
       else { /* phase one complete - start phase two */
 	phase_two_sensing = TRUE;
@@ -337,8 +318,6 @@ implementation
 	    call ReadVolt.read();
 	  else if (i == RS_POWER)
 	    call ReadWattage.read();
-	  else if (i == RS_HEATMETER)
-	    call ReadHeatMeter.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -410,15 +389,6 @@ implementation
     do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
   }
 
- event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
-    if (result == SUCCESS) {
-      call PackState.add(SC_HEAT_ENERGY, data->energy);
-      call PackState.add(SC_HEAT_VOLUME, data->volume);
-    }
-    call ExpectReadDone.clear(RS_HEATMETER);
-    post checkDataGathered();
-  }
-
 
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
     if (result == SUCCESS) {
@@ -440,9 +410,7 @@ implementation
         printf("Radio On\n");
         printfflush();
 #endif
-#ifdef LEAF
 	sendState();
-#endif
       }
     else
       call RadioControl.start();
@@ -496,11 +464,6 @@ implementation
   }
     
 
-
-  event void HeatMeterControl.startDone(error_t error) {}
-
-  event void HeatMeterControl.stopDone(error_t error) {}
-
   event void CurrentCostControl.startDone(error_t error) {}
 
   event void CurrentCostControl.stopDone(error_t error) { 
@@ -522,11 +485,8 @@ implementation
    * if the ack packet is not for this node (deduced by hops = 0) else if the expected
    * packet has been received stop the timeout timer and restart the sense time
    */
-  event message_t* AckReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
-    AckMsg *ackData;
+  event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
     int h;
-    int prev_hop;
-    uint16_t dest;
     AckMsg* aMsg;
     
     aMsg = (AckMsg*)payload;
@@ -538,58 +498,25 @@ implementation
       printfflush();
 #endif    
       h=aMsg->hops;
-      ackData = call AckForwarder.getPayload(&ackMsg, message_size);
       
-      if (ackData != NULL) {
-	if (h!=0){
-	  prev_hop=(aMsg->hops)-1;
-	  if (prev_hop>=0){
-	    dest=aMsg->route[prev_hop];
-	    ackData->hops=prev_hop;
-	    ackData->seq = aMsg->seq;
-	    
-	    memcpy(ackData->route, aMsg->route, sizeof aMsg->route);
-	    
-#ifdef DEBUG
-	    printf("Forward ACK %lu\n", call LocalTime.get());
-	    printf("Hops %u\n", h);
-	    printf("NID %u\n", TOS_NODE_ID);
-	    printf("Dest %u\n", dest);
-	    printfflush();
-#endif
-	    call AckForwarder.send(dest, &ackMsg, message_size);
-	  }
-	  else{
-	    reportError(ERR_ACK_HOP_SIZE);    
-	  }
-	}
-	else{
-	  int ackSeq = aMsg->seq;
-	  
-	  if (expSeq==ackSeq){
-	    call AckTimeoutTimer.stop();
-#ifdef LEAF
-	    call RadioControl.stop();
-#endif
-	    //and restart timer
-	    my_settings->samplePeriod = DEF_SENSE_PERIOD;
-	    retries=0;
-	    restartSenseTimer();
-	  }
+      if (h==0){
+	int ackSeq = aMsg->seq;	  
+	if (expSeq==ackSeq){
+	  call AckTimeoutTimer.stop();
+	  call RadioControl.stop();
+
+	  my_settings->samplePeriod = DEF_SENSE_PERIOD;
+	  retries=0;
+	  restartSenseTimer();
 	}
       }
-    } 
+    }
     else{
       reportError(ERR_PACKET_ACK_SIZE);
     }
-    return bufPtr; 
+    return msg; 
   }
 
-  event void AckForwarder.sendDone(message_t *msg, error_t ok) {
-    if (ok != SUCCESS) {
-      reportError(ERR_FWD_FAILED);    
-    }
-  }
 
   /* If the number of sending retries < LEAF_MAX_RETRIES then try sending the message again, else
    * assume the message is not going to get through, cancel send and call restartSenseTimer with a 
@@ -612,114 +539,15 @@ implementation
       reportError(ERR_SEND_TIMEOUT);
       my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
       retries=0;
-#ifdef LEAF
       call RadioControl.stop();
-#endif
+
 #ifdef DEBUG
       printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
       printf("ack waiting failed %lu\n", call LocalTime.get());
       printfflush();
 #endif
       restartSenseTimer();
-     }  
+    }  
   }
-
-  //---------------- Deal with State Message Forwarding---------------------
-
-  //Receive a message repack and forward up to the next cluster head
-  event message_t* StateReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
-    StateMsg *newData;
-    int i;
-    int next_hop;
-    StateMsg* sMsg;
-    
-    sMsg = (StateMsg*)payload;
-
-    if (len == sizeof(sMsg)){
-      newData = call StateForwarder.getPayload(&fwdMsg, len);
-      if (newData != NULL) { 
-	next_hop=(sMsg->hops)+1;
-	if (next_hop<=MAX_HOPS){
-	  newData->timestamp = sMsg->timestamp;
-	  newData->special = sMsg->special;
-	  newData->seq = sMsg->seq;
-	  newData->hops = next_hop;
-	  
-	  //loop through and pack the route adding this node on at the end
-	  for (i = 0; i < MAX_HOPS; i++) {
-	    if (i==next_hop) {
-	      newData->route[i] = TOS_NODE_ID;
-	    }
-	    else {
-	      newData->route[i]=sMsg->route[i];
-	    }
-	  }
-	
-	  memcpy(newData->packed_state_mask, sMsg->packed_state_mask,sizeof sMsg->packed_state_mask);
-	  memcpy(newData->packed_state, sMsg->packed_state,sizeof sMsg->packed_state);
-	  call StateForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg, len);
-	}
-      }
-      else{
-	reportError(ERR_STATE_HOP_SIZE);
-      }
-    }
-    else{
-      reportError(ERR_PACKET_STATE_SIZE);
-    }
-
-    return bufPtr;    
-  }
-
-  event void StateForwarder.sendDone(message_t *msg, error_t ok) {}
-
-
-  //---------------- Deal with BN Message Forwarding---------------------
-
-  //Receive a message repack and forward up to the next cluster head
-  event message_t* BNReceiver.receive(message_t* bufPtr,void* payload, uint8_t len) {
-    StateMsg *newData;
-    int i;
-    int next_hop;
-    StateMsg* sMsg;
-    
-    sMsg = (StateMsg*)payload;
-    if (len == sizeof(sMsg)){
-      newData = call BNForwarder.getPayload(&fwdMsg, len);
-      if (newData != NULL) { 
-	next_hop=(sMsg->hops)+1;
-	if (next_hop<=MAX_HOPS){
-	  newData->timestamp = sMsg->timestamp;
-	  newData->special = sMsg->special;
-	  newData->seq = sMsg->seq;
-	  newData->hops = next_hop;
-	  
-	  //loop through and pack the route adding this node on at the end
-	  for (i = 0; i < MAX_HOPS; i++) {
-	    if (i==next_hop) {
-	      newData->route[i] = TOS_NODE_ID;
-	    }
-	    else {
-	      newData->route[i]=sMsg->route[i];
-	    }
-	  }
-	  
-	  memcpy(newData->packed_state_mask, sMsg->packed_state_mask,sizeof sMsg->packed_state_mask);
-	  memcpy(newData->packed_state, sMsg->packed_state,sizeof sMsg->packed_state);
-	  call BNForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg, len);
-	}
-      }
-      else{
-	reportError(ERR_STATE_HOP_SIZE);
-      }
-    }
-    else{
-      reportError(ERR_PACKET_STATE_SIZE);
-    }
-    
-    return bufPtr;    
-  }
-
-
-  event void BNForwarder.sendDone(message_t *msg, error_t ok) {}
+  
 }
