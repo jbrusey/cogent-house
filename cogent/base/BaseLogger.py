@@ -134,7 +134,7 @@ class BaseLogger(object):
                 if mask[i]:
                     tid=None
                     if msg.get_amType()==8:
-                        if i != 6:
+                        if i not in [6,23]:
                             tid=i+50
 			else:
 			    tid=6

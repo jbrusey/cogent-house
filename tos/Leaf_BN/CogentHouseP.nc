@@ -122,7 +122,6 @@ implementation
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       newData->special = 0xc7;
-      newData->seq = expSeq;
       newData->timestamp = call LocalTime.get();
       newData->hops = 0;
 
