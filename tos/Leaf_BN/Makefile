@@ -1,19 +1,19 @@
 PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I./Exposure -I./ExposureEventDetector
 COMPONENT=CogentHouseC
 
-PFLAGS +=-DTOSH_DATA_LENGTH=113
+PFLAGS +=-DTOSH_DATA_LENGTH=118
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
-CFLAGS += -DDEBUG
+#CFLAGS += -DDEBUG
 
 #time out time in seconds
 CFLAGS += -DLEAF_TIMEOUT_TIME=1024L
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
-CFLAGS += -DDEF_SENSE_PERIOD=30720L
-CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=30720
+CFLAGS += -DDEF_SENSE_PERIOD=307200L
+CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
 
 CFLAGS += -DLEAF_CLUSTER_HEAD=40974L
 CFLAGS += -DLEAF_MAX_RETRIES=3
