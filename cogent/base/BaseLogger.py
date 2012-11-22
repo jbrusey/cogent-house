@@ -119,13 +119,31 @@ class BaseLogger(object):
                                      nodeId=n,
                                      localtime=localtime):
                 logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
-                return
+
+            	j = 0
+            	mask = Bitset(value=msg.get_packed_state_mask())
+            	state = []
+            	for i in range(msg.totalSizeBits_packed_state_mask()):
+                    if mask[i]:
+                        if i ==23:
+                            v = msg.getElement_packed_state(j)
+                            #send out ack as it was never received
+                            am = AckMsg()
+                            am.set_seq(int(v))
+                            am.set_route(msg.get_route())
+                            am.set_hops(msg.get_hops())
+                            return
+                    j += 1
+                    return
+
 
             ns = NodeState(time=t,
                            nodeId=n,
                            parent=pid,
                            localtime=msg.get_timestamp())
             session.add(ns)
+
+
             seq=0	    
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())

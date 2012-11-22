@@ -37,7 +37,9 @@ implementation
   bool sending;
   message_t fwdMsg;
   message_t ackMsg;
-
+  uint8_t slen;
+  uint8_t blen;
+  uint8_t alen;
   
   ////////////////////////////////////////////////////////////
 	
@@ -116,12 +118,10 @@ implementation
 	    
 #ifdef DEBUG
 	  printf("Forward ACK %lu\n", call LocalTime.get());
-	  printf("Hops %u\n", h);
-	  printf("NID %u\n", TOS_NODE_ID);
 	  printf("Dest %u\n", dest);
 	  printfflush();
 #endif
-	  if (call AckForwarder.send(dest, &ackMsg,  sizeof(ackMsg))==SUCCESS){
+	  if (call AckForwarder.send(dest, &ackMsg,  alen)==SUCCESS){
 	    sending = TRUE;
 	  }
 	}
@@ -133,6 +133,11 @@ implementation
   //Receive a message repack and forward up to the next cluster head
   event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
     AckMsg* aMsg;
+#ifdef DEBUG
+    printf("Ack Received %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+    alen=len;
     if (!call ACKPool.empty() && call ACKQueue.size() < call ACKQueue.maxSize()) { 
       message_t *tmp = call ACKPool.get();
       aMsg = (AckMsg*)payload;
@@ -148,6 +153,7 @@ implementation
   }
 
   event void AckForwarder.sendDone(message_t *msg, error_t ok) {
+    sending = FALSE;
     call ACKPool.put(msg);
     if (! call ACKQueue.empty())
       post AckForwardTask();
@@ -155,7 +161,6 @@ implementation
       post SMForwardTask();
     if (! call BNQueue.empty())
       post BNForwardTask();
-    sending = FALSE;
   }
 
 
@@ -188,14 +193,15 @@ implementation
 	  
 	  memcpy(newData->packed_state_mask, sMsg->packed_state_mask,sizeof sMsg->packed_state_mask);
 	  memcpy(newData->packed_state, sMsg->packed_state,sizeof sMsg->packed_state);
-
 #ifdef DEBUG
-	  printf("Forward SM %lu\n", call LocalTime.get());
-	  printf("Dest %u\n", LEAF_CLUSTER_HEAD);
-	  printfflush();
+	  printf("size %u\n", slen);
 #endif
-
-	  if (call StateForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg,  sizeof(fwdMsg))==SUCCESS){
+	  if (call StateForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg,  slen)==SUCCESS){
+#ifdef DEBUG
+	    printf("Forward SM %lu\n", call LocalTime.get());
+	    printf("Dest %lu\n", LEAF_CLUSTER_HEAD);
+	    printfflush();
+#endif
 	    sending = TRUE;
 	  }
 	}
@@ -207,21 +213,29 @@ implementation
   //Receive a message repack and forward up to the next cluster head
   event message_t* StateReceiver.receive(message_t* msg,void* payload, uint8_t len) {
     StateMsg* sMsg;
+    slen=len;
     if (!call SMPool.empty() && call SMQueue.size() < call SMQueue.maxSize()) { 
       message_t *tmp = call SMPool.get();
+#ifdef DEBUG
+      printf("\nState Received %lu\n", call LocalTime.get());
+      printfflush();
+#endif
       sMsg = (StateMsg*)payload;
-      if (len == sizeof(sMsg)){
-	call SMQueue.enqueue(sMsg);
-	if (!sending) {
-	  post SMForwardTask();
-	}
-	return tmp;
+      call SMQueue.enqueue(sMsg);
+      if (!sending) {
+#ifdef DEBUG
+        printf("Call FWD task %lu\n", call LocalTime.get());
+        printfflush();
+#endif
+	post SMForwardTask();
       }
+      return tmp;
     }  
     return msg; 
   }
 
   event void StateForwarder.sendDone(message_t *msg, error_t ok) {
+    sending = FALSE;
     call SMPool.put(msg);
     if (! call ACKQueue.empty())
       post AckForwardTask();
@@ -229,7 +243,6 @@ implementation
       post SMForwardTask();
     if (! call BNQueue.empty())
       post BNForwardTask();
-    sending = FALSE;
   }
 
 
@@ -265,10 +278,10 @@ implementation
 
 #ifdef DEBUG
 	  printf("Forward BN %lu\n", call LocalTime.get());
-	  printf("Dest %u\n", LEAF_CLUSTER_HEAD);
+	  printf("Dest %lu\n", LEAF_CLUSTER_HEAD);
 	  printfflush();
 #endif
-	  if (call BNForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg,  sizeof(fwdMsg))==SUCCESS){
+	  if (call BNForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg,  blen)==SUCCESS){
 	    sending = TRUE;
 	  }
 	}
@@ -280,6 +293,11 @@ implementation
   //Receive a message repack and forward up to the next cluster head
   event message_t* BNReceiver.receive(message_t* msg,void* payload, uint8_t len) {
     StateMsg* sMsg;
+    blen=len;
+#ifdef DEBUG
+    printf("BN Received %lu\n", call LocalTime.get());
+    printfflush();
+#endif
     if (!call BNPool.empty() && call BNQueue.size() < call BNQueue.maxSize()) { 
       message_t *tmp = call BNPool.get();
       sMsg = (StateMsg*)payload;
@@ -296,6 +314,7 @@ implementation
 
 
   event void BNForwarder.sendDone(message_t *msg, error_t ok) {
+    sending = FALSE;
     call BNPool.put(msg);
     if (! call ACKQueue.empty())
       post AckForwardTask();
@@ -303,6 +322,5 @@ implementation
       post SMForwardTask();
     if (! call BNQueue.empty())
       post BNForwardTask();
-    sending = FALSE;
   }
 }
