@@ -63,7 +63,8 @@ enum {
   SC_D_VOC = 21,
   SC_D_AQ = 22,
   SC_SEQ = 23,
-  SC_SIZE = 24, // SC_SIZE must be 1 greater than last entry
+  SC_HEARTBEAT = 24,
+  SC_SIZE = 25, // SC_SIZE must be 1 greater than last entry
   
   
   //BN Codes
