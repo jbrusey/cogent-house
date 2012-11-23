@@ -184,7 +184,7 @@ class ArchRockDB(object):
         """Create the Required Database Objects"""
         session = models.meta.Session()
         arSession = self.Session()
-        log.setLevel(logging.WARNING)
+        #log.setLevel(logging.WARNING)
         deploymentName = "archRock"
         houseName = self.houseAddress
 
@@ -218,6 +218,7 @@ class ArchRockDB(object):
         addrMap = {}
 
         #We want to setup nodes / Rooms / Locations based on the node_dimension table
+        log.info("Setting Up Nodes")
         nodeQry = arSession.query(Ar_Node)
         for item in nodeQry:
             #Dont bother with the router
@@ -263,20 +264,21 @@ class ArchRockDB(object):
             nodeMap[item.node_key] = [theNode,theLocation]
             addrMap[item.addr] = theNode
 
-        log.debug(nodeMap)
+        #log.debug(nodeMap)
         self.nodeMap = nodeMap
         #We also need to do mapping for sensor types etc
         #theQry = arSession.query(Source)
 
         #Map the Types we are expecting to types from the database
         sensorTypeMap = {}
+        log.info("Mapping Sensor Types")
         for sType in ALLOWED_TYPES:
             theType = session.query(models.SensorType).filter_by(name=sType[1]).first()
             
             log.debug("AR: {0}  Local {1}".format(sType,theType))
             sensorTypeMap[sType[0]] = theType
             
-        log.debug(sensorTypeMap)
+        #log.debug(sensorTypeMap)
 
         sensorMap = {}
         
@@ -289,27 +291,7 @@ class ArchRockDB(object):
         self.sensorMap = sensorMap
         log.setLevel(logging.DEBUG)
         
-
-                          
-        
-
-
-            #Next we want to add a room
-        #sensorDict = {}
-        #sensorTypes = session.query(models.sensor.SensorType).all()
-
-        #log.debug("{0} Sensor Types {0}".format("-"*20))
-        #for sensor in sensorTypes:
-        #    log.debug(sensor)
-        #    sensorDict[sensor.sensor_type] = sensor
-        #log.debug("{0}".format("-"*40))
-
-        #self.sensorTypes= sensorDict
-        #log.debug("PG Engine Init Complete")        
-        #self.log = log
-
-
-
+        log.info("Commtitting Changes")
         session.flush()
         session.commit()
 
@@ -402,6 +384,9 @@ class ArchRockDB(object):
 
         theQry = arSession.query(Data)
         theQry = theQry.order_by(Data.timestamp)
+        import datetime
+        tmpDate = datetime.datetime(2009,11,1,20,32,56)
+        theQry = theQry.filter(Data.timestamp >= tmpDate)
         log.debug("Total Of {0} Items in Database!!".format(theQry.count()))
         
         #Lets try stripping that to only include data types we want
@@ -442,335 +427,6 @@ class ArchRockDB(object):
                 session.commit()
         
         session.commit()
-#         sampleTable = models.sample.Sample
-
-        
-#         status["deployment"] = theDeployment
-        
-#         # #Next thing to do is to add all the Nodes but as the AR database is a little arse about face.
-#         # We need to do some trickery here.
-
-#         # Find the Nodes
-#         arNodes = arSession.query(Ar_Node)
-#         #if startDate:
-#         #    arNodes = arNodes.filter(Ar_Node.node_created >= startDate)
-#         #if endDate:
-#         #    arNodes = arNodes.filter(Ar_Node.node_created <= endDate)
-        
-#         #I want to add a quick filter here for testing
-#         #arNodes = arNodes.filter_by(name = "Node1")
-#         arNodes = arNodes.all()
-
-#         #To Hold all our nodes and sensors
-#         nodeDict = {}
-#         nodeIdDict = {}
-#         addrDict = {}
-#         sensorDict = {}
-#         sensorTypes = self.sensorTypes
-
-#         #Node / Sensors Pairs
-#         nodePairs = {}
-    
-#         sensorData = {}
-#         print "Finding Nodes"
-#         for node in arNodes:
-#             print node
-#             #Do we already know about this node
-#             theNode = nodeDict.get(node.addr,None)
-#             if not theNode:
-#                 #Check it does not already exist in the database
-#                 theQry = session.query(models.nodes.Node).filter_by(deploymentId = theDeployment.Id,
-#                                                                     name=node.name,
-#                                                                     serialNo = node.addr)
-
-#                 theQry = theQry.first()
-                    
-#                 if theQry is None:
-#                     theNode = models.nodes.Node(deploymentId = theDeployment.Id,
-#                                                 name=node.name,
-#                                                 serialNo = node.addr)
-#                     log.info("Node {0} not in Database".format(theNode))
-#                     nodePairs[node.addr] = []
-                    
-#                 else:
-#                     theNode = theQry
-#                     log.info("Node {0} Exists ({1})".format(theNode,type(theNode)))
-                
-#                 #session.flush()
-
-#                 nodeDict[node.addr] = theNode            
-#                 addrDict[node.addr] = [node.node_key]
-#                 #theAddr = addrDict.get(node.addr,[])
-#                 #theAddr.append(node.node_key)
-#                 #addrDict[node.addr] = theAddr
-#             else:
-#                 #log.debug("Dictonary Entry Exists for {0}".format(node))
-#                 addrDict[node.addr].append(node.node_key)
-
-#             nodeIdDict[node.node_key] = theNode
-
-#         #We should also check if the node has any data attached to it before saving it in the database
-        
-#         for nodeAddr,nodeId in addrDict.iteritems():
-#             #log.debug("Id: {0} Item: {1}".format(nodeAddr,nodeId))
-#             #Check if the data Exists
-
-#             sensorQry = arSession.query(Source.datasource_key)
-#             sensorQry = sensorQry.filter_by(addr = nodeAddr,
-#                                             source="Temperature")
-#             #log.debug(sensorQry.all())
-
-#             theQuery = arSession.query(Data)
-#             theQuery = theQuery.filter(Data.node_key.in_(nodeId))
-#             #log.debug("Sensor Query {0}".format(sensorQry))
-#             theQuery = theQuery.filter(Data.datasource_key.in_(sensorQry))
-        
-#             if startDate:
-#                 theQuery = theQuery.filter(Data.timestamp >= startDate)
-#             if endDate:
-#                 theQuery = theQuery.filter(Data.timestamp <= endDate)
-
-            
-
-#             #And Filter by the known sensor types
-            
-
-#             #theQuery = theQuery.limit(10)
-#             cnt = theQuery.first()
-#             log.debug("Item {1} Has Data {0} ".format(cnt,nodeDict[nodeAddr]))
-
-#             if cnt is None:
-#                 log.warning("Node {0} Has no Data".format(nodeDict[nodeAddr]))
-#                 del nodeDict[nodeAddr]
-#             else:
-#                 status['nodes'].append(nodeDict[nodeAddr])
-#                 session.add(nodeDict[nodeAddr])
-
-#         #log.debug("New Dict")
-#         #for addr,node in nodeDict.iteritems():
-
-#         #And Add Sensors
-#         for node in arNodes:
-#             theNode = nodeDict.get(node.addr,None)
-#             if theNode:
-#                 #log.debug("#"*40)
-#                 #log.info("Finding sensors for node: {0} ({1})".format(node,theNode))
-
-#                 #Find any sensors attached to this node
-#                 arSensors = arSession.query(Source).filter_by(addr = node.addr)
-#                 #Strip out meta sensors like voltage
-#                 arSensors = arSensors.filter(Source.source.in_(ALLOWED_TYPES))
-#                 arSensors = arSensors.all()
-                
-#                 #Check and Add to Database
-#                 #log.debug("=== Sensors ===")
-
-#                 for sensor in arSensors:                                     
-#                     #Check if we know about this Sensor
-#                     theSensor = sensorDict.get(sensor.datasource_key,None)
-#                     #log.debug("--> Sensor {0} --> Dictonary {1}".format(sensor,theSensor))
-
-#                     if not theSensor:
-#                         #Check Database
-#                         #log.debug("Sensor Name {0}".format(sensor.name))
-#                         sName = sensor.name
-#                         if sName == "CO2":
-#                             sName = "Co2"
-#                         sType = sensorTypes[sName]
-#                         theQry = session.query(models.sensor.Sensor).filter_by(nodeId = theNode.Id,
-#                                                                                sensorTypeId = sType.Id)
-#                         theQry = theQry.first()
-
-#                         if theQry is None:
-#                             thisSensor = models.sensor.Sensor(nodeId = theNode.Id,
-#                                                               sensorTypeId = sType.Id,
-#                                                               name = sName)
-
-#                             session.add(thisSensor)
-#                             log.debug("--> Checking Database for sensor {0}: Adding Sensor".format(theQry))
-#                         else:
-#                             thisSensor = theQry
-
-#                         sensorDict[sensor.datasource_key] = thisSensor
-
-
-#                     #log.debug("--> Copied Sensor {0}".format(thisSensor))
-                                
-        
-#         status["nodes"] = nodeDict.values()
-#         status["sensors"] = sensorDict.items()
-#         #return status
-        
-#         log.debug("{0} Sensors {0}".format("-"*20))
-#         for key,item in sensorDict.iteritems():
-#             log.debug("{0} {1}".format(key,item))
-                 
-        
-#         #The Final thing is to fetch and store all the data.
-#         dataQuery = arSession.query(Data)
-
-#         #if not nodeIdDict:
-#         #    log.warning("No Node ID's")
-#         dataQuery = dataQuery.filter(Data.node_key.in_(nodeIdDict.keys()))
-#         #if not sensorDict:
-#         #    log.warning("No Sensor ID's")
-#         dataQuery = dataQuery.filter(Data.datasource_key.in_(sensorDict.keys()))
-        
-        
-#         log.debug("Removing previous data")
-#         #deleteQuery = dataQuery.all().delete()
-#         #log.debug("{0} Items removed".format(deleteQuery))
-#         #sys.exit(0)
-
-
-#         if startDate:
-#             dataQuery = dataQuery.filter(Data.timestamp >= startDate)
-#         if endDate:
-#             dataQuery = dataQuery.filter(Data.timestamp <= endDate)
-
-        
-#         #dataQuery = dataQuery.order_by(Data.timestamp)
-
-#         #Data Cacheing to help on updates
-#         datacache = []
-#         tempDict = {}
-#         cacheindex = 0
-#         cachelimit = 144 #About 12 hours worth of data
-#         #cachelimit = 144
-#         setIdx = 0
-
-#         currentOffset = 0
-#         transferLimit = 100
-
-#         #t1 = time.time()
-#         log.info("Counting Rows")
-#         #theCount = dataQuery.count()
-#         #log.info("{0} Rows Found".format(theCount))
-#         #t2 = time.time()
-#         #log.debug("{0} Seoconds Taken".format(t2-t1))
-
-
-#         #log.info("Fetching {0} Rows".format(dataQuery.count()))
-        
-
-#         #for dataItem in dataQuery.limit(100):
-#         #    if currentOffset > transferLimit:
-#         #        log.debug("Records Stored")
-#         #    currentOffset += 1
-
-#         tempStore = []
-#         dataQuery = dataQuery
-#         sampleList = []
-#         sampleCount = 0
-#         maxSamples = 1000 #Items before a commit
-#         loopIndex = 0
-#         dataQuery = dataQuery.limit(5000).offset(1000000)
-#         log.info("Starting to save Data")
-#         for dataItem in dataQuery.yield_per(1000):
-#             transaction.begin()
-#             sensorId = sensorDict[dataItem.datasource_key]
-
-#             thisSample = sampleTable(sensorId = sensorId.Id,
-#                                          timestamp = dataItem.timestamp,
-#                                          value = dataItem.value)
-
-#             sampleList.append(thisSample)
-
-#             if sampleCount > maxSamples:
-#                 log.debug("Saving items {0}".format(loopIndex))
-#                 loopIndex += 1
-#                 session.add_all(sampleList)
-
-#                 try:
-#                     session.flush()
-#                     transaction.commit()
-#                 except sqlalchemy.exc.IntegrityError,e:
-#                     session.rollback()
-#                     log.warning("Some Error {0}".format(e))
-#                     for mergeItem in sampleList:
-#                         session.merge(mergeItem)
-#                         session.flush()
-#                         transaction.commit()
-
-#                 sampleList = []
-#                 sampleCount = 0
-
-#             sampleCount += 1
-        
-
-        
-
-            
-
-
-# #            print item
-#         #for item in dataQuery.yield_per(5):
-#         #    print item
-        
-#         log.info("Samples Stored, Summarising")
-#         status["nodes"] = nodeDict.values()
-#         status["sensors"] = sensorDict.items()
-        
-#         return status
-
-#         while True:
-#             transaction.begin()
-#             thisQuery = dataQuery.limit(transferLimit).offset(currentOffset)
-
-
-#             theData = thisQuery.all()
-#             log.debug("Iteration {0}: {1}".format(currentOffset,theData[0]))
-#             if theData is None:
-#                 log.info("Reached end of values")
-#                 break
-        
-#             currentOffset += transferLimit
-#             sampleList = []
-#             for dataItem in theData:
-#                 sensorId = sensorDict[dataItem.datasource_key]
-
-#                 if sensorId is None:
-#                     log.warning("Error Fetching Id for {0}".format(dataItem))
-
-#                 thisSample = sampleTable(sensorId = sensorId.Id,
-#                                          timestamp = dataItem.timestamp,
-#                                          value = dataItem.value)
-
-#                 sampleList.append(thisSample)
-
-#             #Test if we have samples for this
-#             #thisSample = sampleList[0]
-#             #theQry = session.query(sampleTable).filter_by(sensorId = thisSample.sensorId,
-#             #                                              timestamp = thisSample.timestamp)
-#             #hasData = theQry.first()
-#             hasData = False
-#             if hasData:
-#                 log.warning("Readings Exists {0}".format(thisSample))
-#             else:
-#                 session.add_all(sampleList)
-
-#             try:
-#                 session.flush()
-#                 transaction.commit()
-#             except sqlalchemy.exc.IntegrityError,e:
-#                 session.rollback()
-#                 #transaction.rollback()
-#                 transaction.begin()
-#                 log.warning("Some Error {0}".format(e))
-#                 for mergeItem in sampleList:
-#                     session.merge(mergeItem)
-                    
-#                 session.flush()
-#                 transaction.commit()
-        
-        
-
-
-#         # summarise(theDeployment.Id)
-#         # log.info("Upload Complete")
-#         # #And Run a summary for this 
-#         # node.summariseData(theDeployment.Id)
-#         return status
 
 
 
@@ -785,7 +441,7 @@ if __name__ == "__main__":
     #List of Databases etc.
 
     #Ones with current cost
-    #DBLIST = [
+    # DBLIST = [
     #          ["41PriorPark","PriorPark41"],
     #          ["603SwanLane","SwanLane603"],
     #          ["605SwanLane","SwanLane605"],
@@ -793,25 +449,26 @@ if __name__ == "__main__":
     #          ["119Jodrell","jodrell119"],
     #          ["127Jodrell","jodrell127"],
     #          ["133Jodrell","jodrell133"],
+    #          ["Elm Road","elm"],
+    #          ["58Elliot","fiftyeight_elliot_summer"],
+    #          ["Leam","leam"],
+    #          ["School","schoolnew"],
+    #          ["TheGreen","thegreen"],
+    #          ["Town Ground","town_ground"],
+    #          ["Brays lane","brays2010"],
+    #          ["30 Elliot Summer","thirty_elliot_summer"],
+    #          ["30 Elliot Winter","thirty_elliot_winter"],
+    #          ["Weston Lane","weston"],
     #          ]
 
-    #Ones without current cost
-    DBLIST = [["Elm Road","elm"],
-              ["58Elliot","fiftyeight_elliot_summer"],
-              ["Leam","leam"],
-              ["School","schoolnew"],
-              ["TheGreen","thegreen"],
-              ["Town Ground","town_ground"],
+    DBLIST = [#["131Jodrell","131Jodrell"],
+              #["155Jodrell","155Jodrell"],
+              ["227FoleshillA","227Foleshill"],
+              ["30Newdigate","30Newdigate"],
+              #["Rooftop","rooftopnibe"],
               ]
 
-    #Ones with duplicates
-    # DBLIST = [["brays laneA","brays2010"],
-    #           ["brays laneB","braysdec2010"],
-    #           ["brays laneC","oldBraysFeb"],
-    #           ["thirty_elliot_summer","thirty_elliot_summer"]
-    #           ["thirty_elliot_winter","thirty_elliot_winter"]
-    #           ["weston","weston"]
-    #           ["westonlane","westonlane"]]
+    
 
     for item in DBLIST:
         log.debug("Working for item {0}".format(item))
