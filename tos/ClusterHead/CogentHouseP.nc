@@ -118,10 +118,12 @@ implementation
 	    
 #ifdef DEBUG
 	  printf("Forward ACK %lu\n", call LocalTime.get());
+	  printf("rec seq %u\n",  aMsg->seq);
+	  printf("send seq %u\n", ackData->seq);
 	  printf("Dest %u\n", dest);
 	  printfflush();
 #endif
-	  if (call AckForwarder.send(dest, &ackMsg,  alen)==SUCCESS){
+	  if (call AckForwarder.send(dest, &fwdMsg,  alen)==SUCCESS){
 	    sending = TRUE;
 	  }
 	}
@@ -141,13 +143,11 @@ implementation
     if (!call ACKPool.empty() && call ACKQueue.size() < call ACKQueue.maxSize()) { 
       message_t *tmp = call ACKPool.get();
       aMsg = (AckMsg*)payload;
-      if (len == sizeof(AckMsg)){
-	call ACKQueue.enqueue(aMsg);
-	if (!sending) {
-	  post AckForwardTask();
-	}
-	return tmp;
+      call ACKQueue.enqueue(aMsg);
+      if (!sending) {
+	post AckForwardTask();
       }
+      return tmp;
     }  
     return msg; 
   }
@@ -301,13 +301,11 @@ implementation
     if (!call BNPool.empty() && call BNQueue.size() < call BNQueue.maxSize()) { 
       message_t *tmp = call BNPool.get();
       sMsg = (StateMsg*)payload;
-      if (len == sizeof(StateMsg)){
-	call BNQueue.enqueue(sMsg);
-	if (!sending) {
-	  post BNForwardTask();
-	}
-	return tmp;
+      call BNQueue.enqueue(sMsg);
+      if (!sending) {
+	post BNForwardTask();
       }
+      return tmp;
     }  
     return msg;    
   }

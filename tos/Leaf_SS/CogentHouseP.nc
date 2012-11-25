@@ -488,23 +488,42 @@ implementation
   event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
     int h;
     AckMsg* aMsg;
-    
+
+#ifdef DEBUG
+    call Leds.led2Toggle();
+    printf("ack packet rec at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
     aMsg = (AckMsg*)payload;
     if (len == sizeof(aMsg)){
+      h=aMsg->hops;
       
 #ifdef DEBUG
       call Leds.led2Toggle();
-      printf("ack packet rec at %lu\n", call LocalTime.get());
+      printf("hops %u\n", h);
       printfflush();
-#endif    
-      h=aMsg->hops;
+#endif   
       
       if (h==0){
-	int ackSeq = aMsg->seq;	  
+	int ackSeq = aMsg->seq;	 
+	
+#ifdef DEBUG
+	call Leds.led2Toggle();
+	printf("exp seq %u\n", expSeq);
+	printf("rec seq %u\n", ackSeq);
+	printfflush();
+#endif 
 	if (expSeq==ackSeq){
+	  
+#ifdef DEBUG
+	  call Leds.led2Toggle();
+	  printf("correct packet confirtmed at %lu\n", call LocalTime.get());
+	  printfflush();
+#endif   
+	  
 	  call AckTimeoutTimer.stop();
 	  call RadioControl.stop();
-
+	  
 	  my_settings->samplePeriod = DEF_SENSE_PERIOD;
 	  retries=0;
 	  restartSenseTimer();
@@ -524,6 +543,11 @@ implementation
    */
   event void AckTimeoutTimer.fired() {
     //if retries < max retries send else give up
+
+#ifdef DEBUG
+      printf("timeout at %lu\n", call LocalTime.get());
+      printfflush();
+#endif
     if (retries < LEAF_MAX_RETRIES) {
       retries+=1;
       call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);
