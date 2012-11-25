@@ -125,7 +125,7 @@ class BaseLogger(object):
             	state = []
             	for i in range(msg.totalSizeBits_packed_state_mask()):
                     if mask[i]:
-                        if i ==23:
+                        if int(i) ==23:
                             v = msg.getElement_packed_state(j)
                             #send out ack as it was never received
                             am = AckMsg()
@@ -136,8 +136,8 @@ class BaseLogger(object):
                             self.bif.sendMsg(am,dest)
                             logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
                             return
-                    j += 1
-                    return
+                        j += 1
+                return
 
 
             ns = NodeState(time=t,

@@ -110,6 +110,7 @@ implementation
 
     if (periodsToHeartbeat<=0)
       call PackState.add(SC_HEARTBEAT, 1);
+
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
@@ -122,6 +123,7 @@ implementation
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       newData->special = 0xc7;
+      //we're going do a send so pack the msg count and then increment
       newData->timestamp = call LocalTime.get();
       newData->hops = 0;
 
@@ -294,7 +296,8 @@ implementation
 
     if (! sending) { 
 #ifdef DEBUG
-      printf("\nsensing begun at %lu\n", sense_start_time);
+      printf("\n\nsensing begun at %lu\n", sense_start_time);
+      printf("periodsToHeartbeat %u\n", periodsToHeartbeat);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
@@ -403,6 +406,11 @@ implementation
 
   //Empty methods
   event void RadioControl.stopDone(error_t ok) { 
+#ifdef DEBUG
+        printf("Radio Off\n");
+        printfflush();
+#endif
+
 #ifdef BLINKY
     call Leds.led1Toggle(); 
 #endif
@@ -454,23 +462,42 @@ implementation
     int h;
     AckMsg* aMsg;
     int i;
-    
+
+#ifdef DEBUG
+    call Leds.led2Toggle();
+    printf("ack packet rec at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
     aMsg = (AckMsg*)payload;
     if (len == sizeof(AckMsg)){
+      h=aMsg->hops;
       
 #ifdef DEBUG
       call Leds.led2Toggle();
-      printf("ack packet rec at %lu\n", call LocalTime.get());
+      printf("hops %u\n", h);
       printfflush();
-#endif    
-      h=aMsg->hops;
+#endif   
       
       if (h==0){
-	int ackSeq = aMsg->seq;	  
+	int ackSeq = aMsg->seq;	 
+	
+#ifdef DEBUG
+	call Leds.led2Toggle();
+	printf("exp seq %u\n", expSeq);
+	printf("rec seq %u\n", ackSeq);
+	printfflush();
+#endif 
 	if (expSeq==ackSeq){
+	  
+#ifdef DEBUG
+	  call Leds.led2Toggle();
+	  printf("correct packet confirtmed at %lu\n", call LocalTime.get());
+	  printfflush();
+#endif   
+	  
 	  call AckTimeoutTimer.stop();
 	  call RadioControl.stop();
-
+	  
 	  my_settings->samplePeriod = DEF_SENSE_PERIOD;
 	  retries=0;
 	  //update txcontrol
@@ -512,6 +539,11 @@ implementation
    */
   event void AckTimeoutTimer.fired() {
     //if retries < max retries send else give up
+
+#ifdef DEBUG
+      printf("timeout at %lu\n", call LocalTime.get());
+      printfflush();
+#endif
     if (retries < LEAF_MAX_RETRIES) {
       retries+=1;
       call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);

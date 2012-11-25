@@ -68,7 +68,6 @@ implementation
   uint8_t expSeq = 0;
 
   int periodsToHeartbeat=HEARTBEAT_PERIOD;
-
   struct nodeType nt;
 	
 
@@ -266,10 +265,6 @@ implementation
 	
 	for (i = 0; i < RS_SIZE; i++) {
 	  if (call ExpectSendDone.get(i)) {
-#ifdef DEBUG
-	    printf("expect send %u\n", i);
-	    printfflush();
-#endif
 	    toSend = TRUE;
 	    break;
 	  }
@@ -306,8 +301,7 @@ implementation
 
     if (! sending) { 
 #ifdef DEBUG
-      printf("\n");
-      printf("sensing begun at %lu\n", sense_start_time);
+      printf("\n\nsensing begun at %lu\n", sense_start_time);
       printf("periodsToHeartbeat %u\n", periodsToHeartbeat);
       printfflush();
 #endif
@@ -416,6 +410,11 @@ implementation
 
   //Empty methods
   event void RadioControl.stopDone(error_t ok) { 
+#ifdef DEBUG
+        printf("Radio Off\n");
+        printfflush();
+#endif
+
 #ifdef BLINKY
     call Leds.led1Toggle(); 
 #endif
@@ -467,23 +466,42 @@ implementation
     int h;
     AckMsg* aMsg;
     int i;
-    
+
+#ifdef DEBUG
+    call Leds.led2Toggle();
+    printf("ack packet rec at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
     aMsg = (AckMsg*)payload;
     if (len == sizeof(AckMsg)){
+      h=aMsg->hops;
       
 #ifdef DEBUG
       call Leds.led2Toggle();
-      printf("ack packet rec at %lu\n", call LocalTime.get());
+      printf("hops %u\n", h);
       printfflush();
-#endif    
-      h=aMsg->hops;
+#endif   
       
       if (h==0){
-	int ackSeq = aMsg->seq;	  
+	int ackSeq = aMsg->seq;	 
+	
+#ifdef DEBUG
+	call Leds.led2Toggle();
+	printf("exp seq %u\n", expSeq);
+	printf("rec seq %u\n", ackSeq);
+	printfflush();
+#endif 
 	if (expSeq==ackSeq){
+	  
+#ifdef DEBUG
+	  call Leds.led2Toggle();
+	  printf("correct packet confirtmed at %lu\n", call LocalTime.get());
+	  printfflush();
+#endif   
+	  
 	  call AckTimeoutTimer.stop();
 	  call RadioControl.stop();
-
+	  
 	  my_settings->samplePeriod = DEF_SENSE_PERIOD;
 	  retries=0;
 	  //update txcontrol
