@@ -17,28 +17,52 @@ con <- dbConnect(drv,dbname="transferTest",user="chuser")
 #THEHOUSE <- "1 Avon Road"
 #THEHOUSE <- "5 Elm Road"
 
-#15 Is Brays (KLeave for the moment)
-
-i <- 7
-
 allHouses <-  dbGetQuery(con,statement="SELECT * FROM House")
+#15 Is Brays (KLeave for the moment)
+houseData <- data.frame(address = allHouses$address,
+                        dbStart = NA,
+                        dbEnd = NA,
+                        dataStart = NA,
+                        dataEnd = NA,
+                        totalNodes = NA,
+                        coNodes = NA,
+                        yield = NA,
+                        yieldSD = NA,
+                        yieldMin = NA,
+                        yieldMax = NA
+                        )
+
+## i <- 2
+
+## allHouses <-  dbGetQuery(con,statement="SELECT * FROM House")
+
+## for (i in 1:length(allHouses)){
+## #for (i in 1:3){
+##   THEHOUSE <- allHouses[i,]
+##   print(THEHOUSE)
+##   hseName <- THEHOUSE$address
+##   houseData <- processhouse(hseName,houseData)
+## }
+
+i=2
+
 THEHOUSE <- allHouses[i,]
-THEHOUSE
 hseName <- THEHOUSE$address
-
 #hseName <- "5 Elm Road"
+houseData <- processhouse(hseName,houseData)
 
-
+processhouse <- function(hseName,houseData) {
  print("-------------------------------------------------------")
   print(paste("Processing House ",hseName))
-
+  rowNo <- which(houseData$address == hseName)
+  print(paste("Row Number is ",rowNo))
                                         #Get House
   houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
   theHouse <- dbGetQuery(con,statement=houseQry)
   theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
   theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
 
-                                        #Locations
+  #Locations
   locQry <- paste("SELECT * FROM Location as Loc ",
                   "LEFT OUTER JOIN Room as Room ",
                   "ON Loc.roomId = Room.id ",
@@ -53,6 +77,8 @@ hseName <- THEHOUSE$address
 
   print(paste("Expected Start ",theHouse$startDate,"Expected End",theHouse$endDate))
 
+  houseData[rowNo,]$dbStart <- theHouse$startDate
+  houseData[rowNo,]$dbEnd <- theHouse$endDate
 
 
 dataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) as count, min(time) as minTime,max(time) as maxTime ",
@@ -68,32 +94,70 @@ houseSummary <- dbGetQuery(con,statement=dataQry)
                                         #Add a time object so that makes sense toi R
   houseSummary$dt <- as.POSIXlt(houseSummary$date,tz="GMT")
 
-#Plotting (As a Sanity Check)
-plt <- ggplot(houseSummary)
-plt <- plt + geom_point(aes(dt,count))
-#plt + facet_grid(locationId~.)
+#Try to combine these in a more sensible way so the plot is a little cleaner
+avgCount <- ddply(houseSummary,
+                  .(dt,nodeId,locationId),
+                  summarise,
+                  min = min(count),
+                  max = max(count),
+                  avg = mean(count))
+
+plt <- ggplot(avgCount)
+plt <- plt +geom_point(aes(dt,avg,color=locationId))
+plt <- plt + opts(title="Tx Count by Node")
+plt <- plt + geom_vline(data=theHouse,aes(xintercept=sd))
+plt <- plt + geom_vline(data=theHouse,aes(xintercept=ed))
 plt + facet_grid(nodeId~.)
-#And another
-sanity <- subset(houseSummary,count > 300)
-plt <- ggplot(sanity)
-plt <- plt + geom_point(aes(dt,count,color=factor(type)))
+ggsave("TxByNode.png")
+
+#First and Last Samples
+firstSample <- as.character(min(avgCount$dt))
+lastSample <- as.character(max(avgCount$dt))
+  houseData[rowNo,]$dataStart <- firstSample
+  houseData[rowNo,]$dataEnd <- lastSample
+
+#Plotting (As a Sanity Check)
+#plt <- ggplot(houseSummary)
+#plt <- plt + geom_point(aes(dt,count,color=factor(type)))
+#plt <- plt+ opts(title="Sample count per Sensortype / Location")
 #plt + facet_grid(locationId~.)
-plt + facet_grid(locationId~.)
+#plt + facet_grid(nodeId~.)
+
+#And another
+#sanity <- subset(houseSummary,count > 300)
+#plt <- ggplot(sanity)
+#plt <- plt + geom_point(aes(dt,count,color=factor(type)))
+#plt + facet_grid(locationId~.)
+#plt + facet_grid(locationId~.)
+
 
 #Dont Calculate Yield for the First or last Days
   houseSummary$ignoreYield <- TRUE
-  idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt <= theHouse$ed)
+  idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt < theHouse$ed)
   houseSummary$ignoreYield[idxes] <- FALSE
   houseSummary <- subset(houseSummary,ignoreYield == FALSE)
 
+## #Check that does what I was Expecting
+## avgCount <- ddply(houseSummary,
+##                   .(dt,nodeId,locationId),
+##                   summarise,
+##                   min = min(count),
+##                   max = max(count),
+##                   avg = mean(count))
 
+## plt <- ggplot(avgCount)
+## plt <- plt +geom_point(aes(dt,avg,color=locationId))
+## plt <- plt + opts(title="Tx Count by Node")
+## plt <- plt + geom_vline(data=theHouse,aes(xintercept=sd))
+## plt <- plt + geom_vline(data=theHouse,aes(xintercept=ed))
+## plt + facet_grid(nodeId~.)
 
-                                        #Calulate Yield Percentages per Day (Which at the moment we need to eyeball to get Elenas RLE)
+#Calulate Yield Percentages per Day (Which at the moment we need to eyeball to get Elenas RLE)
   houseSummary$dayYield <- (houseSummary$count / 288) * 100
                                         #Not Used at the Moment
                                         #houseSummary$dayYield90[which(houseSummary$dayYield >= 90)] <- TRUE
 
-                                        #Summarise this so we just get a daily yield
+#Summarise this so we just get a daily yield per Node
   yieldSum <- ddply(houseSummary,
                     .(dt),
                     summarise,
@@ -104,7 +168,7 @@ plt + facet_grid(locationId~.)
                                         #Aggregate Days
   #allDays <- data.frame(date=seq(as.POSIXlt(min(houseSummary$dt),tx="GMT"),as.POSIXlt(max(houseSummary$dt),tx="GMT"),by="day"))
 allDays <- data.frame(date=seq(as.POSIXlt(theHouse$startDate,tz="GMT"),as.POSIXlt(theHouse$endDate,tz="GMT"),by="day"))
-  allDays$value <- 25
+#  allDays$value <- 25
   ## allDays$dt <- as.POSIXlt(allDays$date,tz="GMT")
   ## merge(allDays,yieldSum,by="dt")
 
@@ -113,27 +177,33 @@ allDays <- data.frame(date=seq(as.POSIXlt(theHouse$startDate,tz="GMT"),as.POSIXl
   plt <- plt+geom_point(aes(x=dt,y=dayYield))
   plt <- plt+geom_linerange(data=allDays,aes(x=date,ymin=0,ymax=90),color="red")
   plt <- plt + opts(title=paste("Daily Yield for",theHouse$address))
+  plt <- plt + geom_vline(data=theHouse,aes(xintercept=sd,alpha=0.5))
+  plt <- plt + geom_vline(data=theHouse,aes(xintercept=ed))
   plt + geom_hline(y=90)
+  ggsave("Dailyyield.png")
 
                                         #Now do some of the Magic Summarisation Function(TM) <thanks to Hadley>
   houseSum <- ddply(houseSummary,
+#                    .(nodeId,type),
                     .(nodeId,type),
                     summarise,
                     days=length(dt),
                     count=sum(count),
-                    avgDY = mean(dayYield)#,
-                                        #startDate = min(dt),
-                                        #endDate = max(dt)
+                    avgDY = mean(dayYield),
+                    firstSample = min(dt),
+                    lastSample = max(dt)
                     )
   #houseSum$startDate <- min(houseSummary$dt)
   #houseSum$endDate <- max(houseSummary$dt)
-  houseSum$startDate <- theHouse$sd
-  houseSum$endDate <- theHouse$ed
+  #houseSum$startDate <- theHouse$sd
+  #houseSum$endDate <- theHouse$ed
 
 
                                         #Create Calculate the Yield per sensor
-  houseSum$duration <- houseSum$endDate - houseSum$startDate
-  houseSum$expected <- as.real(houseSum$duration) * 288 
+  duration <- theHouse$ed - theHouse$sd - 1 #Offset as Last day is included
+  expected <- as.real(duration)  * 288
+  houseSum$duration <- duration
+  houseSum$expected <- expected
   houseSum$yield <- (houseSum$count / houseSum$expected) * 100.0
   summary(houseSum)
 
@@ -141,9 +211,26 @@ totExpected <- sum(houseSum$expected)
 totSamples <- sum(houseSum$count)
 totYield <- (totSamples / totExpected) * 100.0
 
+#Node Counts
+#CO2 Nodes
+allNodes <- length(unique(houseSum$nodeId))
+coNodes <- length(subset(houseSum,type==8)$nodeId)
+
+houseData[rowNo,]$totalNodes <- allNodes
+houseData[rowNo,]$coNodes <- coNodes
+houseData[rowNo,]$yield <- totYield
+houseData[rowNo,]$yieldMin <- min(houseSum$yield)
+houseData[rowNo,]$yieldMax <- max(houseSum$yield)
+houseData[rowNo,]$yieldSD <- sd(houseSum$yield)
+
 print (paste("Total Yield Is ",totYield))
 
-
+plt <- ggplot(houseSum)
+plt <- plt + geom_point(aes(factor(nodeId),yield,color=factor(type)))
+plt +  coord_flip()
+ggsave("AllYields.png")
+return(houseData)
+}
 #Battery Check
 ## theQry <- "SELECT * FROM Reading WHERE nodeId=197 AND type=6 AND time>'2011-12-01' AND time < '2012-04-01'" 
 ## batData <- dbGetQuery(con,statement=theQry)
@@ -155,12 +242,33 @@ print (paste("Total Yield Is ",totYield))
 
 ##Temporoary Query
 #theQry = paste("SELECT * FROM Reading WHERE locationId IN (",locationIds,") AND type = 0",sep="")
-theQry = "SELECT * FROM Reading WHERE nodeId = 249028604 AND locationId IS NOT NULL"
-tmpData <- dbGetQuery(con,theQry)
-tmpData$ts <- as.POSIXlt(tmpData$time)
+## theQry = "SELECT * FROM Reading WHERE nodeId = 249028604 AND locationId IS NOT NULL"
+## tmpData <- dbGetQuery(con,theQry)
+## tmpData$ts <- as.POSIXlt(tmpData$time)
 
-plt <- ggplot(tmpData)
-plt <- plt+geom_point(aes(ts,value,color=factor(type)))
-plt + facet_grid(locationId~nodeId)
+## plt <- ggplot(tmpData)
+## plt <- plt+geom_point(aes(ts,value,color=factor(type)))
+## plt + facet_grid(locationId~nodeId)
 
-summary(tmpData)
+## summary(tmpData)
+
+
+i <- 2
+
+
+
+#for (i in 1:length(allHouses)){
+for (i in 1:nrow(allHouses)){
+  THEHOUSE <- allHouses[i,]
+  print(THEHOUSE)
+  hseName <- THEHOUSE$address
+  if (i != 14 && i != 17){
+    houseData <- processhouse(hseName,houseData)
+    print(paste("Dealing with ",hseName))
+  }
+  write.table(houseData, "allSummary.csv", sep=",")
+}
+
+#print(houseData)
+
+write.table(houseData, "allSummary.csv", sep=",")
