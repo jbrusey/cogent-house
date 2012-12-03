@@ -6,9 +6,9 @@ library(plyr)
 
 #Setup Database Connection
 drv <- dbDriver("MySQL")
-#con <- dbConnect(drv,dbname="mainStore",user="chuser")
+con <- dbConnect(drv,dbname="mainStore",user="chuser")
 #con <- dbConnect(drv,dbname="ch",user="chuser")
-con <- dbConnect(drv,dbname="transferTest",user="chuser")
+#con <- dbConnect(drv,dbname="transferTest",user="chuser")
 
 
 #args <- commandArgs(TRUE)
@@ -17,7 +17,7 @@ con <- dbConnect(drv,dbname="transferTest",user="chuser")
 #THEHOUSE <- "1 Avon Road"
 #THEHOUSE <- "5 Elm Road"
 
-allHouses <-  dbGetQuery(con,statement="SELECT * FROM House")
+allHouses <-  dbGetQuery(con,statement="SELECT * FROM House WHERE address != 'ERROR-DATA'")
 #15 Is Brays (KLeave for the moment)
 houseData <- data.frame(address = allHouses$address,
                         dbStart = NA,
@@ -29,7 +29,9 @@ houseData <- data.frame(address = allHouses$address,
                         yield = NA,
                         yieldSD = NA,
                         yieldMin = NA,
-                        yieldMax = NA
+                        yieldMax = NA,
+                        yieldDays = NA,
+                        RLE = NA
                         )
 
 ## i <- 2
@@ -44,12 +46,12 @@ houseData <- data.frame(address = allHouses$address,
 ##   houseData <- processhouse(hseName,houseData)
 ## }
 
-i=2
+i=17
 
 THEHOUSE <- allHouses[i,]
 hseName <- THEHOUSE$address
 #hseName <- "5 Elm Road"
-houseData <- processhouse(hseName,houseData)
+#houseData <- processhouse(hseName,houseData)
 
 processhouse <- function(hseName,houseData) {
  print("-------------------------------------------------------")
@@ -59,9 +61,11 @@ processhouse <- function(hseName,houseData) {
                                         #Get House
   houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
   theHouse <- dbGetQuery(con,statement=houseQry)
+
+  
   theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
   theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
-
+  #theHouse$sd <- as.POSIXlt("2011-03-18",tz="GMT")
   #Locations
   locQry <- paste("SELECT * FROM Location as Loc ",
                   "LEFT OUTER JOIN Room as Room ",
@@ -91,7 +95,7 @@ dataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) as c
 
 houseSummary <- dbGetQuery(con,statement=dataQry)
 
-                                        #Add a time object so that makes sense toi R
+#Add a time object so that makes sense toi R
   houseSummary$dt <- as.POSIXlt(houseSummary$date,tz="GMT")
 
 #Try to combine these in a more sensible way so the plot is a little cleaner
@@ -102,14 +106,18 @@ avgCount <- ddply(houseSummary,
                   max = max(count),
                   avg = mean(count))
 
-plt <- ggplot(avgCount)
-plt <- plt +geom_point(aes(dt,avg,color=locationId))
-plt <- plt + opts(title="Tx Count by Node")
-plt <- plt + geom_vline(data=theHouse,aes(xintercept=sd))
-plt <- plt + geom_vline(data=theHouse,aes(xintercept=ed))
-plt + facet_grid(nodeId~.)
-ggsave("TxByNode.png")
 
+## plt <- ggplot(avgCount)
+## #plt <- ggplot(subset(avgCount,dt<as.POSIXlt("2010-11-20",tz="GMT")))
+## plt <- plt +geom_point(aes(dt,avg,color=locationId))
+## plt <- plt + opts(title=paste("Tx Count by Node ",hseName))
+## plt <- plt + geom_vline(data=theHouse,aes(xintercept=sd))
+## plt <- plt + geom_vline(data=theHouse,aes(xintercept=ed))
+## plt + facet_grid(locationId~.)
+## # plt + facet_grid(nodeId~.)
+## ggsave("TxByNode.png")
+
+ print("FIRST AND LAST SAMPLES")
 #First and Last Samples
 firstSample <- as.character(min(avgCount$dt))
 lastSample <- as.character(max(avgCount$dt))
@@ -128,12 +136,22 @@ lastSample <- as.character(max(avgCount$dt))
 #plt <- ggplot(sanity)
 #plt <- plt + geom_point(aes(dt,count,color=factor(type)))
 #plt + facet_grid(locationId~.)
-#plt + facet_grid(locationId~.)
+###ggsave("Extras.png")
+
+hSd <- as.POSIXlt(theHouse$sd,tz="GMT")
+ if (is.na(hSd)) {
+   hSd <- as.POSIXlt(firstSample,tz="GMT")
+ }
+hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
+ if (is.na(hEd)){
+   hEd <- as.POSIXlt(lastSample,tz="GMT")
+ }
 
 
 #Dont Calculate Yield for the First or last Days
   houseSummary$ignoreYield <- TRUE
-  idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt < theHouse$ed)
+  #idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt < theHouse$ed)
+  idxes <- which(houseSummary$dt > hSd & houseSummary$dt < hEd)
   houseSummary$ignoreYield[idxes] <- FALSE
   houseSummary <- subset(houseSummary,ignoreYield == FALSE)
 
@@ -151,7 +169,7 @@ lastSample <- as.character(max(avgCount$dt))
 ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=sd))
 ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=ed))
 ## plt + facet_grid(nodeId~.)
-
+  print("CALCULATING YIELDS")
 #Calulate Yield Percentages per Day (Which at the moment we need to eyeball to get Elenas RLE)
   houseSummary$dayYield <- (houseSummary$count / 288) * 100
                                         #Not Used at the Moment
@@ -162,25 +180,48 @@ lastSample <- as.character(max(avgCount$dt))
                     .(dt),
                     summarise,
                     nodes=length(dt),
-                    yield=mean(dayYield)
+                    yield=mean(dayYield),
+                    stYield = sd(dayYield)
                     )
 
+
+ print("SUMMARISING DAYS")
                                         #Aggregate Days
-  #allDays <- data.frame(date=seq(as.POSIXlt(min(houseSummary$dt),tx="GMT"),as.POSIXlt(max(houseSummary$dt),tx="GMT"),by="day"))
-allDays <- data.frame(date=seq(as.POSIXlt(theHouse$startDate,tz="GMT"),as.POSIXlt(theHouse$endDate,tz="GMT"),by="day"))
+#allDays <- data.frame(date=seq(as.POSIXlt(theHouse$startDate,tz="GMT"),as.POSIXlt(theHouse$endDate,tz="GMT"),by="day"))
+ allDays <- data.frame(date=seq(hSd,hEd,by="day"))
+ ## yieldSum$DT <- as.Date(yieldSum$dt)
+ ## allDays$DT <- as.Date(allDays$date)
+ ## allYield <- merge(allDays,yieldSum,"DT")
+ ## allBins <- cut(allYield$yield,breaks=c(0,50,75,100),labels=c("0-50","50-75","75-100"))
+ ## runLength <- rle(as.character(allBins))
+ ## strLength <- paste(runLength, collapse=",")
+ ## print(runLength)
+ ## houseData[rowNo,]$RLE <- strLength
+ 
 #  allDays$value <- 25
+
+ 
   ## allDays$dt <- as.POSIXlt(allDays$date,tz="GMT")
   ## merge(allDays,yieldSum,by="dt")
-
+ plt <- ggplot(yieldSum,aes(dt,yield))
+ plt <- plt+geom_point(color="red")
+ plt <- plt+geom_line(color="red")
+ plt <- plt+geom_errorbar(aes(ymin=yield-stYield,ymax=yield+stYield))
+ plt <- plt+opts(title="Average Daily Yield + SD")
+ plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd,alpha=0.5))
+ plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+ #plt <- plt+geom_linerange(data=allDays,aes(x=date,ymin=0,ymax=90),color="green")
+ plt
+ #ggsave("Avg_Day_Yield.png")
 
   plt <- ggplot(houseSummary)
   plt <- plt+geom_point(aes(x=dt,y=dayYield))
   plt <- plt+geom_linerange(data=allDays,aes(x=date,ymin=0,ymax=90),color="red")
   plt <- plt + opts(title=paste("Daily Yield for",theHouse$address))
-  plt <- plt + geom_vline(data=theHouse,aes(xintercept=sd,alpha=0.5))
-  plt <- plt + geom_vline(data=theHouse,aes(xintercept=ed))
+  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd,alpha=0.5))
+  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
   plt + geom_hline(y=90)
-  ggsave("Dailyyield.png")
+  #ggsave("Dailyyield_All.png")
 
                                         #Now do some of the Magic Summarisation Function(TM) <thanks to Hadley>
   houseSum <- ddply(houseSummary,
@@ -197,14 +238,28 @@ allDays <- data.frame(date=seq(as.POSIXlt(theHouse$startDate,tz="GMT"),as.POSIXl
   #houseSum$endDate <- max(houseSummary$dt)
   #houseSum$startDate <- theHouse$sd
   #houseSum$endDate <- theHouse$ed
-
+  rs = nrow(houseSum)
+  print(paste("Number of Rows ",nrow(houseSum)))
+  if (rs == 0){
+    print("No Data here")
+    return(houseData)
+  }
 
                                         #Create Calculate the Yield per sensor
-  duration <- theHouse$ed - theHouse$sd - 1 #Offset as Last day is included
+
+  if (is.na(theHouse$ed)) duration <- hEd - hSd else duration <- theHouse$ed - theHouse$sd - 1 #Offset as Last day is included
+  
+
   expected <- as.real(duration)  * 288
   houseSum$duration <- duration
   houseSum$expected <- expected
   houseSum$yield <- (houseSum$count / houseSum$expected) * 100.0
+
+ #And where we actually have samples
+  dataDuration <- max(houseSum$lastSample) - min(houseSum$firstSample) 
+  dataExpected <- as.real(dataDuration) * 288
+  houseSum$dataYield <- (houseSum$count / dataExpected) * 100
+ 
   summary(houseSum)
 
 totExpected <- sum(houseSum$expected)
@@ -222,13 +277,14 @@ houseData[rowNo,]$yield <- totYield
 houseData[rowNo,]$yieldMin <- min(houseSum$yield)
 houseData[rowNo,]$yieldMax <- max(houseSum$yield)
 houseData[rowNo,]$yieldSD <- sd(houseSum$yield)
+ houseData[rowNo,]$yieldDays <- mean(houseSum$dataYield)
 
 print (paste("Total Yield Is ",totYield))
 
 plt <- ggplot(houseSum)
 plt <- plt + geom_point(aes(factor(nodeId),yield,color=factor(type)))
 plt +  coord_flip()
-ggsave("AllYields.png")
+##ggsave("AllYields.png")
 return(houseData)
 }
 #Battery Check
@@ -253,22 +309,33 @@ return(houseData)
 ## summary(tmpData)
 
 
-i <- 2
+## i <- 17
+
+## print(allHouses)
+
+##   THEHOUSE <- allHouses[i,]
+##   print(THEHOUSE)
+##   hseName <- THEHOUSE$address
+##     houseData <- processhouse(hseName,houseData)
+
+## print(houseData)
 
 
+#for (i in 17:17){
 
-#for (i in 1:length(allHouses)){
 for (i in 1:nrow(allHouses)){
   THEHOUSE <- allHouses[i,]
   print(THEHOUSE)
   hseName <- THEHOUSE$address
-  if (i != 14 && i != 17){
+  print(paste("Deaing with ",hseName))
+  #if (i != 14){ #Main Data (Brays)
+  if (i!= 15){ # Seocond Data Brays
+    print(paste("--> Processing Data with ",hseName))
     houseData <- processhouse(hseName,houseData)
-    print(paste("Dealing with ",hseName))
   }
   write.table(houseData, "allSummary.csv", sep=",")
 }
 
-#print(houseData)
+## #print(houseData)
 
-write.table(houseData, "allSummary.csv", sep=",")
+## write.table(houseData, "allSummary.csv", sep=",")
