@@ -50,7 +50,7 @@ houseData <- data.frame(address = allHouses$address,
 ##   houseData <- processhouse(hseName,houseData)
 ## }
 
-i=1
+i=15
 
 THEHOUSE <- allHouses[i,]
 hseName <- THEHOUSE$address
