@@ -1,0 +1,49 @@
+* Setup
+** DONE Formalchemy
+** DONE Get directory structure sorted
+** DONE Intergrate Models
+
+* TODO General Display [1/6]
+** DONE Template [1/1]
+*** DONE Version 1
+
+** TODO Add / Remove Nodes
+** TODO Packet Yield
+** TODO Low Batts
+** TODO Logfile Viewer
+** TODO Export Data
+
+* TODO Intergrate Graphs [1/5]
+** DONE Time Series
+** TODO Electricity
+** TODO Battery
+** TODO Duty Cycle
+** TODO Network Tree
+
+
+* TODO JSON Data Retrival [2/3]
+*** DONE JSON P Interface
+*** DONE Flatten Functionalty
+**** Flatten For Node Type
+*** TODO Summary Functionalty
+
+* TODO Database Trickery [/]
+** TODO Work out where Deployment fits into the grand scheme of things
+** TODO Work out how to seperate samples
+At the moment the number of nodes is static.  
+This will make it a little tricky to get multiple deployments (or Houses) out of one set of kit.
+
+What I propose is to:
+ + For each new deployment, create a new house.
+ + Make sure the start and end dates are correct.
+ + When Retrieving data, we limit by the house start and end date (or by user specified dates)
+ 
+ [ ] I will also have to work out how this fits into node history
+
+
+
+* BUGS
+** Get the "Add new node page" to remember what I typed
+** At the Moment the Deployment* Tables are not used,  It may be an Idea to set a page up to include these.
+Rather than Deployment, it states house.  This may work in samson, but is not so good for what I need to do.
+

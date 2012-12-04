@@ -1,0 +1,200 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Terminology Used &mdash; Cogent Viewer 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Cogent Viewer 0.1 documentation" href="index.html" />
+    <link rel="up" title="Working with the Web Interface" href="webinterface.html" />
+    <link rel="next" title="Deployment Setup" href="deployment.html" />
+    <link rel="prev" title="Working with the Web Interface" href="webinterface.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="deployment.html" title="Deployment Setup"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="webinterface.html" title="Working with the Web Interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="webinterface.html" accesskey="U">Working with the Web Interface</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="terminology-used">
+<h1>Terminology Used<a class="headerlink" href="#terminology-used" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-deployment">Deployment</dt>
+<dd>Installing the sensing equipment in a house or group of houses</dd>
+<dt id="term-deployment-group">Deployment Group</dt>
+<dd>A Logical grouping of deployments (for example Samson Close) used to aid analysis</dd>
+<dt id="term-house">House</dt>
+<dd>A Single property</dd>
+<dt id="term-node-numbering-scheme">Node Numbering Scheme</dt>
+<dd><p class="first">Each node has a unique identifying id, this takes the form of</p>
+<p>&lt;SET&gt;-&lt;NODE IN SET&gt;-&lt;TYPE&gt;-&lt;NUMBER&gt;</p>
+<p>So the Node with ID <strong>2-7-0-71</strong> is</p>
+<ul class="simple">
+<li>Part of Set 2</li>
+<li>Node Number 7 in set 7</li>
+<li>A Battery powered node</li>
+<li>Has Unique identifier of 71</li>
+</ul>
+<p>Node Types are as follows</p>
+<table border="1" class="last docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Type Id</td>
+<td>Description</td>
+</tr>
+<tr class="row-even"><td>0</td>
+<td>Battery Powered Node</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>Co2 Sensing Node</td>
+</tr>
+<tr class="row-even"><td>10</td>
+<td>Server Node</td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt id="term-node">Node</dt>
+<dd><p class="first">An individual sensing device. Nodes come in several types:</p>
+<dl class="last docutils">
+<dt>Battery Powered Nodes:</dt>
+<dd><div class="first figure">
+<img alt="_images/NodesBatt.jpg" src="_images/NodesBatt.jpg" style="width: 640px;" />
+<p class="caption">Battery Powered Nodes</p>
+</div>
+<p>These nodes monitor temperature and humidity.</p>
+<p class="last">They are ideal for use in rooms where no dedicated power supply is
+available such as kitchens, hallways and bathrooms</p>
+</dd>
+<dt>Plugin Nodes</dt>
+<dd><div class="first figure">
+<img alt="_images/NodesCo2.jpg" src="_images/NodesCo2.jpg" style="width: 640px;" />
+<p class="caption">Co2 Sensing Node</p>
+</div>
+<p class="last">These nodes monitor additional parameters such as CO2 or VOC.  As
+these parameters tend to be affected by occupancy these nodes are
+ideal for deployment in commonly used areas such as the living room, or bedrooms.</p>
+</dd>
+<dt>Power Monitoring Nodes</dt>
+<dd>These nodes are used to monitor the energy
+consumption of a property, and need attaching to the electricity
+meter.</dd>
+<dt>Server Node</dt>
+<dd>The server node attaches to the server and is used transfer samples
+between the network and the server itself.</dd>
+</dl>
+</dd>
+<dt id="term-server">Server</dt>
+<dd><div class="first figure">
+<img alt="_images/ServerComponents.jpg" src="_images/ServerComponents.jpg" style="width: 640px;" />
+<p class="caption">Server and Server Node</p>
+</div>
+<p class="last">The server is used to store information gathered by the nodes.</p>
+</dd>
+<dt id="term-server-node">Server Node:</dt>
+<dd>The Server Node is a node attached to the server responsible for receiving all communications from the network</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="webinterface.html"
+                        title="previous chapter">Working with the Web Interface</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="deployment.html"
+                        title="next chapter">Deployment Setup</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/terminology.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="deployment.html" title="Deployment Setup"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="webinterface.html" title="Working with the Web Interface"
+             >previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="webinterface.html" >Working with the Web Interface</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Daniel Goldsmith.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
