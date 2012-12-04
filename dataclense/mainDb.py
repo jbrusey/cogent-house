@@ -15,8 +15,9 @@ import models.populateData as popData
 
 #DB
 #THEDB = "mysql://chuser@127.0.0.1/transferTest"
-THEDB = "mysql://chuser@127.0.0.1/mainStore"
-
+THEDB = "mysql://root:Ex3lS4ga@127.0.0.1/mainStore"
+#THEDB = "mysql://root:Ex3lS4ga@127.0.0.1/transferStore"
+#THEDB = "mysql://root:adm3csva@127.0.0.1:3307/SampsonClose"
 
 def initDB():
     log.debug("Connecting to database")
@@ -46,5 +47,6 @@ def calculateYield(theAddress):
 
 if __name__ == "__main__":
     initDB()
-    #popData.init_data()
-    calculateYield("1 Avon Road")
+    log.debug("Init DAta")
+    popData.init_data()
+    #calculateYield("1 Avon Road")

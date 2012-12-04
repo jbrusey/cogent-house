@@ -24,6 +24,7 @@ from roomtype import *
 from node import *
 from sensor import *
 from room import *
+from summary import *
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -349,6 +350,32 @@ def populateRoomTypes(session):
     session.close()
      
 
+def populateSummaryTypes(session=False):
+    log.info("Populating SensorTypes")
+
+    if not session:
+        session = meta.Session()
+
+    theType = SummaryType(name="Day Count")
+    session.merge(theType)
+    theType = SummaryType(name="Yield")
+    session.merge(theType)
+    theType = SummaryType(name="Min")
+    session.merge(theType)
+    theType = SummaryType(name="Max")
+    session.merge(theType)
+    theType = SummaryType(name="Avg")
+    session.merge(theType)
+    theType = SummaryType(name="Daily KwH")
+    session.merge(theType)
+    theType = SummaryType(name="Daily KwH/DD")
+    session.merge(theType)
+    session.flush()
+    session.commit()
+    session.close()
+
+
+
 def init_data(session=False):
     """Populate the database with some initial data
     
@@ -359,7 +386,8 @@ def init_data(session=False):
         session = meta.Session()
 
     log.info("Populating Initial Data using session {0}".format(session))
-    populateSensorTypes(session = session)
-    populateRoomTypes(session = session)
-    populateCalibration(session = session)
+    populateSummaryTypes(session = session)
+#    populateSensorTypes(session = session)
+#    populateRoomTypes(session = session)
+#    populateCalibration(session = session)
 
