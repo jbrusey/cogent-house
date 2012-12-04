@@ -70,6 +70,8 @@ tmp$calib <- tmp$value*tmp$calibrationSlope + tmp$calibrationOffset
 tmp$ts <- as.POSIXlt(tmp$time,tz="GMT")
 tmp$dt <- as.Date(tmp$ts)
 
+
+
 plt <- ggplot(subset(tmp,type==0))
 plt <- plt+geom_point(aes(ts,value,color=factor(nodeId)))
 plt <- plt+geom_line(aes(ts,calib,color=factor(nodeId)))
