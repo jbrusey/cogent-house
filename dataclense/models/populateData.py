@@ -356,23 +356,29 @@ def populateSummaryTypes(session=False):
     if not session:
         session = meta.Session()
 
-    theType = SummaryType(name="Day Count")
-    session.merge(theType)
-    theType = SummaryType(name="Yield")
-    session.merge(theType)
-    theType = SummaryType(name="Min")
-    session.merge(theType)
-    theType = SummaryType(name="Max")
-    session.merge(theType)
-    theType = SummaryType(name="Avg")
-    session.merge(theType)
-    theType = SummaryType(name="Daily KwH")
-    session.merge(theType)
-    theType = SummaryType(name="Daily KwH/DD")
-    session.merge(theType)
-    session.flush()
-    session.commit()
-    session.close()
+    #Check if the Daly Count is in the DB
+    typeExists = session.query(SummaryType).filter_by(name="Day Count").first()
+    if typeExists is None:
+        log.debug("Adding Summary Types")
+        theType = SummaryType(name="Day Count")
+        session.merge(theType)
+        theType = SummaryType(name="Yield")
+        session.merge(theType)
+        theType = SummaryType(name="Min")
+        session.merge(theType)
+        theType = SummaryType(name="Max")
+        session.merge(theType)
+        theType = SummaryType(name="Avg")
+        session.merge(theType)
+        theType = SummaryType(name="Daily KwH")
+        session.merge(theType)
+        theType = SummaryType(name="Daily KwH/DD")
+        session.merge(theType)
+        session.flush()
+        session.commit()
+        session.close()
+    else:
+        log.debug("Summary Types Exist")
 
 
 
