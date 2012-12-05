@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Rest Interface &mdash; Cogent Viewer 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Cogent Viewer 0.1 documentation" href="index.html" />
+    <link rel="up" title="Working with the software" href="code.html" />
+    <link rel="next" title="Cruft and Notes" href="cruft.html" />
+    <link rel="prev" title="Database Uploads" href="push.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cruft.html" title="Cruft and Notes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="push.html" title="Database Uploads"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="code.html" accesskey="U">Working with the software</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="rest-interface">
+<span id="id1"></span><h1>Rest Interface<a class="headerlink" href="#rest-interface" title="Permalink to this headline">¶</a></h1>
+<p>A REST interface has been implmented. This will return JSON formatted
+representation of the data to help external applications extract the data.</p>
+<p>This can also be used to upload data to the datastroe without having to rely on
+protocols other than HTTP for instance faculitating the upload of data without
+the need to rely on specialised tools or protocols.</p>
+<div class="section" id="url-structure">
+<h2>URL Structure<a class="headerlink" href="#url-structure" title="Permalink to this headline">¶</a></h2>
+<p>The basic url strucutre for the rest interface is:</p>
+<p><a class="reference external" href="http:/">http:/</a>/&lt;host&gt;/rest/{table}/{identifier}</p>
+<p>for example this url will return the deployment with an Id of One.</p>
+<p><a class="reference external" href="http://www.coventry.ac.uk/webinterface/rest/deployment/1">http://www.coventry.ac.uk/webinterface/rest/deployment/1</a></p>
+<div class="section" id="request-overview">
+<h3>Request Overview<a class="headerlink" href="#request-overview" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="13%" />
+<col width="24%" />
+<col width="25%" />
+<col width="24%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">URL</th>
+<th class="head">HTTP Method</th>
+<th class="head">Functionality</th>
+<th class="head">Return Body</th>
+<th class="head">Return Headers</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>/&lt;table&gt;/</td>
+<td>GET</td>
+<td>Return all Objects</td>
+<td>[Objects]</td>
+<td>200 (Ok)</td>
+</tr>
+<tr class="row-odd"><td>/&lt;table&gt;/&lt;id&gt;</td>
+<td>GET</td>
+<td>Return object with &lt;id&gt;</td>
+<td>Object</td>
+<td>200 (Ok) 404 (Not Found)</td>
+</tr>
+<tr class="row-even"><td>/&lt;table&gt;/</td>
+<td>POST</td>
+<td>Add a new object</td>
+<td>New Object</td>
+<td>201 + Location URL</td>
+</tr>
+<tr class="row-odd"><td>/&lt;table&gt;/&lt;id&gt;</td>
+<td>PUT</td>
+<td>Update object with &lt;id&gt;</td>
+<td>Updated Object</td>
+<td>201</td>
+</tr>
+<tr class="row-even"><td>/&lt;table&gt;/&lt;id&gt;</td>
+<td>DELETE</td>
+<td>Delete object with &lt;id&gt;</td>
+<td>&nbsp;</td>
+<td>204</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="using-the-rest-interface">
+<h2>Using the REST interface<a class="headerlink" href="#using-the-rest-interface" title="Permalink to this headline">¶</a></h2>
+<p>To demonstrate the Rest interface we will make use of <em>python-rest-client</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">restful_lib</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">base_url</span> <span class="o">=</span> <span class="s">&quot;http://127.0.0.1:6543/rest/&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conn</span> <span class="o">=</span> <span class="n">restful_lib</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">base_url</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This lets us make requests and examine the returned objects using the <em>.request_&lt;method&gt;</em> functions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;deployment/&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span>
+<span class="go">{u&#39;body&#39;: u&#39;[{&quot;startDate&quot;: null, &quot;endDate&quot;: null, &quot;description&quot;: null, &quot;__table__&quot;: &quot;Deployment&quot;, &quot;id&quot;: 1, &quot;name&quot;: &quot;PushTest&quot;}, {&quot;startDate&quot;: &quot;2012-04-02T15:35:06&quot;, &quot;endDate&quot;: &quot;2012-04-04T15:35:06&quot;, &quot;description&quot;: &quot;testing&quot;, &quot;__table__&quot;: &quot;Deployment&quot;, &quot;id&quot;: 2, &quot;name&quot;: &quot;test&quot;}]&#39;, u&#39;headers&#39;: {&#39;status&#39;: &#39;200&#39;, &#39;content-length&#39;: &#39;265&#39;, &#39;content-location&#39;: u&#39;http://127.0.0.1:6543/rest/deployment/&#39;, &#39;server&#39;: &#39;PasteWSGIServer/0.5 Python/2.7.1+&#39;, &#39;date&#39;: &#39;Mon, 21 May 2012 08:08:12 GMT&#39;, &#39;content-type&#39;: &#39;application/json; charset=UTF-8&#39;}}</span>
+</pre></div>
+</div>
+<div class="section" id="fetching-items">
+<h3>Fetching Items<a class="headerlink" href="#fetching-items" title="Permalink to this headline">¶</a></h3>
+<p>Fetch all Items in the <em>deployment</em> table:</p>
+<div class="highlight-python"><pre>#(GET) /rest/deployment/
+&gt;&gt;&gt; out = conn.request_get("deployment/")
+...
+&gt;&gt;&gt; jOut = json.loads(out["body"])
+&gt;&gt;&gt; pprint.pprint(jOut)
+[{u'__table__': u'Deployment',
+  u'description': None,
+  u'endDate': None,
+  u'id': 1,
+  u'name': u'PushTest',
+  u'startDate': None},
+  {u'__table__': u'Deployment',
+  u'description': u'testing',
+  u'endDate': u'2012-04-04T15:35:06',
+  u'id': 2,
+  u'name': u'test',
+  u'startDate': u'2012-04-02T15:35:06'}]</pre>
+</div>
+<p>Fetch Item with Id of 1 in the <em>house</em> table:</p>
+<div class="highlight-python"><pre>(GET) HTTP://...rest/house/1
+&gt;&gt;&gt; out = conn.request_get("house/1")
+&gt;&gt;&gt; jOut = json.loads(out["body"])
+&gt;&gt;&gt; print jOut
+[{u'startDate': None, u'endDate': None, u'__table__': u'House', u'deploymentId': 1, u'address': u'Push Address', u'id': 1}]</pre>
+</div>
+<p>We can then deal with the data in one of two ways</p>
+<div class="section" id="manual-conversion">
+<h4>Manual Conversion<a class="headerlink" href="#manual-conversion" title="Permalink to this headline">¶</a></h4>
+<p>convert the body from a string to a list of JSON encoded objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">objList</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">objList</span>
+<span class="go">[{u&#39;startDate&#39;: None, u&#39;endDate&#39;: None, u&#39;description&#39;: None, u&#39;__table__&#39;: u&#39;Deployment&#39;, u&#39;id&#39;: 1, u&#39;name&#39;: u&#39;PushTest&#39;}, {u&#39;startDate&#39;: u&#39;2012-04-02T15:35:06&#39;, u&#39;endDate&#39;: u&#39;2012-04-04T15:35:06&#39;, u&#39;description&#39;: u&#39;testing&#39;, u&#39;__table__&#39;: u&#39;Deployment&#39;, u&#39;id&#39;: 2, u&#39;name&#39;: u&#39;test&#39;}]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">objList</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">{u&#39;startDate&#39;: u&#39;2012-04-02T15:35:06&#39;, u&#39;endDate&#39;: u&#39;2012-04-04T15:35:06&#39;, u&#39;description&#39;: u&#39;testing&#39;, u&#39;__table__&#39;: u&#39;Deployment&#39;, u&#39;id&#39;: 2, u&#39;name&#39;: u&#39;test&#39;}</span>
+</pre></div>
+</div>
+<p>And if the model classes are available, convert to the appropriate model:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">theDeployment</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Deployment</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">theDeployment</span><span class="o">.</span><span class="n">fromJSON</span><span class="p">(</span><span class="n">objList</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-the-table-object-generator">
+<h4>Using the table object generator<a class="headerlink" href="#using-the-table-object-generator" title="Permalink to this headline">¶</a></h4>
+<p>We could also use the JSON to Object generator.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;deployment/&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">#And do something like this</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jsonBody</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">theGen</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">clsFromJSON</span><span class="p">(</span><span class="n">jsonBody</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">theGen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">item</span>
+<span class="gp">...</span>
+<span class="go">Deployment: 1 PushTest None - None</span>
+<span class="go">Deployment: 2 test 2012-04-02 15:35:06 - 2012-04-04 15:35:06</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Or Like This</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jsonBody</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">theList</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">clsFromJSON</span><span class="p">(</span><span class="n">jsonBody</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">theList</span>
+<span class="go">[&lt;cogentviewer.models.deployment.Deployment object at 0x90dcaac&gt;, &lt;cogentviewer.models.deployment.Deployment object at 0x91635ec&gt;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="adding-new-items">
+<h3>Adding New Items<a class="headerlink" href="#adding-new-items" title="Permalink to this headline">¶</a></h3>
+<p>To add a new Item we simply create a &lt;column&gt;:&lt;value&gt; dictionary of the new
+object, JSON encode it (to stringify) and send it as a POST request to the
+relevant table.  If we are directly working with the database models, we can use
+the asDict() method to encode the object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">theHouse</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">House</span><span class="p">(</span><span class="n">address</span> <span class="o">=</span> <span class="s">&quot;10 Greenhill Street&quot;</span><span class="p">,</span><span class="n">startDate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jsonString</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">theHouse</span><span class="o">.</span><span class="n">toDict</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_post</span><span class="p">(</span><span class="s">&quot;house/&quot;</span><span class="p">,</span><span class="n">body</span><span class="o">=</span><span class="n">jsonString</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span>
+<span class="go">{u&#39;body&#39;: u&#39;{&quot;startDate&quot;: &quot;2012-05-21T12:11:36.800067&quot;, &quot;endDate&quot;: null, &quot;__table__&quot;: &quot;House&quot;, &quot;deploymentId&quot;: null, &quot;address&quot;: &quot;10 Greenhill Street&quot;, &quot;id&quot;: 4}&#39;, u&#39;headers&#39;: {&#39;status&#39;: &#39;201&#39;, &#39;content-length&#39;: &#39;147&#39;, &#39;server&#39;: &#39;PasteWSGIServer/0.5 Python/2.7.1+&#39;, &#39;location&#39;: &#39;http://127.0.0.1:6543/rest/house/4&#39;, &#39;date&#39;: &#39;Mon, 21 May 2012 11:13:00 GMT&#39;, &#39;content-type&#39;: &#39;application/json; charset=UTF-8&#39;}}</span>
+</pre></div>
+</div>
+<p>This method will return the new object as a JSON string in the body of the request,
+additionally, in the headers there the &#8216;location&#8217; field, will return a valid REST GET url for the new object.</p>
+<p>If the model classes are not avaliable, we can also make use of a dictionary representation of the object.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">theHouse</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;deploymentId&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s">&quot;address&quot;</span><span class="p">:</span><span class="s">&quot;Test&quot;</span><span class="p">,</span><span class="s">&quot;startDate&quot;</span> <span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jsonString</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">theHouse</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_post</span><span class="p">(</span><span class="s">&quot;house/&quot;</span><span class="p">,</span><span class="n">body</span><span class="o">=</span><span class="n">jsonString</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span>
+<span class="go">{u&#39;body&#39;: u&#39;{&quot;startDate&quot;: &quot;2012-05-21T11:57:01.200086&quot;, &quot;endDate&quot;: null, &quot;__table__&quot;: &quot;House&quot;, &quot;deploymentId&quot;: 1, &quot;address&quot;: &quot;Test&quot;, &quot;id&quot;: 3}&#39;, u&#39;headers&#39;: {&#39;status&#39;: &#39;201&#39;, &#39;content-length&#39;: &#39;129&#39;, &#39;server&#39;: &#39;PasteWSGIServer/0.5 Python/2.7.1+&#39;, &#39;location&#39;: &#39;http://127.0.0.1:6543/rest/house/3&#39;, &#39;date&#39;: &#39;Mon, 21 May 2012 11:02:25 GMT&#39;, &#39;content-type&#39;: &#39;application/json; charset=UTF-8&#39;}}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Datetime objects need to be encoded in the IsoFormat to allow JSON&#8217;ification.</p>
+</div>
+</div>
+<div class="section" id="updating-items">
+<h3>Updating Items<a class="headerlink" href="#updating-items" title="Permalink to this headline">¶</a></h3>
+<p>To update an item, we use a PUT request.  This should also include a JSON encoded dictionary of &lt;column&gt;:&lt;value&gt; in the request body (request parameters).
+And be set to the url of <em>&lt;table&gt;/&lt;id&gt;</em>
+Continuing the example above:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">theHouse</span><span class="o">.</span><span class="n">endDate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">theHouse</span>
+<span class="go">House 4  10 Greenhill Street  2012-05-21 12:11:36.800067-2012-05-21 12:15:31.592049</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jsonString</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">theHouse</span><span class="o">.</span><span class="n">toDict</span><span class="p">())</span>
+<span class="go">#As the House ID is 4 our URL String (&lt;table&gt;/&lt;id&gt;) == house/4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_put</span><span class="p">(</span><span class="s">&quot;house/4&quot;</span><span class="p">,</span><span class="n">body</span><span class="o">=</span><span class="n">jsonString</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span>
+<span class="go">{u&#39;body&#39;: u&#39;{&quot;startDate&quot;: &quot;2012-05-21T12:11:36.800067&quot;, &quot;endDate&quot;: &quot;2012-05-21T12:15:31.592049&quot;, &quot;__table__&quot;: &quot;House&quot;, &quot;deploymentId&quot;: null, &quot;address&quot;: &quot;10 Greenhill Street&quot;, &quot;id&quot;: 4}&#39;, u&#39;headers&#39;: {&#39;status&#39;: &#39;201&#39;, &#39;content-length&#39;: &#39;171&#39;, &#39;server&#39;: &#39;PasteWSGIServer/0.5 Python/2.7.1+&#39;, &#39;location&#39;: &#39;http://127.0.0.1:6543/rest/house/4&#39;, &#39;date&#39;: &#39;Mon, 21 May 2012 11:17:21 GMT&#39;, &#39;content-type&#39;: &#39;application/json; charset=UTF-8&#39;}}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="deleting-items">
+<h3>Deleting Items<a class="headerlink" href="#deleting-items" title="Permalink to this headline">¶</a></h3>
+<p>To delete items we use a DELETE reuest, to the url of <em>&lt;table&gt;/&lt;id&gt;</em> If successfully deleted the service sould return a status of 204:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_delete</span><span class="p">(</span><span class="s">&quot;house/4&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span>
+<span class="go">{u&#39;body&#39;: u&#39;&#39;, u&#39;headers&#39;: {&#39;date&#39;: &#39;Mon, 21 May 2012 11:20:19 GMT&#39;, &#39;status&#39;: &#39;204&#39;, &#39;content-length&#39;: &#39;4&#39;, &#39;content-type&#39;: &#39;application/json; charset=UTF-8&#39;, &#39;server&#39;: &#39;PasteWSGIServer/0.5 Python/2.7.1+&#39;}}</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="request-parameters">
+<h2>Request Parameters<a class="headerlink" href="#request-parameters" title="Permalink to this headline">¶</a></h2>
+<p>We can also supply arguments to perform searching, fetch a subset of the data,  and sorting.</p>
+<div class="section" id="getting-a-subset-of-the-data">
+<h3>Getting a subset of the data<a class="headerlink" href="#getting-a-subset-of-the-data" title="Permalink to this headline">¶</a></h3>
+<p>To fetch a subset of the data (for instance for pagination) the Rest interface supports the <em>Range</em> header.</p>
+<p>The range header is used with a GET request, and takes the form <em>range: &#8216;items=&lt;start&gt;-&lt;end&gt;&#8217;</em> for example <em>range: items=1-5</em>
+To help with pagination, this request will also return a Content-Range header, of the form <em>Content-Range: items &lt;start&gt;-&lt;end&gt;/&lt;total&gt;</em></p>
+<p>For Example to get the first 5 items from the deployment table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rangeArg</span> <span class="o">=</span> <span class="s">&quot;items=0-5&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;/deployment/&quot;</span><span class="p">,</span><span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;Range&quot;</span><span class="p">:</span><span class="n">rangeArg</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="querying">
+<h2>Querying<a class="headerlink" href="#querying" title="Permalink to this headline">¶</a></h2>
+<p>I have also implmented a simple query language, this makes use query parameters appended to the URL</p>
+<p>The Key, Value pairs used in the query language are of the form <em>&lt;column&gt;:&lt;value&gt;</em>,  for example, if we wish to filter the Deployment table to only include Id 3 we could use the query string <em>?id=3</em>  when urlencoded this would give the Rest URL of /rest/Deployment/?id=3</p>
+<p>This query language can be used with:</p>
+<ul class="simple">
+<li>GET to search for objects</li>
+<li>POST,PUT queries to add / update items matching a certain criteria</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The Date format used is reasonaby flexible, accepting anything the dateutil.parser function will
+However, I would expect to use either datetime.isoformat() strings for full dates,
+Or a simple string of the form &lt;YYYY&gt;-&lt;MM&gt;-&lt;DD&gt; when just a date range is specified.</p>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="19%" />
+<col width="23%" />
+<col width="48%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Modifier</th>
+<th class="head">Function</th>
+<th class="head">Python Rest Client Example</th>
+<th class="head">Url Encoded Example</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&lt;val&gt;</td>
+<td>equals</td>
+<td>{id:3}</td>
+<td><a class="reference external" href="http://127.0.0.1:6543/rest/house/?id=3">http://127.0.0.1:6543/rest/house/?id=3</a></td>
+</tr>
+<tr class="row-odd"><td>le_&lt;val&gt;</td>
+<td>less than or equal</td>
+<td>{id:&#8221;le_3&#8221;}</td>
+<td><a class="reference external" href="http://127.0.0.1:6543/rest/house/?id=lt_3">http://127.0.0.1:6543/rest/house/?id=lt_3</a></td>
+</tr>
+<tr class="row-even"><td>lt_&lt;val&gt;</td>
+<td>Less than</td>
+<td>{id:&#8221;lt_3&#8221;}</td>
+<td><a class="reference external" href="http://127.0.0.1:6543/rest/house/?id=le_3">http://127.0.0.1:6543/rest/house/?id=le_3</a></td>
+</tr>
+<tr class="row-odd"><td>ge_&lt;val&gt;</td>
+<td>greater than or equal</td>
+<td>{id:&#8221;ge_3&#8221;}</td>
+<td><a class="reference external" href="http://127.0.0.1:6543/rest/house/?startDate=gt_2012-05-20">http://127.0.0.1:6543/rest/house/?startDate=gt_2012-05-20</a></td>
+</tr>
+<tr class="row-even"><td>gt_&lt;val&gt;</td>
+<td>Greater than</td>
+<td>{id:&#8221;gt_3&#8221;}</td>
+<td><a class="reference external" href="http://127.0.0.1:6543/rest/house/?startDate=gt_2012-05-20">http://127.0.0.1:6543/rest/house/?startDate=gt_2012-05-20</a></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="query-examples">
+<h3>Query Examples<a class="headerlink" href="#query-examples" title="Permalink to this headline">¶</a></h3>
+<p>Based on the following simple dataset:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;/house/&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]))</span>
+<span class="go">[{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;135&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 1,</span>
+<span class="go">  u&#39;endDate&#39;: u&#39;2012-05-22T12:00:00&#39;,</span>
+<span class="go">  u&#39;id&#39;: 1,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-04-01T12:00:00&#39;},</span>
+<span class="go"> {u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">   u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">   u&#39;deploymentId&#39;: 1,</span>
+<span class="go">   u&#39;endDate&#39;: u&#39;2012-05-22T12:00:00&#39;,</span>
+<span class="go">   u&#39;id&#39;: 2,</span>
+<span class="go">   u&#39;startDate&#39;: u&#39;2012-05-21T11:57:01.200086&#39;},</span>
+<span class="go"> {u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">   u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">   u&#39;deploymentId&#39;: 2,</span>
+<span class="go">   u&#39;endDate&#39;: None,</span>
+<span class="go">   u&#39;id&#39;: 3,</span>
+<span class="go">   u&#39;startDate&#39;: u&#39;2012-05-23T11:57:01.200086&#39;}]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Filter all properties that belong to deployment Id==1:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;id&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;/house/&quot;</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]))</span>
+<span class="go">[{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;135&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 1,</span>
+<span class="go">  u&#39;endDate&#39;: u&#39;2012-05-22T12:00:00&#39;,</span>
+<span class="go">  u&#39;id&#39;: 1,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-04-01T12:00:00&#39;}]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Or All Houses with an address of &#8220;Test&#8221;:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;address&#39;</span><span class="p">:</span><span class="s">&quot;Test&quot;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;/house/&quot;</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]))</span>
+<span class="go">[{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 1,</span>
+<span class="go">  u&#39;endDate&#39;: u&#39;2012-05-22T12:00:00&#39;,</span>
+<span class="go">  u&#39;id&#39;: 2,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-05-21T11:57:01.200086&#39;},</span>
+<span class="go">{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 2,</span>
+<span class="go">  u&#39;endDate&#39;: None,</span>
+<span class="go">  u&#39;id&#39;: 3,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-05-23T11:57:01.200086&#39;}]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Properties with both an address of Test, that were in deployment 1:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;address&#39;</span><span class="p">:</span><span class="s">&quot;Test&quot;</span><span class="p">,</span><span class="s">&quot;deploymentId&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;/house/&quot;</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]))</span>
+<span class="go">[{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 1,</span>
+<span class="go">  u&#39;endDate&#39;: u&#39;2012-05-22T12:00:00&#39;,</span>
+<span class="go">  u&#39;id&#39;: 2,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-05-21T11:57:01.200086&#39;}]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Houses with a start date of after Midnight 21st May 2012 or later:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">theDate</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">21</span><span class="p">,</span><span class="mo">00</span><span class="p">,</span><span class="mo">00</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;startDate&quot;</span><span class="p">:</span><span class="s">&quot;gt_{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">theDate</span><span class="p">)}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;/house/&quot;</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]))</span>
+<span class="go">[{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 1,</span>
+<span class="go">  u&#39;endDate&#39;: u&#39;2012-05-22T12:00:00&#39;,</span>
+<span class="go">  u&#39;id&#39;: 2,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-05-21T11:57:01.200086&#39;},</span>
+<span class="go">{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 2,</span>
+<span class="go">  u&#39;endDate&#39;: None,</span>
+<span class="go">  u&#39;id&#39;: 3,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-05-23T11:57:01.200086&#39;}]</span>
+</pre></div>
+</div>
+<p>Houses with a start date between the 20/5/2012 and the 22/5/2012:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">theEnd</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2012</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">23</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;startDate&quot;</span><span class="p">:</span><span class="s">&quot;ge_2012-05-20&quot;</span><span class="p">,</span><span class="s">&quot;endDate&quot;</span><span class="p">:</span><span class="s">&quot;le_{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">theEnd</span><span class="p">)}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">request_get</span><span class="p">(</span><span class="s">&quot;/house/&quot;</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]))</span>
+<span class="go">[{u&#39;__table__&#39;: u&#39;House&#39;,</span>
+<span class="go">  u&#39;address&#39;: u&#39;Test&#39;,</span>
+<span class="go">  u&#39;deploymentId&#39;: 1,</span>
+<span class="go">  u&#39;endDate&#39;: u&#39;2012-05-22T12:00:00&#39;,</span>
+<span class="go">  u&#39;id&#39;: 2,</span>
+<span class="go">  u&#39;startDate&#39;: u&#39;2012-05-21T11:57:01.200086&#39;}]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="updating-items-using-a-query">
+<h3>Updating Items using a query<a class="headerlink" href="#updating-items-using-a-query" title="Permalink to this headline">¶</a></h3>
+<p>If we are unsure of object Id&#8217;s it is possible to update items using a query string:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">theDeployment</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Deployment</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                  <span class="n">name</span><span class="o">=</span><span class="s">&quot;Second Deployment&quot;</span><span class="p">,</span>
+                                  <span class="n">description</span><span class="o">=</span><span class="s">&quot;Updated&quot;</span><span class="p">)</span>
+
+<span class="n">theUrl</span> <span class="o">=</span> <span class="s">&quot;deployment/?{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">({</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">}))</span>
+
+<span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span><span class="o">.</span><span class="n">request_put</span><span class="p">(</span><span class="n">theUrl</span><span class="p">,</span><span class="n">body</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">theDeployment</span><span class="o">.</span><span class="n">toDict</span><span class="p">()))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="bulk-uploads">
+<h2>&#8220;Bulk&#8221; Uploads<a class="headerlink" href="#bulk-uploads" title="Permalink to this headline">¶</a></h2>
+<p>If there are many items to upload, and we are less concerned about getting
+object ID&#8217;s back (for instance in the case of Readings) then we can use the bulk
+upload function. at URL <strong>/rest/bulk/</strong></p>
+<p>Currently this takes a JSONified list of objects in the body, and will return
+201 if successfull and 404 if there is an error:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="n">readingList</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+   <span class="n">theReading</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Reading</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">now</span><span class="o">+</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">x</span><span class="p">),</span>
+                               <span class="n">nodeId</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                               <span class="n">typeId</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                               <span class="n">locationId</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                               <span class="n">value</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+
+   <span class="n">readingList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">theReading</span><span class="p">)</span>
+
+<span class="n">jsonBody</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">toDict</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">readingList</span><span class="p">])</span>
+
+<span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rest</span><span class="o">.</span><span class="n">request_post</span><span class="p">(</span><span class="s">&quot;bulk/&quot;</span><span class="p">,</span><span class="n">body</span><span class="o">=</span><span class="n">jsonBody</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Rest Interface</a><ul>
+<li><a class="reference internal" href="#url-structure">URL Structure</a><ul>
+<li><a class="reference internal" href="#request-overview">Request Overview</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#using-the-rest-interface">Using the REST interface</a><ul>
+<li><a class="reference internal" href="#fetching-items">Fetching Items</a><ul>
+<li><a class="reference internal" href="#manual-conversion">Manual Conversion</a></li>
+<li><a class="reference internal" href="#using-the-table-object-generator">Using the table object generator</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#adding-new-items">Adding New Items</a></li>
+<li><a class="reference internal" href="#updating-items">Updating Items</a></li>
+<li><a class="reference internal" href="#deleting-items">Deleting Items</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#request-parameters">Request Parameters</a><ul>
+<li><a class="reference internal" href="#getting-a-subset-of-the-data">Getting a subset of the data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#querying">Querying</a><ul>
+<li><a class="reference internal" href="#query-examples">Query Examples</a></li>
+<li><a class="reference internal" href="#updating-items-using-a-query">Updating Items using a query</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bulk-uploads">&#8220;Bulk&#8221; Uploads</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="push.html"
+                        title="previous chapter">Database Uploads</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cruft.html"
+                        title="next chapter">Cruft and Notes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/restInterface.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="cruft.html" title="Cruft and Notes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="push.html" title="Database Uploads"
+             >previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="code.html" >Working with the software</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Daniel Goldsmith.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
