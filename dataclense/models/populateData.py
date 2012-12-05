@@ -393,7 +393,7 @@ def init_data(session=False):
 
     log.info("Populating Initial Data using session {0}".format(session))
     populateSummaryTypes(session = session)
-#    populateSensorTypes(session = session)
-#    populateRoomTypes(session = session)
-#    populateCalibration(session = session)
+    populateSensorTypes(session = session)
+    populateRoomTypes(session = session)
+    populateCalibration(session = session)
 
