@@ -190,11 +190,12 @@ if (nrow(sqlValues)>0){
 
 
   #For Debugging
-  tmpData <- fixCalib
+  #tmpData <- fixCalib
+  
   plt <- ggplot(fixCalib)
   plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
   #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
-  plt + facet_grid(nodeId~type,scales="free_y")
+  plt + facet_grid(type~nodeId,scales="free_y")
   ggsave("PRESTRIP.png")
   
   #cmpData <- subset(houseSummary,nodeId==1541 & locationId==140 &  date=="2011-07-08")
@@ -217,6 +218,8 @@ if (nrow(sqlValues)>0){
     fixCalib[badRows,]$badValue <- TRUE
     fixCalib[badRows,]$value = NA
   }
+
+  #We could do with removing any temperture / humidity data where the battery level is below XXX
   #badRows <- which(fixCalib$type==4 & (fixCalib$calibValue < 0 | fixCalib$calibValue>1000))
   #if (length(badRows) > 0){
   #  fixCalib[badRows,]$badValue <- TRUE
@@ -230,25 +233,32 @@ if (nrow(sqlValues)>0){
   #That Removes all the Bad Data, BUT only here
   #fixCalib <- subset(fixCalib,badValue != TRUE)
 
+  f <- subset(fixCalib,badValue == TRUE)
+  
   #plt <- ggplot(subset(fixCalib,type==6))
   plt <- ggplot(fixCalib)
   plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
   #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
-    plt + facet_grid(nodeId~type,scales="free_y")
+    plt + facet_grid(type~nodeId,scales="free_y")
   #plt + facet_grid(type~.)
   ggsave("POSTSTRIP.png")
 
   tmpSummary <- fixSummary
   fixSummary <- ddply(fixCalib,
+#    fixSummary <- ddply(f,
                       .(nodeId,locationId,type,dt),
                       summarise,
                       minVal = min(value),
                       maxVal = max(value),
                       minTime = min(ts),
                       maxTime = max(ts),
-                      count = length(dt)
+                      count = length(value),
+                      naCount =sum(is.na(value)),
+                      tCount = length(value)-sum(is.na(value))
                       )
-
+                      
+#f <- subset(fixCalib,badValue==TRUE)
+  
   #And Replace the original Values
   for (i in 1:nrow(fixSummary)){
     thisRow <- fixSummary[i,]
