@@ -7,10 +7,10 @@ library(plyr)
 
 #Setup Database Connection
 drv <- dbDriver("MySQL")
-con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
+#con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
 #con <- dbConnect(drv,dbname="SampsonClose",user="root",password="adm3csva",host="127.0.0.1",port=3307)
 #con <- dbConnect(drv,dbname="ch",user="chuser")
-#con <- dbConnect(drv,dbname="transferTest",user="chuser")
+con <- dbConnect(drv,dbname="transferStore",user="root",password="Ex3lS4ga")
 
 
 #args <- commandArgs(TRUE)
