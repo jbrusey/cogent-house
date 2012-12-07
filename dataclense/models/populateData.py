@@ -360,19 +360,33 @@ def populateSummaryTypes(session=False):
     typeExists = session.query(SummaryType).filter_by(name="Day Count").first()
     if typeExists is None:
         log.debug("Adding Summary Types")
-        theType = SummaryType(name="Day Count")
+    
+        theType = SummaryType(id=1,
+                              name="Day Count")
         session.merge(theType)
-        theType = SummaryType(name="Yield")
+        theType = SummaryType(id=2,
+                              name="Day Count (Clean)")
         session.merge(theType)
-        theType = SummaryType(name="Min")
+        theType = SummaryType(id=3,
+                              name="Yield")
         session.merge(theType)
-        theType = SummaryType(name="Max")
+        theType = SummaryType(id=4,
+                              nane="Yield (Clean)"
         session.merge(theType)
-        theType = SummaryType(name="Avg")
+        theType = SummaryType(id=5,
+                              name="Min")
         session.merge(theType)
-        theType = SummaryType(name="Daily KwH")
+        theType = SummaryType(id=6,
+                              name="Max")
         session.merge(theType)
-        theType = SummaryType(name="Daily KwH/DD")
+        theType = SummaryType(id=7,
+                              name="Avg")
+        session.merge(theType)
+        theType = SummaryType(id=8,
+                              name="Daily KwH")
+        session.merge(theType)
+        theType = SummaryType(id=9,
+                              name="Daily KwH/DD")
         session.merge(theType)
         session.flush()
         session.commit()

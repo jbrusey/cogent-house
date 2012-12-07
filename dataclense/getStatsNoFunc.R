@@ -26,8 +26,18 @@ calibrationData <- dbReadTable(con,"Sensor")
 sensorType <- dbReadTable(con,"SensorType")
 
 #Ignore Duty Cycle, Error etc.
-sensorTypeList <- subset(sensorType,name=="Temperature" | name=="Humidity" | name=="Light PAR" | name=="Light TSR" | name=="CO2" | name=="Air Quality" | name=="VOC" | name=="Battery Voltage" | name=="Power" | name=="Power Min" | name=="Power Max")
-
+sensorTypeList <- subset(sensorType,
+                         name=="Temperature" |
+                         name=="Humidity" |
+                         name=="Light PAR" |
+                         name=="Light TSR" |
+                         name=="CO2" |
+                         name=="Air Quality" |
+                         name=="VOC" |
+                         name=="Battery Voltage" |
+                         name=="Power" |
+                         name=="Power Min" |
+                         name=="Power Max")
 
 houseData <- data.frame(address = allHouses$address,
                         dbStart = NA,
@@ -102,6 +112,7 @@ dataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) as c
                    "GROUP BY nodeId,type,DATE(time)",
                    sep="")
 
+## SANITY CHECK STUFF
 ## rawDataQry <- paste("SELECT * from Reading WHERE locationId IN (",locationIds,")",sep="")
 ## rawData <- dbGetQuery(con,statement=rawDataQry)
 ## rawData$dt <- as.POSIXlt(rawData$time)
@@ -110,21 +121,20 @@ dataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) as c
 ## plt + facet_grid(nodeId~.)
 ## ggsave("RAW_117Jodrell.png")
 
+#Fetch the data
 houseSummary <- dbGetQuery(con,statement=dataQry)
-#Keep a copy of the dat (For Debug)
-houseBackup <- houseSummary
-
-#Add a time object so that makes sense toi R
+#Add a time object so that makes sense to R
 houseSummary$dt <- as.POSIXlt(houseSummary$date,tz="GMT")
 houseSummary$DT <- as.Date(houseSummary$dt)
+#And add some extra cols to hold summary information
 houseSummary$countWithBad <- houseSummary$count
 
 # --------- NEW STUFF ------ CALLIBRATION
 #Sanity check (Daily Plot)
-plt <- ggplot(subset(houseSummary,type==0))
-plt <- plt + geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
-plt + facet_grid(nodeId~.)
-ggsave("SUMMARY_RAW_117.png")
+## plt <- ggplot(subset(houseSummary,type==0))
+## plt <- plt + geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
+## plt + facet_grid(nodeId~.)
+## ggsave("SUMMARY_RAW_117.png")
 
 tmp <- merge(houseSummary,calibrationData,by.x=c("nodeId","type"),by.y=c("nodeId","sensorTypeId"),all.x=TRUE)
 #foo <- is.na(tmp$id)
@@ -140,18 +150,23 @@ tmp$calibMax <- (tmp$maxVal * tmp$calibrationSlope) + tmp$calibrationOffset
 
 tmp$badValue <- NA
 
+#Temperatyre
 badRows <- which(tmp$type==0 & (tmp$calibMin < -10 | tmp$calibMax>50 ))
 if (length(badRows) > 0){
   tmp[badRows,]$badValue <- TRUE
 }
+#Humidity
 badRows <- which(tmp$type==2 & (tmp$calibMin < 0 | tmp$calibMax>100 ))
 if (length(badRows) > 0){
   tmp[badRows,]$badValue <- TRUE
 }
-## badRows <- which(tmp$type==8 & (tmp$calibMin < 0 | tmp$calibMax>6000 ))
-## if (length(badRows) > 0){
-##   tmp[badRows,]$badValue <- TRUE
-## }
+#Co2
+badRows <- which(tmp$type==8 & (tmp$calibMin < 0 | tmp$calibMax>6000 ))
+if (length(badRows) > 0){
+  tmp[badRows,]$badValue <- TRUE
+}
+#TODO
+#Rather than threshold by anything else, Threshold Electricity by something sensible
 badRows <- which(tmp$type==6 & (tmp$calibMin< 0 | tmp$calibMax>5))
 if (length(badRows) > 0){
   tmp[badRows,]$badValue <- TRUE
@@ -172,37 +187,30 @@ if (nrow(sqlValues)>0){
     ")",
     sep="")
 
+  #Fetch all that data
   fixData <- dbGetQuery(con,statement=theQry)
 
-  #Calibrate This
+  #Merge with Calibration Stuff
   fixCalib <- merge(fixData,calibrationData,by.x=c("nodeId","type"),by.y=c("nodeId","sensorTypeId"),all.x=TRUE)
-  
   noCalibIdx <- which(is.na(fixCalib$id)==TRUE)
   fixCalib[noCalibIdx,]$calibrationSlope <- 1
   fixCalib[noCalibIdx,]$calibrationOffset <- 0
 
   #Calibrate
   fixCalib$calibValue <- (fixCalib$value * fixCalib$calibrationSlope) + fixCalib$calibrationOffset
-  
   fixCalib$ts <- as.POSIXlt(fixCalib$time,tz="GMT")
   fixCalib$dt <- as.Date(fixCalib$ts)
 
-
-
   #For Debugging
-  #tmpData <- fixCalib
+  #tmpData <- fixCalib  
+  ## plt <- ggplot(fixCalib)
+  ## plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
+  ## #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
+  ## plt + facet_grid(type~nodeId,scales="free_y")
+  ## ggsave("PRESTRIP.png")
   
-  plt <- ggplot(fixCalib)
-  plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
-  #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
-  plt + facet_grid(type~nodeId,scales="free_y")
-  ggsave("PRESTRIP.png")
-  
-  #cmpData <- subset(houseSummary,nodeId==1541 & locationId==140 &  date=="2011-07-08")
-
-  #test <- fixCalib
+  #Remove all the bad data
   fixCalib$badValue <- FALSE
-  #Remove Data that Is bad !!!
   badRows <- which(fixCalib$type==0 & (fixCalib$calibValue < -10 | fixCalib$calibValue>50 ))
   if (length(badRows) > 0){
     fixCalib[badRows,]$badValue <- TRUE
@@ -218,7 +226,6 @@ if (nrow(sqlValues)>0){
     fixCalib[badRows,]$badValue <- TRUE
     fixCalib[badRows,]$value = NA
   }
-
   #We could do with removing any temperture / humidity data where the battery level is below XXX
   #badRows <- which(fixCalib$type==4 & (fixCalib$calibValue < 0 | fixCalib$calibValue>1000))
   #if (length(badRows) > 0){
@@ -230,26 +237,21 @@ if (nrow(sqlValues)>0){
     fixCalib[badRows,]$value = NA
   }
 
-  #That Removes all the Bad Data, BUT only here
-  #fixCalib <- subset(fixCalib,badValue != TRUE)
-
-  f <- subset(fixCalib,badValue == TRUE)
   
-  #plt <- ggplot(subset(fixCalib,type==6))
-  plt <- ggplot(fixCalib)
-  plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
-  #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
-    plt + facet_grid(type~nodeId,scales="free_y")
-  #plt + facet_grid(type~.)
-  ggsave("POSTSTRIP.png")
+  ## #plt <- ggplot(subset(fixCalib,type==6))
+  ## plt <- ggplot(fixCalib)
+  ## plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
+  ## #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
+  ##   plt + facet_grid(type~nodeId,scales="free_y")
+  ## #plt + facet_grid(type~.)
+  ## ggsave("POSTSTRIP.png")
 
-  tmpSummary <- fixSummary
+  #Summarise so its in the same format as the overall data
   fixSummary <- ddply(fixCalib,
-#    fixSummary <- ddply(f,
                       .(nodeId,locationId,type,dt),
                       summarise,
-                      minVal = min(value),
-                      maxVal = max(value),
+                      minVal = min(value,na.rm=TRUE),
+                      maxVal = max(value,na.rm=TRUE),
                       minTime = min(ts),
                       maxTime = max(ts),
                       count = length(value),
@@ -257,29 +259,37 @@ if (nrow(sqlValues)>0){
                       tCount = length(value)-sum(is.na(value))
                       )
                       
-#f <- subset(fixCalib,badValue==TRUE)
+  fixSummary[which(is.infinite(fixSummary$minVal)==TRUE),]$minVal <- NA
+  fixSummary[which(is.infinite(fixSummary$maxVal)== TRUE),]$maxVal <- NA
   
+  ## plt <- ggplot(subset(fixSummary,type==0))
+  ## plt <- plt + geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
+  ## plt <- plt+geom_point(aes(dt,count,color="Count"))
+  ## plt <- plt+geom_line(aes(dt,tCount,color="TCount"))
+  ## plt <- plt+geom_line(aes(dt,naCount,color="NA Count"))
+  ## plt + facet_grid(locationId~.)
+    
   #And Replace the original Values
   for (i in 1:nrow(fixSummary)){
     thisRow <- fixSummary[i,]
     rowIdx <- which(houseSummary$nodeId == thisRow$nodeId & houseSummary$locationId ==thisRow$locationId & houseSummary$type == thisRow$type & houseSummary$DT == thisRow$dt)
-    houseSummary[rowIdx,]$count <- thisRow$count
+    houseSummary[rowIdx,]$count <- thisRow$tCount
+    houseSummary[rowIdx,]$countWithBad <- thisRow$count
     houseSummary[rowIdx,]$minVal <- thisRow$minVal
     houseSummary[rowIdx,]$maxVal <- thisRow$maxVal
     #houseSummary[rowIdx,]$minTime <- as.POSIXlt(thisRow$minTime,tz="GMT")
     #houseSummary[rowIdx,]$maxTime <- thisRow$maxTime
-  }
+  }  
+} #End of IF Statement
 
-  
-}
 
-#More Sanit
-f <-  subset(houseSummary,count!=countWithBad)
+## #More Sanity
+## f <-  subset(houseSummary,count!=countWithBad)
 
-plt <- ggplot(subset(houseSummary,type==0))
-plt <- plt + geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
-plt + facet_grid(nodeId~.)
-ggsave("SUMMARY_CLEAN_117.png")
+## plt <- ggplot(subset(houseSummary,type==0))
+## plt <- plt + geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
+## plt + facet_grid(nodeId~.)
+## ggsave("SUMMARY_CLEAN_117.png")
 
   ## avgCount <- ddply(houseSummary,
   ##                 .(dt,nodeId,locationId),
@@ -295,6 +305,7 @@ ggsave("SUMMARY_CLEAN_117.png")
 
 # --------- EOF NEW STUFF ---------
 
+#Work out the first and last samples so we can get yields for each node / Day
 #print("FIRST AND LAST SAMPLES")
 #First and Last Samples
 firstSample <- as.character(min(houseSummary$dt))
@@ -312,32 +323,79 @@ hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
    hEd <- as.POSIXlt(lastSample,tz="GMT")
  }
 
-
-
 # ------------------ GET A SUMMARY OF SAMPLE COUNT PER DAY ------------------
 
+#Lets take a look at the values
+## plt <- ggplot(houseSummary)
+## plt <- plt+geom_step(aes(dt,count,color=factor(type)))
+## plt <- plt+geom_point(aes(dt,count,color=factor(type)))
+## plt <- plt + opts(title="Sample Count By Node / Sensor")
+## plt <- plt + ylab("Readings")
+## plt <- plt + xlab("Date")
+## plt + facet_grid(nodeId~.)
+
 #Try to combine these in a more sensible way so the plot is a little cleaner
-avgCount <- ddply(houseSummary,
+## avgCount <- ddply(houseSummary,
+##                   .(dt,nodeId,locationId),
+##                   summarise,
+##                   min = min(count),
+##                   max = max(count),
+##                   avg = mean(count),
+##                   count=mean(count))
+
+
+## plt <- ggplot(houseSummary,aes(dt,count))
+## plt <- plt+geom_step(data=avgCount)
+## plt <- plt+geom_point(data=avgCount)
+## plt <- plt+geom_step(aes(color=factor(type)))
+## plt <- plt+geom_point(aes(color=factor(type)))
+## plt <- plt + opts(title=paste("Overal Count by Node ",hseName))
+## plt <- plt + ylab("Daily Sample Count (All sensors)")
+## plt <- plt+xlab("Date")
+## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
+## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+## plt + facet_grid(nodeId~.)
+## ggsave("sampleDayNode.png")
+
+
+#Before we calculate the Yields, Insert missing days into the database
+#Not actually sure we need this
+#allDays <- data.frame(time=seq(hSd,hEd,by="day")) #Get a new frame with all expected days (start-end)
+#allDays$dt <- as.Date(allDays$time)
+#mergedYield <- merge(allDays,houseSummary,by.x="dt",all.x=TRUE)
+
+
+  ## yieldSum$DT <- as.Date(yieldSum$dt) 
+  ## allDays$DT <- as.Date(allDays$date)
+  ## allYield <- merge(allDays,yieldSum,"DT") #Merge with the daily yield 
+  
+#Now we can do the same with yield
+houseSummary$dayYield <- (houseSummary$count / 288)*100.0   #This is important
+#Averge out the Yields
+avgYield <- ddply(houseSummary,
                   .(dt,nodeId,locationId),
                   summarise,
-                  min = min(count),
-                  max = max(count),
-                  avg = mean(count))
+                  min = min(dayYield),
+                  max = max(dayYield),
+                  dayYield=mean(dayYield))
 
-
-
-plt <- ggplot(avgCount)
-#plt <- ggplot(subset(avgCount,dt<as.POSIXlt("2010-11-20",tz="GMT")))
-plt <- plt +geom_point(aes(dt,avg,color=factor(locationId)))
-plt <- plt + opts(title=paste("Tx Count by Node ",hseName))
-plt <- plt + ylab("Daily Sample Count (All sensors)")
+plt <- ggplot(houseSummary,aes(dt,dayYield))
+#plt <- plt+geom_step(data=avgCount)
+plt <- plt+geom_point(data=avgYield)
+plt <- plt+geom_step(aes(color=factor(type)))
+plt <- plt+geom_point(aes(color=factor(type)))
+plt <- plt + opts(title=paste("Yield by Node / Sensor ",hseName))
+plt <- plt + ylab("% Yield (All sensors)")
 plt <- plt+xlab("Date")
 plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
 plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
 plt + facet_grid(nodeId~.)
-ggsave("txDayNode.png")
+ggsave("YieldDayNode.png")
 
 
+# -------- CHECK -------------
+
+## --- TODO  FIX How to store thiss stuff
 dayCountId = summaryData[which(summaryData$name == "Day Count"),]$id
 
  countInsert <- data.frame(time=houseSummary$dt,
@@ -351,6 +409,8 @@ dayCountId = summaryData[which(summaryData$name == "Day Count"),]$id
 countInsert$summaryTypeId <- dayCountId
 dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
 
+
+
 ## #Try to store the counts in the Database
 ##  countInsert <- data.frame(time=avgCount$dt,
 ##                            nodeId=avgCount$nodeId,
@@ -359,16 +419,10 @@ dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
 ##                            locationId=avgCount$locationId,
 ##                            value=avgCount$avg
 ##                            )
-
-dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
+#dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
 
 # ---------------------- DAILY COUNT DONE --------------------------------
  
-#Minimum and Maximum Sensor Reading
-
-#plt + facet_grid(locationId~.)
-## # plt + facet_grid(nodeId~.)
-#ggsave("TxByNodeSC26.png")
 
 #-------------- CALCUATE YIELD --------------------------------
 
@@ -393,73 +447,69 @@ lastSample <- as.character(max(avgCount$dt))
 #plt + facet_grid(locationId~.)
 ###ggsave("Extras.png")
 
-# Error check, if there is no start date / end date in the database, We use the date of the first and last sample
-hSd <- as.POSIXlt(theHouse$sd,tz="GMT")
- if (is.na(hSd)) {
-   hSd <- as.POSIXlt(firstSample,tz="GMT")
- }
-hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
- if (is.na(hEd)){
-   hEd <- as.POSIXlt(lastSample,tz="GMT")
- }
+## # Error check, if there is no start date / end date in the database, We use the date of the first and last sample
+## hSd <- as.POSIXlt(theHouse$sd,tz="GMT")
+##  if (is.na(hSd)) {
+##    hSd <- as.POSIXlt(firstSample,tz="GMT")
+##  }
+## hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
+##  if (is.na(hEd)){
+##    hEd <- as.POSIXlt(lastSample,tz="GMT")
+##  }
 
 
-#Dont Calculate Yield for the First or last Days (Strip this Data)
-  houseSummary$ignoreYield <- TRUE
-  #idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt < theHouse$ed)
-  idxes <- which(houseSummary$dt > hSd & houseSummary$dt < hEd)
-  houseSummary$ignoreYield[idxes] <- FALSE
-  houseSummary <- subset(houseSummary,ignoreYield == FALSE)
 
-  print("CALCULATING YIELDS")
+#---- FORGET IGNORING THIS FOR A MOMENT ----------
+
+## #Dont Calculate Yield for the First or last Days (Strip this Data)
+##   houseSummary$ignoreYield <- TRUE
+##   #idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt < theHouse$ed)
+##   idxes <- which(houseSummary$dt > hSd & houseSummary$dt < hEd)
+##   houseSummary$ignoreYield[idxes] <- FALSE
+##   houseSummary <- subset(houseSummary,ignoreYield == FALSE)
+
+  #print("CALCULATING YIELDS")
   #Calulate Yield Percentages per Day (Which at the moment we need to eyeball to get Elenas RLE)
-  houseSummary$dayYield <- (houseSummary$count / 288) * 100
-
-## avgCount <- ddply(houseSummary,
-##                   .(dt,nodeId,locationId),
-##                   summarise,
-##                   min = min(count),
-##                   max = max(count),
-##                   avg = mean(count))
+  #houseSummary$dayYield <- (houseSummary$count / 288) * 100
 
 
+  
+  ## yieldCount <- ddply(houseSummary,
+  ##                     .(dt,nodeId,locationId),
+  ##                     summarise,
+  ##                     count = mean(count),
+  ##                     min = min(dayYield),
+  ##                     max = max(dayYield),
+  ##                     avg = mean(dayYield)
+  ##                     )
 
-  yieldCount <- ddply(houseSummary,
-                      .(dt,nodeId,locationId),
-                      summarise,
-                      count = mean(count),
-                      min = min(dayYield),
-                      max = max(dayYield),
-                      avg = mean(dayYield)
-                      )
+  ## plt <- ggplot(yieldCount)                                        
+  ## #plt <- plt +geom_point(aes(dt,count,fill="count"))
+  ## plt <- plt +geom_point(aes(dt,avg,color=factor(locationId)))
+  ## plt <- plt + geom_errorbar(aes(dt,ymin=min,ymax=max))
+  ## #plt + facet_grid(nodeId~.)
+  ## plt <- plt + opts(title=paste("Daily Yield by Node ",hseName))
+  ## plt <- plt + ylab("Daily Yield (Avg of All Sensors)")
+  ## plt <- plt+xlab("Date")
+  ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
+  ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+  ## plt + facet_grid(nodeId~.)
+  ## ggsave("DailyYield.png")
 
-  plt <- ggplot(yieldCount)                                        
-  #plt <- plt +geom_point(aes(dt,count,fill="count"))
-  plt <- plt +geom_point(aes(dt,avg,color=factor(locationId)))
-  plt <- plt + geom_errorbar(aes(dt,ymin=min,ymax=max))
-  #plt + facet_grid(nodeId~.)
-  plt <- plt + opts(title=paste("Daily Yield by Node ",hseName))
-  plt <- plt + ylab("Daily Yield (Avg of All Sensors)")
-  plt <- plt+xlab("Date")
-  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
-  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
-  plt + facet_grid(nodeId~.)
-  ggsave("DailyYield.png")
-
-  #A bit of an explore here as node 5636 looks a bit wierd
-  plt <- ggplot(subset(houseSummary,nodeId==5636))
-  plt <- plt+geom_point(aes(dt,count,color=type))
-  plt + facet_grid(type~.)
+  ## #A bit of an explore here as node 5636 looks a bit wierd
+  ## plt <- ggplot(subset(houseSummary,nodeId==5636))
+  ## plt <- plt+geom_point(aes(dt,count,color=type))
+  ## plt + facet_grid(type~.)
 
 
-  #Summarise this so we just get a daily yield per Node
-  yieldSum <- ddply(houseSummary,
-                    .(dt),
-                    summarise,
-                    sensors=length(dt),
-                    yield=mean(dayYield),
-                    stYield = sd(dayYield)
-                    )
+  ## #Summarise this so we just get a daily yield per Node
+  ## yieldSum <- ddply(houseSummary,
+  ##                   .(dt),
+  ##                   summarise,
+  ##                   sensors=length(dt),
+  ##                   yield=mean(dayYield),
+  ##                   stYield = sd(dayYield)
+  ##                   )
 
    #plt <- ggplot(yieldSum)
    #plt <- plt+geom_point(aes(dt,yield))
@@ -533,16 +583,22 @@ hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
 
   #Now do some of the Magic Summarisation Function(TM) <thanks to Hadley>
   # Caluclate Yield for each node
-  houseSum <- ddply(houseSummary,
-#                    .(nodeId,type),
+  nodeSum <- ddply(houseSummary,
                     .(nodeId,type),
                     summarise,
-                    days=length(dt),
+                    #days=length(dt),
                     count=sum(count),
                     avgDY = mean(dayYield),
                     firstSample = min(dt),
                     lastSample = max(dt)
                     )
+
+#Plot this
+plt <- ggplot(nodeSum)
+plt <- plt + geom_bar(aes(factor(nodeId),count,fill=factor(type)),position="dodge")
+plt <- plt + opts(title="Total Deployment Samples by Node / Sensor")
+plt
+
   #houseSum$startDate <- min(houseSummary$dt)
   #houseSum$endDate <- max(houseSummary$dt)
   #houseSum$startDate <- theHouse$sd
@@ -556,13 +612,20 @@ hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
 
                                         #Create Calculate the Yield per sensor
 
-  if (is.na(theHouse$ed)) duration <- hEd - hSd else duration <- theHouse$ed - theHouse$sd - 1 #Offset as Last day is included
-  
 
-  expected <- as.real(duration)  * 288
+  #if (is.na(theHouse$ed)) duration <- hEd - hSd else duration <- theHouse$ed - theHouse$sd - 1 #Offset as Last day is included
+
+  duration <- hEd - hSd 
+  expected <- as.real(duration)  * 288 
   houseSum$duration <- duration
   houseSum$expected <- expected
   houseSum$yield <- (houseSum$count / houseSum$expected) * 100.0
+
+
+  plt <- ggplot(houseSum)
+plt <- plt + geom_bar(aes(factor(nodeId),yield,fill=factor(type)),position="dodge")
+plt <- plt + opts(title="Total Deployment Yield by Node / Sensor")
+plt
 
  #And where we actually have samples
   dataDuration <- max(houseSum$lastSample) - min(houseSum$firstSample) 
