@@ -150,7 +150,7 @@ tmp$calibMax <- (tmp$maxVal * tmp$calibrationSlope) + tmp$calibrationOffset
 
 tmp$badValue <- NA
 
-#Temperatyre
+#Temperatre
 badRows <- which(tmp$type==0 & (tmp$calibMin < -10 | tmp$calibMax>50 ))
 if (length(badRows) > 0){
   tmp[badRows,]$badValue <- TRUE
@@ -258,7 +258,8 @@ if (nrow(sqlValues)>0){
                       naCount =sum(is.na(value)),
                       tCount = length(value)-sum(is.na(value))
                       )
-                      
+
+  #Remove the Infs put in by sumary functions where there is no data.
   fixSummary[which(is.infinite(fixSummary$minVal)==TRUE),]$minVal <- NA
   fixSummary[which(is.infinite(fixSummary$maxVal)== TRUE),]$maxVal <- NA
   
@@ -279,7 +280,8 @@ if (nrow(sqlValues)>0){
     houseSummary[rowIdx,]$maxVal <- thisRow$maxVal
     #houseSummary[rowIdx,]$minTime <- as.POSIXlt(thisRow$minTime,tz="GMT")
     #houseSummary[rowIdx,]$maxTime <- thisRow$maxTime
-  }  
+  }
+  print("Data Cleaned")
 } #End of IF Statement
 
 
@@ -409,7 +411,7 @@ dayCountId = summaryData[which(summaryData$name == "Day Count"),]$id
 countInsert$summaryTypeId <- dayCountId
 dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
 
-
+# ---------- TO HERE --------------- #####
 
 ## #Try to store the counts in the Database
 ##  countInsert <- data.frame(time=avgCount$dt,
@@ -426,232 +428,299 @@ dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
 
 #-------------- CALCUATE YIELD --------------------------------
 
-print("FIRST AND LAST SAMPLES")
-#First and Last Samples
-firstSample <- as.character(min(avgCount$dt))
-lastSample <- as.character(max(avgCount$dt))
-  houseData[rowNo,]$dataStart <- firstSample
-  houseData[rowNo,]$dataEnd <- lastSample
+#We want to remove the first and last days from the dataset
+stripped <- subset(houseSummary,dt>hSd & dt <hEd)
 
-#Plotting (As a Sanity Check)
-#plt <- ggplot(houseSummary)
-#plt <- plt + geom_point(aes(dt,count,color=factor(type)))
-#plt <- plt+ opts(title="Sample count per Sensortype / Location")
-#plt + facet_grid(locationId~.)
-#plt + facet_grid(nodeId~.)
+#plotThis (SANITY)
+#Start and End Dates for Yield
+ySd <- hSd + 60*60*24
+yEd <- hEd #- 60*60*24
+#Non Inclusive of the last date Ie Sd >= dT < Ed
+yieldDuration <- as.real(yEd - ySd) 
+yieldExpected <- yieldDuration * 288
 
-#And another
-#sanity <- subset(houseSummary,count > 300)
-#plt <- ggplot(sanity)
-#plt <- plt + geom_point(aes(dt,count,color=factor(type)))
-#plt + facet_grid(locationId~.)
-###ggsave("Extras.png")
-
-## # Error check, if there is no start date / end date in the database, We use the date of the first and last sample
-## hSd <- as.POSIXlt(theHouse$sd,tz="GMT")
-##  if (is.na(hSd)) {
-##    hSd <- as.POSIXlt(firstSample,tz="GMT")
-##  }
-## hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
-##  if (is.na(hEd)){
-##    hEd <- as.POSIXlt(lastSample,tz="GMT")
-##  }
+plt <- ggplot(stripped,aes(dt,dayYield,color=type))
+plt <- plt + geom_point()
+plt <- plt + geom_step()
+plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
+plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+plt + facet_grid(nodeId~.)
 
 
 
-#---- FORGET IGNORING THIS FOR A MOMENT ----------
+#Summarise the lot
+yieldSummary <- ddply(stripped,
+                      .(nodeId,type),
+                      summarise,
+                      count=sum(count),
+                      countBad=sum(countWithBad),
+                      ninetyCount = length(which(dayYield >= 90))
+                      )
+yieldSummary$expected <-  yieldExpected
+yieldSummary$sensorYield <- (yieldSummary$count / yieldExpected) * 100.0
 
-## #Dont Calculate Yield for the First or last Days (Strip this Data)
-##   houseSummary$ignoreYield <- TRUE
-##   #idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt < theHouse$ed)
-##   idxes <- which(houseSummary$dt > hSd & houseSummary$dt < hEd)
-##   houseSummary$ignoreYield[idxes] <- FALSE
-##   houseSummary <- subset(houseSummary,ignoreYield == FALSE)
+#And Yield per Node
+allSensors <- ddply(stripped,
+                    .(nodeId),
+                    summarise,
+                    count=sum(count),
+                    sensorCount = length(unique(type)),
+                    ninetyCount = length(which(dayYield >= 90))
+                    )
+allSensors$expected <- yieldExpected * allSensors$sensorCount
+allSensors$yield <- (allSensors$count / allSensors$expected) * 100.0
 
-  #print("CALCULATING YIELDS")
-  #Calulate Yield Percentages per Day (Which at the moment we need to eyeball to get Elenas RLE)
-  #houseSummary$dayYield <- (houseSummary$count / 288) * 100
+plt <- ggplot(yieldSummary)
+plt <- plt+geom_bar(aes(factor(nodeId),
+                        count,
+                        color=factor(type)),
+                    position="dodge")
+plt <- plt + geom_hline(aes(yintercept=expected))
+plt
+
+plt <- ggplot(yieldSummary)
+plt <- plt+geom_bar(aes(factor(nodeId),
+                        sensorYield,
+                        color=factor(type)),
+                    position="dodge")
+plt <- plt + geom_hline(aes(yintercept=90,color="red"))
+plt
+
+#And we can work out the final Expected Yield Here
+totalSensors <- sum(allSensors$sensorCount) #No of Sensors
+totalSamples <- sum(allSensors$count)
+deployExpected <- yieldExpected * totalSensors #Daily Expcted * No Sensors
+finalYield <- (totalSamples / deployExpected) * 100
+
+##   ## nodeSum <- ddply(houseSummary,
+##   ##                   .(nodeId,type),
+##   ##                   summarise,
+##   ##                   #days=length(dt),
+##   ##                   count=sum(count),
+##   ##                   avgDY = mean(dayYield),
+##   ##                   firstSample = min(dt),
+##   ##                   lastSample = max(dt)
+##   ##                   )
+
+## #Plotting (As a Sanity Check)
+## #plt <- ggplot(houseSummary)
+## #plt <- plt + geom_point(aes(dt,count,color=factor(type)))
+## #plt <- plt+ opts(title="Sample count per Sensortype / Location")
+## #plt + facet_grid(locationId~.)
+## #plt + facet_grid(nodeId~.)
+
+## #And another
+## #sanity <- subset(houseSummary,count > 300)
+## #plt <- ggplot(sanity)
+## #plt <- plt + geom_point(aes(dt,count,color=factor(type)))
+## #plt + facet_grid(locationId~.)
+## ###ggsave("Extras.png")
+
+## ## # Error check, if there is no start date / end date in the database, We use the date of the first and last sample
+## ## hSd <- as.POSIXlt(theHouse$sd,tz="GMT")
+## ##  if (is.na(hSd)) {
+## ##    hSd <- as.POSIXlt(firstSample,tz="GMT")
+## ##  }
+## ## hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
+## ##  if (is.na(hEd)){
+## ##    hEd <- as.POSIXlt(lastSample,tz="GMT")
+## ##  }
+
+
+
+## #---- FORGET IGNORING THIS FOR A MOMENT ----------
+
+## ## #Dont Calculate Yield for the First or last Days (Strip this Data)
+## ##   houseSummary$ignoreYield <- TRUE
+## ##   #idxes <- which(houseSummary$dt > theHouse$sd & houseSummary$dt < theHouse$ed)
+## ##   idxes <- which(houseSummary$dt > hSd & houseSummary$dt < hEd)
+## ##   houseSummary$ignoreYield[idxes] <- FALSE
+## ##   houseSummary <- subset(houseSummary,ignoreYield == FALSE)
+
+##   #print("CALCULATING YIELDS")
+##   #Calulate Yield Percentages per Day (Which at the moment we need to eyeball to get Elenas RLE)
+##   #houseSummary$dayYield <- (houseSummary$count / 288) * 100
 
 
   
-  ## yieldCount <- ddply(houseSummary,
-  ##                     .(dt,nodeId,locationId),
-  ##                     summarise,
-  ##                     count = mean(count),
-  ##                     min = min(dayYield),
-  ##                     max = max(dayYield),
-  ##                     avg = mean(dayYield)
-  ##                     )
+##   ## yieldCount <- ddply(houseSummary,
+##   ##                     .(dt,nodeId,locationId),
+##   ##                     summarise,
+##   ##                     count = mean(count),
+##   ##                     min = min(dayYield),
+##   ##                     max = max(dayYield),
+##   ##                     avg = mean(dayYield)
+##   ##                     )
 
-  ## plt <- ggplot(yieldCount)                                        
-  ## #plt <- plt +geom_point(aes(dt,count,fill="count"))
-  ## plt <- plt +geom_point(aes(dt,avg,color=factor(locationId)))
-  ## plt <- plt + geom_errorbar(aes(dt,ymin=min,ymax=max))
-  ## #plt + facet_grid(nodeId~.)
-  ## plt <- plt + opts(title=paste("Daily Yield by Node ",hseName))
-  ## plt <- plt + ylab("Daily Yield (Avg of All Sensors)")
-  ## plt <- plt+xlab("Date")
-  ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
-  ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
-  ## plt + facet_grid(nodeId~.)
-  ## ggsave("DailyYield.png")
+##   ## plt <- ggplot(yieldCount)                                        
+##   ## #plt <- plt +geom_point(aes(dt,count,fill="count"))
+##   ## plt <- plt +geom_point(aes(dt,avg,color=factor(locationId)))
+##   ## plt <- plt + geom_errorbar(aes(dt,ymin=min,ymax=max))
+##   ## #plt + facet_grid(nodeId~.)
+##   ## plt <- plt + opts(title=paste("Daily Yield by Node ",hseName))
+##   ## plt <- plt + ylab("Daily Yield (Avg of All Sensors)")
+##   ## plt <- plt+xlab("Date")
+##   ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
+##   ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+##   ## plt + facet_grid(nodeId~.)
+##   ## ggsave("DailyYield.png")
 
-  ## #A bit of an explore here as node 5636 looks a bit wierd
-  ## plt <- ggplot(subset(houseSummary,nodeId==5636))
-  ## plt <- plt+geom_point(aes(dt,count,color=type))
-  ## plt + facet_grid(type~.)
-
-
-  ## #Summarise this so we just get a daily yield per Node
-  ## yieldSum <- ddply(houseSummary,
-  ##                   .(dt),
-  ##                   summarise,
-  ##                   sensors=length(dt),
-  ##                   yield=mean(dayYield),
-  ##                   stYield = sd(dayYield)
-  ##                   )
-
-   #plt <- ggplot(yieldSum)
-   #plt <- plt+geom_point(aes(dt,yield))
-   #plt 
-   #plt + facet_grid(nodeId~.)
-
-   print("SUMMARISING DAYS")
-
-#allDays <- data.frame(date=seq(as.POSIXlt(theHouse$startDate,tz="GMT"),as.POSIXlt(theHouse$endDate,tz="GMT"),by="day"))
-  # ----- RUN LENGHT ENCODING OF THE DAILY YIELD ------
-  allDays <- data.frame(date=seq(hSd,hEd,by="day")) #Get a new frame with all expected days (start-end)
-  yieldSum$DT <- as.Date(yieldSum$dt) 
-  allDays$DT <- as.Date(allDays$date)
-  allYield <- merge(allDays,yieldSum,"DT") #Merge with the daily yield 
-  allBins <- cut(allYield$yield,breaks=c(0,90,110),labels=c("<90","90+"),include.upper=TRUE) #Bin 
-  runLength <- rle(as.character(allBins)) #Do Rle
-  print(paste(runLength$lengths,collapse=","))
-  print(paste(runLength$values,collapse=","))
-
-  ninetyDays <- length(which(allBins == "90+")) #Count yield + 90
-  houseData[rowNo,]$RLE <- ninetyDays
-  print(paste("Days about 90+ Yield",ninetyDays))
-
-  #We may need to Insert the Daily Yield (Per Node) in the Database Too.
-  yieldSumNode <- ddply(houseSummary,
-                        .(dt,nodeId,locationId),
-                        summarise,
-                        yield=mean(dayYield)
-                        )
+##   ## #A bit of an explore here as node 5636 looks a bit wierd
+##   ## plt <- ggplot(subset(houseSummary,nodeId==5636))
+##   ## plt <- plt+geom_point(aes(dt,count,color=type))
+##   ## plt + facet_grid(type~.)
 
 
-   yieldId = summaryData[which(summaryData$name == "Yield"),]$id
-   yieldNodeInsert <- data.frame(time=yieldSumNode$dt,
-                                 nodeId=yieldSumNode$nodeId,
-                                 #sensorTypeId=NA,
-                                 summaryTypeId=yieldId,
-                                 locationId=yieldSumNode$locationId,
-                                 value=yieldSumNode$yield
-                                 )
+##   ## #Summarise this so we just get a daily yield per Node
+##   ## yieldSum <- ddply(houseSummary,
+##   ##                   .(dt),
+##   ##                   summarise,
+##   ##                   sensors=length(dt),
+##   ##                   yield=mean(dayYield),
+##   ##                   stYield = sd(dayYield)
+##   ##                   )
 
-   dbWriteTable(con,"Summary",yieldNodeInsert,append=TRUE,row.name=FALSE)
+##    #plt <- ggplot(yieldSum)
+##    #plt <- plt+geom_point(aes(dt,yield))
+##    #plt 
+##    #plt + facet_grid(nodeId~.)
+
+##    print("SUMMARISING DAYS")
+
+## #allDays <- data.frame(date=seq(as.POSIXlt(theHouse$startDate,tz="GMT"),as.POSIXlt(theHouse$endDate,tz="GMT"),by="day"))
+##   # ----- RUN LENGHT ENCODING OF THE DAILY YIELD ------
+##   allDays <- data.frame(date=seq(hSd,hEd,by="day")) #Get a new frame with all expected days (start-end)
+##   yieldSum$DT <- as.Date(yieldSum$dt) 
+##   allDays$DT <- as.Date(allDays$date)
+##   allYield <- merge(allDays,yieldSum,"DT") #Merge with the daily yield 
+##   allBins <- cut(allYield$yield,breaks=c(0,90,110),labels=c("<90","90+"),include.upper=TRUE) #Bin 
+##   runLength <- rle(as.character(allBins)) #Do Rle
+##   print(paste(runLength$lengths,collapse=","))
+##   print(paste(runLength$values,collapse=","))
+
+##   ninetyDays <- length(which(allBins == "90+")) #Count yield + 90
+##   houseData[rowNo,]$RLE <- ninetyDays
+##   print(paste("Days about 90+ Yield",ninetyDays))
+
+##   #We may need to Insert the Daily Yield (Per Node) in the Database Too.
+##   yieldSumNode <- ddply(houseSummary,
+##                         .(dt,nodeId,locationId),
+##                         summarise,
+##                         yield=mean(dayYield)
+##                         )
+
+
+##    yieldId = summaryData[which(summaryData$name == "Yield"),]$id
+##    yieldNodeInsert <- data.frame(time=yieldSumNode$dt,
+##                                  nodeId=yieldSumNode$nodeId,
+##                                  #sensorTypeId=NA,
+##                                  summaryTypeId=yieldId,
+##                                  locationId=yieldSumNode$locationId,
+##                                  value=yieldSumNode$yield
+##                                  )
+
+##    dbWriteTable(con,"Summary",yieldNodeInsert,append=TRUE,row.name=FALSE)
                                  
-#strLength <- paste(runLength, collapse=",")
-#print(runLength)
-#houseData[rowNo,]$RLE <- strLength
+## #strLength <- paste(runLength, collapse=",")
+## #print(runLength)
+## #houseData[rowNo,]$RLE <- strLength
  
-#  allDays$value <- 25
+## #  allDays$value <- 25
 
  
-  ## allDays$dt <- as.POSIXlt(allDays$date,tz="GMT")
-  ## merge(allDays,yieldSum,by="dt")
- ## plt <- ggplot(yieldSum,aes(dt,yield))
- ## plt <- plt+geom_point(color="red")
- ## plt <- plt+geom_line(color="red")
- ## plt <- plt+geom_errorbar(aes(ymin=yield-stYield,ymax=yield+stYield))
- ## plt <- plt+opts(title="Average Daily Yield + SD")
- ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd,alpha=0.5))
- ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
- ## #plt <- plt+geom_linerange(data=allDays,aes(x=date,ymin=0,ymax=90),color="green")
- ## plt
- ## #ggsave("Avg_Day_Yield.png")
+##   ## allDays$dt <- as.POSIXlt(allDays$date,tz="GMT")
+##   ## merge(allDays,yieldSum,by="dt")
+##  ## plt <- ggplot(yieldSum,aes(dt,yield))
+##  ## plt <- plt+geom_point(color="red")
+##  ## plt <- plt+geom_line(color="red")
+##  ## plt <- plt+geom_errorbar(aes(ymin=yield-stYield,ymax=yield+stYield))
+##  ## plt <- plt+opts(title="Average Daily Yield + SD")
+##  ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd,alpha=0.5))
+##  ## plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+##  ## #plt <- plt+geom_linerange(data=allDays,aes(x=date,ymin=0,ymax=90),color="green")
+##  ## plt
+##  ## #ggsave("Avg_Day_Yield.png")
 
- ##  plt <- ggplot(houseSummary)
- ##  plt <- plt+geom_point(aes(x=dt,y=dayYield))
- ##  plt <- plt+geom_linerange(data=allDays,aes(x=date,ymin=0,ymax=90),color="red")
- ##  plt <- plt + opts(title=paste("Daily Yield for",theHouse$address))
- ##  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd,alpha=0.5))
- ##  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
- ##  plt + geom_hline(y=90)
-  #ggsave("Dailyyield_All.png")
+##  ##  plt <- ggplot(houseSummary)
+##  ##  plt <- plt+geom_point(aes(x=dt,y=dayYield))
+##  ##  plt <- plt+geom_linerange(data=allDays,aes(x=date,ymin=0,ymax=90),color="red")
+##  ##  plt <- plt + opts(title=paste("Daily Yield for",theHouse$address))
+##  ##  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd,alpha=0.5))
+##  ##  plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+##  ##  plt + geom_hline(y=90)
+##   #ggsave("Dailyyield_All.png")
 
-  #Now do some of the Magic Summarisation Function(TM) <thanks to Hadley>
-  # Caluclate Yield for each node
-  nodeSum <- ddply(houseSummary,
-                    .(nodeId,type),
-                    summarise,
-                    #days=length(dt),
-                    count=sum(count),
-                    avgDY = mean(dayYield),
-                    firstSample = min(dt),
-                    lastSample = max(dt)
-                    )
+##   #Now do some of the Magic Summarisation Function(TM) <thanks to Hadley>
+##   # Caluclate Yield for each node
+##   nodeSum <- ddply(houseSummary,
+##                     .(nodeId,type),
+##                     summarise,
+##                     #days=length(dt),
+##                     count=sum(count),
+##                     avgDY = mean(dayYield),
+##                     firstSample = min(dt),
+##                     lastSample = max(dt)
+##                     )
 
-#Plot this
-plt <- ggplot(nodeSum)
-plt <- plt + geom_bar(aes(factor(nodeId),count,fill=factor(type)),position="dodge")
-plt <- plt + opts(title="Total Deployment Samples by Node / Sensor")
-plt
+## #Plot this
+## plt <- ggplot(nodeSum)
+## plt <- plt + geom_bar(aes(factor(nodeId),count,fill=factor(type)),position="dodge")
+## plt <- plt + opts(title="Total Deployment Samples by Node / Sensor")
+## plt
 
-  #houseSum$startDate <- min(houseSummary$dt)
-  #houseSum$endDate <- max(houseSummary$dt)
-  #houseSum$startDate <- theHouse$sd
-  #houseSum$endDate <- theHouse$ed
-  rs = nrow(houseSum)
-  print(paste("Number of Rows ",nrow(houseSum)))
-  if (rs == 0){
-    print("No Data here")
-    return(houseData)
-  }
+##   #houseSum$startDate <- min(houseSummary$dt)
+##   #houseSum$endDate <- max(houseSummary$dt)
+##   #houseSum$startDate <- theHouse$sd
+##   #houseSum$endDate <- theHouse$ed
+##   rs = nrow(houseSum)
+##   print(paste("Number of Rows ",nrow(houseSum)))
+##   if (rs == 0){
+##     print("No Data here")
+##     return(houseData)
+##   }
 
-                                        #Create Calculate the Yield per sensor
-
-
-  #if (is.na(theHouse$ed)) duration <- hEd - hSd else duration <- theHouse$ed - theHouse$sd - 1 #Offset as Last day is included
-
-  duration <- hEd - hSd 
-  expected <- as.real(duration)  * 288 
-  houseSum$duration <- duration
-  houseSum$expected <- expected
-  houseSum$yield <- (houseSum$count / houseSum$expected) * 100.0
+##                                         #Create Calculate the Yield per sensor
 
 
-  plt <- ggplot(houseSum)
-plt <- plt + geom_bar(aes(factor(nodeId),yield,fill=factor(type)),position="dodge")
-plt <- plt + opts(title="Total Deployment Yield by Node / Sensor")
-plt
+##   #if (is.na(theHouse$ed)) duration <- hEd - hSd else duration <- theHouse$ed - theHouse$sd - 1 #Offset as Last day is included
 
- #And where we actually have samples
-  dataDuration <- max(houseSum$lastSample) - min(houseSum$firstSample) 
-  dataExpected <- as.real(dataDuration) * 288
-  houseSum$dataYield <- (houseSum$count / dataExpected) * 100
+##   duration <- hEd - hSd 
+##   expected <- as.real(duration)  * 288 
+##   houseSum$duration <- duration
+##   houseSum$expected <- expected
+##   houseSum$yield <- (houseSum$count / houseSum$expected) * 100.0
+
+
+##   plt <- ggplot(houseSum)
+## plt <- plt + geom_bar(aes(factor(nodeId),yield,fill=factor(type)),position="dodge")
+## plt <- plt + opts(title="Total Deployment Yield by Node / Sensor")
+## plt
+
+##  #And where we actually have samples
+##   dataDuration <- max(houseSum$lastSample) - min(houseSum$firstSample) 
+##   dataExpected <- as.real(dataDuration) * 288
+##   houseSum$dataYield <- (houseSum$count / dataExpected) * 100
  
-  summary(houseSum)
+##   summary(houseSum)
 
-totExpected <- sum(houseSum$expected)
-totSamples <- sum(houseSum$count)
-totYield <- (totSamples / totExpected) * 100.0
+## totExpected <- sum(houseSum$expected)
+## totSamples <- sum(houseSum$count)
+## totYield <- (totSamples / totExpected) * 100.0
 
-#Node Counts
-#CO2 Nodes
-allNodes <- length(unique(houseSum$nodeId))
-coNodes <- length(subset(houseSum,type==8)$nodeId)
+## #Node Counts
+## #CO2 Nodes
+## allNodes <- length(unique(houseSum$nodeId))
+## coNodes <- length(subset(houseSum,type==8)$nodeId)
 
-houseData[rowNo,]$totalNodes <- allNodes
-houseData[rowNo,]$coNodes <- coNodes
-houseData[rowNo,]$yield <- totYield
-houseData[rowNo,]$yieldMin <- min(houseSum$yield)
-houseData[rowNo,]$yieldMax <- max(houseSum$yield)
-houseData[rowNo,]$yieldSD <- sd(houseSum$yield)
- houseData[rowNo,]$yieldDays <- mean(houseSum$dataYield)
+## houseData[rowNo,]$totalNodes <- allNodes
+## houseData[rowNo,]$coNodes <- coNodes
+## houseData[rowNo,]$yield <- totYield
+## houseData[rowNo,]$yieldMin <- min(houseSum$yield)
+## houseData[rowNo,]$yieldMax <- max(houseSum$yield)
+## houseData[rowNo,]$yieldSD <- sd(houseSum$yield)
+##  houseData[rowNo,]$yieldDays <- mean(houseSum$dataYield)
 
-print (paste("Total Yield Is ",totYield))
+## print (paste("Total Yield Is ",totYield))
 
 #plt <- ggplot(houseSum)
 #plt <- plt + geom_point(aes(factor(nodeId),yield,color=factor(type)))
