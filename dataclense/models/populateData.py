@@ -357,42 +357,42 @@ def populateSummaryTypes(session=False):
         session = meta.Session()
 
     #Check if the Daly Count is in the DB
-    typeExists = session.query(SummaryType).filter_by(name="Day Count").first()
-    if typeExists is None:
-        log.debug("Adding Summary Types")
-    
-        theType = SummaryType(id=1,
-                              name="Day Count")
-        session.merge(theType)
-        theType = SummaryType(id=2,
-                              name="Day Count (Clean)")
-        session.merge(theType)
-        theType = SummaryType(id=3,
-                              name="Yield")
-        session.merge(theType)
-        theType = SummaryType(id=4,
-                              nane="Yield (Clean)"
-        session.merge(theType)
-        theType = SummaryType(id=5,
-                              name="Min")
-        session.merge(theType)
-        theType = SummaryType(id=6,
-                              name="Max")
-        session.merge(theType)
-        theType = SummaryType(id=7,
-                              name="Avg")
-        session.merge(theType)
-        theType = SummaryType(id=8,
-                              name="Daily KwH")
-        session.merge(theType)
-        theType = SummaryType(id=9,
-                              name="Daily KwH/DD")
-        session.merge(theType)
-        session.flush()
-        session.commit()
-        session.close()
-    else:
-        log.debug("Summary Types Exist")
+    #typeExists = session.query(SummaryType).filter_by(name="Day Count").first()
+    #if typeExists is None:
+    log.debug("Adding Summary Types")
+
+    theType = SummaryType(id=1,
+                          name="Day Count")
+    session.merge(theType)
+    theType = SummaryType(id=2,
+                          name="Day Count (Clean)")
+    session.merge(theType)
+    theType = SummaryType(id=3,
+                          name="Yield")
+    session.merge(theType)
+    theType = SummaryType(id=4,
+                          name="Yield (Clean)")
+    session.merge(theType)
+    theType = SummaryType(id=5,
+                          name="Min")
+    session.merge(theType)
+    theType = SummaryType(id=6,
+                          name="Max")
+    session.merge(theType)
+    theType = SummaryType(id=7,
+                          name="Avg")
+    session.merge(theType)
+    theType = SummaryType(id=8,
+                          name="Daily KwH")
+    session.merge(theType)
+    theType = SummaryType(id=9,
+                          name="Daily KwH/DD")
+    session.merge(theType)
+    session.flush()
+    session.commit()
+    session.close()
+    #else:
+    #    log.debug("Summary Types Exist")
 
 
 
