@@ -7,7 +7,7 @@ library(plyr)
 
 #Setup Database Connection
 drv <- dbDriver("MySQL")
-con <- dbConnect(drv,dbname="mainStore",user="chuser")
+con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
 #con <- dbConnect(drv,dbname="SampsonClose",user="root",password="adm3csva",host="127.0.0.1",port=3307)
 #con <- dbConnect(drv,dbname="ch",user="chuser")
 #con <- dbConnect(drv,dbname="transferTest",user="chuser")
@@ -101,9 +101,9 @@ houseSummary$countWithBad <- houseSummary$count
 
 # ---- CALIBRATION SANITY PLOT ----
 #Sanity check (Daily Plot)
-## plt <- ggplot(subset(houseSummary,type==0))
-## plt <- plt + geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
-## plt + facet_grid(nodeId~.)
+plt <- ggplot(subset(houseSummary,type==0))
+plt <- plt + geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
+plt + facet_grid(nodeId~.)
 ## ggsave("SUMMARY_RAW_117.png")
 
 #Merge with Calibration Data
@@ -205,12 +205,12 @@ if (nrow(sqlValues)>0){
   }
 
   ## -- SANITY CHECK ON STRIPPED DATA --
-  ## #plt <- ggplot(subset(fixCalib,type==6))
-  ## plt <- ggplot(fixCalib)
-  ## plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
-  ## #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
-  ##   plt + facet_grid(type~nodeId,scales="free_y")
-  ## #plt + facet_grid(type~.)
+  #plt <- ggplot(subset(fixCalib,type==6))
+  plt <- ggplot(fixCalib)
+  plt <- plt+geom_line(aes(ts,value,color="Uncalib"))
+  #plt <- plt+geom_point(aes(ts,calibValue,color="Calib"))
+    plt + facet_grid(type~nodeId,scales="free_y")
+  #plt + facet_grid(type~.)
   ## ggsave("POSTSTRIP.png")
 
   #Summarise so its in the same format as the overall data
@@ -265,13 +265,13 @@ hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
  }
 
 #  -- SANITY CHECK, WHAT THE CLEAN DTA LOOKS LIKELets take a look at the values
-## plt <- ggplot(houseSummary)
-## plt <- plt+geom_step(aes(dt,count,color=factor(type)))
-## plt <- plt+geom_point(aes(dt,count,color=factor(type)))
-## plt <- plt + opts(title="Sample Count By Node / Sensor")
-## plt <- plt + ylab("Readings")
-## plt <- plt + xlab("Date")
-## plt + facet_grid(nodeId~.)
+plt <- ggplot(houseSummary)
+plt <- plt+geom_step(aes(dt,count,color=factor(type)))
+plt <- plt+geom_point(aes(dt,count,color=factor(type)))
+plt <- plt + opts(title="Sample Count By Node / Sensor")
+plt <- plt + ylab("Readings")
+plt <- plt + xlab("Date")
+plt + facet_grid(nodeId~.)
 ## ggsave("CleanCount.png")
 
 #Calculate the Yield per Node / Sensor / Day
@@ -304,8 +304,8 @@ plt <- plt+geom_point(aes(color=factor(type)))
 plt <- plt + opts(title=paste("Yield by Node / Sensor ",hseName))
 plt <- plt + ylab("% Yield (All sensors)")
 plt <- plt+xlab("Date")
-plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
-plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
+#plt <- plt + geom_vline(data=theHouse,aes(xintercept=hSd))
+#plt <- plt + geom_vline(data=theHouse,aes(xintercept=hEd))
 plt + facet_grid(nodeId~.)
 ggsave("YieldDayNode.png")
 
