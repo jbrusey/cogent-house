@@ -44,3 +44,39 @@ houseData <- data.frame(address = allHouses$address,
 i=16
 THEHOUSE <- allHouses[i,]
 hseName <- THEHOUSE$address
+
+  print(paste("Processing House ",hseName))
+  rowNo <- which(houseData$address == hseName)
+  print(paste("Row Number is ",rowNo))
+                                        #Get House
+  houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
+  theHouse <- dbGetQuery(con,statement=houseQry)
+
+  
+  theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
+  theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
+  #theHouse$sd <- as.POSIXlt("2011-03-18",tz="GMT")
+  #Locations
+  locQry <- paste("SELECT * FROM Location as Loc ",
+                  "LEFT OUTER JOIN Room as Room ",
+                  "ON Loc.roomId = Room.id ",
+                  "WHERE houseId =",theHouse$id,
+                  " AND Room.name NOT LIKE 'PhyNet%' ",
+                  " AND Room.name NOT IN ('Hot Water','Cold Water','Flow','Return','Hot','Cold','HotWater','ColdWater') ",
+                  sep="")
+  locations <- dbGetQuery(con,statement=locQry)
+  locationIds <- paste(locations$id,collapse=",")
+
+  #Query to Fetch the Summary Data
+  summaryQry <- paste("SELECT * FROM Summary ",
+                      "WHERE LocationId IN (",locationIds,")",
+                      "AND summaryTypeId = 1")
+
+  summaryData <- dbGetQuery(con,statement=summaryQry)
+  summaryData$dt <- as.POSIXlt(summaryData$time,tz="GMT")
+
+  plt <- ggplot(summaryData,aes(dt,value,color=factor(sensorTypeId)))
+  plt <- plt+geom_point()
+  plt <- plt+geom_step()
+plt + facet_grid(nodeId~.)
+                        
