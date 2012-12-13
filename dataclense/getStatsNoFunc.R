@@ -388,6 +388,7 @@ allSensors$yield <- (allSensors$count / allSensors$expected) * 100.0
 
 totalNodes <- length(unique(yieldSummary$nodeId))
 co2Nodes <- length(unique(subset(yieldSummary,type==8)$nodeId))
+
 houseData[rowNo,]$totalNodes <- totalNodes
 houseData[rowNo,]$coNodes <- co2Nodes
 houseData[rowNo,]$yieldMin <- min(allSensors$yield)
