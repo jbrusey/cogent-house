@@ -40,12 +40,12 @@ houseData <- data.frame(address = allHouses$address,
                         yieldSD = NA,
                         yieldMin = NA,
                         yieldMax = NA,
-                        yieldDays = NA,
-                        RLE = NA
+                        totalSamples = NA,
+                        yieldDays = NA
                         )
 
 
-i=1
+i=3
 THEHOUSE <- allHouses[i,]
 hseName <- THEHOUSE$address
 
@@ -241,7 +241,7 @@ hEd <- as.POSIXlt(theHouse$ed,tz="GMT")
 
 #Calculate the Yield per Node / Sensor / Day
 houseSummary$dayYield <- (houseSummary$count / 288)*100.0   #This is important
-
+ 
 print("Averaging by Node / Location")
 #Averge out the Yields by Node / Location / Date (IE Combine all Sensors together)
 avgYield <- ddply(houseSummary,
@@ -284,6 +284,11 @@ dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
  print ("Stripping Ends of Deployment")
 stripped <- subset(houseSummary,dt>hSd & dt <hEd)
 
+if (nrow(stripped) == 0){
+  print("NO ROWS IN STRIPPED DATA")
+  return(houseData)
+}
+ 
 #Start and End Dates for Yield
 ySd <- hSd + 60*60*24
 yEd <- hEd #- 60*60*24
@@ -315,6 +320,27 @@ allSensors <- ddply(stripped,
 allSensors$expected <- yieldExpected * allSensors$sensorCount
 allSensors$yield <- (allSensors$count / allSensors$expected) * 100.0
 
+dailySummary <- ddply(stripped,
+                     .(dt,nodeId),
+                      summarise,
+                      count=sum(count),
+                      sensorCount=length(unique(type)),
+                      sensorCounts=length(type)
+                      )
+
+dailySummary <- ddply(stripped,
+                      .(dt),
+                      summarise,
+                      count=sum(count),
+                      nodes=length(nodeId),
+                      sensors=length(type)
+                      )
+
+dailySummary$expected <-  288 * dailySummary$sensors
+dailySummary$yield <- dailySummary$count / dailySummary$expected * 100
+ninetyDays <- length(which(dailySummary$yield > 90))
+ 
+ 
 totalNodes <- length(unique(yieldSummary$nodeId))
 co2Nodes <- length(unique(subset(yieldSummary,type==8)$nodeId))
 
@@ -332,6 +358,8 @@ deployExpected <- yieldExpected * totalSensors #Daily Expcted * No Sensors
 finalYield <- (totalSamples / deployExpected) * 100
 print(paste("Final Yield for Deployment ",finalYield,"%"))
 
+houseData[rowNo,]$yieldDays <- ninetyDays
+houseData[rowNo,]$totalSamples <- totalSamples
 houseData[rowNo,]$yield <- finalYield
 return(houseData)
 }
@@ -340,8 +368,8 @@ print ("House List")
 print(allHouses)
 
 
-#for (i in 2:nrow(allHouses)){
-for (i in 1:2){
+for (i in 2:nrow(allHouses)){
+#for (i in 1:2){
   THEHOUSE <- allHouses[i,]
   print(THEHOUSE)
   hseName <- THEHOUSE$address
