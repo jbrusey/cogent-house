@@ -5,11 +5,11 @@ library(plyr)
 
 #Setup Database Connection
 drv <- dbDriver("MySQL")
-con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
-#con <- dbConnect(drv,dbname="SampsonClose",user="root",password="adm3csva",host="127.0.0.1",port=3307)
+#con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
+con <- dbConnect(drv,dbname="SampsonClose",user="root",password="adm3csva",host="127.0.0.1",port=3307)
 #con <- dbConnect(drv,dbname="ch",user="chuser")
 #con <- dbConnect(drv,dbname="transferTest",user="chuser")
-#con <- dbConnect(drv,dbname="transferStore",user="root",password="Ex3lS4ga")
+#con <- dbConnect(drv,dbname="transferTest",user="root",password="Ex3lS4ga")
 
 allHouses <-  dbGetQuery(con,statement="SELECT * FROM House WHERE address != 'ERROR-DATA'")
 summaryData <- dbReadTable(con,"SummaryType")
@@ -45,7 +45,7 @@ houseData <- data.frame(address = allHouses$address,
                         )
 
 
-i=16
+i=2
 THEHOUSE <- allHouses[i,]
 hseName <- THEHOUSE$address
 
@@ -61,8 +61,24 @@ processhouse <- function(hseName,houseData) {
   houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
   theHouse <- dbGetQuery(con,statement=houseQry)
 
-  theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
-  theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
+ theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
+ theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
+
+ theHouse$ed <- tryCatch({as.POSIXlt(theHouse$endDate,tz="GMT")},
+                         error=function(e){
+                           NA
+                         }
+                         )
+ theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
+
+ 
+#  if(is.na(theHouse$startDate) == FALSE){
+#    theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
+#  }
+# is.na(theHouse$endDate) == FALSE | 
+#  if(theHouse$endDate == "0000-00-00 00:00:00"){
+#    try(theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT"))
+#  }
   #Locations
   locQry <- paste("SELECT * FROM Location as Loc ",
                   "LEFT OUTER JOIN Room as Room ",
@@ -379,8 +395,8 @@ return(houseData)
 print ("House List")
 print(allHouses)
 
-
-for (i in 1:nrow(allHouses)){
+#2 for samsone
+for (i in 2:nrow(allHouses)){
 #for (i in 1:2){
   THEHOUSE <- allHouses[i,]
   print(THEHOUSE)
