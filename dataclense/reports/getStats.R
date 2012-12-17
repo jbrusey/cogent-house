@@ -5,7 +5,8 @@ library(plyr)
 
 #Setup Database Connection
 drv <- dbDriver("MySQL")
-con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
+#con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
+con <- dbConnect(drv,dbname="mainStore",user="chuser")
 #con <- dbConnect(drv,dbname="SampsonClose",user="root",password="adm3csva",host="127.0.0.1",port=3307)
 #con <- dbConnect(drv,dbname="ch",user="chuser")
 #con <- dbConnect(drv,dbname="transferTest",user="chuser")
@@ -43,12 +44,6 @@ houseData <- data.frame(address = allHouses$address,
                         totalSamples = NA,
                         yieldDays = NA
                         )
-
-
-i=16
-THEHOUSE <- allHouses[i,]
-hseName <- THEHOUSE$address
-
 
 
 processhouse <- function(hseName,houseData) {
@@ -107,6 +102,8 @@ tmp[noCalibIdx,]$calibrationOffset <- 0
 tmp$calibMin <- (tmp$minVal * tmp$calibrationSlope) + tmp$calibrationOffset
 tmp$calibMax <- (tmp$maxVal * tmp$calibrationSlope) + tmp$calibrationOffset
 tmp$calibMean <- (tmp$meanVal * tmp$calibrationSlope) + tmp$calibrationOffset
+
+ 
 #Remove Data outside of given bands
 tmp$badValue <- NA
 #Temperatre
@@ -130,18 +127,7 @@ badRows <- which(tmp$type==6 & (tmp$calibMin< 0 | tmp$calibMax>5))
 if (length(badRows) > 0){
   tmp[badRows,]$badValue <- TRUE
 }
-
-plt <- ggplot(subset(tmp,type==0 | type == 2))
-plt <- plt + geom_point(aes(dt,calibMean,color=badValue))
-plt <- plt+geom_errorbar(aes(dt,ymin=calibMin,ymax=calibMax,color=badValue))
-plt <- plt + opts(title=paste(hseName,"Unclean Data"))
-plt <- plt + xlab("Date")
-plt <- plt+ylab("Value")
-plt+facet_grid(type~nodeId,scale="free")
-              
- 
- 
- 
+            
 #Work out the correct SQL statement
 sqlValues <- subset(tmp, badValue==TRUE)
 
@@ -378,24 +364,29 @@ houseData[rowNo,]$yield <- finalYield
 return(houseData)
 }
 
-print ("House List")
-print(allHouses)
+## print ("House List")
+## print(allHouses)
 
 
-for (i in 1:nrow(allHouses)){
-#for (i in 1:2){
-  THEHOUSE <- allHouses[i,]
-  print(THEHOUSE)
-  hseName <- THEHOUSE$address
-  print(paste("Deaing with ",hseName))
-  #if (i != 14){ #Main Data (Brays)
-  if (i!= 15){ # Seocond Data Brays
-    print(paste("--> Processing Data with ",hseName))
-    houseData <- processhouse(hseName,houseData)
-  }
-  write.table(houseData, "allSummary.csv", sep=",")
-}
+i=16
+THEHOUSE <- allHouses[i,]
+hseName <- THEHOUSE$address
+houseData <- processhouse(hseName,houseData)
 
-print(houseData)
+## for (i in 1:nrow(allHouses)){
+## #for (i in 1:2){
+##   THEHOUSE <- allHouses[i,]
+##   print(THEHOUSE)
+##   hseName <- THEHOUSE$address
+##   print(paste("Deaing with ",hseName))
+##   #if (i != 14){ #Main Data (Brays)
+##   if (i!= 15){ # Seocond Data Brays
+##     print(paste("--> Processing Data with ",hseName))
+##     houseData <- processhouse(hseName,houseData)
+##   }
+##   write.table(houseData, "allSummary.csv", sep=",")
+## }
 
-write.table(houseData, "allSummary.csv", sep=",")
+## print(houseData)
+
+## write.table(houseData, "allSummary.csv", sep=",")

@@ -1,6 +1,7 @@
 \documentclass[10pt,a4paper]{article}
 \usepackage[OT1]{fontenc}
 \usepackage{Sweave}
+\usepackage{fullpage}
 
 \title{Deployment Data Cleanup}
 \author{D Goldsmith, R Wilkins}
@@ -88,8 +89,13 @@ name. Then run the script through R.
 \begin{itemize}
 \item Load the relevant R librarys
 \item Connects to the database
-\item Loads the Relevant Tables
-
+\item Loads the Relevant Lookup tables into memory.
+  \begin{itemize}
+  \item Houses Table
+  \item Sensor Table (For Calibration)
+  \item Sensor Type Table
+  \item Summary Type Table
+  \end{itemize}
 \end{itemize}
 
 <<echo=FALSE>>=
@@ -141,5 +147,307 @@ i=16
 THEHOUSE <- allHouses[i,]
 hseName <- THEHOUSE$address
 @ 
+
+\subsection{Loading the Inital Dataset}
+
+This section of code fetches the relevant data for each property.
+
+First the relevant house is fetched, and the start and end dates processed to
+convert to a format R is comfortable with.
+
+Next the Relevant locations are fetched using the following query
+This query also fetches the corresponding room names for each location for use
+in a lookup table if required.
+
+The Start and End dates of the deployment are calculated, and converted into a
+format that R is happy with.
+
+Finally, the relevant dataset is fetched. 
+
+Rather than fetch the entire dataset, and process it on the local machine, the
+query used makes use of SQL summarising functions to group the data by day. 
+The query fetches the following 
+
+\begin{description}
+
+\item[nodeId] Used to Identify the Node
+\item[locationId] Used to Identify the Location
+\item[date] Timestamp converted to a date (i.e. with the time removed)
+\item[minTime] Time of first sample on this date
+\item[maxTime] Time of last sample on this date
+\item[minVal] Minimum reported Value on this date
+\item[maxVal] Maximum reported value on this date
+\item[meanVal] Average value reported on this date
+\end{description}
+
+<<echo=FALSE>>=
+  #As the function paramerter is a row number, Work out which House we are dealing with.
+  print(paste("Processing House ",hseName))
+  rowNo <- which(houseData$address == hseName)
+  cleanName <- gsub(" ","",hseName)
+
+  #Get House from the database
+  houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
+  theHouse <- dbGetQuery(con,statement=houseQry)
+
+  #Process start and end dates into a format that R is happy with
+  theHouse$sd <- tryCatch({as.POSIXlt(theHouse$startDate,tz="GMT")},
+                         error=function(e){NA}
+                          )
+
+ theHouse$ed <- tryCatch({as.POSIXlt(theHouse$endDate,tz="GMT")},
+                         error=function(e){NA}
+                         )
+
+  #Fetch Locations from the database
+  locQry <- paste("SELECT * FROM Location as Loc ",
+                  "LEFT OUTER JOIN Room as Room ",
+                  "ON Loc.roomId = Room.id ",
+                  "WHERE houseId =",theHouse$id,
+                  " AND Room.name NOT LIKE 'PhyNet%' ",
+                  " AND Room.name NOT IN ('Hot Water','Cold Water','Flow','Return','Hot','Cold','HotWater','ColdWater') ",
+                  sep="")
+  locations <- dbGetQuery(con,statement=locQry)
+
+  #Convert into a string so we can put the data into the next query
+  locationIds <- paste(locations$id,collapse=",")
+
+  print(paste("Expected Start ",theHouse$startDate,"Expected End",theHouse$endDate))
+ 
+  houseData[rowNo,]$dbStart <- theHouse$startDate
+  houseData[rowNo,]$dbEnd <- theHouse$endDate
+
+dataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) as count, min(time) as minTime,max(time) as maxTime, min(value) as minVal, max(value) as maxVal, avg(value) as meanVal",
+                   " FROM Reading WHERE locationId IN (",
+                   locationIds,") ",
+                   " AND type IN (",paste(sensorTypeList$id,collapse=","),") ",
+                   " GROUP BY nodeId,type,DATE(time)",
+                   sep="")
+#Fetch the data
+houseSummary <- dbGetQuery(con,statement=dataQry)
+#Add a time object so that makes sense to R
+houseSummary$dt <- as.POSIXlt(houseSummary$date,tz="GMT")
+houseSummary$DT <- as.Date(houseSummary$dt)
+#And add some extra cols to hold summary information
+houseSummary$countWithBad <- houseSummary$count
+@
+
+\subsection{Calibration}
+For the purpouses of error detection, it should be sufficent to examine the
+minimum and maximum values.
+
+The dataset is calibrated by merging with the calibration table, to append the
+calibration slope and offset (where known), where there is no calibration data,
+a default value of 1 for slope, and 0 for offset are used.  
+From this a calibrated version of the Min,Max and Mean values is calculated.
+
+<<echo=FALSE>>=
+#Merge with Calibration Data
+tmp <- merge(houseSummary,calibrationData,by.x=c("nodeId","type"),by.y=c("nodeId","sensorTypeId"),all.x=TRUE)
+#foo <- is.na(tmp$id)
+
+#Add a dafualt calibration for nodes that have none
+noCalibIdx <- which(is.na(tmp$id)==TRUE)
+tmp[noCalibIdx,]$calibrationSlope <- 1
+tmp[noCalibIdx,]$calibrationOffset <- 0
+
+#Calibrate
+tmp$calibMin <- (tmp$minVal * tmp$calibrationSlope) + tmp$calibrationOffset
+tmp$calibMax <- (tmp$maxVal * tmp$calibrationSlope) + tmp$calibrationOffset
+tmp$calibMean <- (tmp$meanVal * tmp$calibrationSlope) + tmp$calibrationOffset
+#Remove Data outside of given bands
+tmp$badValue <- NA
+@ 
+
+Figure~\ref{fig:calibData} shows the calibrated data, before any error handling
+takes place.
+
+\SweaveOpts{width=8, height=5}
+
+\begin{figure}[ht]
+<<summaryData,fig=TRUE,echo=FALSE,width=8>>=
+plt <- ggplot(subset(tmp,type==0))
+plt <- plt+geom_point(aes(dt,calibMean,color="calibrated"))
+plt <- plt+geom_errorbar(aes(dt,ymin=calibMin,ymax=calibMax,color="calibrated"))
+plt <- plt+geom_point(aes(dt,meanVal,color="uncalibrated"))
+plt <- plt+opts(title=paste(hseName,"Summary Temperature Data (calibrated)"))
+plt <- plt+xlab("Date")+ylab("Value")
+plt <- plt + facet_grid(nodeId~.)
+print(plt)
+@ 
+\caption{Calibrated Data}
+\label{fig:calibData}
+\end{figure}
+
+\subsection{Error Detection}
+Errors in the data are detected using a basic threshold based approach: Dates
+where the minimum or maximum values fall out of the ranges in
+Table~\ref{tab:accepted-Range} are marked as invalid.
+
+\emph{NOTE:} Given that with the Telos the data for temperature and humidity
+sensors tends to go bad when the battery voltage falls below 2.3V,  it may be
+appropriate to filter any temperature values when the battery drops below this level.
+
+\begin{table}[htbp]
+\begin{tabular}{l l l}
+  Parameter & Minimum Threshold & Maximum Threshold \\
+  \hline
+  Temperature & -10 & 50 \\
+  Humidity & 0 & 100 \\
+  Co2 & 0 & 6000
+\end{tabular}
+\caption{Accepted Ranges}
+\label{tab:accepted-Range}
+\end{table}
+
+<<echo=FALSE>>=
+#Set a flag for data outside of certain bands
+tmp$badValue <- NA
+
+#Temperatre
+badRows <- which(tmp$type==0 & (tmp$calibMin < -10 | tmp$calibMax>50 ))
+if (length(badRows) > 0){
+  tmp[badRows,]$badValue <- TRUE
+}
+#Humidity
+badRows <- which(tmp$type==2 & (tmp$calibMin < 0 | tmp$calibMax>100 ))
+if (length(badRows) > 0){
+  tmp[badRows,]$badValue <- TRUE
+}
+#Co2
+badRows <- which(tmp$type==8 & (tmp$calibMin < 0 | tmp$calibMax>6000 ))
+if (length(badRows) > 0){
+  tmp[badRows,]$badValue <- TRUE
+}
+#TODO
+#Rather than threshold by anything else, Threshold Electricity by something sensible
+badRows <- which(tmp$type==6 & (tmp$calibMin< 0 | tmp$calibMax>5))
+if (length(badRows) > 0){
+  tmp[badRows,]$badValue <- TRUE
+}
+            
+@ 
+
+Where data is marked as invalid, the full data stream for that day and node is
+collected.
+
+This full data stream is then calibrated and the bad readings removed using the
+method above.
+
+Each day is then summarised, and the original entry in the \emph{houseSummary}
+data frame replaced with the new summary values.  Additionally, a new column
+\emph{badCount} is added to the data table to represent the total number of
+samples before any data is removed.  This may allow some insight into the number
+of bad samples per deployment.
+
+%I would love to break this down, but I cant work out how to split blocks of code
+%to keep the IF statement together.
+<<echo=FALSE>>=
+#Work out the correct SQL statement
+sqlValues <- subset(tmp, badValue==TRUE)
+
+if (nrow(sqlValues)>0){
+  uniqueNode <- paste(unique(sqlValues$nodeId),collapse=",")
+  uniqueDate <- paste(shQuote(unique(sqlValues$dt)),collapse=",")
+  theQry = paste("SELECT * FROM Reading WHERE",
+    " NodeId IN (",uniqueNode,")",
+    " AND Date(time) IN (",uniqueDate,")",
+    " AND type IN (",
+    paste(sensorTypeList$id,collapse=","),
+    ")",
+    sep="")
+
+  #Fetch all that data
+  fixData <- dbGetQuery(con,statement=theQry)
+  
+  #Merge with Calibration Stuff
+  fixCalib <- merge(fixData,calibrationData,by.x=c("nodeId","type"),by.y=c("nodeId","sensorTypeId"),all.x=TRUE)
+  noCalibIdx <- which(is.na(fixCalib$id)==TRUE)
+  rowcount <- length(noCalibIdx)
+  if (rowcount >0){
+    fixCalib[noCalibIdx,]$calibrationSlope <- 1
+    fixCalib[noCalibIdx,]$calibrationOffset <- 0
+  }
+  
+  #Calibrate
+  fixCalib$calibValue <- (fixCalib$value * fixCalib$calibrationSlope) + fixCalib$calibrationOffset
+  fixCalib$ts <- as.POSIXlt(fixCalib$time,tz="GMT")
+  fixCalib$dt <- as.Date(fixCalib$ts)
+
+  #Remove all the bad data
+  fixCalib$badValue <- FALSE
+  badRows <- which(fixCalib$type==0 & (fixCalib$calibValue < -10 | fixCalib$calibValue>50 ))
+  if (length(badRows) > 0){
+    fixCalib[badRows,]$badValue <- TRUE
+    fixCalib[badRows,]$value = NA
+  }
+  badRows <- which(fixCalib$type==2 & (fixCalib$calibValue < 0 | fixCalib$calibValue>100 ))
+  if (length(badRows) > 0){
+    fixCalib[badRows,]$badValue <- TRUE
+    fixCalib[badRows,]$value = NA
+  }
+  badRows <- which(fixCalib$type==8 & (fixCalib$calibValue < 0 | fixCalib$calibValue>6000 ))
+  if (length(badRows) > 0){
+    fixCalib[badRows,]$badValue <- TRUE
+    fixCalib[badRows,]$value = NA
+  }
+  #We could do with removing any temperture / humidity data where the battery level is below XXX
+  badRows <- which(fixCalib$type==6 & (fixCalib$calibValue < 0 | fixCalib$calibValue>5))
+  if (length(badRows) > 0){
+    fixCalib[badRows,]$badValue <- TRUE
+    fixCalib[badRows,]$value = NA
+  }
+
+  #Summarise so its in the same format as the overall data
+  fixSummary <- ddply(fixCalib,
+                      .(nodeId,locationId,type,dt),
+                      summarise,
+                      minVal = min(value,na.rm=TRUE),
+                      maxVal = max(value,na.rm=TRUE),
+                      meanVal = mean(value,na.rm=TRUE),
+                      minTime = min(ts),
+                      maxTime = max(ts),
+                      count = length(value),
+                      naCount =sum(is.na(value)),
+                      tCount = length(value)-sum(is.na(value))
+                      )
+
+  #Remove the Infs put in by sumary functions where there is no data.
+  infDates <- which(is.infinite(fixSummary$minVal)==TRUE)
+  if (length(infDates)>0){
+    fixSummary[which(is.infinite(fixSummary$minVal)==TRUE),]$minVal <- NA
+    fixSummary[which(is.infinite(fixSummary$maxVal)== TRUE),]$maxVal <- NA
+  }
+
+  #And Replace the original Values
+  for (i in 1:nrow(fixSummary)){
+    thisRow <- fixSummary[i,]
+    rowIdx <- which(houseSummary$nodeId == thisRow$nodeId & houseSummary$locationId ==thisRow$locationId & houseSummary$type == thisRow$type & houseSummary$DT == thisRow$dt)
+    houseSummary[rowIdx,]$count <- thisRow$tCount
+    houseSummary[rowIdx,]$countWithBad <- thisRow$count
+    houseSummary[rowIdx,]$minVal <- thisRow$minVal
+    houseSummary[rowIdx,]$maxVal <- thisRow$maxVal
+  }
+} #End of IF Statement
+@ 
+
+Figure~\ref{fig:remove-calib-data}, demonstrates calibration and removal of
+erroneous data,  samples in \emph{blue} are removed from the database
+
+\begin{figure}
+<<fig=TRUE,echo=FALSE>>=
+plt <- ggplot(subset(fixCalib,type==0))
+plt <- plt+geom_point(aes(dt,calibValue,color=badValue))
+plt <- plt + ylab("Value") + xlab("Date")
+plt <- plt+opts(title="Calibrating and Removing 'Bad' data")
+plt <- plt+facet_grid(nodeId~.)                    
+print(plt)
+@ 
+\caption{Calibrate and Remove ``bad'' samples}
+\label{fig:remove-calib-data}
+\end{figure}
+
+\subsection{Calculating Yields}
+
 
 \end{document}

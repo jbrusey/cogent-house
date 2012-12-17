@@ -1,6 +1,7 @@
 \documentclass[10pt,a4paper]{article}
 \usepackage[OT1]{fontenc}
 \usepackage{Sweave}
+\usepackage{fullpage}
 
 \title{Deployment Data Cleanup}
 \author{D Goldsmith, R Wilkins}
@@ -88,9 +89,128 @@ name. Then run the script through R.
 \begin{itemize}
 \item Load the relevant R librarys
 \item Connects to the database
-\item Loads the Relevant Tables
-
+\item Loads the Relevant Lookup tables into memory.
+  \begin{itemize}
+  \item Houses Table
+  \item Sensor Table (For Calibration)
+  \item Sensor Type Table
+  \item Summary Type Table
+  \end{itemize}
 \end{itemize}
+
+
+\subsection{Loading the Inital Dataset}
+
+This section of code fetches the relevant data for each property.
+
+First the relevant house is fetched, and the start and end dates processed to
+convert to a format R is comfortable with.
+
+Next the Relevant locations are fetched using the following query
+This query also fetches the corresponding room names for each location for use
+in a lookup table if required.
+
+The Start and End dates of the deployment are calculated, and converted into a
+format that R is happy with.
+
+Finally, the relevant dataset is fetched. 
+
+Rather than fetch the entire dataset, and process it on the local machine, the
+query used makes use of SQL summarising functions to group the data by day. 
+The query fetches the following 
+
+\begin{description}
+
+\item[nodeId] Used to Identify the Node
+\item[locationId] Used to Identify the Location
+\item[date] Timestamp converted to a date (i.e. with the time removed)
+\item[minTime] Time of first sample on this date
+\item[maxTime] Time of last sample on this date
+\item[minVal] Minimum reported Value on this date
+\item[maxVal] Maximum reported value on this date
+\item[meanVal] Average value reported on this date
+\end{description}
+
+\begin{Schunk}
+\begin{Soutput}
+[1] "Processing House  131Jodrell"
+\end{Soutput}
+\begin{Soutput}
+[1] "Expected Start  2011-12-12 00:00:00 Expected End 2012-02-17 00:00:00"
+\end{Soutput}
+\end{Schunk}
+
+\subsection{Calibration}
+For the purpouses of error detection, it should be sufficent to examine the
+minimum and maximum values.
+
+The dataset is calibrated by merging with the calibration table, to append the
+calibration slope and offset (where known), where there is no calibration data,
+a default value of 1 for slope, and 0 for offset are used.  
+From this a calibrated version of the Min,Max and Mean values is calculated.
+
+
+Figure~\ref{fig:calibData} shows the calibrated data, before any error handling
+takes place.
+
+
+
+\begin{figure}[ht]
+\includegraphics{YieldReport-summaryData}
+\caption{Calibrated Data}
+\label{fig:calibData}
+\end{figure}
+
+\subsection{Error Detection}
+Errors in the data are detected using a basic threshold based approach: Dates
+where the minimum or maximum values fall out of the ranges in
+Table~\ref{tab:accepted-Range} are marked as invalid.
+
+\emph{NOTE:} Given that with the Telos the data for temperature and humidity
+sensors tends to go bad when the battery voltage falls below 2.3V,  it may be
+appropriate to filter any temperature values when the battery drops below this level.
+
+\begin{table}[htbp]
+\begin{tabular}{l l l}
+  Parameter & Minimum Threshold & Maximum Threshold \\
+  \hline
+  Temperature & -10 & 50 \\
+  Humidity & 0 & 100 \\
+  Co2 & 0 & 6000
+\end{tabular}
+\caption{Accepted Ranges}
+\label{tab:accepted-Range}
+\end{table}
+
+
+Where data is marked as invalid, the full data stream for that day and node is
+collected.
+
+This full data stream is then calibrated and the bad readings removed using the
+method above.
+
+Each day is then summarised, and the original entry in the \emph{houseSummary}
+data frame replaced with the new summary values.  Additionally, a new column
+\emph{badCount} is added to the data table to represent the total number of
+samples before any data is removed.  This may allow some insight into the number
+of bad samples per deployment.
+
+%I would love to break this down, but I cant work out how to split blocks of code
+%to keep the IF statement together.
+
+\begin{Schunk}
+\begin{Sinput}
+> plt <- ggplot(subset(fixCalib,type==0))
+> plt <- plt+geom_point(aes(dt,calibValue,color=badValue))
+> plt <- plt + ylab("Value") + xlab("Date")
+> plt <- plt+opts(title="Calibrating 'Bad' data")
+> plt <- plt+facet_grid(nodeId~.)                    
+> print(plt)
+\end{Sinput}
+\end{Schunk}
+\includegraphics{YieldReport-007}
+
+
 
 
 \end{document}
