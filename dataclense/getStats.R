@@ -61,15 +61,20 @@ processhouse <- function(hseName,houseData) {
   houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
   theHouse <- dbGetQuery(con,statement=houseQry)
 
- theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
- theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
+ #theHouse$sd <- as.POSIXlt(theHouse$startDate,tz="GMT")
+  theHouse$sd <- tryCatch({as.POSIXlt(theHouse$startDate,tz="GMT")},
+                         error=function(e){
+                           NA
+                         }
+                         )
 
+ #theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
  theHouse$ed <- tryCatch({as.POSIXlt(theHouse$endDate,tz="GMT")},
                          error=function(e){
                            NA
                          }
                          )
- theHouse$ed <- as.POSIXlt(theHouse$endDate,tz="GMT")
+
 
  
 #  if(is.na(theHouse$startDate) == FALSE){
@@ -395,21 +400,26 @@ return(houseData)
 print ("House List")
 print(allHouses)
 
-#2 for samsone
-for (i in 2:nrow(allHouses)){
-#for (i in 1:2){
-  THEHOUSE <- allHouses[i,]
-  print(THEHOUSE)
-  hseName <- THEHOUSE$address
-  print(paste("Deaing with ",hseName))
-  #if (i != 14){ #Main Data (Brays)
-  if (i!= 15){ # Seocond Data Brays
-    print(paste("--> Processing Data with ",hseName))
-    houseData <- processhouse(hseName,houseData)
-  }
-  write.table(houseData, "allSummary.csv", sep=",")
-}
+i = 15
+hseName <- allHouses[i,]$address
+houseData <- processhouse(hseName,houseData)
+write.table(houseData, "allSummary.csv", sep=",")
+
+## #2 for samsone
+## for (i in 2:nrow(allHouses)){
+## #for (i in 1:2){
+##   THEHOUSE <- allHouses[i,]
+##   print(THEHOUSE)
+##   hseName <- THEHOUSE$address
+##   print(paste("Deaing with ",hseName))
+##   #if (i != 14){ #Main Data (Brays)
+##   #if (i!= 15){ # Seocond Data Brays
+##     print(paste("--> Processing Data with ",hseName))
+##     houseData <- processhouse(hseName,houseData)
+##   }
+##   write.table(houseData, "allSummary.csv", sep=",")
+## }
 
 print(houseData)
 
-write.table(houseData, "allSummary.csv", sep=",")
+#write.table(houseData, "allSummary.csv", sep=",")
