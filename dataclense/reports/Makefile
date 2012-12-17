@@ -12,7 +12,7 @@ pdf: $(rnwfile).pdf
 $(rnwfile).pdf: $(rnwfile).tex
 	pdflatex $(rnwfile).tex
 
-$(rnwfile).tex:
+$(rnwfile).tex: $(rnwfile).Rnw
 	R CMD Sweave $(rnwfile).Rnw
 
 clean:

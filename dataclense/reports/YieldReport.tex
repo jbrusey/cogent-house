@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 \usepackage[OT1]{fontenc}
 \usepackage{Sweave}
 
@@ -18,6 +18,39 @@ includes code snippets from the R script used to generate the data.
 
 The document was generated in R and Latex, using the Sweave plugin.
 
+
+\section{Summary Table}
+A new table added to the database, the summary table is intended to hold summary
+statistics on deployments.  This means that future work can avoid having to
+process entire data sets when dealing with yield, or other summarised functions.  
+
+The summary table takes the same form as the reading table, with an additional
+\emph{summary type} column,  these summary types are taken from a lookup
+table in the database.
+
+Database Rows, and expected inputs are given below
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{l l p{6cm}}
+    Row & Type & Description \\ \hline
+    Time & PK,Required & Timestamp of summary, In general I would expect
+  this to use midnight to summarise a complete day. However, if more detailed
+  summaries (such as hourly) are needed, this should not be a problem.\\
+    nodeId &PK,Required & Id of node that this summary is from\\
+    sensorTypeId &PK & Id of sensor that this summary is from,  this
+  can be left NULL to indicate whole node summary samples (for example yield)\\
+    summaryTypeId &FK &  Id of summary type.\\
+    locationId & FK & Id of location this node is from,  to keep
+  parity with the reading table\\
+    value & float& Value of the summary\\
+    textValue & string(30)& Optional text description of the summary, for example ``Hot''
+  if we are dealing with exposure graphs.\\
+    
+  \end{tabular}
+  \caption{Summary Table Description}
+\end{table}
+
 \section{Scripts}
 This section has a description of the scripts used process the data, and combine
 all samples into one database.
@@ -35,16 +68,29 @@ They can found in the \emph{dataclense} directory of the \emph{cogent-house/djgo
     \item[calcKwh.R] R script to caluclate KwH usage from current cost readings.
 \end{description}
 
+Further details of these scripts are given below
+
+\section{getStats.R}
+
+This script calculates summary statistics for all houses in a given database.
+The statistics are output in two formats.
+\begin{itemize}
+  \item \emph{.csv} file with summary output for this database
+  \item update rows in the \emph{summary} table given these statistics
+\end{itemize}
+
+To run the script modify the source file with the relevant database access
+name. Then run the script through R. 
 
 
-\begin{Schunk}
-\begin{Sinput}
-> library(RMySQL)
-> library(ggplot2)
-> drv <- dbDriver("MySQL")
-> con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
-> allHouses <-  dbGetQuery(con,statement="SELECT * FROM House WHERE address != 'ERROR-DATA'")
-\end{Sinput}
-\end{Schunk}
+\subsection{Script initialisation}
+
+\begin{itemize}
+\item Load the relevant R librarys
+\item Connects to the database
+\item Loads the Relevant Tables
+
+\end{itemize}
+
 
 \end{document}

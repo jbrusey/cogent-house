@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.22)  17 DEC 2012 11:19
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.22)  17 DEC 2012 12:06
 entering extended mode
  %&-line parsing enabled.
 **YieldReport.tex
@@ -8,8 +8,8 @@ Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
 yphenation, loaded.
 (/usr/share/texmf-texlive/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texmf-texlive/tex/latex/base/size12.clo
-File: size12.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+(/usr/share/texmf-texlive/tex/latex/base/size10.clo
+File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
 \c@section=\count80
@@ -164,8 +164,7 @@ LaTeX Font Info:    Try loading font information for T1+aer on input line 100.
 
 (/usr/share/texmf-texlive/tex/latex/ae/t1aer.fd
 File: t1aer.fd 1997/11/16 Font definitions for T1/aer.
-))))
-No file YieldReport.aux.
+)))) (./YieldReport.aux)
 \openout1 = `YieldReport.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
@@ -182,6 +181,7 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
 LaTeX Font Info:    ... okay on input line 8.
 LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 8.
 LaTeX Font Info:    Try loading font information for TS1+cmr on input line 8.
+
 (/usr/share/texmf-texlive/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
@@ -201,59 +201,44 @@ LaTeX Font Info:    ... okay on input line 8.
 \everyMPtoPDFconversion=\toks16
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 9.
+(Font)              <12> on input line 9.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 9.
-
-Overfull \hbox (7.63841pt too wide) in paragraph at lines 27--28
-[]\T1/aer/m/n/12 They can found in the \T1/aer/m/it/12 dat-a-clense \T1/aer/m/n
-/12 di-rec-tory of the \T1/aer/m/it/12 cogent-house/djgoldsmith-
- []
-
-
-Overfull \hbox (1.4801pt too wide) in paragraph at lines 30--32
-[]\T1/aer/m/n/12 Transfers cur-rent cost data from the old style sqlite databas
-e,
- []
-
-LaTeX Font Info:    Try loading font information for T1+aett on input line 41.
-(/usr/share/texmf-texlive/tex/latex/ae/t1aett.fd
-File: t1aett.fd 1997/11/16 Font definitions for T1/aett.
-)
-LaTeX Font Info:    Try loading font information for TS1+aett on input line 46.
-
-
-(/usr/share/texmf/tex/latex/R/tex/latex/ts1aett.fd
-File: ts1aett.fd 
-)
-LaTeX Font Info:    Try loading font information for TS1+cmtt on input line 46.
-
-
-(/usr/share/texmf-texlive/tex/latex/base/ts1cmtt.fd
-File: ts1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
-)
-LaTeX Font Info:    Font shape `TS1/aett/m/sl' in size <12> not available
-(Font)              Font shape `TS1/cmtt/m/sl' tried instead on input line 46.
+(Font)              <8> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 35.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 35.
  [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] (./YieldReport.aux) ) 
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    Try loading font information for TS1+aer on input line 78.
+
+(/usr/share/texmf/tex/latex/R/tex/latex/ts1aer.fd
+File: ts1aer.fd 
+)
+LaTeX Font Info:    Font shape `TS1/aer/m/n' in size <10> not available
+(Font)              Font shape `TS1/cmr/m/n' tried instead on input line 78.
+ [2] (./YieldReport.aux) ) 
 Here is how much of TeX's memory you used:
- 2132 strings out of 495061
- 29011 string characters out of 1182621
- 72885 words of memory out of 3000000
- 5284 multiletter control sequences out of 15000+50000
- 25637 words of font info for 55 fonts, out of 3000000 for 9000
+ 2125 strings out of 495061
+ 28485 string characters out of 1182621
+ 75860 words of memory out of 3000000
+ 5274 multiletter control sequences out of 15000+50000
+ 28558 words of font info for 60 fonts, out of 3000000 for 9000
  28 hyphenation exceptions out of 8191
- 35i,6n,21p,243b,284s stack positions out of 5000i,500n,10000p,200000b,50000s
- 
-</tmp/texfonts/pk/ljfour/jknappen/ec/tcst1200.600pk></usr/share/texmf-texlive/f
-onts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-texlive/fonts/type1/
-public/amsfonts/cm/cmr12.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfo
-nts/cm/cmr17.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmslt
-t10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on YieldReport.pdf (2 pages, 69968 bytes).
+ 35i,9n,21p,243b,213s stack positions out of 5000i,500n,10000p,200000b,50000s
+ </home/dang/.texmf-var/fonts/pk/ljfour/jknappen/ec/t
+crm1000.600pk></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmbx10.p
+fb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/sh
+are/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-te
+xlive/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-texlive/fonts/
+type1/public/amsfonts/cm/cmr17.pfb></usr/share/texmf-texlive/fonts/type1/public
+/amsfonts/cm/cmti10.pfb>
+Output written on YieldReport.pdf (2 pages, 87066 bytes).
 PDF statistics:
- 34 PDF objects out of 1000 (max. 8388607)
+ 38 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
