@@ -1,0 +1,50 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[OT1]{fontenc}
+\usepackage{Sweave}
+
+\title{Deployment Data Cleanup}
+\author{D Goldsmith, R Wilkins}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Below is a description of the data summary process, how the information is
+processed an yields calculated.
+
+It takes the form of a walk though of the yield calculation process, and
+includes code snippets from the R script used to generate the data.
+
+The document was generated in R and Latex, using the Sweave plugin.
+
+\section{Scripts}
+This section has a description of the scripts used process the data, and combine
+all samples into one database.
+
+These scripts are designed to work with the new format (location aware) database format.
+
+They can found in the \emph{dataclense} directory of the \emph{cogent-house/djgoldsmith-devel} repository.
+
+\begin{description}
+    \item[processCC.py]  Transfers current cost data from the old style sqlite
+      database, into the new format database.
+    \item[processAr.py] Transfers data from an Archrock postgresql database into the
+      new format database.
+    \item[getStats.R] R script that calculates yields for each deployment in a given database
+    \item[calcKwh.R] R script to caluclate KwH usage from current cost readings.
+\end{description}
+
+
+
+\begin{Schunk}
+\begin{Sinput}
+> library(RMySQL)
+> library(ggplot2)
+> drv <- dbDriver("MySQL")
+> con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
+> allHouses <-  dbGetQuery(con,statement="SELECT * FROM House WHERE address != 'ERROR-DATA'")
+\end{Sinput}
+\end{Schunk}
+
+\end{document}
