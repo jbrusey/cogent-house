@@ -140,6 +140,8 @@ plt <- plt+ylab("Value")
 plt+facet_grid(type~nodeId,scale="free")
               
  
+ 
+ 
 #Work out the correct SQL statement
 sqlValues <- subset(tmp, badValue==TRUE)
 
