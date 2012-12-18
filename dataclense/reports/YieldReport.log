@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.1.10)  18 DEC 2012 11:08
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.1.10)  18 DEC 2012 14:09
 entering extended mode
  %&-line parsing enabled.
 **YieldReport.tex
@@ -246,42 +246,36 @@ LaTeX Font Info:    ... okay on input line 77.
 Package color Info: Redefining color shadecolor on input line 173.
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10> not available
 (Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 176.
-LaTeX Font Info:    Try loading font information for TS1+cmtt on input line 188
+LaTeX Font Info:    Try loading font information for TS1+cmtt on input line 182
 .
 
 (/usr/share/texmf-texlive/tex/latex/base/ts1cmtt.fd
 File: ts1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-Overfull \hbox (35.27538pt too wide) in paragraph at lines 192--192
+Overfull \hbox (35.27538pt too wide) in paragraph at lines 186--186
 []\OT1/cmtt/m/n/10 allHouses <- []dbGetQuery[](con, statement = []"SELECT * FRO
 M House WHERE address != []\TS1/cmtt/m/n/10 '\OT1/cmtt/m/n/10 ERROR-DATA\TS1/cm
 tt/m/n/10 '[]\OT1/cmtt/m/n/10 "[])[] 
  []
 
-
-Overfull \hbox (3.77812pt too wide) in paragraph at lines 199--199
-[]    \OT1/cmtt/m/n/10 name == []"Light PAR"[] | name == []"Light TSR"[] | name
- == []"CO2"[] | name == []"Air Quality"[] |[] 
- []
-
 [2]
-Package color Info: Redefining color shadecolor on input line 237.
-LaTeX Font Info:    Try loading font information for OMS+cmtt on input line 249
+Package color Info: Redefining color shadecolor on input line 238.
+LaTeX Font Info:    Try loading font information for OMS+cmtt on input line 251
 .
  (/usr/share/texmf/tex/latex/R/tex/latex/omscmtt.fd
 File: omscmtt.fd 
 )
 LaTeX Font Info:    Font shape `OMS/cmtt/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 249.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 251.
 
-Overfull \hbox (87.77492pt too wide) in paragraph at lines 263--263
+Overfull \hbox (87.77492pt too wide) in paragraph at lines 265--265
 []    []\OT1/cmtt/m/n/10 " ON Loc.roomId = Room.id "[], []" WHERE houseId ="[],
  theHouse$id, []" AND Room.name NOT LIKE []\TS1/cmtt/m/n/10 '\OT1/cmtt/m/n/10 P
 hyNet%\TS1/cmtt/m/n/10 '[] \OT1/cmtt/m/n/10 "[],[] 
  []
 
 
-Overfull \hbox (114.00739pt too wide) in paragraph at lines 264--264
+Overfull \hbox (114.00739pt too wide) in paragraph at lines 266--266
 []    []\OT1/cmtt/m/n/10 " AND Room.name NOT []IN[] ([]\TS1/cmtt/m/n/10 '\OT1/c
 mtt/m/n/10 Hot Water\TS1/cmtt/m/n/10 '[]\OT1/cmtt/m/n/10 ,[]\TS1/cmtt/m/n/10 '\
 OT1/cmtt/m/n/10 Cold Water\TS1/cmtt/m/n/10 '[]\OT1/cmtt/m/n/10 ,[]\TS1/cmtt/m/n
@@ -295,131 +289,67 @@ t/m/n/10 '\OT1/cmtt/m/n/10 ColdWater\TS1/cmtt/m/n/10 '[]\OT1/cmtt/m/n/10 ) "[],
  []
 
 [3]
-Package color Info: Redefining color shadecolor on input line 293.
+Package color Info: Redefining color shadecolor on input line 296.
 
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 300--300
+Overfull \hbox (19.52798pt too wide) in paragraph at lines 303--303
 []\OT1/cmtt/m/n/10 dataQry <- []paste[]([]"SELECT nodeId, type, locationId, []D
 ATE[](time) as date,[]count[](*) as count,"[],[] 
  []
 
 
-Overfull \hbox (177.02661pt too wide) in paragraph at lines 301--301
+Overfull \hbox (177.02661pt too wide) in paragraph at lines 304--304
 []    []\OT1/cmtt/m/n/10 " []min[](time) as minTime,[]max[](time) as maxTime,"[
 ], []" []min[](value) as minVal, []max[](value) as maxVal, []avg[](value) as me
 anVal"[],[] 
  []
 
-Package color Info: Redefining color shadecolor on input line 327.
 
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 330--330
-[]\OT1/cmtt/m/n/10 tmp <- []merge[](houseSummary, calibrationData, by.x = []c[]
-([]"nodeId"[], []"type"[]), by.y = []c[]([]"nodeId"[],[] 
- []
+LaTeX Warning: Reference `fig:uncalib-data' on page 4 undefined on input line 3
+21.
 
-[4]
-Package color Info: Redefining color shadecolor on input line 356.
+Package color Info: Redefining color shadecolor on input line 323.
+[4] <figure/manual-plot-uncalib.pdf, id=24, 505.89pt x 505.89pt>
+File: figure/manual-plot-uncalib.pdf Graphic file (type pdf)
 
-Overfull \hbox (24.77794pt too wide) in paragraph at lines 360--360
-[]\OT1/cmtt/m/n/10 plt <- plt + []geom_errorbar[]([]aes[](dt, ymin = calibMin, 
-ymax = calibMax, color = []"calibrated"[]))[] 
- []
+<use figure/manual-plot-uncalib.pdf>
+Package color Info: Redefining color shadecolor on input line 359.
+ [5 <./figure/manual-plot-uncalib.pdf>]
+Package color Info: Redefining color shadecolor on input line 386.
 
-<figure/unnamed-chunk-7.pdf, id=25, 578.16pt x 361.35pt>
-File: figure/unnamed-chunk-7.pdf Graphic file (type pdf)
+<figure/manual-unnamed-chunk-5.pdf, id=34, 505.89pt x 505.89pt>
+File: figure/manual-unnamed-chunk-5.pdf Graphic file (type pdf)
 
-<use figure/unnamed-chunk-7.pdf>
+<use figure/manual-unnamed-chunk-5.pdf>
+Package color Info: Redefining color shadecolor on input line 434.
+ [6]
+Package color Info: Redefining color shadecolor on input line 482.
 
-LaTeX Warning: Reference `tab:accepted-Range' on page 5 undefined on input line
- 379.
-
-[5 <./figure/unnamed-chunk-7.pdf>]
-Package color Info: Redefining color shadecolor on input line 398.
-Package color Info: Redefining color shadecolor on input line 445.
-
-Overfull \hbox (51.02771pt too wide) in paragraph at lines 454--454
-[]        []\OT1/cmtt/m/n/10 ")"[], []" AND []Date[](time) []IN[] ("[], uniqueD
-ate, []")"[], []" AND type []IN[] ("[], []paste[](sensorTypeList$id,[] 
- []
-
-
-Overfull \hbox (72.02753pt too wide) in paragraph at lines 471--471
-[]    \OT1/cmtt/m/n/10 fixCalib$calibValue <- (fixCalib$value * fixCalib$calibr
-ationSlope) + fixCalib$calibrationOffset[] 
- []
-
-
-Overfull \hbox (30.0279pt too wide) in paragraph at lines 477--477
-[]    \OT1/cmtt/m/n/10 badRows <- []which[](fixCalib$type == 0 & (fixCalib$cali
-bValue < -10 | fixCalib$calibValue >[] 
- []
-
-
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 483--483
-[]    \OT1/cmtt/m/n/10 badRows <- []which[](fixCalib$type == 2 & (fixCalib$cali
-bValue < 0 | fixCalib$calibValue >[] 
- []
-
-
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 489--489
-[]    \OT1/cmtt/m/n/10 badRows <- []which[](fixCalib$type == 8 & (fixCalib$cali
-bValue < 0 | fixCalib$calibValue >[] 
- []
-
-
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 497--497
-[]    \OT1/cmtt/m/n/10 badRows <- []which[](fixCalib$type == 6 & (fixCalib$cali
-bValue < 0 | fixCalib$calibValue >[] 
- []
-
-
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 521--521
+Overfull \hbox (19.52798pt too wide) in paragraph at lines 560--560
 []        \OT1/cmtt/m/n/10 rowIdx <- []which[](houseSummary$nodeId == thisRow$n
 odeId & houseSummary$locationId ==[] 
  []
 
-
-Overfull \hbox (3.77812pt too wide) in paragraph at lines 522--522
-[]            \OT1/cmtt/m/n/10 thisRow$locationId & houseSummary$type == thisRo
-w$type & houseSummary$DT ==[] 
- []
-
-[6]
-Underfull \vbox (badness 10000) detected at line 563
- []
-
-
-Overfull \vbox (1.71536pt too high) detected at line 563
- []
-
 [7]
+Package color Info: Redefining color shadecolor on input line 579.
+Package color Info: Redefining color shadecolor on input line 615.
+ <figure/manual-unnamed-chunk-9.pdf, id=42, 505.89pt x 505.89pt>
+File: figure/manual-unnamed-chunk-9.pdf Graphic file (type pdf)
 
-LaTeX Warning: Reference `fig:remove-calib-data' on page 8 undefined on input l
-ine 567.
+<use figure/manual-unnamed-chunk-9.pdf>
 
-Package color Info: Redefining color shadecolor on input line 572.
-<figure/unnamed-chunk-10.pdf, id=43, 578.16pt x 361.35pt>
-File: figure/unnamed-chunk-10.pdf Graphic file (type pdf)
+LaTeX Warning: Float too large for page by 153.7442pt on input line 657.
 
-<use figure/unnamed-chunk-10.pdf>
-Package color Info: Redefining color shadecolor on input line 604.
+[8]
+Package color Info: Redefining color shadecolor on input line 671.
+ <figure/manual-unnamed-chunk-10.pdf, id=47, 505.89pt x 505.89pt>
+File: figure/manual-unnamed-chunk-10.pdf Graphic file (type pdf)
 
-<figure/unnamed-chunk-11.pdf, id=44, 578.16pt x 361.35pt>
-File: figure/unnamed-chunk-11.pdf Graphic file (type pdf)
+<use figure/manual-unnamed-chunk-10.pdf>
 
-<use figure/unnamed-chunk-11.pdf>
-Package color Info: Redefining color shadecolor on input line 655.
+LaTeX Warning: Float too large for page by 10.57753pt on input line 701.
 
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 659--659
-[]\OT1/cmtt/m/n/10 avgYield <- []ddply[](houseSummary, [].[](dt, nodeId, locati
-onId), summarise, min = []min[](dayYield),[] 
- []
-
-<figure/unnamed-chunk-12.pdf, id=45, 578.16pt x 361.35pt>
-File: figure/unnamed-chunk-12.pdf Graphic file (type pdf)
-
-<use figure/unnamed-chunk-12.pdf> [8] [9 <./figure/unnamed-chunk-10.pdf>]
-[10 <./figure/unnamed-chunk-11.pdf>] [11 <./figure/unnamed-chunk-12.pdf>]
-[12] (./YieldReport.aux)
+[9] [10 <./figure/manual-unnamed-chunk-5.pdf>] [11] [12 <./figure/manual-unname
+d-chunk-9.pdf>] [13 <./figure/manual-unnamed-chunk-10.pdf>] (./YieldReport.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -429,26 +359,25 @@ LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
  ) 
 Here is how much of TeX's memory you used:
  2378 strings out of 495061
- 30242 string characters out of 1182621
- 95473 words of memory out of 3000000
- 5535 multiletter control sequences out of 15000+50000
- 10337 words of font info for 38 fonts, out of 3000000 for 9000
+ 30378 string characters out of 1182621
+ 92124 words of memory out of 3000000
+ 5536 multiletter control sequences out of 15000+50000
+ 10169 words of font info for 37 fonts, out of 3000000 for 9000
  28 hyphenation exceptions out of 8191
- 27i,10n,20p,262b,315s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 27i,10n,20p,262b,321s stack positions out of 5000i,500n,10000p,200000b,50000s
  </home/dang/.texmf-var/fonts/pk/ljfour/jknappen/ec/tctt1000.600pk> </home/da
 ng/.texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk></usr/share/texmf-texl
 ive/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-texlive/fonts/t
 ype1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-texlive/fonts/type1/public
-/amsfonts/cm/cmitt10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/
-cm/cmmi10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pf
-b></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/shar
-e/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texmf-texl
-ive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/t
-ype1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-texlive/fonts/type1/public
-/amsfonts/cm/cmtt10.pfb>
-Output written on YieldReport.pdf (12 pages, 240079 bytes).
+/amsfonts/cm/cmmi10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/c
+m/cmr10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr12.pfb>
+</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/
+texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texli
+ve/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-texlive/fonts/ty
+pe1/public/amsfonts/cm/cmtt10.pfb>
+Output written on YieldReport.pdf (13 pages, 189201 bytes).
 PDF statistics:
- 122 PDF objects out of 1000 (max. 8388607)
+ 121 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

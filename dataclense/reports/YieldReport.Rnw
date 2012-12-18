@@ -1,5 +1,5 @@
 %% http://biostat.mc.vanderbilt.edu/wiki/Main/SweaveTemplate#Using_SweaveListingUtils_http_bi
-
+%% http://biostat.mc.vanderbilt.edu/wiki/Main/KnitrHowto
 \documentclass[10pt,a4paper]{article}
 \usepackage[OT1]{fontenc}
 \usepackage{fullpage}
@@ -16,17 +16,16 @@
 %Wrap the output of listings 
 
 %\usepackage{listings}
-<<echo=FALSE>>=
-  ## options(width=60)
-
-  ## listing <- function(x, options) {
-  ##   paste("\\begin{lstlisting}[basicstyle=\\ttfamily,breaklines=true]\n",
-  ##     x, "\\end{lstlisting}\n", sep = "")
-  ## }
-  ## knit_hooks$set(source=listing, output=listing)
-
-  #And set a default 'chunk' width
-  opts_chunk$set(width=8, height=5)
+<<setup,include=FALSE,cache=FALSE>>=
+#Set some global options
+opts_chunk$set(fig.path='figure/manual-', cache.path='cache/manual-', fig.align='center', fig.show='hold', par=TRUE)
+## I use = but I can replace it with <-; set code/output width to be 68
+options(replace.assign=TRUE, width=68)
+## tune details of base graphics (http://yihui.name/knitr/hooks)
+knit_hooks$set(par=function(before, options, envir){
+if (before && options$fig.show!='none') par(mar=c(4,4,.1,.1),cex.lab=.95,cex.axis=.9,mgp=c(2,.7,0),tcl=-.3)
+})
+# opts_chunk$set(width=8, height=5)
 @
 
 \begin{document}
@@ -57,19 +56,19 @@ Database Rows, and expected inputs are given below
 \begin{table}[htbp]
   \centering
   \begin{tabular}{l l p{6cm}}
-    Row & Type & Description \\ \hline
-    Time & PK,Required & Timestamp of summary, In general I would expect
+    Row           & Type        & Description                                 \\ \hline
+    Time          & PK,Required & Timestamp of summary, In general I would expect
   this to use midnight to summarise a complete day. However, if more detailed
-  summaries (such as hourly) are needed, this should not be a problem.\\
-    nodeId &PK,Required & Id of node that this summary is from\\
-    sensorTypeId &PK & Id of sensor that this summary is from,  this
-  can be left NULL to indicate whole node summary samples (for example yield)\\
-    summaryTypeId &FK &  Id of summary type.\\
-    locationId & FK & Id of location this node is from,  to keep
-  parity with the reading table\\
-    value & float& Value of the summary\\
-    textValue & string(30)& Optional text description of the summary, for example ``Hot''
-  if we are dealing with exposure graphs.\\
+  summaries (such as hourly) are needed, this should not be a problem.        \\
+    nodeId        & PK,Required & Id of node that this summary is from        \\
+    sensorTypeId  & PK          & Id of sensor that this summary is from,  this
+  can be left NULL to indicate whole node summary samples (for example yield) \\
+    summaryTypeId & FK          & Id of summary type.                         \\
+    locationId    & FK          & Id of location this node is from,  to keep
+  parity with the reading table                                               \\
+    value         & float       & Value of the summary                        \\
+    textValue     & string(30)  & Optional text description of the summary, for example ``Hot''
+  if we are dealing with exposure graphs.                                     \\
     
   \end{tabular}
   \caption{Summary Table Description}
@@ -128,7 +127,7 @@ name. Then run the script through R.
   \end{itemize}
 \end{itemize}
 
-<<>>=
+<<init-data,message=FALSE>>=
 #Load Relevant Libraries
 library(RMySQL)
 library(ggplot2)
@@ -174,13 +173,14 @@ houseData <- data.frame(address = allHouses$address,
                         )
 
 #Choose a particular house (for the demo)
-i=16
+i=7
 THEHOUSE <- allHouses[i,]
 hseName <- THEHOUSE$address
-
+#Output the House for Debugging
+print(hseName)
 @ 
 
-At the end of this we have 
+At the end of this we have :
 \begin{enumerate}
 \item A connection to the Database
 \item  A collection of lookup tables used later in the application
@@ -200,7 +200,8 @@ Next the Relevant locations are fetched using the following query
 This query also fetches the corresponding room names for each location for use
 in a lookup table if required.
 
-<<>>=
+%Syntax,  Block Name,  etc
+<<message=FALSE>>=
   #As the function parameter is a row number, Work out which House we are dealing with.
   #print(paste("Processing House ",hseName))
   rowNo <- which(houseData$address == hseName)
@@ -215,11 +216,11 @@ in a lookup table if required.
                          error=function(e){NA}
                           )
 
- theHouse$ed <- tryCatch({as.POSIXlt(theHouse$endDate,tz="GMT")},
+  theHouse$ed <- tryCatch({as.POSIXlt(theHouse$endDate,tz="GMT")},
                          error=function(e){NA}
                          )
 
-  #Fetch Locations from the database
+  #Build the Location Query
   locQry <- paste("SELECT * FROM Location as Loc ",
                   " LEFT OUTER JOIN Room as Room ",
                   " ON Loc.roomId = Room.id ",
@@ -227,6 +228,8 @@ in a lookup table if required.
                   " AND Room.name NOT LIKE 'PhyNet%' ",
                   " AND Room.name NOT IN ('Hot Water','Cold Water','Flow','Return','Hot','Cold','HotWater','ColdWater') ",
                   sep="")
+
+  #Fetch Locations from the DB
   locations <- dbGetQuery(con,statement=locQry)
 
   #Convert into a string so we can put the data into the next query
@@ -248,7 +251,6 @@ The query fetches the following values:
 \item[maxVal] Maximum reported value on this date
 \item[meanVal] Average value reported on this date
 \end{description}
-
  
 <<>>=
   houseData[rowNo,]$dbStart <- theHouse$startDate
@@ -272,8 +274,19 @@ The query fetches the following values:
   houseSummary$DT <- as.Date(houseSummary$dt)
   #And add some extra columns to hold summary information on bad samples
   houseSummary$countWithBad <- houseSummary$count
-
 @ 
+
+We should end up with a load of uncalibrated data as shown in figure~\ref{fig:uncalib-data}
+<<plot-uncalib,fig.cap="Uncalibrated Data",fig.lp="uncalib-data",fig.pos="h">>=
+#Plot the Uncalibrated Data
+plt <- ggplot(subset(houseSummary,type==0))
+plt <- plt+geom_point(aes(dt,meanVal))
+plt <- plt+geom_errorbar(aes(dt,ymin=minVal,ymax=maxVal))
+plt <- plt + opts(title=paste("Uncalibrated Temperature data for ",hseName))
+plt <- plt+xlab("Date")+ylab("Reading")
+plt + facet_grid(nodeId~.)
+@ 
+
 
 \subsection{Calibration}
 For the purpouses of error detection, it should be sufficent to examine the
@@ -303,8 +316,6 @@ tmp$badValue <- NA
 
 Figure~\ref{fig:calibData} shows calibrated temperature data, before any error handling
 takes place.
-
-% \SweaveOpts{width=8, height=5}
 
 \begin{figure}[ht]
 <<>>=
@@ -530,7 +541,7 @@ plt <- plt+geom_step(aes(dt,dayYield,color=type))
 plt <- plt+ylab("Yield %") + xlab("Date")
 plt <- plt+opts(title=paste(hseName," Yield per Sensor"))
 plt <- plt+facet_grid(nodeId~.)
-print(plt)
+plt
 @ 
 \caption{Yield Per Sensor}
 \end{figure}
