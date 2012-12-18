@@ -13,7 +13,8 @@ $(rnwfile).pdf: $(rnwfile).tex
 	pdflatex $(rnwfile).tex
 
 $(rnwfile).tex: $(rnwfile).Rnw
-	R CMD Sweave $(rnwfile).Rnw
+#	R CMD Sweave $(rnwfile).Rnw
+	Rscript -e "library(knitr); knit('$(rnwfile).Rnw')"
 
 clean:
 	-rm *.tex *.log *.aux
