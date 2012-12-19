@@ -61,7 +61,7 @@ a good idea to leave it.
 """
 
 import logging
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 #logging.basicConfig(level=logging.INFO,filename="pushCogentee.log")
 #logging.basicConfig(level=logging.WARNING)
 
@@ -138,6 +138,10 @@ class PushServer(object):
         localSession = sqlalchemy.orm.sessionmaker(bind=engine)
         self.localSession = localSession
 
+        session = localSession()
+        theQry = session.query(models.House).count()
+        log.debug("Total of {0} houses in database".format(theQry))
+
         #Create a new Pusher object for this each item given in the config
         syncList = []
         for item in locationConfig.values():
@@ -210,27 +214,28 @@ class PushServer(object):
         loopStart = time.time()
         avgTime = None
         log.info("Running Full Syncronise Cycle")
+
         for item in self.syncList:
             log.debug("Synchronising {0}".format(item))
             samples = 1
 
             #samples,lastTime = item.sync()
             
-            #return
-            while samples > 0:
-                t1 = time.time()
-                samples, lastTime = item.sync()
-                t2 = time.time()
-                log.info("Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
-                                                                                                 samples,
-                                                                                                 lastTime))
+            # #return
+            # while samples > 0:
+            #     t1 = time.time()
+            #     samples, lastTime = item.sync()
+            #     t2 = time.time()
+            #     log.info("Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
+            #                                                                                      samples,
+            #                                                                                      lastTime))
 
-                if avgTime is None:
-                    avgTime = t2-t1
-                else:
-                    avgTime = (avgTime + (t2-t1)) / 2.0
+            #     if avgTime is None:
+            #         avgTime = t2-t1
+            #     else:
+            #         avgTime = (avgTime + (t2-t1)) / 2.0
                 
-                self.confParser.write()
+            #     self.confParser.write()
 
         loopEnd = time.time()
         log.info("Total Time Taken {0} Avg {1}".format(loopEnd-loopStart,avgTime))
@@ -1294,41 +1299,43 @@ if __name__ == "__main__":
     import pickle
     logging.debug("Testing Push Classes")
 
-    #server = PushServer()
-    #server.sync()
+    server = PushServer()
+    server.sync()
 
-    theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format("Gauss")
-    compareReadings(theUrl)
+    #theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format("Gauss")
+    #compareReadings(theUrl)
     #import sys
     #sys.exit(0)
     
     #server = PushManual("mysql://root:Ex3lS4ga@localhost/Einstein")
     #server = PushManual("mysql://root:Ex3lS4ga@localhost/Otto")
-    dumpDict = {}
-    #Push Mappings 
-    fileStr = "manualPush.pickle"
-    try:
-        with open(fileStr,"rb") as fd:
-            dumpDict = pickle.load(fd)
-    except:
-        print "NO PICKELED FILE"
+    # dumpDict = {}
+    # #Push Mappings 
+    # fileStr = "manualPush.pickle"
+    # try:
+    #     with open(fileStr,"rb") as fd:
+    #         dumpDict = pickle.load(fd)
+    # except:
+    #     print "NO PICKELED FILE"
         
 
-    print dumpDict
+    
 
-    servers = ["Einstein","Euclid","Euler","Gauss","Otto","Tesla"]
-    #servers = ["Euclid"]
+    # print dumpDict
 
-    for item in servers:
-        print "Dealing with {0}".format(item)
-        theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format(item)
+    # servers = ["Einstein","Euclid","Euler","Gauss","Otto","Tesla"]
+    # servers = ["Euclid"]
 
-        startTime = dumpDict.get(item,None)
-        if startTime:
-            startTime = startTime + datetime.timedelta(seconds=1)
-        #startTime = datetime.datetime(2012,3,2,11,13,50)
-        server = PushManual(theUrl,stTime=startTime)
-        lastTime,dumpDict = server.sync(fileStr,dumpDict,item)
+    # for item in servers:
+    #     print "Dealing with {0}".format(item)
+    #     theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format(item)
+
+    #     startTime = dumpDict.get(item,None)
+    #     if startTime:
+    #         startTime = startTime + datetime.timedelta(seconds=1)
+    #     startTime = datetime.datetime(2012,3,2,11,13,50)
+    #     server = PushManual(theUrl,stTime=startTime)
+    #     lastTime,dumpDict = server.sync(fileStr,dumpDict,item)
 
 #    dumpDict["Otto"] = datetime.datetime.now()
     
