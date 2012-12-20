@@ -114,6 +114,9 @@ def clsFromJSON(theList):
                "node":Node,
                "sensor":Sensor,
                "nodestate":NodeState,
+               "roomtype":RoomType,
+               "sensortype":SensorType,
+               "room":Room,
                }
 
         
