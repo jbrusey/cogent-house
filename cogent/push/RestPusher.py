@@ -864,8 +864,14 @@ class Pusher(object):
         """
         log = self.log
         log.setLevel(logging.DEBUG)
-        log.debug("--- Upload for house {0} ----")
+        log.debug("--- Upload for house {0} ----".format(theHouse))
         
+        #Mapping Config
+        mappingConfig = self.mappingConfig
+        
+        lastUpload = mappingConfig.get(theHouse.id,None)
+        log.debug("Last Upload is {0}".format(lastUpload))
+
         #Load the Mapped items to the local namespace
         mappedLocations = self.mappedLocations
         mappedTypes = self.mappedSensorTypes
