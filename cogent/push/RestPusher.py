@@ -3,9 +3,9 @@
 Modified version of the push script that will fetch all items,
 convert to JSON and (eventually) transfer across REST
 
-This replaces the ssh tunnel database access curretly used to transfer samples.
+This replaces the ssh tunnel database access currently used to transfer samples.
 
-However, for the moment syncronising the Locations etc (or the complex bit) is
+However, for the moment synchronising the Locations etc (or the complex bit) is
 still done via SQLA. As this takes a fraction of the transfer time its probably
 a good idea to leave it.
 
@@ -34,19 +34,19 @@ a good idea to leave it.
     .. since 0.3::
 
        Moved Nodestate Sync into the main readings sync class, this should stop
-       duplicate nodestates turning up if there is a failiure
+       duplicate nodestates turning up if there is a failure
 
     .. since 0.4::
 
-       Overhall of the system to make use of REST to upload samples rather than
+       Overhaul of the system to make use of REST to upload samples rather than
        transfer data across directly.
 
     .. since 0.4.1::
 
        Make use of an .ini style config file to set everything up
 
-       Split functionalility into a Daemon, and Upload classes.  This should
-       make maintainance of any local mappings a little easier to deal with.
+       Split functionality into a Daemon, and Upload classes.  This should
+       make maintenance of any local mappings a little easier to deal with.
 
 
     .. since 0.4.2::
@@ -61,11 +61,11 @@ a good idea to leave it.
    .. since 0.6.0::
    
       Changed to upload readings by house.
-      Modified intialisation to be a little more same
+      Modified initialisation to be a little more same
    
    .. since 0.7.0::
    
-      Mapping configuation file added
+      Mapping configuration file added
 
 """
 
@@ -74,7 +74,7 @@ logging.basicConfig(level=logging.INFO)
 #logging.basicConfig(level=logging.INFO,filename="pushCogentee.log")
 #logging.basicConfig(level=logging.WARNING)
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 import sqlalchemy
 #import remoteModels
@@ -129,11 +129,11 @@ class PushServer(object):
         log.setLevel(logging.DEBUG)
         log.info("Initialising Push Server")
 
-        #Load and Read the Configuation files
+        #Load and Read the Configuration files
         configParser = configobj.ConfigObj("synchronise.conf")
         self.configParser = configParser
 
-        #Process General Configuation Options and Initialise Local Database connection.
+        #Process General Configuration Options and Initialise Local Database connection.
         log.info("Processing Global Configuration options")
         generalOptions = configParser["general"]
         
@@ -143,7 +143,7 @@ class PushServer(object):
         
         log.debug("Connecting to local database at {0}".format(localURL))
 
-        #Initalise the local database connection
+        #Initialise the local database connection
         engine = sqlalchemy.create_engine(localURL)
         models.initialise_sql(engine)
         localSession = sqlalchemy.orm.sessionmaker(bind=engine)
@@ -167,7 +167,7 @@ class PushServer(object):
         #Append a warning to the start of the config file
         mappingConfig.initial_comment = ["This file holds details of mappings between local and remote objects",
                                          "It is strongly recommended that you do not edit!!",
-                                         "I take no responsiblity for Bad Things(TM) happening if changes are made",
+                                         "I take no responsibility for Bad Things(TM) happening if changes are made",
                                          ""]
 
         #Next we want to queue up all the remote URLS we wish to push to.
@@ -184,7 +184,7 @@ class PushServer(object):
             if needSync:
                 #Enque
                 thisLoc = configParser[item]
-                log.info("Adding {0} to synchronise Queue")
+                log.info("Adding {0} to synchronise Queue".format(thisLoc))
                 thePusher = Pusher(localSession, #Session
                                    thisLoc["resturl"], #Url to Push to
                                    mappingConfig, #Mapping Configuration file
@@ -200,7 +200,7 @@ class PushServer(object):
         # log.debug("General Configuation")
         # log.debug(generalConf)
 
-        # log.debug("---- Location Configuation ----")
+        # log.debug("---- Location Configuration ----")
         # log.debug(locationConfig)
 
         #Store the config
@@ -340,8 +340,8 @@ class Pusher(object):
         """
 
         self.log = logging.getLogger(__name__)
-        #self.log.setLevel(logging.INFO)
-        self.log.setLevel(logging.WARNING)
+        self.log.setLevel(logging.INFO)
+        #self.log.setLevel(logging.WARNING)
         log = self.log
         
 
@@ -359,7 +359,7 @@ class Pusher(object):
         mappingConfig = dbConfig.get(restUrl,None)
         if mappingConfig is None:
             log.info("No Mapping in ConfigFile for URL {0}".format(restUrl))
-            mappingConfig = {}
+            mappingConfig = {"lastupdate":{}}
             dbConfig[restUrl] = mappingConfig
             dbConfig.write()
 
@@ -413,7 +413,7 @@ class Pusher(object):
 
         self.syncNodes()
 
-        log.setLevel(logging.DEBUG)
+        #log.setLevel(logging.DEBUG)
         #I think we should do this by House, Keeps things a little tidier
         session = self.localSession()
         houses = session.query(models.House)
@@ -421,11 +421,12 @@ class Pusher(object):
         mappingConfig = self.mappingConfig
 
 
-        for item in houses[:2]:
+        for item in houses:
             log.debug("Synchronising Readings for House {0}".format(item))
             #Look for the Last update
             self.uploadReadings(item)
 
+        self.saveMappings()
         #log.setLevel(logging.INFO)
         #session = self.localSession()
         #deployments = session.query(models.Deployment).all()
@@ -508,16 +509,17 @@ class Pusher(object):
         self.mapHouses() #Then houses
         self.mapLocations()
 
-        self.saveMappings()
-        return
+        #self.saveMappings()
+        #return
 
     def saveMappings(self):
         """Save mappings to a file"""
         mappingConfig = self.mappingConfig
+        #print mappingConfig
         mappingConfig["deployment"] = dict([(str(k),v) for k,v in self.mappedDeployments.iteritems()])
         mappingConfig["house"] = dict([(str(k),v) for k,v in self.mappedHouses.iteritems()])
         mappingConfig["location"] = dict([(str(k),v) for k,v in self.mappedLocations.iteritems()])
-        
+
         # print "-"*50
         # print mappingConfig
         # print "-"*50
@@ -863,66 +865,109 @@ class Pusher(object):
         modified to upload by House
         """
         log = self.log
-        log.setLevel(logging.DEBUG)
-        log.debug("--- Upload for house {0} ----".format(theHouse))
-        
-        #Mapping Config
-        mappingConfig = self.mappingConfig
-        
-        lastUpload = mappingConfig.get(theHouse.id,None)
-        log.debug("Last Upload is {0}".format(lastUpload))
+        #log.setLevel(logging.DEBUG)
+        log.info("--- Upload for house {0} ----".format(theHouse))
 
         #Load the Mapped items to the local namespace
         mappedLocations = self.mappedLocations
         mappedTypes = self.mappedSensorTypes
+        
+        #Mapping Config
+        mappingConfig = self.mappingConfig
+
+        #Load the last upload Date from config file [Not Implemented at the moment]
+        # uploadDates = mappingConfig.get("lastupdate",{})
+        # lastUpload = uploadDates.get(str(theHouse.id),None)
+        # log.debug("Last Upload is {0}".format(lastUpload))
+        # if lastUpload is not None:
+        #     #Process the last upload Date
+        #     lastUpload = dateutil.parser.parse(lastUpload)
+        #     log.debug("--> Processed last Upload is {0}".format(lastUpload))
+
 
         #Get the last reading for this House
         session = self.localSession()
         restSession =self.restSession
+        log.setLevel(logging.DEBUG)
+        #Sanity check query for last update
         params = {"house":theHouse.address}
         theUrl = "lastSync/"
         restQuery = restSession.request_get(theUrl,args=params)
-        log.debug(restQuery)
+        #log.debug(restQuery)
         
         strDate = json.loads(restQuery['body'])
         log.debug("Str Date {0}".format(strDate))
-        lastDate = dateutil.parser.parse(strDate)
-        log.debug("Last Upload Date {0}".format(lastDate))
+        if strDate is None:
+            lastDate = None
+        else:
+            lastDate = dateutil.parser.parse(strDate)
+            log.debug("Last Upload Date {0}".format(lastDate))
+        #if lastDate != lastUpload:
+        #    log.warning("Config / Remote last Updates do not match !! {0} {1}".format(lastUpload,lastDate))
+
+        #uploadDates[str(theHouse.id)] = lastDate
+        #mappingConfig["lastupdate"] = uploadDates
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
-        log.debug("House Locations {0}".format(theLocations))
-        return
+        #log.debug("House Locations {0}".format(theLocations))
+
         #Fetch some readings
         theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
-        theReadings = theReadings.filter(models.Reading.time > lastDate)
+        if lastDate:
+            theReadings = theReadings.filter(models.Reading.time > lastDate)
         theReadings = theReadings.order_by(models.Reading.time)
-        theReadings = theReadings.limit(5)
-        print theReadings
-        log.debug("Readings")
-        jsonList = [] #Blank Object to hold readings
-        for reading in theReadings:
-            log.debug(reading)
-        
-            #Convert our Readings to REST, and remap to the new locations
-            dictReading = reading.toDict()
+        origCount = theReadings.count()
+        log.info("--> Total of {0} samples to transfer".format(origCount))
+        rdgCount = origCount
+        transferCount = 0
+        #for x in range(5):
+        while rdgCount > 0:
+        #while True:
+            theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
+            if lastDate:
+                theReadings = theReadings.filter(models.Reading.time > lastDate)
+            theReadings = theReadings.order_by(models.Reading.time)
+            theReadings = theReadings.limit(self.pushLimit)
+            rdgCount = theReadings.count()
+            if rdgCount <= 0:
+                log.info("No Readings Remain")
+                return True
 
-            dictReading['locationId'] = mappedLocations[reading.locationId].id
-            dictReading['typeId'] = mappedTypes[reading.typeId].id
-            log.debug("--> {0}".format(dictReading))            
-            jsonList.append(dictReading)
+            transferCount += rdgCount
+            #print theReadings
+            log.info("--> Transfer {0}/{1} Readings to remote DB".format(transferCount,origCount))
+            jsonList = [] #Blank Object to hold readings
+            for reading in theReadings:
+                #log.debug(reading)
 
-         #And then try to bulk upload them
-        restQry = restSession.request_post("/bulk/",
-                                           body=json.dumps(jsonList))
-        log.debug(restQry)
-    #     if restQry["headers"]["status"] == '404':
-    #         print "==="*80
-    #         log.warning("Upload Fails")
-    #         log.warning(restQry)
+                #Convert our Readings to REST, and remap to the new locations
+                dictReading = reading.toDict()
 
-    #         sys.exit(0)
-    #         raise Exception ("Bad Things Happen")            
+                dictReading['locationId'] = mappedLocations[reading.locationId]
+                dictReading['typeId'] = mappedTypes[reading.typeId].id
+                #log.debug("--> {0}".format(dictReading))            
+                jsonList.append(dictReading)
+                lastSample = reading.time
+
+
+             #And then try to bulk upload them
+            restQry = restSession.request_post("/bulk/",
+                                               body=json.dumps(jsonList))
+            log.debug(restQry)
+
+            if restQry["headers"]["status"] == '404':
+                print "==="*80
+                log.warning("Upload Fails")
+                log.warning(restQry)
+                raise Exception ("Upload Fails")            
+
+            log.info("--> Readings up to {0} transferred successfully".format(lastSample))
+            lastDate = lastSample
+                     
+        #Return True if we need to upload more
+        return rdgCount > 0
+            
 
         
     # def syncReadings(self, theHouse):
