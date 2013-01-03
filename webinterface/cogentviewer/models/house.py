@@ -112,8 +112,8 @@ class House(Base, meta.InnoDBMix):
         return outDict
 
     def __str__(self):
-        outStr = "House {0}  {1}  {2}-{3}".format(self.id,
-                                                  self.address,
-                                                  self.startDate,
-                                                  self.endDate)
+        outStr = "House ({0}):  {1}  {2}-{3}".format(self.id,
+                                                     self.address,
+                                                     self.startDate,
+                                                     self.endDate)
         return outStr

@@ -152,6 +152,9 @@ def genericRest(request):
     log.debug("Request Type {0} Request Id: {1}".format(reqType,theId))
     log.debug("Object Type {0}".format(theType))
 
+    if theType.lower() == "lastsync":
+        return lastSync(request)
+
     #Deal with "BULK" uploads
     if theType.lower() == "bulk":
         log.debug("BULK UPLOAD")
@@ -1390,3 +1393,45 @@ def restTest(request):
     #import pprint
     #pprint.pprint(baseItem)
     return baseItem
+
+
+def lastSync(request):
+    """Fetch the last sample for a given house / deployment.
+    To be used with the Push Script
+
+    This should take the house address as a URL encoded string
+    """
+    houseName = request.params.get("house",None)
+    log.debug("Fetching last Sample for house >{0}<".format(houseName))
+    
+    if houseName is None:
+        return None
+
+    session = meta.Session()
+    theHouse = session.query(models.House).filter_by(address=houseName).first()
+    #theHouse = session.query(models.House).filter_by(address="5 Elm Road").first()
+    log.debug("House is: {0}".format(theHouse))
+
+    if theHouse is None:
+        return None
+    
+    #Not Optimal Query But what the Hell
+    locQry = theHouse.locations
+    locIds = [x.id for x in theHouse.locations]
+    log.debug("Location Ids: {0}".format(locIds))
+
+    #readingQry = session.query(models.Reading, sqlalchemy.func.max(models.Reading.time)).filter(models.Reading.locationId.in_(locIds)).group_by(models.Reading.locationId).limit(20)
+    
+
+    readingQry = session.query(sqlalchemy.func.max(models.Reading.time)).filter(models.Reading.locationId.in_(locIds)).first()
+    for line in readingQry:
+       #print line[0],line[1]
+        print line
+    
+    if line is not None:
+        return line.isoformat()
+    else:
+        return line
+
+    theDate = datetime.datetime.now().isoformat()
+    return theDate
