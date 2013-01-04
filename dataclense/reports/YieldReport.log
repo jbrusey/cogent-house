@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.1.10)  18 DEC 2012 14:09
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.1.10)  18 DEC 2012 16:03
 entering extended mode
  %&-line parsing enabled.
 **YieldReport.tex
@@ -311,73 +311,32 @@ Package color Info: Redefining color shadecolor on input line 323.
 [4] <figure/manual-plot-uncalib.pdf, id=24, 505.89pt x 505.89pt>
 File: figure/manual-plot-uncalib.pdf Graphic file (type pdf)
 
-<use figure/manual-plot-uncalib.pdf>
-Package color Info: Redefining color shadecolor on input line 359.
- [5 <./figure/manual-plot-uncalib.pdf>]
-Package color Info: Redefining color shadecolor on input line 386.
-
-<figure/manual-unnamed-chunk-5.pdf, id=34, 505.89pt x 505.89pt>
-File: figure/manual-unnamed-chunk-5.pdf Graphic file (type pdf)
-
-<use figure/manual-unnamed-chunk-5.pdf>
-Package color Info: Redefining color shadecolor on input line 434.
- [6]
-Package color Info: Redefining color shadecolor on input line 482.
-
-Overfull \hbox (19.52798pt too wide) in paragraph at lines 560--560
-[]        \OT1/cmtt/m/n/10 rowIdx <- []which[](houseSummary$nodeId == thisRow$n
-odeId & houseSummary$locationId ==[] 
- []
-
-[7]
-Package color Info: Redefining color shadecolor on input line 579.
-Package color Info: Redefining color shadecolor on input line 615.
- <figure/manual-unnamed-chunk-9.pdf, id=42, 505.89pt x 505.89pt>
-File: figure/manual-unnamed-chunk-9.pdf Graphic file (type pdf)
-
-<use figure/manual-unnamed-chunk-9.pdf>
-
-LaTeX Warning: Float too large for page by 153.7442pt on input line 657.
-
-[8]
-Package color Info: Redefining color shadecolor on input line 671.
- <figure/manual-unnamed-chunk-10.pdf, id=47, 505.89pt x 505.89pt>
-File: figure/manual-unnamed-chunk-10.pdf Graphic file (type pdf)
-
-<use figure/manual-unnamed-chunk-10.pdf>
-
-LaTeX Warning: Float too large for page by 10.57753pt on input line 701.
-
-[9] [10 <./figure/manual-unnamed-chunk-5.pdf>] [11] [12 <./figure/manual-unname
-d-chunk-9.pdf>] [13 <./figure/manual-unnamed-chunk-10.pdf>] (./YieldReport.aux)
+<use figure/manual-plot-uncalib.pdf> [5 <./figure/manual-plot-uncalib.pdf>]
+(./YieldReport.aux)
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 2378 strings out of 495061
- 30378 string characters out of 1182621
- 92124 words of memory out of 3000000
- 5536 multiletter control sequences out of 15000+50000
+ 2357 strings out of 495061
+ 29735 string characters out of 1182621
+ 82181 words of memory out of 3000000
+ 5518 multiletter control sequences out of 15000+50000
  10169 words of font info for 37 fonts, out of 3000000 for 9000
  28 hyphenation exceptions out of 8191
- 27i,10n,20p,262b,321s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 27i,10n,20p,262b,266s stack positions out of 5000i,500n,10000p,200000b,50000s
  </home/dang/.texmf-var/fonts/pk/ljfour/jknappen/ec/tctt1000.600pk> </home/da
 ng/.texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600pk></usr/share/texmf-texl
 ive/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-texlive/fonts/t
 ype1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-texlive/fonts/type1/public
-/amsfonts/cm/cmmi10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/c
-m/cmr10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr12.pfb>
-</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/
-texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texli
-ve/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-texlive/fonts/ty
-pe1/public/amsfonts/cm/cmtt10.pfb>
-Output written on YieldReport.pdf (13 pages, 189201 bytes).
+/amsfonts/cm/cmr10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm
+/cmr12.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr17.pfb><
+/usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/
+texmf-texlive/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-texli
+ve/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on YieldReport.pdf (5 pages, 368777 bytes).
 PDF statistics:
- 121 PDF objects out of 1000 (max. 8388607)
+ 67 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 21 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 6 words of extra memory for PDF output out of 10000 (max. 10000000)
 
