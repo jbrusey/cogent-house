@@ -420,8 +420,8 @@ class Pusher(object):
         
         mappingConfig = self.mappingConfig
 
-
-        for item in houses:
+        #FIXME
+        for item in houses[1:2]:
             log.debug("Synchronising Readings for House {0}".format(item))
             #Look for the Last update
             self.uploadReadings(item)
@@ -499,17 +499,17 @@ class Pusher(object):
         log.debug("Load from Config file")
         #restUrl = self.restUrl
         session = self.localSession()
-
+        
         #Map Id's etc in the remote datbase to the local DB
         self.mapSensors()
         self.mapRooms()
 
         self.mapDeployments()
-
         self.mapHouses() #Then houses
+
         self.mapLocations()
 
-        #self.saveMappings()
+        self.saveMappings()
         #return
 
     def saveMappings(self):
@@ -725,7 +725,7 @@ class Pusher(object):
         for item in depQuery:
             log.debug("Checking Mapping for Deployment {0}".format(item))
             if item.id in mappedDeployments:
-                log.debug("Deployment {0} Exists in config file".format(item))
+                log.debug("--> Deployment {0} Exists in config file".format(item))
                 continue
             #Look for this deployment on the remote server
             params = {"name":item.name}
@@ -735,10 +735,11 @@ class Pusher(object):
             del theBody["id"]
 
             newItem = self.uploadItem(theUrl,theBody)            
-
+            log.debug("--> Deployment {0} Mapped to {1} ({2}:{3})".format(item,newItem,item.id,newItem.id))
             #deploymentMap[item.id] = newItem
             mappedDeployments[item.id] = newItem.id
-
+            
+        log.debug("Mapped Deps: {0}".format(mappedDeployments))
         #print mappedDeployments
         #And Save this in out Local Version
         #self.mappedDeployments = deploymentMap
@@ -764,10 +765,11 @@ class Pusher(object):
         #theMap = {}
 
         for item in theQry:
-            if item.address is None:                
-                continue
+            log.debug("Check Mapping for {0}".format(item))
+            #if item.address is None:                
+            #    continue
             if item.id in mappedHouses:
-                log.debug("House {0} Exists in config file".format(item))
+                log.debug("--> House {0} Exists in config file".format(item))
                 continue
             #We need to make sure the deployment is mapped correctly
             mapDep = mappedDeployments[int(item.deploymentId)]
@@ -780,8 +782,10 @@ class Pusher(object):
             theBody["deploymentId"] = mapDep
             del theBody["id"]
             newItem = self.uploadItem(theUrl,theBody)
+            log.debug("House {0} maps to {1} ({2}:{3})".format(item,newItem,item.id,newItem.id))
             mappedHouses[item.id] = newItem.id
             
+        log.debug("Map House: {0}".format(mappedHouses))
         #And Save this in out Local Version
         #self.mappedHouses = theMap
 
@@ -797,6 +801,7 @@ class Pusher(object):
         theQry = lSess.query(models.Location)
 
         mappedHouses = self.mappedHouses
+        print "-"*30, mappedHouses
         mappedRooms = self.mappedRooms
         mappedLocations = self.mappedLocations
         
@@ -810,6 +815,8 @@ class Pusher(object):
             if item.id in mappedLocations:
                 log.debug("Location Exists in Config File {0}".format(item))
                 continue
+            print item
+            print "HID: ",item.houseId
             hId = mappedHouses[int(item.houseId)]
             rId =mappedRooms[int(item.roomId)]
             #We need to make sure the deployment is mapped correctly
@@ -890,6 +897,7 @@ class Pusher(object):
         restSession =self.restSession
         log.setLevel(logging.DEBUG)
         #Sanity check query for last update
+        log.info("--> Requesting date of last reading in Remote DB")
         params = {"house":theHouse.address}
         theUrl = "lastSync/"
         restQuery = restSession.request_get(theUrl,args=params)
@@ -898,10 +906,11 @@ class Pusher(object):
         strDate = json.loads(restQuery['body'])
         log.debug("Str Date {0}".format(strDate))
         if strDate is None:
+            log.info("--> --> No Readings")
             lastDate = None
         else:
             lastDate = dateutil.parser.parse(strDate)
-            log.debug("Last Upload Date {0}".format(lastDate))
+            log.info("--> Last Upload Date {0}".format(lastDate))
         #if lastDate != lastUpload:
         #    log.warning("Config / Remote last Updates do not match !! {0} {1}".format(lastUpload,lastDate))
 
@@ -921,8 +930,10 @@ class Pusher(object):
         log.info("--> Total of {0} samples to transfer".format(origCount))
         rdgCount = origCount
         transferCount = 0
-        #for x in range(5):
-        while rdgCount > 0:
+                           #FIXME
+                           
+        for x in range(5):
+        #while rdgCount > 0:
         #while True:
             theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
             if lastDate:
@@ -1042,7 +1053,7 @@ class Pusher(object):
     #         readings = readings.filter(models.Reading.time <= cutoffTime.time)
     #         log.debug("Transfer a total of {0} Readings to {1}".format(readings.count(),cutoffTime.time))
         
-    #     #sys.exit(0)
+
     #     log.setLevel(logging.WARNING)
 
 
