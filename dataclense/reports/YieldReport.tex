@@ -1,0 +1,737 @@
+%% http://biostat.mc.vanderbilt.edu/wiki/Main/SweaveTemplate#Using_SweaveListingUtils_http_bi
+%% http://biostat.mc.vanderbilt.edu/wiki/Main/KnitrHowto
+\documentclass[10pt,a4paper]{article}\usepackage{graphicx, color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\definecolor{fgcolor}{rgb}{0.2, 0.2, 0.2}
+\newcommand{\hlnumber}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlfunctioncall}[1]{\textcolor[rgb]{0.501960784313725,0,0.329411764705882}{\textbf{#1}}}%
+\newcommand{\hlstring}[1]{\textcolor[rgb]{0.6,0.6,1}{#1}}%
+\newcommand{\hlkeyword}[1]{\textcolor[rgb]{0,0,0}{\textbf{#1}}}%
+\newcommand{\hlargument}[1]{\textcolor[rgb]{0.690196078431373,0.250980392156863,0.0196078431372549}{#1}}%
+\newcommand{\hlcomment}[1]{\textcolor[rgb]{0.180392156862745,0.6,0.341176470588235}{#1}}%
+\newcommand{\hlroxygencomment}[1]{\textcolor[rgb]{0.43921568627451,0.47843137254902,0.701960784313725}{#1}}%
+\newcommand{\hlformalargs}[1]{\textcolor[rgb]{0.690196078431373,0.250980392156863,0.0196078431372549}{#1}}%
+\newcommand{\hleqformalargs}[1]{\textcolor[rgb]{0.690196078431373,0.250980392156863,0.0196078431372549}{#1}}%
+\newcommand{\hlassignement}[1]{\textcolor[rgb]{0,0,0}{\textbf{#1}}}%
+\newcommand{\hlpackage}[1]{\textcolor[rgb]{0.588235294117647,0.709803921568627,0.145098039215686}{#1}}%
+\newcommand{\hlslot}[1]{\textit{#1}}%
+\newcommand{\hlsymbol}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlprompt}[1]{\textcolor[rgb]{0.2,0.2,0.2}{#1}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage[OT1]{fontenc}
+\usepackage{fullpage}
+\usepackage{amsmath}
+
+
+
+\title{Deployment Data Cleanup}
+\author{D Goldsmith, R Wilkins}
+
+%Hide Messages from loading R packages
+%opts_chunk$set(message=FALSE}. 
+
+%Wrap the output of listings 
+
+%\usepackage{listings}
+
+
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Below is a description of the data summary process, how the information is
+processed an yields calculated.
+
+It takes the form of a walk though of the yield calculation process, and
+includes code snippets from the R script used to generate the data.
+
+The document was generated in R and Latex, using the Knitr package
+
+
+\section{Summary Table}
+A new table added to the database, the summary table is intended to hold summary
+statistics on deployments.  This means that future work can avoid having to
+process entire data sets when dealing with yield, or other summarised functions.  
+
+The summary table takes the same form as the reading table, with an additional
+\emph{summary type} column,  these summary types are taken from a lookup
+table in the database.
+
+Database Rows, and expected inputs are given below
+
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{l l p{6cm}}
+    Row           & Type        & Description                                 \\ \hline
+    Time          & PK,Required & Timestamp of summary, In general I would expect
+  this to use midnight to summarise a complete day. However, if more detailed
+  summaries (such as hourly) are needed, this should not be a problem.        \\
+    nodeId        & PK,Required & Id of node that this summary is from        \\
+    sensorTypeId  & PK          & Id of sensor that this summary is from,  this
+  can be left NULL to indicate whole node summary samples (for example yield) \\
+    summaryTypeId & FK          & Id of summary type.                         \\
+    locationId    & FK          & Id of location this node is from,  to keep
+  parity with the reading table                                               \\
+    value         & float       & Value of the summary                        \\
+    textValue     & string(30)  & Optional text description of the summary, for example ``Hot''
+  if we are dealing with exposure graphs.                                     \\
+    
+  \end{tabular}
+  \caption{Summary Table Description}
+\end{table}
+
+\section{Scripts}
+This section has a description of the scripts used process the data, and combine
+all samples into one database.
+
+These scripts are designed to work with the new format (location aware) database format.
+
+They can found in the \emph{dataclense} directory of the \emph{cogent-house/djgoldsmith-devel} repository.
+
+\begin{description}
+    \item[processCC.py]  Transfers current cost data from the old style sqlite
+      database, into the new format database.
+    \item[processAr.py] Transfers data from an Archrock postgresql database into the
+      new format database.
+    \item[getStats.R] R script that calculates yields for each deployment in a given database
+    \item[calcKwh.R] R script to caluclate KwH usage from current cost readings.
+\end{description}
+
+Further details of these scripts are given below
+
+\section{getStats.R}
+
+
+
+
+This script calculates summary statistics for all houses in a given database.
+The statistics are output in two formats.
+\begin{itemize}
+  \item \emph{.csv} file with summary output for this database
+  \item update rows in the \emph{summary} table given these statistics
+\end{itemize}
+
+To run the script modify the source file with the relevant database access
+name. Then run the script through R. 
+
+
+\subsection{Script initialisation}
+
+\begin{itemize}
+\item Load the relevant R librarys
+\item Connects to the database
+\item Loads the Relevant Lookup tables into memory.
+  \begin{itemize}
+  \item Houses Table
+  \item Sensor Table (For Calibration)
+  \item Sensor Type Table
+  \item Summary Type Table
+  \end{itemize}
+\end{itemize}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# Load Relevant Libraries}
+\hlfunctioncall{library}(RMySQL)
+\hlfunctioncall{library}(ggplot2)
+\hlfunctioncall{library}(plyr)
+
+\hlcomment{# Setup Database Connection}
+drv <- \hlfunctioncall{dbDriver}(\hlstring{"MySQL"})
+\hlcomment{# con <- dbConnect(drv,dbname='mainStore',user='chuser')}
+con <- \hlfunctioncall{dbConnect}(drv, dbname = \hlstring{"mainStore"}, user = \hlstring{"root"}, password = \hlstring{"Ex3lS4ga"})
+
+\hlcomment{# Load the Relevant lookup tables into memeory}
+allHouses <- \hlfunctioncall{dbGetQuery}(con, statement = \hlstring{"SELECT * FROM House WHERE address != \hlstring{'ERROR-DATA'}"})
+summaryData <- \hlfunctioncall{dbReadTable}(con, \hlstring{"SummaryType"})
+calibrationData <- \hlfunctioncall{dbReadTable}(con, \hlstring{"Sensor"})
+sensorType <- \hlfunctioncall{dbReadTable}(con, \hlstring{"SensorType"})
+
+\hlcomment{## Sensors we are interested in (For Yield Calculateions)}
+sensorTypeList <- \hlfunctioncall{subset}(sensorType, name == \hlstring{"Temperature"} | name == 
+    \hlstring{"Humidity"} | name == \hlstring{"Light PAR"} | name == \hlstring{"Light TSR"} | name == 
+    \hlstring{"CO2"} | name == \hlstring{"Air Quality"} | name == \hlstring{"VOC"} | name == \hlstring{"Battery Voltage"} | 
+    name == \hlstring{"Power"})
+
+\hlcomment{# Create a temporary table to hold summary informtion}
+houseData <- \hlfunctioncall{data.frame}(address = allHouses$address, dbStart = NA, dbEnd = NA, 
+    dataStart = NA, dataEnd = NA, totalNodes = NA, coNodes = NA, yield = NA, 
+    yieldSD = NA, yieldMin = NA, yieldMax = NA, totalSamples = NA, yieldDays = NA)
+
+\hlcomment{# Choose a particular house (for the demo)}
+i <- 7
+THEHOUSE <- allHouses[i, ]
+hseName <- THEHOUSE$address
+\hlcomment{# Output the House for Debugging}
+\hlfunctioncall{print}(hseName)
+\end{alltt}
+\begin{verbatim}
+## [1] "2 Berryfields"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+
+At the end of this we have :
+\begin{enumerate}
+\item A connection to the Database
+\item  A collection of lookup tables used later in the application
+\item  One main dataframe, to hold the summary information generated during the
+summarising process.
+\item  Selected a house, in this case 2 Berryfields
+\end{enumerate}
+
+\subsection{Loading the Inital Dataset}
+
+This section of code fetches the relevant data for each property.
+
+First the relevant house is fetched, and the start and end dates processed to
+convert to a format R is comfortable with.
+
+Next the Relevant locations are fetched using the following query
+This query also fetches the corresponding room names for each location for use
+in a lookup table if required.
+
+%Syntax,  Block Name,  etc
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# As the function parameter is a row number, Work out which House}
+\hlcomment{# we are dealing with. print(paste('Processing House ',hseName))}
+rowNo <- \hlfunctioncall{which}(houseData$address == hseName)
+cleanName <- \hlfunctioncall{gsub}(\hlstring{" "}, \hlstring{""}, hseName)
+
+\hlcomment{# Get House from the database}
+houseQry <- \hlfunctioncall{paste}(\hlstring{"SELECT * FROM House WHERE address = \hlstring{'"}, hseName, \hlstring{"'}"}, 
+    sep = \hlstring{""})
+theHouse <- \hlfunctioncall{dbGetQuery}(con, statement = houseQry)
+
+\hlcomment{# Process start and end dates into a format that R is happy with}
+theHouse$sd <- \hlfunctioncall{tryCatch}(\{
+    \hlfunctioncall{as.POSIXlt}(theHouse$startDate, tz = \hlstring{"GMT"})
+\}, error = \hlfunctioncall{function}(e) \{
+    NA
+\})
+
+theHouse$ed <- \hlfunctioncall{tryCatch}(\{
+    \hlfunctioncall{as.POSIXlt}(theHouse$endDate, tz = \hlstring{"GMT"})
+\}, error = \hlfunctioncall{function}(e) \{
+    NA
+\})
+
+\hlcomment{# Build the Location Query}
+locQry <- \hlfunctioncall{paste}(\hlstring{"SELECT * FROM Location as Loc "}, \hlstring{" LEFT OUTER JOIN Room as Room "}, 
+    \hlstring{" ON Loc.roomId = Room.id "}, \hlstring{" WHERE houseId ="}, theHouse$id, \hlstring{" AND Room.name NOT LIKE \hlstring{'PhyNet%'} "}, 
+    \hlstring{" AND Room.name NOT \hlfunctioncall{IN} (\hlstring{'Hot Water'},\hlstring{'Cold Water'},\hlstring{'Flow'},\hlstring{'Return'},\hlstring{'Hot'},\hlstring{'Cold'},\hlstring{'HotWater'},\hlstring{'ColdWater'}) "}, 
+    sep = \hlstring{""})
+
+\hlcomment{# Fetch Locations from the DB}
+locations <- \hlfunctioncall{dbGetQuery}(con, statement = locQry)
+
+\hlcomment{# Convert into a string so we can put the data into the next query}
+locationIds <- \hlfunctioncall{paste}(locations$id, collapse = \hlstring{","})
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+Next the relevant dataset is fetched. 
+Rather than fetch the entire dataset, and process it on the local machine, the
+query used makes use of SQL summarising functions to group the data by day. 
+The query fetches the following values:
+
+\begin{description}
+\item[nodeId] Used to Identify the Node
+\item[locationId] Used to Identify the Location
+\item[date] Timestamp converted to a date (i.e. with the time removed)
+\item[minTime] Time of first sample on this date
+\item[maxTime] Time of last sample on this date
+\item[minVal] Minimum reported Value on this date
+\item[maxVal] Maximum reported value on this date
+\item[meanVal] Average value reported on this date
+\end{description}
+ 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+houseData[rowNo, ]$dbStart <- theHouse$startDate
+houseData[rowNo, ]$dbEnd <- theHouse$endDate
+
+\hlcomment{# Setup the Query}
+sTypes <- \hlfunctioncall{paste}(sensorTypeList$id, collapse = \hlstring{","})
+dataQry <- \hlfunctioncall{paste}(\hlstring{"SELECT nodeId, type, locationId, \hlfunctioncall{DATE}(time) as date,\hlfunctioncall{count}(*) as count,"}, 
+    \hlstring{" \hlfunctioncall{min}(time) as minTime,\hlfunctioncall{max}(time) as maxTime,"}, \hlstring{" \hlfunctioncall{min}(value) as minVal, \hlfunctioncall{max}(value) as maxVal, \hlfunctioncall{avg}(value) as meanVal"}, 
+    \hlstring{" FROM Reading WHERE locationId \hlfunctioncall{IN} ("}, locationIds, \hlstring{") "}, \hlstring{" AND type \hlfunctioncall{IN} ("}, 
+    sTypes, \hlstring{") "}, \hlstring{" GROUP BY nodeId,type,\hlfunctioncall{DATE}(time)"}, sep = \hlstring{""})
+
+\hlcomment{# Fetch the data}
+houseSummary <- \hlfunctioncall{dbGetQuery}(con, statement = dataQry)
+\hlcomment{# Add a time object so that makes sense to R}
+houseSummary$dt <- \hlfunctioncall{as.POSIXlt}(houseSummary$date, tz = \hlstring{"GMT"})
+houseSummary$DT <- \hlfunctioncall{as.Date}(houseSummary$dt)
+\hlcomment{# And add some extra columns to hold summary information on bad}
+\hlcomment{# samples}
+houseSummary$countWithBad <- houseSummary$count
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+We should end up with a load of uncalibrated data as shown in figure~\ref{fig:uncalib-data}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# Plot the Uncalibrated Data}
+plt <- \hlfunctioncall{ggplot}(\hlfunctioncall{subset}(houseSummary, type == 0))
+plt <- plt + \hlfunctioncall{geom_point}(\hlfunctioncall{aes}(dt, meanVal))
+plt <- plt + \hlfunctioncall{geom_errorbar}(\hlfunctioncall{aes}(dt, ymin = minVal, ymax = maxVal))
+plt <- plt + \hlfunctioncall{opts}(title = \hlfunctioncall{paste}(\hlstring{"Uncalibrated Temperature data for "}, 
+    hseName))
+plt <- plt + \hlfunctioncall{xlab}(\hlstring{"Date"}) + \hlfunctioncall{ylab}(\hlstring{"Reading"})
+plt + \hlfunctioncall{facet_grid}(nodeId ~ .)
+\end{alltt}
+\end{kframe}\begin{figure}[h]
+
+
+{\centering \includegraphics[width=\maxwidth]{figure/manual-plot-uncalib} 
+
+}
+
+\caption[Uncalibrated Data]{Uncalibrated Data\label{uncalib-dataplot-uncalib}}
+\end{figure}
+
+
+\end{knitrout}
+
+
+
+\subsection{Calibration}
+For the purpouses of error detection, it should be sufficent to examine the
+minimum and maximum values.
+
+The dataset is calibrated by merging with the calibration table, to append the
+calibration slope and offset (where known), where there is no calibration data,
+a default value of 1 for slope, and 0 for offset are used.  
+From this a calibrated version of the Min,Max and Mean values is calculated.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# Merge with Calibration Data}
+tmp <- \hlfunctioncall{merge}(houseSummary, calibrationData, by.x = \hlfunctioncall{c}(\hlstring{"nodeId"}, \hlstring{"type"}), 
+    by.y = \hlfunctioncall{c}(\hlstring{"nodeId"}, \hlstring{"sensorTypeId"}), all.x = TRUE)
+
+\hlcomment{# Add a dafualt calibration for nodes that have none}
+noCalibIdx <- \hlfunctioncall{which}(\hlfunctioncall{is.na}(tmp$id) == TRUE)
+tmp[noCalibIdx, ]$calibrationSlope <- 1
+tmp[noCalibIdx, ]$calibrationOffset <- 0
+
+\hlcomment{# Calibrate}
+tmp$calibMin <- (tmp$minVal * tmp$calibrationSlope) + tmp$calibrationOffset
+tmp$calibMax <- (tmp$maxVal * tmp$calibrationSlope) + tmp$calibrationOffset
+tmp$calibMean <- (tmp$meanVal * tmp$calibrationSlope) + tmp$calibrationOffset
+\hlcomment{# Remove Data outside of given bands}
+tmp$badValue <- NA
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+Figure~\ref{fig:calibData} shows calibrated temperature data, before any error handling
+takes place.
+
+\begin{figure}[ht]
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+plt <- \hlfunctioncall{ggplot}(\hlfunctioncall{subset}(tmp, type == 0))
+plt <- plt + \hlfunctioncall{geom_point}(\hlfunctioncall{aes}(dt, calibMean, color = \hlstring{"calibrated"}))
+plt <- plt + \hlfunctioncall{geom_errorbar}(\hlfunctioncall{aes}(dt, ymin = calibMin, ymax = calibMax, 
+    color = \hlstring{"calibrated"}))
+plt <- plt + \hlfunctioncall{geom_point}(\hlfunctioncall{aes}(dt, meanVal, color = \hlstring{"uncalibrated"}))
+plt <- plt + \hlfunctioncall{opts}(title = \hlfunctioncall{paste}(hseName, \hlstring{"Summary Temperature \hlfunctioncall{Data} (calibrated)"}))
+plt <- plt + \hlfunctioncall{xlab}(\hlstring{"Date"}) + \hlfunctioncall{ylab}(\hlstring{"Value"})
+plt <- plt + \hlfunctioncall{facet_grid}(nodeId ~ .)
+plt
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figure/manual-unnamed-chunk-5} 
+
+}
+
+
+
+\end{knitrout}
+
+\caption{Calibrated Temperature Data}
+\label{fig:calibData}
+\end{figure}
+
+\subsection{Error Detection}
+Errors in the data are detected using a basic threshold based approach: Dates
+where the minimum or maximum values fall out of the ranges in
+Table~\ref{tab:accepted-Range} are marked as invalid.
+
+\emph{NOTE:} Given that with the Telos the data for temperature and humidity
+sensors tends to go bad when the battery voltage falls below 2.3V,  it may be
+appropriate to filter any temperature values when the battery drops below this level.
+
+\begin{table}[htbp]
+\begin{tabular}{l l l}
+  Parameter & Minimum Threshold & Maximum Threshold \\
+  \hline
+  Temperature & -10 & 50 \\
+  Humidity & 0 & 100 \\
+  Co2 & 0 & 6000
+\end{tabular}
+\caption{Accepted Ranges}
+\label{tab:accepted-Range}
+\end{table}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# Set a flag for data outside of certain bands}
+tmp$badValue <- NA
+
+\hlcomment{# Temperatre}
+badRows <- \hlfunctioncall{which}(tmp$type == 0 & (tmp$calibMin < -10 | tmp$calibMax > 
+    50))
+\hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+    tmp[badRows, ]$badValue <- TRUE
+\}
+\hlcomment{# Humidity}
+badRows <- \hlfunctioncall{which}(tmp$type == 2 & (tmp$calibMin < 0 | tmp$calibMax > 100))
+\hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+    tmp[badRows, ]$badValue <- TRUE
+\}
+\hlcomment{# Co2}
+badRows <- \hlfunctioncall{which}(tmp$type == 8 & (tmp$calibMin < 0 | tmp$calibMax > 6000))
+\hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+    tmp[badRows, ]$badValue <- TRUE
+\}
+\hlcomment{# TODO Rather than threshold by anything else, Threshold}
+\hlcomment{# Electricity by something sensible}
+badRows <- \hlfunctioncall{which}(tmp$type == 6 & (tmp$calibMin < 0 | tmp$calibMax > 5))
+\hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+    tmp[badRows, ]$badValue <- TRUE
+\}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+Where data is marked as invalid, the full data stream for that day and node is
+collected.
+
+This full data stream is then calibrated and the bad readings removed using the
+method above.
+
+Each day is then summarised, and the original entry in the \emph{houseSummary}
+data frame replaced with the new summary values.  Additionally, a new column
+\emph{badCount} is added to the data table to represent the total number of
+samples before any data is removed.  This may allow some insight into the number
+of bad samples per deployment.
+
+%I would love to break this down, but I cant work out how to split blocks of code
+%to keep the IF statement together.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# Work out the correct SQL statement}
+sqlValues <- \hlfunctioncall{subset}(tmp, badValue == TRUE)
+
+\hlfunctioncall{if} (\hlfunctioncall{nrow}(sqlValues) > 0) \{
+    uniqueNode <- \hlfunctioncall{paste}(\hlfunctioncall{unique}(sqlValues$nodeId), collapse = \hlstring{","})
+    uniqueDate <- \hlfunctioncall{paste}(\hlfunctioncall{shQuote}(\hlfunctioncall{unique}(sqlValues$dt)), collapse = \hlstring{","})
+    theQry <- \hlfunctioncall{paste}(\hlstring{"SELECT * FROM Reading WHERE"}, \hlstring{" NodeId \hlfunctioncall{IN} ("}, uniqueNode, 
+        \hlstring{")"}, \hlstring{" AND \hlfunctioncall{Date}(time) \hlfunctioncall{IN} ("}, uniqueDate, \hlstring{")"}, \hlstring{" AND type \hlfunctioncall{IN} ("}, 
+        \hlfunctioncall{paste}(sensorTypeList$id, collapse = \hlstring{","}), \hlstring{")"}, sep = \hlstring{""})
+    
+\hlcomment{    # Fetch all that data}
+    fixData <- \hlfunctioncall{dbGetQuery}(con, statement = theQry)
+    
+\hlcomment{    # Merge with Calibration Stuff}
+    fixCalib <- \hlfunctioncall{merge}(fixData, calibrationData, by.x = \hlfunctioncall{c}(\hlstring{"nodeId"}, \hlstring{"type"}), 
+        by.y = \hlfunctioncall{c}(\hlstring{"nodeId"}, \hlstring{"sensorTypeId"}), all.x = TRUE)
+    noCalibIdx <- \hlfunctioncall{which}(\hlfunctioncall{is.na}(fixCalib$id) == TRUE)
+    rowcount <- \hlfunctioncall{length}(noCalibIdx)
+    \hlfunctioncall{if} (rowcount > 0) \{
+        fixCalib[noCalibIdx, ]$calibrationSlope <- 1
+        fixCalib[noCalibIdx, ]$calibrationOffset <- 0
+    \}
+    
+\hlcomment{    # Calibrate}
+    fixCalib$calibValue <- (fixCalib$value * fixCalib$calibrationSlope) + 
+        fixCalib$calibrationOffset
+    fixCalib$ts <- \hlfunctioncall{as.POSIXlt}(fixCalib$time, tz = \hlstring{"GMT"})
+    fixCalib$dt <- \hlfunctioncall{as.Date}(fixCalib$ts)
+    
+\hlcomment{    # Remove all the bad data}
+    fixCalib$badValue <- FALSE
+    badRows <- \hlfunctioncall{which}(fixCalib$type == 0 & (fixCalib$calibValue < -10 | 
+        fixCalib$calibValue > 50))
+    \hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+        fixCalib[badRows, ]$badValue <- TRUE
+        fixCalib[badRows, ]$value <- NA
+    \}
+    badRows <- \hlfunctioncall{which}(fixCalib$type == 2 & (fixCalib$calibValue < 0 | 
+        fixCalib$calibValue > 100))
+    \hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+        fixCalib[badRows, ]$badValue <- TRUE
+        fixCalib[badRows, ]$value <- NA
+    \}
+    badRows <- \hlfunctioncall{which}(fixCalib$type == 8 & (fixCalib$calibValue < 0 | 
+        fixCalib$calibValue > 6000))
+    \hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+        fixCalib[badRows, ]$badValue <- TRUE
+        fixCalib[badRows, ]$value <- NA
+    \}
+\hlcomment{    # We could do with removing any temperture / humidity data where}
+\hlcomment{    # the battery level is below XXX}
+    badRows <- \hlfunctioncall{which}(fixCalib$type == 6 & (fixCalib$calibValue < 0 | 
+        fixCalib$calibValue > 5))
+    \hlfunctioncall{if} (\hlfunctioncall{length}(badRows) > 0) \{
+        fixCalib[badRows, ]$badValue <- TRUE
+        fixCalib[badRows, ]$value <- NA
+    \}
+    
+\hlcomment{    # Summarise so its in the same format as the overall data}
+    fixSummary <- \hlfunctioncall{ddply}(fixCalib, \hlfunctioncall{.}(nodeId, locationId, type, dt), summarise, 
+        minVal = \hlfunctioncall{min}(value, na.rm = TRUE), maxVal = \hlfunctioncall{max}(value, na.rm = TRUE), 
+        meanVal = \hlfunctioncall{mean}(value, na.rm = TRUE), minTime = \hlfunctioncall{min}(ts), maxTime = \hlfunctioncall{max}(ts), 
+        count = \hlfunctioncall{length}(value), naCount = \hlfunctioncall{sum}(\hlfunctioncall{is.na}(value)), tCount = \hlfunctioncall{length}(value) - 
+            \hlfunctioncall{sum}(\hlfunctioncall{is.na}(value)))
+    
+\hlcomment{    # Remove the Infs put in by sumary functions where there is no}
+\hlcomment{    # data.}
+    infDates <- \hlfunctioncall{which}(\hlfunctioncall{is.infinite}(fixSummary$minVal) == TRUE)
+    \hlfunctioncall{if} (\hlfunctioncall{length}(infDates) > 0) \{
+        fixSummary[\hlfunctioncall{which}(\hlfunctioncall{is.infinite}(fixSummary$minVal) == TRUE), ]$minVal <- NA
+        fixSummary[\hlfunctioncall{which}(\hlfunctioncall{is.infinite}(fixSummary$maxVal) == TRUE), ]$maxVal <- NA
+    \}
+    
+\hlcomment{    # And Replace the original Values}
+    \hlfunctioncall{for} (i in 1:\hlfunctioncall{nrow}(fixSummary)) \{
+        thisRow <- fixSummary[i, ]
+        rowIdx <- \hlfunctioncall{which}(houseSummary$nodeId == thisRow$nodeId & houseSummary$locationId == 
+            thisRow$locationId & houseSummary$type == thisRow$type & 
+            houseSummary$DT == thisRow$dt)
+        houseSummary[rowIdx, ]$count <- thisRow$tCount
+        houseSummary[rowIdx, ]$countWithBad <- thisRow$count
+        houseSummary[rowIdx, ]$minVal <- thisRow$minVal
+        houseSummary[rowIdx, ]$maxVal <- thisRow$maxVal
+    \}
+\}  \hlcomment{#End of IF Statement}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+Figure~\ref{fig:remove-calib-data}, demonstrates calibration and removal of
+erroneous data,  samples in \emph{blue} are removed from the database
+
+\begin{figure}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+plt <- \hlfunctioncall{ggplot}(\hlfunctioncall{subset}(fixCalib, type == 0))
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\textcolor{errorcolor}{\#\# Error: object 'fixCalib' not found}}\begin{alltt}
+plt <- plt + \hlfunctioncall{geom_point}(\hlfunctioncall{aes}(dt, calibValue, color = badValue))
+plt <- plt + \hlfunctioncall{ylab}(\hlstring{"Value"}) + \hlfunctioncall{xlab}(\hlstring{"Date"})
+plt <- plt + \hlfunctioncall{opts}(title = \hlstring{"Calibrating and Removing \hlstring{'Bad'} data"})
+plt <- plt + \hlfunctioncall{facet_grid}(nodeId ~ .)
+\hlfunctioncall{print}(plt)
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\textcolor{errorcolor}{\#\# Error: object 'calibValue' not found}}\end{kframe}
+\end{knitrout}
+
+\caption{Calibrate and Remove ``bad'' samples}
+\label{fig:remove-calib-data}
+\end{figure}
+
+\subsection{Calculating Per Node Yields}
+
+First a Yield per Sensor is Calculated, This is based on the \emph{ideal} yield
+of 288 samples per day (5 minute sampling interval)
+
+\begin{equation}
+  \text{Yield} = \text{count} * 288 / 100.0
+  \label{eq:calc-yield}
+\end{equation}
+
+\begin{figure}
+  \label{fig:sensor-yield}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# Work out the first and last samples so we can get yields for each}
+\hlcomment{# node / Day print('FIRST AND LAST SAMPLES') First and Last Samples}
+firstSample <- \hlfunctioncall{as.character}(\hlfunctioncall{min}(houseSummary$dt))
+lastSample <- \hlfunctioncall{as.character}(\hlfunctioncall{max}(houseSummary$dt))
+houseData[rowNo, ]$dataStart <- firstSample
+houseData[rowNo, ]$dataEnd <- lastSample
+
+\hlcomment{# Error check, if there is no start date / end date in the}
+\hlcomment{# database, We use the date of the first and last sample}
+hSd <- \hlfunctioncall{as.POSIXlt}(theHouse$sd, tz = \hlstring{"GMT"})
+\hlfunctioncall{if} (\hlfunctioncall{is.na}(hSd)) \{
+    hSd <- \hlfunctioncall{as.POSIXlt}(firstSample, tz = \hlstring{"GMT"})
+\}
+hEd <- \hlfunctioncall{as.POSIXlt}(theHouse$ed, tz = \hlstring{"GMT"})
+\hlfunctioncall{if} (\hlfunctioncall{is.na}(hEd)) \{
+    hEd <- \hlfunctioncall{as.POSIXlt}(lastSample, tz = \hlstring{"GMT"})
+\}
+
+\hlcomment{# Calculate the Yield per Node / Sensor / Day}
+houseSummary$dayYield <- (houseSummary$count/288) * 100
+
+plt <- \hlfunctioncall{ggplot}(houseSummary)
+plt <- plt + \hlfunctioncall{geom_point}(\hlfunctioncall{aes}(dt, dayYield, color = type))
+plt <- plt + \hlfunctioncall{geom_step}(\hlfunctioncall{aes}(dt, dayYield, color = type))
+plt <- plt + \hlfunctioncall{ylab}(\hlstring{"Yield %"}) + \hlfunctioncall{xlab}(\hlstring{"Date"})
+plt <- plt + \hlfunctioncall{opts}(title = \hlfunctioncall{paste}(hseName, \hlstring{" Yield per Sensor"}))
+plt <- plt + \hlfunctioncall{facet_grid}(nodeId ~ .)
+plt
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figure/manual-unnamed-chunk-9} 
+
+}
+
+
+
+\end{knitrout}
+
+\caption{Yield Per Sensor}
+\end{figure}
+
+Next summary yields per node / location are calculated, these summaries include
+minimum, maximum and average yields per sensor.  Minimum and Maximum values are
+included as in some cases, the yield for individual sensors varies on each node.
+For Example, consider a case where the battery is running low (below ~2.3V), in
+this case the readings from the attached Temperature and Humidity sensors will
+have errors, while other sensors (such as light levels) will continue to be
+reported correctly.  Therefore each sensor may have differing yields.
+
+\begin{figure}
+  \label{fig:node-yield}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlcomment{# Averge out the Yields by Node / Location / Date (IE Combine all}
+\hlcomment{# Sensors together)}
+avgYield <- \hlfunctioncall{ddply}(houseSummary, \hlfunctioncall{.}(dt, nodeId, locationId), summarise, 
+    min = \hlfunctioncall{min}(dayYield), max = \hlfunctioncall{max}(dayYield), dayYield = \hlfunctioncall{mean}(dayYield))
+
+dayCountId <- summaryData[\hlfunctioncall{which}(summaryData$name == \hlstring{"Day Count"}), ]$id
+dayCountCleanId <- summaryData[\hlfunctioncall{which}(summaryData$name == \hlstring{"Day \hlfunctioncall{Count} (Clean)"}), 
+    ]$id
+\hlcomment{# print(paste('Day Count Id ',dayCountId)) print(paste('Day Count}
+\hlcomment{# Clean Id ',dayCountCleanId))}
+
+plt <- \hlfunctioncall{ggplot}(avgYield)
+plt <- plt + \hlfunctioncall{geom_point}(\hlfunctioncall{aes}(dt, dayYield))
+plt <- plt + \hlfunctioncall{geom_errorbar}(\hlfunctioncall{aes}(dt, ymin = min, ymax = max))
+plt <- plt + \hlfunctioncall{facet_grid}(nodeId ~ .)
+\hlfunctioncall{print}(plt)
+\end{alltt}
+\end{kframe}
+
+{\centering \includegraphics[width=\maxwidth]{figure/manual-unnamed-chunk-10} 
+
+}
+
+
+
+\end{knitrout}
+
+\caption{Yield per Node}
+\end{figure}
+
+\subsection{Calculating Deployment Yield}
+
+
+
+\subsection{Insert Summary Information into Main Database}
+Summary information is inserted into the main database.
+
+% <<echo=FALSE>>=
+% # Raw Counts
+% countInsert <- data.frame(time=houseSummary$dt,
+%                           nodeId=houseSummary$nodeId,
+%                           sensorTypeId=houseSummary$type,
+%                           summaryTypeId=NA,
+%                           locationId=houseSummary$locationId,
+%                           value=houseSummary$countWithBad
+%                           )
+
+% countInsert$summaryTypeId <- dayCountId
+% dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
+
+%  print("Counting Clean Samples")
+% #Clean counts
+% countInsert <- data.frame(time=houseSummary$dt,
+%                           nodeId=houseSummary$nodeId,
+%                           sensorTypeId=houseSummary$type,
+%                           summaryTypeId=dayCountCleanId,
+%                           locationId=houseSummary$locationId,
+%                           value=houseSummary$count
+%                           )
+
+% dbWriteTable(con,"Summary",countInsert,append=TRUE,row.name=FALSE)
+% @ 
+
+
+\end{document}
