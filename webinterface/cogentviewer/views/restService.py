@@ -1402,7 +1402,7 @@ def lastSync(request):
     This should take the house address as a URL encoded string
     """
     houseName = request.params.get("house",None)
-    log.debug("Fetching last Sample for house >{0}<".format(houseName))
+    log.info("Fetching last Sample for house >{0}<".format(houseName))
     
     if houseName is None:
         return None
@@ -1424,14 +1424,18 @@ def lastSync(request):
     
 
     readingQry = session.query(sqlalchemy.func.max(models.Reading.time)).filter(models.Reading.locationId.in_(locIds)).first()
-    for line in readingQry:
-       #print line[0],line[1]
-        print line
-    
-    if line is not None:
-        return line.isoformat()
-    else:
-        return line
+    #for line in readingQry:
+    #   #print line[0],line[1]
+    #    print line
 
-    theDate = datetime.datetime.now().isoformat()
-    return theDate
+
+    log.debug("Result is {0}".format(readingQry))
+    readingQry = readingQry[0]
+    log.debug("Stripped Result is {0}".format(readingQry))
+    if readingQry is not None:
+        return readingQry.isoformat()
+    else:
+        return readingQry
+
+    #theDate = datetime.datetime.now().isoformat()
+    #return theDate
