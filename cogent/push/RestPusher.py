@@ -5,10 +5,6 @@ convert to JSON and (eventually) transfer across REST
 
 This replaces the ssh tunnel database access currently used to transfer samples.
 
-However, for the moment synchronising the Locations etc (or the complex bit) is
-still done via SQLA. As this takes a fraction of the transfer time its probably
-a good idea to leave it.
-
     .. note::
 
         I currently add 1 second to the time the last sample was transmitted,
@@ -66,21 +62,46 @@ a good idea to leave it.
    .. since 0.7.0::
    
       Mapping configuration file added
+      0.7.1  Update so logging also goes to file
+      0.7.2  Bigfix for Null items in HouseId etc
+   
+   .. since 0.8.0::
+
+      Some Code broken into seperate functions, to make interitance for the Samson Pusher class a little easier.
+      Examples of this include Pusher.CreateEngine() and Pusher.Queue()
 
 """
 
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
+                    datefmt = "%m-%d-%Y %H:%M",
+                    )
+#Add a File hander
+#fh = logging.FileHandler("push_out.log")
+logsize = (1024*1024) * 5 #5Mb Logs
+
+import logging.handlers
+fh = logging.handlers.RotatingFileHandler("push_out.log",maxBytes=logsize,backupCount = 5)
+fh.setLevel(logging.INFO)
+
+fmt = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
+fh.setFormatter(fmt)
+
+#ch
+
 #logging.basicConfig(level=logging.INFO,filename="pushCogentee.log")
 #logging.basicConfig(level=logging.WARNING)
 
-__version__ = "0.7.0"
+__version__ = "0.7.2"
 
 import sqlalchemy
 #import remoteModels
 
 import cogent
+
 import cogent.base.model as models
+
 import cogent.base.model.meta as meta
 #from datetime import datetime
 from datetime import timedelta
@@ -124,9 +145,11 @@ class PushServer(object):
                         This can be used to overwrite the url in the config file
         """
 
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger("Push Server")
         log = self.log
-        log.setLevel(logging.DEBUG)
+        #log.setLevel(logging.DEBUG)
+        log.addHandler(fh)
+        log.info("="*70)
         log.info("Initialising Push Server")
 
         #Load and Read the Configuration files
@@ -144,16 +167,9 @@ class PushServer(object):
         log.debug("Connecting to local database at {0}".format(localURL))
 
         #Initialise the local database connection
-        engine = sqlalchemy.create_engine(localURL)
-        models.initialise_sql(engine)
-        localSession = sqlalchemy.orm.sessionmaker(bind=engine)
-        self.localSession = localSession
-        log.info("Database Connection to {0} OK".format(localURL))
-        # #DEBUG: And test this connection reporting total number of houses
-        # session = localSession()
-        # theQry = session.query(models.House).count()
-        # log.debug("Total of {0} houses in database".format(theQry))
+        self.createEngine(localURL)
 
+        localSession = self.localSession
         #We also need to know the "Limit" on items to push
         pushLimit = generalOptions["pushlimit"]
         log.debug("Push Limit is {0}".format(pushLimit))
@@ -171,11 +187,17 @@ class PushServer(object):
                                          ""]
 
         #Next we want to queue up all the remote URLS we wish to push to.
-        syncList = []
+
         #Locations in the config File
         locations = configParser["locations"]
-        #print locations
         
+        self.QueueLocations(locations,configParser,mappingConfig,pushLimit)
+
+    def QueueLocations(self,locations,configParser,mappingConfig,pushLimit):
+        localSession = self.localSession
+        log = self.log
+        syncList = []
+
         for item in locations:
             #Check if we need to synchronise to this location.
             needSync = locations.as_bool(item)
@@ -192,102 +214,23 @@ class PushServer(object):
                                    )
                 syncList.append(thePusher)
 
-        self.syncList = syncList
-        #locationQueue = self.readConfig(configParser)
-        #print locationQueue
-        #Read the Configuration File
-        # generalConf, locationConfig = self.readConfig()
-        # log.debug("General Configuation")
-        # log.debug(generalConf)
+        self.syncList = syncList        
 
-        # log.debug("---- Location Configuration ----")
-        # log.debug(locationConfig)
-
-        #Store the config
-        #self.generalConf = generalConf
-
-        #if not localURL:
-        #    localURL = generalConf["localUrl"]
-
-        #log.info("Connecting to local database at {0}".format(localURL))
-
-        # #Initalise the local database connection
-        # engine = sqlalchemy.create_engine(localURL)
-        # models.initialise_sql(engine)
-        # localSession = sqlalchemy.orm.sessionmaker(bind=engine)
-        # self.localSession = localSession
-
-        # #And test this connection reporting total number of houses
-        # session = localSession()
-        # theQry = session.query(models.House).count()
-        # log.debug("Total of {0} houses in database".format(theQry))
-
-        #Create a new Pusher object for this each item given in the config
-        # syncList = []
-        # for item in locationConfig.values():
-        #     log.debug("")
-        #     log.info("--> Initalising pusher for {0} {1} {2}".format(localSession,generalConf,item))
-        #     thePusher = Pusher(localSession,
-        #                        item["resturl"], #Rest URL
-        #                        item["lastupdate"], #Last Update Time
-        #                        generalConf["pushlimit"], #Pusg Limit
-        #                        self.confParser #The Config File Itself
-        #                        )
-            
-        #     thePusher.checkConnection()
-        #     #thePusher.validateData()
-
-        #     syncList.append(thePusher)
-
-        # self.syncList = syncList
-        #self.theConfig = theConfig
-
-    # def readConfig(self,configParser):
-    #     """Read configuration from the config file.
-
-    #     This will parse the synchronise.conf file, and produce a local
-    #     dictionary of all objects that need synchronising.
-
-    #     :var configParser: The config Parser object we are reading from
-    #     :return: A dictionary of parameters (as a list) where syncronisation is
-    #     required
-    #     """
-    #     log = self.log
-    #     #confParser = self.configParser
-    #     log.info("Reading Config File for locations to update")
-
-    #     #Dictionary to return
-    #     syncDict = {}
-
-    #     #generalOpts = confParser["general"]
-
-
-    #     #Get the Locations
-    #     locations = confParser["locations"]
-
-    #     for loc in locations:
-    #         isBool = locations.as_bool(loc)
-    #         #log.debug("--> Processing Location {0} {1}".format(loc, isBool))
-    #         if isBool:
-    #             items = confParser[loc]
-    #             if items.get("lastupdate", None) in [None, "None"]:
-    #                 items["lastupdate"] = None
-    #             else:
-    #                 #We need to parse the last time
-    #                 theTime = dateutil.parser.parse(items["lastupdate"])
-    #                 items["lastupdate"] = theTime
-    #             syncDict[loc] = items
-
-    #     self.confParser = confParser
-    #     return generalOpts, syncDict
+    def createEngine(self,localURL):
+        """Create a connection to the DB engine"""
+        log = self.log
+        engine = sqlalchemy.create_engine(localURL)
+        models.initialise_sql(engine)
+        localSession = sqlalchemy.orm.sessionmaker(bind=engine)
+        self.localSession = localSession
+        log.info("Database Connection to {0} OK".format(localURL))
 
 
     def sync(self):
         """
-        Run one instance of the synchroniseation mechnism,
+        Run one instance of the synchroniseation mechnism.
 
         For each item in the config file, perform synchronisation.
-
         :return: True on success,  False otherwise
         """
 
@@ -298,25 +241,7 @@ class PushServer(object):
 
         for item in self.syncList:
             log.debug("Synchronising {0}".format(item))
-            samples = 1
             item.sync()
-            #samples,lastTime = item.sync()
-            
-            # #return
-            # while samples > 0:
-            #     t1 = time.time()
-            #     samples, lastTime = item.sync()
-            #     t2 = time.time()
-            #     log.info("Sync cycle complete to in {0:.2f}s {1} samples remain from {2}".format(t2-t1,
-            #                                                                                      samples,
-            #                                                                                      lastTime))
-
-            #     if avgTime is None:
-            #         avgTime = t2-t1
-            #     else:
-            #         avgTime = (avgTime + (t2-t1)) / 2.0
-                
-            #     self.confParser.write()
 
         loopEnd = time.time()
         log.info("Total Time Taken {0} Avg {1}".format(loopEnd-loopStart,avgTime))
@@ -339,11 +264,11 @@ class Pusher(object):
         :param pushLimit: Number of samples to transfer in each "Push"
         """
 
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger("Pusher")
         self.log.setLevel(logging.INFO)
         #self.log.setLevel(logging.WARNING)
         log = self.log
-        
+        log.addHandler(fh)
 
         log.debug("Initialising Push Object")
         #Save the Parameters
@@ -377,9 +302,20 @@ class Pusher(object):
         self.mappedRooms = {}
         self.mappedLocations = {}
         self.mappedRoomTypes = {}
+        #Evidently we need to map Sensor Types too
+        self.mappedSensorTypes = {}
 
         dbConfig[restUrl] = mappingConfig
         dbConfig.write()
+
+        #And a horribly hacky way to load Classes into memory so inhritance is simple
+        self.SensorType = models.SensorType
+        self.RoomType = models.RoomType
+        self.Room = models.Room
+        self.Deployment = models.Deployment
+        self.House = models.House
+        self.Node = models.Node
+        self.Location = models.Location
         
 
     def checkConnection(self):
@@ -404,125 +340,50 @@ class Pusher(object):
 
         log = self.log
         #log.setLevel(logging.DEBUG)
-        log.info("Performing sync")
+        log.debug("Performing sync")
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
         self.loadMappings()
-        #self.loadMappings() 
-        #return
 
         self.syncNodes()
-
-        #log.setLevel(logging.DEBUG)
-        #I think we should do this by House, Keeps things a little tidier
+        self.saveMappings()
+        #sys.exit(0)
         session = self.localSession()
-        houses = session.query(models.House)
+        houses = session.query(self.House)
         
         mappingConfig = self.mappingConfig
 
         #FIXME
-        for item in houses[1:2]:
-            log.debug("Synchronising Readings for House {0}".format(item))
+        for item in houses:
+            log.info("Synchronising Readings for House {0}".format(item))
             #Look for the Last update
             self.uploadReadings(item)
 
         self.saveMappings()
-        #log.setLevel(logging.INFO)
-        #session = self.localSession()
-        #deployments = session.query(models.Deployment).all()
-        
-        #log.debug("---- Deployments -----")
-        #for item in deployments:
-        #    log.debug(item)
-        #return
-
-        #config = self.config
-        #log.debug("Sync with config {0}".format(config))
-        #self.lastUpdate = config.get("lastupdate", None)
-        #log.debug("Last Update Was {0}".format(self.lastUpdate))
-
-
-        #Syncronise Sensor Types
-        #self.syncSensorTypes()
-
-        #Synchronise Nodes
-        #nodes = self.syncNodes()
-
-        #Start to map the rest
-        #deployments = self.mapDeployments()
-
-        #Houses
-        #houses = self.mapHouses(deploymentIds = deployments)
-
-        #And Locations
-
-
-        #self.mapLocations(houseIds = houses)
-
-
-
-        #log.setLevel(logging.DEBUG)
-        #self.updateNodeLocations()
-        #log.setLevel(logging.INFO)
-        #Print some Debugging Information
-        #self.debugMappings()
-
-        #log.setLevel(logging.DEBUG)
-        
-
-
-        #log.setLevel(logging.INFO)
-
-        
-        #log.debug("Last update {0}".format(self.lastUpdate))
-        #Synchronise Readings
-        #return
-        #samples, lastTime = self.syncReadings()
-
-        #log.debug("Remaining Samples {0}".format(samples))
-        #log.debug("Last Sample Time {0}".format(lastTime))
-        #self.dumpMappings()
-        #Finally update the config file. (Add an tiny Offset to avoid issues
-        #with milisecond rounding)
-        #self.config['lastupdate'] = lastTime + timedelta(seconds = 1)
-        #self.lastUpdate = lastTime + timedelta(seconds = 1)
-
-        
-        #return samples, lastTime
 
     def loadMappings(self):
         """Load known mappings from the config file,
         then update with new mappings"""
         log = self.log
         log.info("--- Loading Mappings ---")
-
-        log.debug("Load from Config file")
-        #restUrl = self.restUrl
-        session = self.localSession()
-        
-        #Map Id's etc in the remote datbase to the local DB
+    
         self.mapSensors()
         self.mapRooms()
-
         self.mapDeployments()
         self.mapHouses() #Then houses
-
         self.mapLocations()
-
+        log.info("---- Save Mappings ----")
         self.saveMappings()
-        #return
+
 
     def saveMappings(self):
         """Save mappings to a file"""
         mappingConfig = self.mappingConfig
-        #print mappingConfig
+
         mappingConfig["deployment"] = dict([(str(k),v) for k,v in self.mappedDeployments.iteritems()])
         mappingConfig["house"] = dict([(str(k),v) for k,v in self.mappedHouses.iteritems()])
         mappingConfig["location"] = dict([(str(k),v) for k,v in self.mappedLocations.iteritems()])
-
-        # print "-"*50
-        # print mappingConfig
-        # print "-"*50
+        mappingConfig["room"] = dict([(str(k),v) for k,v in self.mappedRooms.iteritems()])
         self.dbConfig[self.restUrl] = self.mappingConfig
         self.dbConfig.write()
 
@@ -546,9 +407,18 @@ class Pusher(object):
             log.debug(restQry)
 
         jsonBody = json.loads(restQry["body"])    
-        restItem = models.clsFromJSON(jsonBody).next()
+        restItem = self.unpackJSON(jsonBody).next()#models.clsFromJSON(jsonBody).next()
         #log.debug("Rest --> {0}".format(restItem))
         return restItem
+
+    def unpackJSON(self,jsonBody):
+        """Unpack Json Objects returned by the REST interface.
+        This needs to be seperated out to allow the Sampson Verison on the code to work
+
+        :var jsonBody: Json Encoded body
+        :return: Genertor object for these elements
+        """
+        return models.clsFromJSON(jsonBody)
 
     def mapRooms(self):
         """Function to map Rooms and Room types between the two databases.
@@ -558,7 +428,7 @@ class Pusher(object):
         log = self.log
         session = self.localSession()
         restSession = self.restSession
-        log.info("Mapping Rooms")
+        log.debug("--> Mapping Rooms")
         #First we need to map room Types
 
         #Fetch the room types from the remote Database
@@ -570,17 +440,17 @@ class Pusher(object):
         #Fetch All room Types the Remote Database knows about
         remoteQry = restSession.request_get(theUrl)
         jsonBody = json.loads(remoteQry['body'])
-        restItems = models.clsFromJSON(jsonBody)
+        restItems = self.unpackJSON(jsonBody)#models.clsFromJSON(jsonBody)
 
         #Build a dictionary
         for item in restItems:
             remoteTypes[item.name] = item
 
         #Fetch Local Version of room types
-        roomTypes = session.query(models.RoomType)
+        #roomTypes = session.query(models.RoomType)
+        roomTypes = session.query(self.RoomType)
         for item in roomTypes:
             localTypes[item.name] = item
-
         #And Merge, 
         mergedRooms = {}
         #First add new Remote types
@@ -612,7 +482,7 @@ class Pusher(object):
         self.mappedRoomTypes = mergedRooms
 
         #Now we have room types, we can map the rooms themselves.
-        theQry = session.query(models.Room)
+        theQry = session.query(self.Room)
         theUrl = "room/"
         mergedRooms = {}
 
@@ -624,11 +494,9 @@ class Pusher(object):
             del theBody["id"]
 
             newItem = self.uploadItem(theUrl,theBody) 
-            mergedRooms[item.id] = newItem
+            mergedRooms[item.id] = newItem.id
 
         self.mappedRooms = mergedRooms
- 
-
 
     def mapSensors(self):
         """Function to map Sensors and Sensor types between the two databases.
@@ -637,7 +505,7 @@ class Pusher(object):
         
         #First we need to map room Types
         log = self.log
-        log.info("Mapping Sensors between databases")
+        log.debug("Mapping Sensors between databases")
         session = self.localSession()
         restSession = self.restSession
 
@@ -649,21 +517,21 @@ class Pusher(object):
 
         remoteQry = restSession.request_get(theUrl)
         jsonBody = json.loads(remoteQry['body'])
-        restItems = models.clsFromJSON(jsonBody)
+        restItems = self.unpackJSON(jsonBody)
 
         for item in restItems:
             remoteTypes[item.name] = item
 
-        itemTypes = session.query(models.SensorType)
+        itemTypes = session.query(self.SensorType)
         for item in itemTypes:
             localTypes[item.name] = item
 
         mergedItems = {}
         #Mrege Item Tpyes
-
         #Add any new sensors to the remote database
         for key,value in localTypes.iteritems():
             rValue = remoteTypes.get(key,None)
+
             if rValue is None:
                 #Add a new remote Item Types
                 log.debug("Adding Sensor Type {0} to remote DB".format(value))
@@ -689,6 +557,7 @@ class Pusher(object):
             log.debug(value)
         session.commit()
         self.mappedSensorTypes = mergedItems
+        
 
     def mapDeployments(self, localIds = None):
         """
@@ -718,7 +587,7 @@ class Pusher(object):
         configDeployments = mappingConfig.get("deployment",{})
         mappedDeployments.update(dict([(int(k),v) for k,v in configDeployments.iteritems()]))
 
-        depQuery = lSess.query(models.Deployment)
+        depQuery = lSess.query(self.Deployment)
        
         #TODO:  Load / Save mappings. Work if there are changes to deployment name on remote server
 
@@ -740,7 +609,7 @@ class Pusher(object):
             mappedDeployments[item.id] = newItem.id
             
         log.debug("Mapped Deps: {0}".format(mappedDeployments))
-        #print mappedDeployments
+
         #And Save this in out Local Version
         #self.mappedDeployments = deploymentMap
 
@@ -760,19 +629,20 @@ class Pusher(object):
 
         #Get the list of deployments that may need updating
         #Deployment = models.Deployment
-        theQry = lSess.query(models.House)
-
-        #theMap = {}
+        theQry = lSess.query(self.House)
 
         for item in theQry:
             log.debug("Check Mapping for {0}".format(item))
-            #if item.address is None:                
-            #    continue
+
             if item.id in mappedHouses:
                 log.debug("--> House {0} Exists in config file".format(item))
                 continue
             #We need to make sure the deployment is mapped correctly
-            mapDep = mappedDeployments[int(item.deploymentId)]
+            if item.deploymentId is None:
+                mapDep = None
+            else:
+                mapDep = mappedDeployments[int(item.deploymentId)]
+
             params = {"address":item.address,
                       "deploymentId":mapDep}
             theUrl = "house/?{0}".format(urllib.urlencode(params))                            
@@ -792,16 +662,15 @@ class Pusher(object):
     def mapLocations(self):
         #Synchronise Locations
         log = self.log
-        log.info("----- Syncing Locations ------")
+        log.debug("----- Syncing Locations ------")
         lSess = self.localSession()
         restSession = self.restSession
 
         #Get the list of deployments that may need updating
         #Deployment = models.Deployment
-        theQry = lSess.query(models.Location)
+        theQry = lSess.query(self.Location)
 
         mappedHouses = self.mappedHouses
-        print "-"*30, mappedHouses
         mappedRooms = self.mappedRooms
         mappedLocations = self.mappedLocations
         
@@ -812,21 +681,26 @@ class Pusher(object):
 
         for item in theQry:
             #log.debug(item)
-            if item.id in mappedLocations:
-                log.debug("Location Exists in Config File {0}".format(item))
-                continue
-            print item
-            print "HID: ",item.houseId
+            #if item.id in mappedLocations:
+            #    log.debug("Location Exists in Config File {0}".format(item))
+            #    continue
+
+
             hId = mappedHouses[int(item.houseId)]
-            rId =mappedRooms[int(item.roomId)]
+            if item.roomId is None:
+                rId = None
+            else:
+                rId =mappedRooms[int(item.roomId)]
+
             #We need to make sure the deployment is mapped correctly
             params = {"houseId":hId,
-                      "roomId":rId.id}
+                      "roomId":rId}
             theUrl = "location/?{0}".format(urllib.urlencode(params))                            
             #Look for the item
             theBody = item.toDict()
             theBody["houseId"] = hId
-            theBody["roomId"] = rId.id
+            theBody["roomId"] = rId
+
             #log.debug("LOCATION {0}={1}".format(item,theBody))
             del(theBody["id"])
             newItem = self.uploadItem(theUrl,theBody)
@@ -841,7 +715,7 @@ class Pusher(object):
         #Currently the node 'Location' field is not updated,  we need to work out how to do this
         while avoiding overwriting a node with an out of date location.
 
-        TODO:  A Couple of potential issues here,  1) no Sych of Location,  No Sync of Sensor Types (calibration)
+        TODO:  A Couple of potential issues here,  1) no Sych of Location,  No Sync of Sensor Types (calibration), No Sync of Node Types
         """
         log = self.log
         log.debug("----- Syncing Nodes ------")
@@ -850,12 +724,11 @@ class Pusher(object):
 
         #Get the list of deployments that may need updating
         #Deployment = models.Deployment
-        theQry = lSess.query(models.Node)
+        theQry = lSess.query(self.Node)
 
         theMap = {}
 
         for item in theQry:
-            log.debug(item)
             #We need to make sure the deployment is mapped correctly
             params = {"id":item.id}
             theUrl = "node/?{0}".format(urllib.urlencode(params))                            
@@ -872,8 +745,7 @@ class Pusher(object):
         modified to upload by House
         """
         log = self.log
-        #log.setLevel(logging.DEBUG)
-        log.info("--- Upload for house {0} ----".format(theHouse))
+        log.info("--- Upload Readings for house {0} ----".format(theHouse))
 
         #Load the Mapped items to the local namespace
         mappedLocations = self.mappedLocations
@@ -895,8 +767,7 @@ class Pusher(object):
         #Get the last reading for this House
         session = self.localSession()
         restSession =self.restSession
-        #log.setLevel(logging.DEBUG)
-        #Sanity check query for last update
+
         log.info("--> Requesting date of last reading in Remote DB")
         params = {"house":theHouse.address}
         theUrl = "lastSync/"
@@ -907,20 +778,17 @@ class Pusher(object):
         strDate = json.loads(restQuery['body'])
         log.debug("Str Date {0}".format(strDate))
         if strDate is None:
-            log.info("--> --> No Readings")
+            log.info("--> --> No Readings in Remote DB")
             lastDate = None
         else:
             lastDate = dateutil.parser.parse(strDate)
             log.info("--> Last Upload Date {0}".format(lastDate))
-        #if lastDate != lastUpload:
-        #    log.warning("Config / Remote last Updates do not match !! {0} {1}".format(lastUpload,lastDate))
 
         #uploadDates[str(theHouse.id)] = lastDate
         #mappingConfig["lastupdate"] = uploadDates
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
-        #log.debug("House Locations {0}".format(theLocations))
 
         #Fetch some readings
         theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
@@ -931,11 +799,13 @@ class Pusher(object):
         log.info("--> Total of {0} samples to transfer".format(origCount))
         rdgCount = origCount
         transferCount = 0
-                           #FIXME
-                           
-        for x in range(5):
-        #while rdgCount > 0:
+                    
+        
+        #for x in range(2):
+        while rdgCount > 0:
         #while True:
+            #Add some timings
+            stTime = time.time()
             theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
             if lastDate:
                 theReadings = theReadings.filter(models.Reading.time > lastDate)
@@ -943,12 +813,12 @@ class Pusher(object):
             theReadings = theReadings.limit(self.pushLimit)
             rdgCount = theReadings.count()
             if rdgCount <= 0:
-                log.info("No Readings Remain")
+                log.info("--> No Readings Remain")
                 return True
 
             transferCount += rdgCount
-            #print theReadings
-            log.info("--> Transfer {0}/{1} Readings to remote DB".format(transferCount,origCount))
+
+            log.debug("--> Transfer {0}/{1} Readings to remote DB".format(transferCount,origCount))
             jsonList = [] #Blank Object to hold readings
             for reading in theReadings:
                 #log.debug(reading)
@@ -962,19 +832,20 @@ class Pusher(object):
                 jsonList.append(dictReading)
                 lastSample = reading.time
 
-
+            qryTime = time.time()
              #And then try to bulk upload them
             restQry = restSession.request_post("/bulk/",
                                                body=json.dumps(jsonList))
             log.debug(restQry)
 
+            transTime = time.time()
             if restQry["headers"]["status"] == '404':
-                print "==="*80
                 log.warning("Upload Fails")
                 log.warning(restQry)
                 raise Exception ("Upload Fails")            
 
-            log.info("--> Readings up to {0} transferred successfully".format(lastSample))
+            log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
+            log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
             lastDate = lastSample
                      
         #Return True if we need to upload more
@@ -1117,50 +988,3 @@ if __name__ == "__main__":
 
     server = PushServer()
     server.sync()
-
-    #theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format("Gauss")
-    #compareReadings(theUrl)
-    #import sys
-    #sys.exit(0)
-    
-    #server = PushManual("mysql://root:Ex3lS4ga@localhost/Einstein")
-    #server = PushManual("mysql://root:Ex3lS4ga@localhost/Otto")
-    # dumpDict = {}
-    # #Push Mappings 
-    # fileStr = "manualPush.pickle"
-    # try:
-    #     with open(fileStr,"rb") as fd:
-    #         dumpDict = pickle.load(fd)
-    # except:
-    #     print "NO PICKELED FILE"
-        
-
-    
-
-    # print dumpDict
-
-    # servers = ["Einstein","Euclid","Euler","Gauss","Otto","Tesla"]
-    # servers = ["Euclid"]
-
-    # for item in servers:
-    #     print "Dealing with {0}".format(item)
-    #     theUrl = "mysql://root:Ex3lS4ga@localhost/{0}".format(item)
-
-    #     startTime = dumpDict.get(item,None)
-    #     if startTime:
-    #         startTime = startTime + datetime.timedelta(seconds=1)
-    #     startTime = datetime.datetime(2012,3,2,11,13,50)
-    #     server = PushManual(theUrl,stTime=startTime)
-    #     lastTime,dumpDict = server.sync(fileStr,dumpDict,item)
-
-#    dumpDict["Otto"] = datetime.datetime.now()
-    
-
-
-    #servers = ["Einstein","Euclid","Euler","Gauss","Tesla"]
-    
-    #for server in servers:
-
-    #server = PushManual("mysql://root:Ex3lS4ga@localhost/localCh")
-    #server.sync()
-    #print "Done"
