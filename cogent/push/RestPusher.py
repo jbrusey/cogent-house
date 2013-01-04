@@ -891,18 +891,19 @@ class Pusher(object):
         #     lastUpload = dateutil.parser.parse(lastUpload)
         #     log.debug("--> Processed last Upload is {0}".format(lastUpload))
 
-
+        
         #Get the last reading for this House
         session = self.localSession()
         restSession =self.restSession
-        log.setLevel(logging.DEBUG)
+        #log.setLevel(logging.DEBUG)
         #Sanity check query for last update
         log.info("--> Requesting date of last reading in Remote DB")
         params = {"house":theHouse.address}
         theUrl = "lastSync/"
         restQuery = restSession.request_get(theUrl,args=params)
-        #log.debug(restQuery)
-        
+
+
+        log.debug(restQuery)        
         strDate = json.loads(restQuery['body'])
         log.debug("Str Date {0}".format(strDate))
         if strDate is None:
