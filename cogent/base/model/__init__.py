@@ -131,6 +131,4 @@ def clsFromJSON(theList):
         theModel.fromJSON(item)
         yield theModel
             
-
-
     

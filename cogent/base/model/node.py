@@ -59,7 +59,12 @@ class Node(Base,meta.InnoDBMix):
         return "Node {0} Loc {1}".format(self.id,self.locationId)
 
     def __eq__(self,other):
+        print "EQ"
         return self.id == other.id and self.locationId == other.locationId and self.nodeTypeId == other.nodeTypeId
+
+    def __cmp__(self,other):
+        print "CMP {0} {1}".format(self.id,other.id)
+        return self.id - other.id
 
     def asJSON(self,parentId=""):
         """Adds a Location Parameter to make sure we can link back to location when we come to get the data"""
