@@ -70,6 +70,10 @@ This replaces the ssh tunnel database access currently used to transfer samples.
       Some Code broken into seperate functions, to make interitance for the Samson Pusher class a little easier.
       Examples of this include Pusher.CreateEngine() and Pusher.Queue()
 
+   .. since 0.9.0::
+   
+      Moved from rest_client to requests,  This should avoid the "broken pipe" error.
+   
 """
 
 import logging
@@ -116,12 +120,65 @@ import os.path
 import configobj
 
 
+
 import dateutil.parser
 
 import restful_lib
 import json
 import urllib
-        
+
+import requests
+
+#Class to compare dictionary obejcts
+class DictDiff(object):
+    """
+    Check two dictionarys and calculate differences
+    """
+    def __init__(self,mine,other):
+        self.mine, self.other = mine,other 
+        #Set of keys in each dict
+        self.set_mine = set(mine.keys())
+        self.set_other = set(other.keys())
+        #Intersection between keys
+        self.intersect = self.set_mine.intersection(self.set_other)
+    
+    def added(self):
+        """Find items added to the dictionary.
+
+        This will return a set of items that are in "other", 
+        that are not in "mine"
+
+        :return: set of new items
+        """
+        return self.set_mine - self.intersect 
+
+    def removed(self):
+        """Return items that have been removed from the dictionary.
+        Will return a set of items that are in "mine" but not in "other"
+        :return: set of removed items
+        """
+        return self.set_other - self.intersect
+   
+    def changed(self):
+        """Return items that have changed between dictionarys"""
+        changed = [x for x in self.intersect if self.other[x] != self.mine[x]]
+        #print changed
+        return set(changed)
+
+class MappingError(Exception):
+    """Exception raised for errors when Mapping Items.
+
+    Attributes:
+        msg  -- explanation of the error
+    """
+
+    def __init__(self, expr,msg):
+        self.expr = expr
+        self.msg = msg
+
+    def __str__(self):
+        return "\n{0}\n{1}".format(self.msg,self.expr)
+
 class PushServer(object):
     """
     Class to deal with pushing updates to a group of remote databases
@@ -277,7 +334,7 @@ class Pusher(object):
 
         log.debug("Starting REST connection for {0}".format(restUrl))
         self.restUrl = restUrl
-        self.restSession = restful_lib.Connection(restUrl)
+        #self.restSession = restful_lib.Connection(restUrl)
         self.dbConfig = dbConfig
 
         #And get the individual mappings for this particaular Remote URLS
@@ -343,9 +400,13 @@ class Pusher(object):
         log.debug("Performing sync")
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
+        self.syncSensors()
+        self.syncNodes()
+        sys.exit(0)
+
+
         self.loadMappings()
 
-        self.syncNodes()
         self.saveMappings()
         #sys.exit(0)
         session = self.localSession()
@@ -366,8 +427,8 @@ class Pusher(object):
         then update with new mappings"""
         log = self.log
         log.info("--- Loading Mappings ---")
-    
-        self.mapSensors()
+        #log.setLevel(logging.DEBUG)
+        sys.exit(0)
         self.mapRooms()
         self.mapDeployments()
         self.mapHouses() #Then houses
@@ -392,8 +453,14 @@ class Pusher(object):
         """
         #It would be nice to add "reverse" Synchronisation here (i.e. reflect changes on main server).
         log = self.log
-        restSession = self.restSession
-        restQry = restSession.request_get(theUrl)
+        #restSession = self.restSession
+        #restQry = restSession.request_get(theUrl)
+        print theUrl
+        #FOO
+        restQry = requests.get(theUrl)
+        print restQry
+        sys.exit(0)
+
         
         #Check if this item exists on the remote server
         #Response of 200 indicates item not found.
@@ -498,8 +565,8 @@ class Pusher(object):
 
         self.mappedRooms = mergedRooms
 
-    def mapSensors(self):
-        """Function to map Sensors and Sensor types between the two databases.
+    def syncSensors(self):
+        """Function to synchronise Sensor types between the two databases.
         This is a bi-directional sync method as Sensor Types should EXACTLY match in ALL databases.
         """
         
@@ -507,56 +574,81 @@ class Pusher(object):
         log = self.log
         log.debug("Mapping Sensors between databases")
         session = self.localSession()
-        restSession = self.restSession
+        #restSession = self.restSession
 
         #Fetch the sensor types from the remote Database
-        theUrl = "sensortype/"
-
+        theUrl = "{0}{1}".format(self.restUrl,"sensortype/")
+        
+        #print theUrl
+        #sys.exit(0)
+        
         remoteTypes = {}
         localTypes = {}
 
-        remoteQry = restSession.request_get(theUrl)
-        jsonBody = json.loads(remoteQry['body'])
+        #sys.exit(0)
+        #remoteQry = restSession.request_get(theUrl)
+        remoteQry = requests.get(theUrl)
+        #print remoteQry
+        jsonBody=remoteQry.json()
+        #print jsonBody
+        #sys.exit(0)
+        #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)
+        
 
         for item in restItems:
+            #print item
             remoteTypes[item.name] = item
 
         itemTypes = session.query(self.SensorType)
         for item in itemTypes:
             localTypes[item.name] = item
 
-        mergedItems = {}
-        #Mrege Item Tpyes
-        #Add any new sensors to the remote database
-        for key,value in localTypes.iteritems():
-            rValue = remoteTypes.get(key,None)
+        theDiff = DictDiff(remoteTypes,localTypes)
 
-            if rValue is None:
-                #Add a new remote Item Types
-                log.debug("Adding Sensor Type {0} to remote DB".format(value))
-                params = {"name":value.name}
-                theUrl = "sensortype/?{0}".format(urllib.urlencode(params))            
-            
-                theBody = value.toDict()
-                #del theBody["id"]
-                rValue = self.uploadItem(theUrl,theBody)                    
-            else:
-                #Remove this from the lookup
-                del(remoteTypes[key])
-                    
-            #Then update the mapping dictionary
-            mergedItems[value.id] = rValue
+        #So we get "new" Items, those in the remote Database that are not in the local
+        newItems = theDiff.added()
+        #"Removed" items (Those that are in the Remote but not in the local)
+        removedItems = theDiff.removed()
+        #"Changed" items,  Items that are not the same
+        changedItems = theDiff.changed()
 
-        #We next need to pull any new types from the remote database
-        for key,value in remoteTypes.iteritems():
-            #log.debug("{0} {1}".format(key,value))
-            log.debug("Adding Remote SensorType {0} to local Database".format(value))
-            session.add(value)
-            session.flush()
-            log.debug(value)
+        log.debug( "--> NEW")
+        log.debug( newItems)
+        log.debug( "--> Removed")
+        log.debug( removedItems)
+        log.debug( "--> Changed")
+        log.debug( changedItems)
+
+        if changedItems:
+            log.warning("Sensor Types with mathching Id's but different Names")
+            log.warning(changedItems)
+            raise(MappingError(changedItems,"Diffrent Sensor Types with Same ID"))
+
+        #Deal with items that are not on the local database
+        for item in newItems:
+            theItem = remoteTypes[item]
+            log.info("--> Sensor {0} Not in Local Database: {1}".format(item,theItem))
+            #Turn into a SensorType
+            session.add(theItem)
+            localTypes[item] = theItem
+           
+        session.flush()
         session.commit()
-        self.mappedSensorTypes = mergedItems
+
+        #Then Push any new sensors to the Remote Database
+        for item in removedItems:
+            theItem = localTypes[item]
+            log.info("--> Sensor {0} Not in Remote Database: {1}".format(item,theItem))
+            theUrl = "{0}sensortype/".format(self.restUrl)
+            #print theUrl
+            dictItem = theItem.toDict()
+            #We then Post the New Item to the Remote DBString
+            r= requests.post(theUrl,data=json.dumps(dictItem))
+            #print dictItem
+
+        #Update the Mapping Dictionary
+        self.mappedSensorTypes = localTypes
         
 
     def mapDeployments(self, localIds = None):
@@ -710,33 +802,69 @@ class Pusher(object):
         #self.mappedLocations = theMap
 
     def syncNodes(self):
-        """Synchronise Nodes between databases
-        This will not 'pull' new nodes down 
+        """Synchronise Nodes between databases.
+        
         #Currently the node 'Location' field is not updated,  we need to work out how to do this
         while avoiding overwriting a node with an out of date location.
 
-        TODO:  A Couple of potential issues here,  1) no Sych of Location,  No Sync of Sensor Types (calibration), No Sync of Node Types
+        TODO:  A Couple of potential issues here,  
+            *) no Sych of Location,
+            *) No Sync of Sensor Types (calibration),
+            *) No Sync of Node Types
         """
+
         log = self.log
+
         log.debug("----- Syncing Nodes ------")
-        lSess = self.localSession()
-        restSession = self.restSession
+        session = self.localSession()
 
-        #Get the list of deployments that may need updating
-        #Deployment = models.Deployment
-        theQry = lSess.query(self.Node)
+        #Get Local Nodes
+        theQry = session.query(self.Node)
+        #Then we want to map and compare our node dictionarys
+        localNodes = dict([(x.id,x) for x in theQry])
 
-        theMap = {}
+        #Remote Nodes
+        theUrl = "{0}node/".format(self.restUrl)
+        theRequest = requests.get(theUrl)
+        rNodes = self.unpackJSON(theRequest.json())
+        #FOO
+        remoteNodes = dict([(x.id,x) for x in rNodes])
 
-        for item in theQry:
-            #We need to make sure the deployment is mapped correctly
-            params = {"id":item.id}
-            theUrl = "node/?{0}".format(urllib.urlencode(params))                            
 
-            #Look for the item
-            theBody = item.toDict()
-            del(theBody["locationId"])
-            newItem = self.uploadItem(theUrl,theBody)
+        theDiff = DictDiff(remoteNodes,localNodes)
+        
+        #Items not in the Local Database
+        log.debug("Dealing with new items:")
+        newItems = theDiff.added()
+        #log.debug(newItems)
+        for item in newItems:
+            thisItem = remoteNodes[item]
+            log.info("Node {0}:{1} Not in Local Database".format(item,thisItem))
+            session.add(thisItem)
+            session.flush()
+        
+        session.commit()
+        removedItems = theDiff.removed()
+        log.debug(removedItems)
+        
+        for item in removedItems:
+            thisItem = localNodes[item]
+            theUrl = "{0}node/".format(self.restUrl)
+            log.info("Node {0} Not in Remote Db, Uploading".format(item))
+            dictItem= thisItem.toDict()
+            r = requests.post(theUrl,data=json.dumps(dictItem))
+            log.debug(r)
+
+        
+        #for item in theQry:
+        #    #We need to make sure the deployment is mapped correctly
+        #    params = {"id":item.id}
+        #    theUrl = "{0}node/?{1}".format(urllib.urlencode(params))                            
+        #    #FOO
+        #    #Look for the item
+        #    theBody = item.toDict()
+        #    del(theBody["locationId"])
+        #    newItem = self.uploadItem(theUrl,theBody)
 
         
     def uploadReadings(self,theHouse):

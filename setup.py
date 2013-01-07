@@ -8,7 +8,8 @@ REQUIRES = ['SQLAlchemy',
             "python-rest-client",
 #            "numpy",
 #            "matplotlib",
-            "pyserial"
+            "pyserial",
+            "requests"
             ]
     
 setup(name='ch-base',

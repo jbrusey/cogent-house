@@ -60,3 +60,21 @@ class SensorType(Base,meta.InnoDBMix):
 
     def __str__(self):
         return "{0}: {1} {2} {3}".format(self.id,self.name,self.code,self.units)
+
+    # def __eq__(self,other):
+    #     """Equality Test"""
+    #     print "EQ CALLED"
+    #     return self.name == other.name
+    
+
+    def __cmp__(self,other):
+        #print "CMP Called {0},{1}".format(self.name,other.name,self.name==other.name)
+        val = 0
+        if (self.name == other.name):
+            return self.id - other.id
+
+        else:
+            print self.name,other.name
+        return -1
+        #return self.name == other.name
+    
