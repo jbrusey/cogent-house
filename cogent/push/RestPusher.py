@@ -402,11 +402,7 @@ class Pusher(object):
         #TODO: update the Load Mappings Script
         self.syncSensors()
         self.syncNodes()
-        sys.exit(0)
-
-
         self.loadMappings()
-
         self.saveMappings()
         #sys.exit(0)
         session = self.localSession()
@@ -428,8 +424,9 @@ class Pusher(object):
         log = self.log
         log.info("--- Loading Mappings ---")
         #log.setLevel(logging.DEBUG)
-        sys.exit(0)
+
         self.mapRooms()
+        sys.exit(0)
         self.mapDeployments()
         self.mapHouses() #Then houses
         self.mapLocations()
@@ -455,12 +452,7 @@ class Pusher(object):
         log = self.log
         #restSession = self.restSession
         #restQry = restSession.request_get(theUrl)
-        print theUrl
-        #FOO
         restQry = requests.get(theUrl)
-        print restQry
-        sys.exit(0)
-
         
         #Check if this item exists on the remote server
         #Response of 200 indicates item not found.
@@ -493,29 +485,31 @@ class Pusher(object):
         """
         
         log = self.log
+        log.setLevel(logging.DEBUG)
         session = self.localSession()
-        restSession = self.restSession
         log.debug("--> Mapping Rooms")
         #First we need to map room Types
-
+        #sys.exit(0)
         #Fetch the room types from the remote Database
-        theUrl = "roomtype/"
+        theUrl = "{0}roomtype/".format(self.restUrl)
 
-        remoteTypes = {}
-        localTypes = {}
+        #Fetch All room Types the Remote Database knows about        
+        remoteQry = requests.get(theUrl)       
+        jsonBody = remoteQry.json()
 
-        #Fetch All room Types the Remote Database knows about
-        remoteQry = restSession.request_get(theUrl)
-        jsonBody = json.loads(remoteQry['body'])
+        #remoteQry = restSession.request_get(theUrl)
+        #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)#models.clsFromJSON(jsonBody)
 
         #Build a dictionary
-        for item in restItems:
-            remoteTypes[item.name] = item
-
+        remoteTypes = dict([(x.name,x) for x in restItems])
         #Fetch Local Version of room types
         #roomTypes = session.query(models.RoomType)
-        roomTypes = session.query(self.RoomType)
+        localQry = session.query(self.RoomType)
+        localTypes = dict([(x.name,x) for x in localQry])
+        print localTypes
+        sys.exit(0)
+                          
         for item in roomTypes:
             localTypes[item.name] = item
         #And Merge, 
