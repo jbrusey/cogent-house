@@ -70,3 +70,14 @@ class Room(Base,meta.InnoDBMix):
 
     def __str__(self):
         return "Room ({0}) {1}".format(self.id,self.name)
+
+    def __cmp__(self,other):
+        #return -1
+        typeOff = 0
+        if self.name == other.name:
+            if self.roomTypeId:
+                typeOff =  self.roomTypeId - other.roomTypeId
+            return self.id - other.id - typeOff
+        
+        else:
+            return -1
