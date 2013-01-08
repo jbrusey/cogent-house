@@ -422,8 +422,7 @@ class Pusher(object):
         self.loadMappings()
         self.saveMappings()
         session = self.localSession()
-        houses = session.query(self.House)
-        
+        houses = session.query(self.House)   
         mappingConfig = self.mappingConfig
 
         #FIXME
@@ -476,7 +475,6 @@ class Pusher(object):
         if jsonBody == []:
             #Item does not exist so we want to add it 
             restQry = requests.post(theUrl,data=json.dumps(theBody))
-            print restQry
             log.debug("New Item to be added {0}".format(theBody))
             jsonBody = restQry.json()
             log.debug(jsonBody)
@@ -603,13 +601,15 @@ class Pusher(object):
         localQry = session.query(self.Room)
         #Dictionary of local Types
         localTypes = dict([(x.name,x) for x in localQry])
+
         
-        # print "Remote: "
-        # for item in remoteTypes.values():
-        #     print item
-        # print "Local: "
-        # for item in localTypes.values():
-        #     print item
+        
+        print "Remote: "
+        for item in remoteTypes.values():
+            print item
+        print "Local: "
+        for item in localTypes.values():
+            print item
 
         # f = DictDiff(remoteTypes,localTypes)
         # print "-->",f.changed()
@@ -853,8 +853,11 @@ class Pusher(object):
 
         theQry = lSess.query(self.Location)
 
+        print mappedHouses
+        print mappedRooms
         for item in theQry:
             #Convert to take account of mapped houses and Rooms
+            print item
             hId = mappedHouses[item.houseId]
             rId =mappedRooms[item.roomId]
             log.debug("Mapping for item {0} : House {1} Room {2}".format(item,hId,rId))
