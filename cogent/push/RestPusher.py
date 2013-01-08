@@ -953,14 +953,29 @@ class Pusher(object):
         #restSession =self.restSession
 
         log.info("--> Requesting date of last reading in Remote DB")
+        #print theHouse
+        #print theHouse.address
         params = {"house":theHouse.address}
+<<<<<<< local
+        theUrl = "lastSync/"
+        #print params
+        restQuery = restSession.request_get(theUrl,args=params)
+        #print restQuery
+=======
         theUrl = "{0}lastSync/".format(self.restUrl)
         #restQuery = restSession.request_get(theUrl,args=params)
         restQuery = requests.get(theUrl,params=params)
         strDate =  restQuery.json()
         #print strDate
+>>>>>>> other
         #sys.exit(0)
+<<<<<<< local
+        log.debug(restQuery)        
+        strDate = json.loads(restQuery['body'])
+=======
+>>>>>>> other
         log.debug("Str Date {0}".format(strDate))
+        print restQuery
         if strDate is None:
             log.info("--> --> No Readings in Remote DB")
             lastDate = None
@@ -994,8 +1009,13 @@ class Pusher(object):
             if lastDate:
                 theReadings = theReadings.filter(models.Reading.time > lastDate)
             theReadings = theReadings.order_by(models.Reading.time)
+<<<<<<< local
+            theReadings = theReadings.limit(self.pushLimit)
+            #theReadings = theReadings.limit(1)
+=======
             #theReadings = theReadings.limit(self.pushLimit)
             theReadings = theReadings.limit(10000)
+>>>>>>> other
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
@@ -1009,14 +1029,18 @@ class Pusher(object):
 
             for reading in theReadings:
                 #log.debug(reading)
-
+                #print reading
                 #Convert our Readings to REST, and remap to the new locations
                 dictReading = reading.toDict()
                 #log.debug("==> {0}".format(dictReading))
                 dictReading['locationId'] = mappedLocations[reading.locationId]
                 dictReading['typeId'] = mappedTypes[reading.typeId]
                 #log.debug("--> {0}".format(dictReading))            
+<<<<<<< local
+                #print dictReading
+=======
                 
+>>>>>>> other
                 jsonList.append(dictReading)
                 lastSample = reading.time
 
@@ -1071,6 +1095,7 @@ class Pusher(object):
             lastDate = lastSample
                      
         #Return True if we need to upload more
+        #sys.exit(0)
         return rdgCount > 0
             
 
