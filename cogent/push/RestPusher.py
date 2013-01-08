@@ -165,6 +165,12 @@ class DictDiff(object):
         #print changed
         return set(changed)
 
+    def unchanged(self):
+        """Return items that are the same between"""
+        unchanged = [x for x in self.intersect if self.other[x] == self.mine[x]]
+        return set(unchanged)
+        
+
 class MappingError(Exception):
     """Exception raised for errors when Mapping Items.
 
@@ -479,13 +485,71 @@ class Pusher(object):
         """
         return models.clsFromJSON(jsonBody)
 
+    def _syncItems(self,localTypes,remoteTypes,theUrl):
+        """
+        Helper Function to syncronise two sets of items between databases
+        
+        :var localTypes: Dictionary of <id>:<item> representing local DB 
+        :var remoteTypes: Dictionay of <id>:<item> representing remote DB
+        :var theUrl: Url to push to
+
+        :return: Dictionary representing the mapping between the Local and Remote DB
+        """
+        log = self.log
+        session = self.localSession()
+
+        theDiff = DictDiff(remoteTypes,localTypes)
+        
+        #A place to hold our lookup table
+        mergedItems = {}
+  
+        #Stuff that is unchanged is pretty easy to deal with
+        unchanged = theDiff.unchanged()
+        for item in unchanged:
+            theItem = localTypes[item]
+            mergedItems[theItem.id] = theItem.id
+
+        #Then stuff were the ID's different
+        changed = theDiff.changed()
+        for item in changed:
+            localItem = localTypes[item]
+            remoteItem = remoteTypes[item]
+            mergedItems[localItem.id] = remoteItem.id
+
+        #And Sync New room types to the Remote DB 
+        added = theDiff.added()
+        for item in added:
+            thisItem = remoteTypes[item]
+            origId = thisItem.id
+            log.info("Item {0} Not on local Database".format(thisItem))
+            #We need to remove the Id so that we do not overwrite anything in the DB 
+            thisItem.id = None
+            session.add(thisItem)
+            session.flush()
+            log.info("New Id {0}".format(thisItem))
+            mergedItems[origId] = thisItem.id
+        session.commit()
+
+        #And Sync new Room Types to the Remote DB 
+        removedItems = theDiff.removed()
+        for item in removedItems:
+            thisItem = localTypes[item]
+            log.info("Item {0} Not in remote DB".format(thisItem))
+            dictItem = thisItem.toDict()
+            del(dictItem["id"])
+            r = requests.post(theUrl,data=json.dumps(dictItem))
+            newItem = r.json()
+            log.info("New Item {0}".format(thisItem))
+            mergedItems[thisItem.id] = newItem["id"]
+
+        return mergedItems
+
     def mapRooms(self):
         """Function to map Rooms and Room types between the two databases.
         This is a bi-directional sync method, room types should also be global (although ID's may vary)
         """
         
         log = self.log
-        log.setLevel(logging.DEBUG)
         session = self.localSession()
         log.debug("--> Mapping Rooms")
         #First we need to map room Types
@@ -496,54 +560,71 @@ class Pusher(object):
         #Fetch All room Types the Remote Database knows about        
         remoteQry = requests.get(theUrl)       
         jsonBody = remoteQry.json()
-
-        #remoteQry = restSession.request_get(theUrl)
-        #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)#models.clsFromJSON(jsonBody)
-
-        #Build a dictionary
         remoteTypes = dict([(x.name,x) for x in restItems])
+
         #Fetch Local Version of room types
-        #roomTypes = session.query(models.RoomType)
         localQry = session.query(self.RoomType)
         localTypes = dict([(x.name,x) for x in localQry])
-        print localTypes
-        sys.exit(0)
-                          
-        for item in roomTypes:
-            localTypes[item.name] = item
-        #And Merge, 
-        mergedRooms = {}
-        #First add new Remote types
-        for key,value in localTypes.iteritems():
-            rValue = remoteTypes.get(key,None)
-            if rValue is None:
-                #Add a new remote Room Types
-                log.info("Adding Room Type {0} to Remote Database".format(value))
-                params = {"name":value.name}
-                theUrl = "roomtype/?{0}".format(urllib.urlencode(params))            
-                theBody = value.toDict()
-                del theBody["id"]
-                rValue = self.uploadItem(theUrl,theBody)                    
-            else:
-                #Remove this from the lookup
-                del(remoteTypes[key])
-                    
-            #Then update the mapping dictionary
-            mergedRooms[value.id] = rValue
 
-        #We next need to sync the other way, and add new Local Room Types.
-        for key,value in remoteTypes.iteritems():
-            log.info("Adding Remote RoomType {0} to local Database".format(value))
-            value.id = None
-            session.add(value)
-            session.flush()
-        session.commit()
+        mergedRooms = self._syncItems(localTypes,remoteTypes,theUrl)
+        print mergedRooms
+        # theDiff = DictDiff(remoteTypes,localTypes)
+        
+        # #A place to hold our lookup table
+        # mergedRooms = {}
+  
+        # #Stuff that is unchanged is pretty easy to deal with
+        # unchanged = theDiff.unchanged()
+        # for item in unchanged:
+        #     theItem = localTypes[item]
+        #     mergedRooms[theItem.id] = theItem.id
+
+        # #Then stuff were the ID's different
+        # changed = theDiff.changed()
+        # for item in changed:
+        #     localItem = localTypes[item]
+        #     remoteItem = remoteTypes[item]
+        #     mergedRooms[localItem.id] = remoteItem.id
+
+        # #And Sync New room types to the Remote DB 
+        # added = theDiff.added()
+        # for item in added:
+        #     thisItem = remoteTypes[item]
+        #     origId = thisItem.id
+        #     log.info("Room {0} Not on local Database".format(thisItem))
+        #     #We need to remove the Id so that we do not overwrite anything in the DB 
+        #     thisItem.id = None
+        #     session.add(thisItem)
+        #     session.flush()
+        #     log.info("New Id {0}".format(thisItem))
+        #     mergedRooms[origId] = thisItem.id
+        # session.commit()
+
+        # #And Sync new Room Types to the Remote DB 
+        # removedItems = theDiff.removed()
+        # for item in removedItems:
+        #     thisItem = localTypes[item]
+        #     log.info("Node {0} Not in remote DB".format(thisItem))
+        #     dictItem = thisItem.toDict()
+        #     del(dictItem["id"])
+        #     r = requests.post(theUrl,data=json.dumps(dictItem))
+        #     log.debug(r)
+        #     newItem = r.json()
+        #     print newItem
+        #     mergedRooms[thisItem.id] = newItem["id"]
 
         self.mappedRoomTypes = mergedRooms
 
+        log.setLevel(logging.DEBUG)
+        
         #Now we have room types, we can map the rooms themselves.
-        theQry = session.query(self.Room)
+        
+        #Fetch Remote Room Types
+        theUrl = "{0}roomtype/".format(self.restUrl)
+
+
+        sys.exit(0)
         theUrl = "room/"
         mergedRooms = {}
 
