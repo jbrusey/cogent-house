@@ -567,54 +567,7 @@ class Pusher(object):
         localQry = session.query(self.RoomType)
         localTypes = dict([(x.name,x) for x in localQry])
 
-        mergedRooms = self._syncItems(localTypes,remoteTypes,theUrl)
-        print mergedRooms
-        # theDiff = DictDiff(remoteTypes,localTypes)
-        
-        # #A place to hold our lookup table
-        # mergedRooms = {}
-  
-        # #Stuff that is unchanged is pretty easy to deal with
-        # unchanged = theDiff.unchanged()
-        # for item in unchanged:
-        #     theItem = localTypes[item]
-        #     mergedRooms[theItem.id] = theItem.id
-
-        # #Then stuff were the ID's different
-        # changed = theDiff.changed()
-        # for item in changed:
-        #     localItem = localTypes[item]
-        #     remoteItem = remoteTypes[item]
-        #     mergedRooms[localItem.id] = remoteItem.id
-
-        # #And Sync New room types to the Remote DB 
-        # added = theDiff.added()
-        # for item in added:
-        #     thisItem = remoteTypes[item]
-        #     origId = thisItem.id
-        #     log.info("Room {0} Not on local Database".format(thisItem))
-        #     #We need to remove the Id so that we do not overwrite anything in the DB 
-        #     thisItem.id = None
-        #     session.add(thisItem)
-        #     session.flush()
-        #     log.info("New Id {0}".format(thisItem))
-        #     mergedRooms[origId] = thisItem.id
-        # session.commit()
-
-        # #And Sync new Room Types to the Remote DB 
-        # removedItems = theDiff.removed()
-        # for item in removedItems:
-        #     thisItem = localTypes[item]
-        #     log.info("Node {0} Not in remote DB".format(thisItem))
-        #     dictItem = thisItem.toDict()
-        #     del(dictItem["id"])
-        #     r = requests.post(theUrl,data=json.dumps(dictItem))
-        #     log.debug(r)
-        #     newItem = r.json()
-        #     print newItem
-        #     mergedRooms[thisItem.id] = newItem["id"]
-
-        self.mappedRoomTypes = mergedRooms
+        self.mappedRoomTypes = self._syncItems(localTypes,remoteTypes,theUrl)
 
         log.setLevel(logging.DEBUG)
         
@@ -622,7 +575,12 @@ class Pusher(object):
         
         #Fetch Remote Room Types
         theUrl = "{0}roomtype/".format(self.restUrl)
-
+        
+        remoteQry = requests.get(theUrl)
+        jsonBody = remoteQry.json()
+        restItems = self.unpackJSON(jsonBody)
+        remoteTypes = dict([(x.name,x) for x in restItems])
+        print remoteTypes
 
         sys.exit(0)
         theUrl = "room/"
