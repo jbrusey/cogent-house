@@ -15,66 +15,62 @@ This replaces the ssh tunnel database access currently used to transfer samples.
         item out, this is possibly a error induced by mySQL's datetime not
         holding microseconds.
 
-    .. since 0.1::
+    .. since 0.1.0::
 
        Moved ssh port forwarding to paramiko (see sshclient class) This should
        stop the errors when there is a connection problem.
 
-    .. since 0.2::
+    .. since 0.1.1::
 
        * Better error handling
        * Pagination for sync results, transfer at most PUSH_LIMIT items at a
          time.
 
-    .. since 0.3::
+    .. since 0.1.2::
 
        Moved Nodestate Sync into the main readings sync class, this should stop
        duplicate nodestates turning up if there is a failure
-    .. since 0.4::
+
+    .. since 0.2.0::
 
        Overhaul of the system to make use of REST to upload samples rather than
        transfer data across directly.
 
-    .. since 0.4.1::
+    .. since 0.2.1::
 
        Make use of an .ini style config file to set everything up
 
        Split functionality into a Daemon, and Upload classes.  This should
        make maintenance of any local mappings a little easier to deal with.
 
-
-    .. since 0.4.2::
-
-       Store any mappings as a pickled object.
-
-   .. since 0.5.0::
+   .. since 0.2.2::
        
        New Functionality to manually sync a database from scratch
        Some Changes to logging functionality
 
-   .. since 0.6.0::
+   .. since 0.3.0::
    
       Changed to upload readings by house.
       Modified initialisation to be a little more same
    
-   .. since 0.7.0::
+   .. since 0.3.1::
    
       Mapping configuration file added
       0.7.1  Update so logging also goes to file
       0.7.2  Bigfix for Null items in HouseId etc
    
-   .. since 0.8.0::
+   .. since 0.3.2::
 
       Some Code broken into seperate functions, to make interitance for the Samson Pusher class a little easier.
       Examples of this include Pusher.CreateEngine() and Pusher.Queue()
 
-   .. since 0.9.0::
+   .. since 0.3.3::
    
       Moved from rest_client to requests,  This should avoid the "broken pipe" error.
 
-   .. since 0.10.0::
+   .. since 0.3.4::
    
-      Now use GZIP compression for bulk uplads
+      Now use GZIP compression for bulk uploads
    
 """
 
@@ -94,42 +90,27 @@ fh.setLevel(logging.INFO)
 fmt = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
 fh.setFormatter(fmt)
 
-#ch
-
-#logging.basicConfig(level=logging.INFO,filename="pushCogentee.log")
-#logging.basicConfig(level=logging.WARNING)
-
-__version__ = "0.7.2"
+__version__ = "0.3.4"
 
 import sqlalchemy
-#import remoteModels
 
 import cogent
 
 import cogent.base.model as models
 
 import cogent.base.model.meta as meta
-#from datetime import datetime
 from datetime import timedelta
 
 import time
 
 import os.path
-
-#import ConfigParser
-#To Parse Configuration files
-
 import configobj
 import zlib
 
-
 import dateutil.parser
-
 import restful_lib
 import json
 import urllib
-
-import jsonh
 
 import requests
 #Disable Requests Logging
@@ -141,7 +122,7 @@ import sys
 #Class to compare dictionary obejcts
 class DictDiff(object):
     """
-    Check two dictionarys and calculate differences
+    Check two dictionarys and calculate differences between them
     """
     def __init__(self,mine,other):
         self.mine, self.other = mine,other 
@@ -175,7 +156,7 @@ class DictDiff(object):
         return set(changed)
 
     def unchanged(self):
-        """Return items that are the same between"""
+        """Return items that are the same between dictionarys"""
         unchanged = [x for x in self.intersect if self.other[x] == self.mine[x]]
         return set(unchanged)
         

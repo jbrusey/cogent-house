@@ -48,6 +48,9 @@ sourceDataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*
 sourceData <- dbGetQuery(sourceDb,sourceDataQry)
 sourceData$ts <- as.POSIXlt(sourceData$date,tz="gmt")
 
+#Try to merge the Locations Table
+sourceData <- merge(sourceData,sourceLocations,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
+
 #----------------------------------------------------
 
 #Get Data from the Dest DB
@@ -75,21 +78,24 @@ destDataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) 
 destData <- dbGetQuery(destDb,destDataQry)
 destData$ts <- as.POSIXlt(destData$date,tz="gmt")
 
+#Try to merge the Locations Table
+destData <- merge(destData,destLocations,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
 
 
-#Plot Source Data
-plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
-plt <- plt+geom_point()
-plt + facet_grid(nodeId~.)
+## #Plot Source Data
+## plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
+## plt <- plt+geom_point()
+## plt + facet_grid(nodeId~.)
 
 
-plt <- ggplot(destData,aes(ts,meanVal,color=factor(locationId)))
-plt <- plt+geom_point()
-plt + facet_grid(nodeId~.)
-              
+## plt <- ggplot(destData,aes(ts,meanVal,color=factor(locationId)))
+## plt <- plt+geom_point()
+## plt + facet_grid(nodeId~.)
+
 #And Both Together
 plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
 plt <- plt+geom_point()
-plt <- plt+geom_line()
+plt <- plt+geom_line(data=destData)
 plt + facet_grid(nodeId~.)
-              
+
+#Both together with Location names rtather than Ids
