@@ -136,6 +136,8 @@ import requests
 requests_log = logging.getLogger("requests")
 requests_log.setLevel(logging.WARNING)
 
+import sys
+
 #Class to compare dictionary obejcts
 class DictDiff(object):
     """
@@ -445,7 +447,6 @@ class Pusher(object):
         self.mapLocations()
         log.info("---- Save Mappings ----")
         self.saveMappings()
-        #ys.exit(0)
 
 
     def saveMappings(self):
@@ -997,8 +998,8 @@ class Pusher(object):
             if lastDate:
                 theReadings = theReadings.filter(models.Reading.time > lastDate)
             theReadings = theReadings.order_by(models.Reading.time)
-            #theReadings = theReadings.limit(self.pushLimit)
-            theReadings = theReadings.limit(10000)
+            theReadings = theReadings.limit(self.pushLimit)
+            #theReadings = theReadings.limit(10000)
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
@@ -1024,7 +1025,7 @@ class Pusher(object):
                 lastSample = reading.time
 
             log.setLevel(logging.DEBUG)
-            import sys
+
             
             jsonStr = json.dumps(jsonList)
             # print "--------- STD JSON ----------"
