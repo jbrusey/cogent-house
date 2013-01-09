@@ -182,8 +182,8 @@ class Cleaner(object):
         session.commit()
 
 if __name__ == "__main__":
-    #cleaner = Cleaner("mysql://root:Ex3lS4ga@127.0.0.1/transferTest")
-    cleaner = Cleaner("mysql://root:Ex3lS4ga@127.0.0.1/mainStore")
+    cleaner = Cleaner("mysql://root:Ex3lS4ga@127.0.0.1/transferStore")
+    #cleaner = Cleaner("mysql://root:Ex3lS4ga@127.0.0.1/mainStore")
     cleaner.cleanLocation()
     cleaner.cleanRooms()
     # cleaner.uploadFakeReadings()
