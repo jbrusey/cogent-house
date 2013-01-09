@@ -158,12 +158,27 @@ def genericRest(request):
     #Deal with "BULK" uploads
     if theType.lower() == "bulk":
         log.debug("BULK UPLOAD")
-        parameters = request.json_body
+        #parameters = request.json_body
+        parameters = request.body
         #log.debug(parameters)
-        objGen = models.clsFromJSON(parameters)
+        #unZip = zlib.decompress(parameters)
+        try:
+            unZip = zlib.decompress(parameters)
+        except zlib.error,e:
+            log.warning("Bulk Upload Error (ZLIB) {0}".format(e))
+            unZip = parameters
+            
+
+        jsonBody = json.loads(unZip)
+        #jsonBody = jsonh.loads(unZip)
+        #print jsonBody
+
+        objGen = models.clsFromJSON(jsonBody)
         import time
         t1 = time.time()
         for item in objGen:
+            #pass
+            #print item
             session.add(item)
             #session.merge(item)
         #session.flush()
@@ -1401,8 +1416,9 @@ def lastSync(request):
 
     This should take the house address as a URL encoded string
     """
+    print request.params
     houseName = request.params.get("house",None)
-    log.info("Fetching last Sample for house >{0}<".format(houseName))
+    log.debug("Fetching last Sample for house >{0}<".format(houseName))
     
     if houseName is None:
         return None
