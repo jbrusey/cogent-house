@@ -84,7 +84,7 @@ logging.basicConfig(level=logging.INFO,
 logsize = (1024*1024) * 5 #5Mb Logs
 
 import logging.handlers
-fh = logging.handlers.RotatingFileHandler("push_out.log",maxBytes=logsize,backupCount = 5)
+fh = logging.handlers.RotatingFileHandler("push_test.log",maxBytes=logsize,backupCount = 5)
 fh.setLevel(logging.INFO)
 
 fmt = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
@@ -586,12 +586,12 @@ class Pusher(object):
 
         
         
-        print "Remote: "
-        for item in remoteTypes.values():
-            print item
-        print "Local: "
-        for item in localTypes.values():
-            print item
+        # print "Remote: "
+        # for item in remoteTypes.values():
+        #     print item
+        # print "Local: "
+        # for item in localTypes.values():
+        #     print item
 
         # f = DictDiff(remoteTypes,localTypes)
         # print "-->",f.changed()
@@ -835,13 +835,13 @@ class Pusher(object):
 
         theQry = lSess.query(self.Location)
 
-        print mappedHouses
-        print mappedRooms
+        #print mappedHouses
+        #print mappedRooms
         for item in theQry:
             #Convert to take account of mapped houses and Rooms
-            print item
+            #print item
             hId = mappedHouses[item.houseId]
-            rId =mappedRooms[item.roomId]
+            rId =mappedRooms.get(item.roomId,None)
             log.debug("Mapping for item {0} : House {1} Room {2}".format(item,hId,rId))
 
         #     #We need to make sure the deployment is mapped correctly
@@ -933,22 +933,24 @@ class Pusher(object):
         #Mapping Config
         mappingConfig = self.mappingConfig
         
+        #Fetch the last Date from the mapping config
+        uploadDates = mappingConfig.get("lastupdate",None)
+        #print uploadDates
+        #sys.exit(0)
+
         #Get the last reading for this House
         session = self.localSession()
         #restSession =self.restSession
 
         log.info("--> Requesting date of last reading in Remote DB")
-        #print theHouse
-        #print theHouse.address
         params = {"house":theHouse.address}
-
         theUrl = "{0}lastSync/".format(self.restUrl)
         #restQuery = restSession.request_get(theUrl,args=params)
         restQuery = requests.get(theUrl,params=params)
         strDate =  restQuery.json()
-        #print strDate
+        print strDate
+        sys.exit(0)
         log.debug("Str Date {0}".format(strDate))
-        print restQuery
         if strDate is None:
             log.info("--> --> No Readings in Remote DB")
             lastDate = None
@@ -956,9 +958,10 @@ class Pusher(object):
             lastDate = dateutil.parser.parse(strDate)
             log.info("--> Last Upload Date {0}".format(lastDate))
 
-        #uploadDates[str(theHouse.id)] = lastDate
-        #mappingConfig["lastupdate"] = uploadDates
-
+        uploadDates[str(theHouse.id)] = lastDate
+        mappingConfig["lastupdate"] = uploadDates
+        print mappingConfig
+        sys.exit(0)
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
@@ -982,8 +985,8 @@ class Pusher(object):
             if lastDate:
                 theReadings = theReadings.filter(models.Reading.time > lastDate)
             theReadings = theReadings.order_by(models.Reading.time)
-
             theReadings = theReadings.limit(self.pushLimit)
+            #theReadings = theReadings.limit(10000)
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
@@ -997,13 +1000,174 @@ class Pusher(object):
 
             for reading in theReadings:
                 #log.debug(reading)
-                #print reading
+
                 #Convert our Readings to REST, and remap to the new locations
                 dictReading = reading.toDict()
                 #log.debug("==> {0}".format(dictReading))
                 dictReading['locationId'] = mappedLocations[reading.locationId]
                 dictReading['typeId'] = mappedTypes[reading.typeId]
                 #log.debug("--> {0}".format(dictReading))            
+                
+                jsonList.append(dictReading)
+                lastSample = reading.time
+
+            log.setLevel(logging.DEBUG)
+
+            
+            jsonStr = json.dumps(jsonList)
+            # print "--------- STD JSON ----------"
+            # #print jsonStr
+            # print sys.getsizeof(jsonStr)
+
+            # print "---------- JSON H --------------"
+
+            # otherStr = jsonh.dumps(jsonList)
+            # #print otherStr
+            # print sys.getsizeof(otherStr)
+
+            # import zlib
+            # print "---------- GZ JSONH H ---------------"
+            
+            gzStr = zlib.compress(jsonStr)
+            log.debug("Size of Compressed JSON {0}kB".format(sys.getsizeof(gzStr)/1024))
+            #print sys.getsizeof(gzStr)
+
+            #Then Unzip
+            #unGZ = zlib.decompress(jsonStr)
+            #unGZ = zlib.decompress(gzStr)
+            #unJson = jsonh.loads(unGZ)
+
+            #print jsonList
+            #print unJson          
+
+
+            qryTime = time.time()
+             #And then try to bulk upload them
+            theUrl = "{0}bulk/".format(self.restUrl)
+            #restQry = restSession.request_post("/bulk/",
+            #                                   body=json.dumps(jsonList))
+            #log.debug(restQry)
+            restQry = requests.post(theUrl,data=gzStr)
+            #print restQry
+            #print restQry.status_code
+
+            transTime = time.time()
+            if restQry.status_code == 500:
+                log.warning("Upload Fails")
+                log.warning(restQry)
+                raise Exception ("Upload Fails")            
+            
+
+            log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
+            log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
+            lastDate = lastSample
+            
+            #And save the last date in the config file
+            
+
+        #Return True if we need to upload more
+        return rdgCount > 0
+            
+
+        
+    # def syncReadings(self, theHouse):
+    #     """Synchronise readings between two databases
+
+    #     :param DateTime cutTime: Time to start the Sync from
+    #     :return: (Number of Readings that remain to be synchronised,
+    #               Timestamp of last reading)
+
+    #     This assumes that Sync Nodes has been called.
+
+    #     The Algorithm for this is:
+
+    #     Initialise Temporary Storage, (Location = {})
+
+    #     #. Get the time of the most recent update from the local database
+    #     #. Get all Local Readings after this time.
+    #     #. For Each Reading
+
+    #         #. If !Location in TempStore:
+    #             #. Add Location()
+    #         #. Else:
+    #             #. Add Sample
+
+    #     # If Sync is successful, fix the last update timestamp and return
+    #     """
+
+    #     log = self.log
+    #     lSess = self.localSession()
+    #     restSession = self.restSession
+
+    #     mappedLocations = self.mappedLocations
+
+    #     #Time stamp to check readings against
+    #     if not cutTime:
+    #         cutTime = self.lastUpdate
+
+    #     log.info("Synchronising Readings from {0}".format(cutTime))
+
+    #     #Get the Readings
+    #     readings = lSess.query(models.Reading).order_by(models.Reading.time)
+    #     if cutTime:
+    #         log.debug("Filter all readings since {0}".format(cutTime))
+    #         readings = readings.filter(models.Reading.time >= cutTime)
+
+    #     #Skip Sensor Type of 14
+    #     readings = readings.filter(models.Reading.typeId != 14)
+            
+    #     remainingReadings = readings.count()
+
+
+
+    #     if remainingReadings == 0:
+    #         log.info("No More Readings to Sync")
+    #         return (remainingReadings, cutTime)
+    #     #Limit by the number of items specified in the Config file
+    #     #readings = readings.limit(self.pushLimit)
+
+    #     #Its a bit of a pain in the Arse, but having this cutoff date makes life a tad tricky.
+    #     #Therefore we find the date of the last sample up to the limit.
+    #     log.setLevel(logging.DEBUG)
+    #     cutoffTime = readings.offset(self.pushLimit).first()
+    #     log.debug("Date of {1}th Reading is {0}".format(cutoffTime,self.pushLimit))
+        
+    #     #We can then rebuild our query to go up to this Date 
+        
+    #     readings = lSess.query(models.Reading).order_by(models.Reading.time)
+    #     readings = readings.filter(models.Reading.typeId != 14)
+    #     if cutTime:
+    #         readings = readings.filter(models.Reading.time >= cutTime)
+    #     if cutoffTime:
+    #         readings = readings.filter(models.Reading.time <= cutoffTime.time)
+    #         log.debug("Transfer a total of {0} Readings to {1}".format(readings.count(),cutoffTime.time))
+        
+
+    #     log.setLevel(logging.WARNING)
+
+
+
+    #     jsonList = []
+    #     for reading in readings:
+    #         #Convert to a JSON and remap the location
+    #         dictReading = reading.toDict()
+    #         #dictReading['locationId'] = mappedLocations[reading.locationId]
+    #         dictReading['locationId'] = mappedLocations.get(reading.locationId,None)
+    #         jsonList.append(dictReading)
+
+    #     #And then try to bulk upload them
+    #     restQry = restSession.request_post("/bulk/",
+    #                                        body=json.dumps(jsonList))
+    #     #log.debug(restQry)
+    #     if restQry["headers"]["status"] == '404':
+    #         print" ==="*80
+    #         log.warning("Upload Fails")
+    #         log.warning(restQry)
+
+    #         sys.exit(0)
+    #         raise Exception ("Bad Things Happen")
+    
+
     #     #We also want to update the Node States
     #     lastSample = readings[-1].time
     #     log.debug("Last Sample Time {0}".format(lastSample))
@@ -1036,7 +1200,7 @@ class Pusher(object):
 
 if __name__ == "__main__":
     import datetime
-
+    import pickle
     logging.debug("Testing Push Classes")
 
     server = PushServer()
