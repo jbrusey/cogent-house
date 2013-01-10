@@ -133,7 +133,6 @@ def main(global_config, **settings):
 
 
 
-
     config.add_route("summaryRest","sumRest/{theType}/{id:.*}")
     config.add_view("cogentviewer.views.restService.summaryRest",
                     route_name="summaryRest",
