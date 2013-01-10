@@ -8,6 +8,7 @@
 import sqlalchemy
 import logging
 log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 import meta
 Base = meta.Base
 

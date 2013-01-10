@@ -16,7 +16,6 @@ from sqlalchemy import Table, Column, Integer, ForeignKey,String,DateTime,Boolea
 from sqlalchemy.orm import relationship, backref
 
 import sqlalchemy.types as types
-from Bitset import Bitset
 
 
 class Node(Base,meta.InnoDBMix): 
@@ -60,6 +59,9 @@ class Node(Base,meta.InnoDBMix):
 
     def __eq__(self,other):
         return self.id == other.id and self.locationId == other.locationId and self.nodeTypeId == other.nodeTypeId
+
+    def __cmp__(self,other):
+        return self.id - other.id
 
     def asJSON(self,parentId=""):
         """Adds a Location Parameter to make sure we can link back to location when we come to get the data"""

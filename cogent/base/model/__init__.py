@@ -114,6 +114,10 @@ def clsFromJSON(theList):
                "node":Node,
                "sensor":Sensor,
                "nodestate":NodeState,
+               "roomtype":RoomType,
+               "sensortype":SensorType,
+               "room":Room,
+               "location":Location,
                }
 
         
@@ -127,6 +131,4 @@ def clsFromJSON(theList):
         theModel.fromJSON(item)
         yield theModel
             
-
-
     

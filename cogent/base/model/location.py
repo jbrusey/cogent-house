@@ -88,7 +88,10 @@ class Location(Base,meta.InnoDBMix):
 
 
     def __str__(self):
+        try:
 	    return "({0}) {1} : {2}".format(self.id,self.house.address,self.room.name)
+        except AttributeError:
+            return "({0}) {1} : {2}".format(self.id,self.house,self.room)
 
 
 NodeLocation = sqlalchemy.Table("NodeLocation",Base.metadata,
