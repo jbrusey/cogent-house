@@ -938,12 +938,10 @@ class Pusher(object):
         if uploadDates:
             print uploadDates
             lastUpdate = uploadDates.get(str(theHouse.id),None)
-            if lastUpdate:
+            if lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
         log.info("Last Update from Config is {0}".format(lastUpdate))
             
-
-
         #Get the last reading for this House
         session = self.localSession()
         #restSession =self.restSession
@@ -964,11 +962,11 @@ class Pusher(object):
             lastDate = dateutil.parser.parse(strDate)
             log.info("--> Last Upload Date {0}".format(lastDate))
 
-        sys.exit(0)
         uploadDates[str(theHouse.id)] = lastDate
         mappingConfig["lastupdate"] = uploadDates
         self.saveMappings()
-        sys.exit(0)
+
+
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
@@ -1070,7 +1068,9 @@ class Pusher(object):
             lastDate = lastSample
             
             #And save the last date in the config file
-            
+            uploadDates[str(theHouse.id)] = lastDate
+            mappingConfig["lastupdate"] = uploadDates
+            self.saveMappings()
 
         #Return True if we need to upload more
         return rdgCount > 0
