@@ -18,7 +18,6 @@ from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
 #from Bitset import Bitset
 
-
 class Node(Base,meta.InnoDBMix): 
     """
     Class to hold detals of the nodes themselves
