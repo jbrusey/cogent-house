@@ -408,11 +408,11 @@ class Pusher(object):
         houses = session.query(self.House)   
         mappingConfig = self.mappingConfig
 
-        #FIXME
+        ##FIXME
         for item in houses:
-            log.info("Synchronising Readings for House {0}".format(item))
-            #Look for the Last update
-            self.uploadReadings(item)
+           log.info("Synchronising Readings for House {0}".format(item))
+           #Look for the Last update
+           self.uploadReadings(item)
 
         self.saveMappings()
 
@@ -935,6 +935,7 @@ class Pusher(object):
         
         #Fetch the last Date from the mapping config
         uploadDates = mappingConfig.get("lastupdate",None)
+        lastUpdate = None
         if uploadDates:
             print uploadDates
             lastUpdate = uploadDates.get(str(theHouse.id),None)
@@ -946,27 +947,34 @@ class Pusher(object):
         session = self.localSession()
         #restSession =self.restSession
 
-        log.info("--> Requesting date of last reading in Remote DB")
-        params = {"house":theHouse.address,
-                  "lastUpdate":lastUpdate}
-        theUrl = "{0}lastSync/".format(self.restUrl)
-        #restQuery = restSession.request_get(theUrl,args=params)
-        restQuery = requests.get(theUrl,params=params)
-        strDate =  restQuery.json()
+        #As we should be able to trust the last update field of the config file.
+        #Only request the last sample from the remote DB if this does not exist.
 
-        log.debug("Str Date {0}".format(strDate))
-        if strDate is None:
-            log.info("--> --> No Readings in Remote DB")
-            lastDate = None
-        else:
-            lastDate = dateutil.parser.parse(strDate)
-            log.info("--> Last Upload Date {0}".format(lastDate))
+        if lastUpdate is None:
+            log.info("--> Requesting date of last reading in Remote DB")
+            params = {"house":theHouse.address,
+                      "lastUpdate":lastUpdate}
+            theUrl = "{0}lastSync/".format(self.restUrl)
+            #restQuery = restSession.request_get(theUrl,args=params)
+            restQuery = requests.get(theUrl,params=params)
+            strDate =  restQuery.json()
 
-        uploadDates[str(theHouse.id)] = lastDate
+            log.debug("Str Date {0}".format(strDate))
+            if strDate is None:
+                log.info("--> --> No Readings in Remote DB")
+                lastDate = None
+            else:
+                lastDate = dateutil.parser.parse(strDate)
+                log.info("--> Last Upload Date {0}".format(lastDate))
+
+            lastUpdate = lastDate
+
+        #Then Save 
+        uploadDates[str(theHouse.id)] = lastUpdate
         mappingConfig["lastupdate"] = uploadDates
         self.saveMappings()
 
-
+        sys.exit(0)
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
