@@ -974,16 +974,16 @@ class Pusher(object):
         mappingConfig["lastupdate"] = uploadDates
         self.saveMappings()
 
-        sys.exit(0)
+
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
 
-        #Fetch some readings
+        #Count the Number of Readings we need to transfer
         theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
-        if lastDate:
-            theReadings = theReadings.filter(models.Reading.time > lastDate)
-        theReadings = theReadings.order_by(models.Reading.time)
+        if lastUpdate:
+            theReadings = theReadings.filter(models.Reading.time > lastUpdate)
+
         origCount = theReadings.count()
         log.info("--> Total of {0} samples to transfer".format(origCount))
         rdgCount = origCount
@@ -995,8 +995,8 @@ class Pusher(object):
             #Add some timings
             stTime = time.time()
             theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
-            if lastDate:
-                theReadings = theReadings.filter(models.Reading.time > lastDate)
+            if lastUpdate:
+                theReadings = theReadings.filter(models.Reading.time > lastUpdate)
             theReadings = theReadings.order_by(models.Reading.time)
             theReadings = theReadings.limit(self.pushLimit)
             #theReadings = theReadings.limit(10000)
@@ -1028,31 +1028,8 @@ class Pusher(object):
 
             
             jsonStr = json.dumps(jsonList)
-            # print "--------- STD JSON ----------"
-            # #print jsonStr
-            # print sys.getsizeof(jsonStr)
-
-            # print "---------- JSON H --------------"
-
-            # otherStr = jsonh.dumps(jsonList)
-            # #print otherStr
-            # print sys.getsizeof(otherStr)
-
-            # import zlib
-            # print "---------- GZ JSONH H ---------------"
-            
             gzStr = zlib.compress(jsonStr)
-            log.debug("Size of Compressed JSON {0}kB".format(sys.getsizeof(gzStr)/1024))
-            #print sys.getsizeof(gzStr)
-
-            #Then Unzip
-            #unGZ = zlib.decompress(jsonStr)
-            #unGZ = zlib.decompress(gzStr)
-            #unJson = jsonh.loads(unGZ)
-
-            #print jsonList
-            #print unJson          
-
+            #log.debug("Size of Compressed JSON {0}kB".format(sys.getsizeof(gzStr)/1024))
 
             qryTime = time.time()
              #And then try to bulk upload them
@@ -1073,7 +1050,7 @@ class Pusher(object):
 
             log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
             log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
-            lastDate = lastSample
+            lastUpdate = lastSample
             
             #And save the last date in the config file
             uploadDates[str(theHouse.id)] = lastDate
