@@ -17,7 +17,7 @@ destHouses <- dbGetQuery(destDb,statement="SELECT * FROM House WHERE address != 
 #sensorType <- dbReadTable(con,"SensorType")
 
 
-thisHouse = sourceHouses[1,]
+thisHouse = sourceHouses[14,]
 hseName = thisHouse$address
 
 houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
@@ -99,3 +99,14 @@ plt <- plt+geom_line(data=destData)
 plt + facet_grid(nodeId~.)
 
 #Both together with Location names rtather than Ids
+#And Both Together
+plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(name)))
+plt <- plt+geom_point()
+plt <- plt+geom_line(data=destData)
+plt + facet_grid(nodeId~.)
+
+#Or Alternately
+plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
+plt <- plt+geom_point()
+plt <- plt+geom_line(data=destData)
+plt + facet_grid(name~.)
