@@ -261,6 +261,22 @@ class BaseLogger(object):
         return ((nid % 4096) / 32,
                 nid % 32,
                 nid / 4096)
+
+
+    def send_ack(self,
+                 seq=None,
+                 route=None,
+                 hops=None):
+        """ send acknowledge message
+        """
+        am = AckMsg()
+        am.set_seq(seq)
+        am.set_route(msg.get_route())
+        am.set_hops(msg.get_hops())
+        
+        self.bif.sendMsg(am,dest)
+        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+
     	
     def store_state(self, msg):
 
@@ -303,23 +319,15 @@ class BaseLogger(object):
                                      localtime=localtime):
                 logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
 
-            	j = 0
+                # try to send an ack
             	mask = Bitset(value=msg.get_packed_state_mask())
-            	state = []
-            	for i in range(msg.totalSizeBits_packed_state_mask()):
-                    if mask[i]:
-                        if i == 23:
-                            v = msg.getElement_packed_state(j)
-                            #send out ack as it was never received
-                            am = AckMsg()
-                            am.set_seq(int(v))
-                            am.set_route(msg.get_route())
-                            am.set_hops(msg.get_hops())
-
-                            self.bif.sendMsg(am,dest)
-                            logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
-                            return
-                        j += 1
+                # find the location of the sequence number
+                seq_i = sum([mask[i] for i in range(Packets.SC_SEQ)])
+                seq = int(msg.getElement_packed_state(seq_i))
+                send_ack(seq=seq,
+                         route=msg.get_route(),
+                         hops=msg.get_hops())
+                
                 return
 
 
@@ -337,9 +345,9 @@ class BaseLogger(object):
             for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
                     tid=None
-                    if msg.get_amType()==8:
-                        if i not in [6,23]:
-                            tid=i+50
+                    if msg.get_amType()==Packets.AM_BNMSG:
+                        if i not in [Packets.SC_VOLTAGE,Packets.SC_SEQ]:
+                            tid=i+50   # TODO: fix magic number
 			else:
 			    tid=i
                     else:
@@ -348,8 +356,8 @@ class BaseLogger(object):
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
 
-		    if tid==23:
-			seq=v
+		    if tid==SC_SEQ:
+			seq=int(v)
 
                     r = Reading(time=t,
                                 nodeId=n,
@@ -363,13 +371,10 @@ class BaseLogger(object):
             session.commit()
 
             #send acknowledgement to base station to fwd to node
-            am = AckMsg()
-            am.set_seq(int(seq))
-            am.set_route(msg.get_route())
-            am.set_hops(msg.get_hops())
-
-            self.bif.sendMsg(am,dest)
-            logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+            send_ack(seq=seq,
+                     route=msg.get_route(),
+                     hops=msg.get_hops())
+                     
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
         except Exception as e:
             session.rollback()
