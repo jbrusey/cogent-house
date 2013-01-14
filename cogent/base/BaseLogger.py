@@ -27,8 +27,6 @@ from cogent.base.model import *
 
 logger = logging.getLogger("ch.base")
 
-F="/home/james/sa.db"
-#DBFILE = "sqlite:///" 
 DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
@@ -38,8 +36,6 @@ class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
         self.engine = create_engine(dbfile, echo=False)
         init_model(self.engine)
-        #if DBFILE[:7] == "sqlite:":
-        #    self.engine.execute("pragma foreign_keys=on")
         self.metadata = Base.metadata
 
         if bif is None:
@@ -206,38 +202,6 @@ class BaseLogger(object):
             session.commit()
         session.close()    
                              
-    # def update_settings(self):
-
-    #     x = self.setting_session.query(NodeType).filter(NodeType.seq != NodeType.updated_seq).first()
-    #     if x is not None:
-    #         cm = ConfigMsg()
-    #         max_nodetype = self.setting_session.query(func.max(NodeType.id)).one()[0] + 1
-    #         max_nodetype = min(max_nodetype, Packets.NODE_TYPE_MAX)
-    #         cm.set_typeCount(max_nodetype)
-    #         for i in range(max_nodetype):
-    #             nt = self.setting_session.query(NodeType).filter(NodeType.id==i).first()
-    #             if nt is not None:
-    #                 cm.setElement_byType_samplePeriod(i, nt.period)
-    #                 if nt.blink:
-    #                     cm.setElement_byType_blink(i, 1)
-    #                 else:
-    #                     cm.setElement_byType_blink(i, 0)
-                    
-    #                 for j in range(len(nt.configured.a)):
-    #                     cm.setElement_byType_configured(i, j, nt.configured.a[j])
-    #                 nt.updated_seq = nt.seq
-    #             else:
-    #                 logger.warning("no NodeType record for type %d - setting some default values" % (i))
-    #                 cm.setElement_byType_samplePeriod(i, 300 * 1024) # 300 seconds
-    #                 cm.setElement_byType_blink(i,1)
-    #                 for j in range(cm.numElements_byType_configured(1)):
-    #                     cm.setElement_byType_configured(i, j, 0)
-
-    #         cm.set_special(Packets.SPECIAL)
-    #         self.bif.sendMsg(cm)
-    #         logger.debug("sending config: %s" % cm)
-
-    #         self.setting_session.commit()
 
     def duplicate_packet(self, session, time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
@@ -259,27 +223,32 @@ class BaseLogger(object):
                 nid / 4096)
     	
     def store_state(self, msg):
+
+        # get the last non-zero source 
+	dest=0
+	for x in msg.get_route():
+		if int(x)>0:
+			dest=int(x)
+
+
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
 
         try:
             session = Session()
             t = datetime.utcnow()
-            n = msg.getAddr()
-            parent = msg.get_ctp_parent_id()
+            n=msg.get_route()[0]
+	    pid=msg.get_route()[1]
+
             localtime = msg.get_timestamp()
 
             node = session.query(Node).get(n)
             locId = None
             if node is None:
-                #(houseId,roomId,nodeTypeId) = self.getNodeDetails(n)
                 try:
                     session.add(Node(id=n,
                                      locationId=None,
-                                     #nodeTypeId=(n / 4096)))
-                                     nodeTypeId=None,
-                                     )
-                                )
+                                     nodeTypeId=(n / 4096)))
                     session.commit()
                 except:
                     session.rollback()
@@ -287,36 +256,80 @@ class BaseLogger(object):
             else:
                 locId = node.locationId
 
+            
             if self.duplicate_packet(session=session,
                                      time=t,
                                      nodeId=n,
                                      localtime=localtime):
-                logger.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
+                logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
+
+            	j = 0
+            	mask = Bitset(value=msg.get_packed_state_mask())
+            	state = []
+            	for i in range(msg.totalSizeBits_packed_state_mask()):
+                    if mask[i]:
+                        if i == 23:
+                            v = msg.getElement_packed_state(j)
+                            #send out ack as it was never received
+                            am = AckMsg()
+                            am.set_seq(int(v))
+                            am.set_route(msg.get_route())
+                            am.set_hops(msg.get_hops())
+
+                            self.bif.sendMsg(am,dest)
+                            logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+                            return
+                        j += 1
                 return
-                #raise Exception("duplicate packet: %s, %s" % (str(msg), msg.data))
+
 
             ns = NodeState(time=t,
                            nodeId=n,
-                           parent=msg.get_ctp_parent_id(),
+                           parent=pid,
                            localtime=msg.get_timestamp())
             session.add(ns)
 
+
+            seq=0	    
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
             state = []
             for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
+                    tid=None
+                    if msg.get_amType()==8:
+                        if i not in [6,23]:
+                            tid=i+50
+			else:
+			    tid=i
+                    else:
+                        tid=i
+
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
+
+		    if tid==23:
+			seq=v
+
                     r = Reading(time=t,
                                 nodeId=n,
-                                typeId=i,
+                                typeId=tid,
                                 locationId=locId,
                                 value=v)
                     session.add(r)
                     j += 1
 
+
             session.commit()
+
+            #send acknowledgement to base station to fwd to node
+            am = AckMsg()
+            am.set_seq(int(seq))
+            am.set_route(msg.get_route())
+            am.set_hops(msg.get_hops())
+
+            self.bif.sendMsg(am,dest)
+            logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
         except Exception as e:
             session.rollback()

@@ -12,3 +12,4 @@ ch_base.egg-info/
 build/
 cogent/push/.cache
 cogent/push/.coverage
+tos/*/build/*

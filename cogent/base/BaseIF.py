@@ -6,7 +6,7 @@
 import sys
 import os
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
-from cogent.node import StateMsg, StateV1Msg, ConfigMsg, Packets
+from cogent.node import StateMsg, ConfigMsg, Packets, BNMsg
 from tinyos.message import MoteIF 
 import time
 from cogent.base.model import *
@@ -20,47 +20,22 @@ class BaseIF(object):
         self.mif = MoteIF.MoteIF()
         self.source = self.mif.addSource(source)
         self.mif.addListener(self, StateMsg)
-        self.mif.addListener(self, StateV1Msg)
+        self.mif.addListener(self, BNMsg)
         self.queue = Queue()
-		
+
     def receive(self, src, msg):
         self.queue.put(msg)
 
-    def sendMsg(self, msg):
-        # assumption is that msg is a ConfigMsg
-        self.mif.sendMsg(self.source, 0xffff, msg.get_amType(), 0, msg)
+    def sendMsg(self, msg, dest=0xffff):
+        self.mif.sendMsg(self.source, dest, msg.get_amType(), 0, msg)
 
     def finishAll(self):
         self.mif.finishAll()
     
 def store_state(msg):
     n = msg.getAddr()
-
     print "storing state ",n, msg
 
-config_changed_flag = True
-def config_changed():
-    global config_changed_flag
-    t = config_changed_flag
-    config_changed_flag = False
-    return t
-
-def get_config():
-    cm = ConfigMsg()
-    configured = Bitset(size=Packets.RS_SIZE)
-    configured[Packets.RS_TEMPERATURE] = True
-    configured[Packets.RS_HUMIDITY] = True
-    configured[Packets.RS_PAR] = True
-    configured[Packets.RS_TSR] = True
-    configured[Packets.RS_VOLTAGE] = True
-    configured[Packets.RS_DUTY] = True
-    cm.setElement_byType_samplePeriod(0,30*1024)
-    bytes = configured.a
-    for i in range(len(bytes)):
-        cm.setElement_byType_configured(0, i, bytes[i])
-
-    cm.set_typeCount(1)
-    return cm
 
 if __name__ == '__main__':
 
@@ -70,12 +45,23 @@ if __name__ == '__main__':
         # wait up to 30 seconds for a message
         try:
             msg = bif.queue.get(True, 30)
-            store_state(msg)
+
+	    j = 0
+            mask = Bitset(value=msg.get_packed_state_mask())
+            print "State mask size:", msg.totalSizeBits_packed_state_mask()
+            state = []
+            for i in range(msg.totalSizeBits_packed_state_mask()):
+                if mask[i]:
+                    try:
+                        v = msg.getElement_packed_state(j)
+                    except:
+                        v = "Invalid"
+                    print "%s\t%s\t%s" % (j, i, v)
+                j += 1
+            print ""
+
+
+            #store_state(msg)
         except Empty:
             pass
-
-        if config_changed():
-            cm = get_config()
-            print "sending ", cm
-            bif.sendMsg(cm)
     
