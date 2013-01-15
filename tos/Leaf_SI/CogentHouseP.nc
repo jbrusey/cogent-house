@@ -45,8 +45,8 @@ implementation
   float last_errno = 1.;
 
   float last_transmitted_errno;
-  
-  uint32_t send_start_time;
+
+  uint32_t send_start_time;  
   uint32_t sense_start_time;
   bool phase_two_sensing = FALSE;
 	
@@ -149,7 +149,7 @@ implementation
       }
       send_start_time = call LocalTime.get();
       if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
-	call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME); 
+	call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
 	  printf("sending to %lu\n", LEAF_CLUSTER_HEAD);
@@ -185,6 +185,7 @@ implementation
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
+      call Configured.set(RS_DUTY);
     }
     else if (nodeType == 3) { /* air quality */
       call Configured.set(RS_TEMPERATURE);
@@ -192,6 +193,7 @@ implementation
       call Configured.set(RS_CO2);
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
+      call Configured.set(RS_DUTY);
     }
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
@@ -223,8 +225,7 @@ implementation
     if (stop_time < sense_start_time) // deal with overflow
       send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
     else
-      send_time = (stop_time - send_start_time);
-    last_duty = (float) send_time;
+      send_time = (stop_time - sense_start_time);
     
     if (my_settings->samplePeriod < send_time)
       next_interval = 0;
@@ -469,6 +470,8 @@ implementation
     int h;
     AckMsg* aMsg;
     int i;
+    uint32_t stop_time;
+    uint32_t send_time;
 
 #ifdef DEBUG
     call Leds.led2Toggle();
@@ -495,6 +498,14 @@ implementation
 	printfflush();
 #endif 
 	if (expSeq==ackSeq){
+
+	  stop_time = call LocalTime.get();
+	  //Calculate the next interval
+	  if (stop_time < send_start_time) // deal with overflow
+	      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
+	  else
+	      send_time = (stop_time - send_start_time);
+	  last_duty = (float) send_time;
 	  
 #ifdef DEBUG
 	  call Leds.led2Toggle();
@@ -549,13 +560,12 @@ implementation
    */
   event void AckTimeoutTimer.fired() {
     //if retries < max retries send else give up
-
+      reportError(ERR_SEND_TIMEOUT);
 #ifdef DEBUG
       printf("timeout at %lu\n", call LocalTime.get());
       printfflush();
 #endif
     if (retries < LEAF_MAX_RETRIES) {
-      reportError(ERR_SEND_TIMEOUT);
       retries+=1;
       call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);
       if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
