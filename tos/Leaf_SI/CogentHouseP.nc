@@ -94,6 +94,7 @@ implementation
     StateMsg *newData;
     int pslen;
     int i;
+    retries=0;
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -560,12 +561,12 @@ implementation
    */
   event void AckTimeoutTimer.fired() {
     //if retries < max retries send else give up
-      reportError(ERR_SEND_TIMEOUT);
 #ifdef DEBUG
       printf("timeout at %lu\n", call LocalTime.get());
       printfflush();
 #endif
     if (retries < LEAF_MAX_RETRIES) {
+      reportError(ERR_SEND_TIMEOUT);
       retries+=1;
       call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);
       if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
