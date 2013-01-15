@@ -277,15 +277,11 @@ class BaseLogger(object):
         self.bif.sendMsg(am,dest)
         logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
 
-    	
+    
     def store_state(self, msg):
-
-        # get the last non-zero source 
-	dest=0
-	for x in msg.get_route():
-		if int(x)>0:
-			dest=int(x)
-
+    
+        # get the last source 
+        dest = msg.get_route()[msg.get_hops()-1]
 
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
@@ -294,7 +290,7 @@ class BaseLogger(object):
             session = Session()
             t = datetime.utcnow()
             n=msg.get_route()[0]
-	    pid=msg.get_route()[1]
+            pid=msg.get_route()[1]
 
             localtime = msg.get_timestamp()
 
@@ -320,7 +316,7 @@ class BaseLogger(object):
                 logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
 
                 # try to send an ack
-            	mask = Bitset(value=msg.get_packed_state_mask())
+                    mask = Bitset(value=msg.get_packed_state_mask())
                 # find the location of the sequence number
                 seq_i = sum([mask[i] for i in range(Packets.SC_SEQ)])
                 seq = int(msg.getElement_packed_state(seq_i))
@@ -338,7 +334,7 @@ class BaseLogger(object):
             session.add(ns)
 
 
-            seq=0	    
+            seq=0            
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
             state = []
@@ -348,16 +344,16 @@ class BaseLogger(object):
                     if msg.get_amType()==Packets.AM_BNMSG:
                         if i not in [Packets.SC_VOLTAGE,Packets.SC_SEQ]:
                             tid=i+50   # TODO: fix magic number
-			else:
-			    tid=i
+                        else:
+                            tid=i
                     else:
                         tid=i
 
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
 
-		    if tid==SC_SEQ:
-			seq=int(v)
+                    if tid==SC_SEQ:
+                        seq=int(v)
 
                     r = Reading(time=t,
                                 nodeId=n,
@@ -430,4 +426,3 @@ if __name__ == '__main__':
     lm.create_tables()
     
     lm.run()
-		
