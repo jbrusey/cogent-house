@@ -256,12 +256,6 @@ class BaseLogger(object):
             and_(NodeState.nodeId==nodeId,
                  NodeState.localtime==localtime,
                  NodeState.time > earliest)).first() is not None
-            
-    def getNodeDetails(self, nid):
-        return ((nid % 4096) / 32,
-                nid % 32,
-                nid / 4096)
-
 
     def send_ack(self,
                  seq=None,
