@@ -1,0 +1,10 @@
+COMPONENT=CogentRootC
+
+PFLAGS +=-DTOSH_DATA_LENGTH=118
+
+# turn on leds for debugging?
+CFLAGS += -DBLINKY
+CFLAGS += -DSERIAL_QUEUE_SIZE=50
+
+include $(MAKERULES)
+
