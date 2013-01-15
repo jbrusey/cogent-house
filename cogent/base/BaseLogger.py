@@ -261,15 +261,27 @@ class BaseLogger(object):
         return ((nid % 4096) / 32,
                 nid % 32,
                 nid / 4096)
-    	
+
+
+    def send_ack(self,
+                 seq=None,
+                 route=None,
+                 hops=None):
+        """ send acknowledge message
+        """
+        am = AckMsg()
+        am.set_seq(seq)
+        am.set_route(msg.get_route())
+        am.set_hops(msg.get_hops())
+        
+        self.bif.sendMsg(am,dest)
+        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+
+    
     def store_state(self, msg):
-
-        # get the last non-zero source 
-	dest=0
-	for x in msg.get_route():
-		if int(x)>0:
-			dest=int(x)
-
+    
+        # get the last source 
+        dest = msg.get_route()[msg.get_hops()-1]
 
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
@@ -278,7 +290,7 @@ class BaseLogger(object):
             session = Session()
             t = datetime.utcnow()
             n=msg.get_route()[0]
-	    pid=msg.get_route()[1]
+            pid=msg.get_route()[1]
 
             localtime = msg.get_timestamp()
 
@@ -303,23 +315,15 @@ class BaseLogger(object):
                                      localtime=localtime):
                 logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
 
-            	j = 0
-            	mask = Bitset(value=msg.get_packed_state_mask())
-            	state = []
-            	for i in range(msg.totalSizeBits_packed_state_mask()):
-                    if mask[i]:
-                        if i == 23:
-                            v = msg.getElement_packed_state(j)
-                            #send out ack as it was never received
-                            am = AckMsg()
-                            am.set_seq(int(v))
-                            am.set_route(msg.get_route())
-                            am.set_hops(msg.get_hops())
-
-                            self.bif.sendMsg(am,dest)
-                            logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
-                            return
-                        j += 1
+                # try to send an ack
+                    mask = Bitset(value=msg.get_packed_state_mask())
+                # find the location of the sequence number
+                seq_i = sum([mask[i] for i in range(Packets.SC_SEQ)])
+                seq = int(msg.getElement_packed_state(seq_i))
+                send_ack(seq=seq,
+                         route=msg.get_route(),
+                         hops=msg.get_hops())
+                
                 return
 
 
@@ -330,26 +334,26 @@ class BaseLogger(object):
             session.add(ns)
 
 
-            seq=0	    
+            seq=0            
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
             state = []
             for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
                     tid=None
-                    if msg.get_amType()==8:
-                        if i not in [6,23]:
-                            tid=i+50
-			else:
-			    tid=i
+                    if msg.get_amType()==Packets.AM_BNMSG:
+                        if i not in [Packets.SC_VOLTAGE,Packets.SC_SEQ]:
+                            tid=i+50   # TODO: fix magic number
+                        else:
+                            tid=i
                     else:
                         tid=i
 
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
 
-		    if tid==23:
-			seq=v
+                    if tid==SC_SEQ:
+                        seq=int(v)
 
                     r = Reading(time=t,
                                 nodeId=n,
@@ -363,13 +367,10 @@ class BaseLogger(object):
             session.commit()
 
             #send acknowledgement to base station to fwd to node
-            am = AckMsg()
-            am.set_seq(int(seq))
-            am.set_route(msg.get_route())
-            am.set_hops(msg.get_hops())
-
-            self.bif.sendMsg(am,dest)
-            logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+            send_ack(seq=seq,
+                     route=msg.get_route(),
+                     hops=msg.get_hops())
+                     
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
         except Exception as e:
             session.rollback()
@@ -425,4 +426,3 @@ if __name__ == '__main__':
     lm.create_tables()
     
     lm.run()
-		
