@@ -797,7 +797,7 @@ class Pusher(object):
             log.debug("Check Mapping for {0}".format(item))
 
             #Calculate the Deployment Id:
-            mapDep = mappedDeployments[item.deploymentId]
+            mapDep = mappedDeployments.get(item.deploymentId,None)
             log.debug("-->Maps to deployment {0}".format(mapDep))
 
             params = {"address":item.address,
@@ -900,6 +900,8 @@ class Pusher(object):
         for item in newItems:
             thisItem = remoteNodes[item]
             log.info("Node {0}:{1} Not in Local Database".format(item,thisItem))
+            thisItem.nodeTypeId = None #Set node type to none
+            thisItem.locationId = None
             session.add(thisItem)
             session.flush()
         
