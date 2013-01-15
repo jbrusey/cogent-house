@@ -14,7 +14,9 @@ if "TOSROOT" not in os.environ:
     raise Exception("Please source the Tiny OS environment script first")
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 
-from cogent.node import *
+from cogent.node import (AckMsg,
+                         Packets)
+                         
 from cogent.base.BaseIF import BaseIF
 
 from Queue import Empty
@@ -23,13 +25,14 @@ from datetime import datetime, timedelta
 
 import time
 
-from cogent.base.model import *
+from cogent.base.model import (Reading, NodeState, SensorType,
+                               Base, Session, init_model, Node, Bitset)
 
 logger = logging.getLogger("ch.base")
 
 DBFILE = "mysql://chuser@localhost/ch"
 
-from sqlalchemy import create_engine, func, and_
+from sqlalchemy import create_engine, and_
 
 
 class BaseLogger(object):
@@ -243,7 +246,7 @@ class BaseLogger(object):
         session.close()    
                              
 
-    def duplicate_packet(self, session, time, nodeId, localtime):
+    def duplicate_packet(self, session, receipt_time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
         the duplicate packet cache used is not sufficient. If such
         packets occur, then they will have the same node id, same
@@ -251,7 +254,7 @@ class BaseLogger(object):
         some cases, the first received copy may be corrupt and this is
         not dealt with within this code yet.
         """
-        earliest = time - timedelta(minutes=1)
+        earliest = receipt_time - timedelta(minutes=1)
         return session.query(NodeState).filter(
             and_(NodeState.nodeId==nodeId,
                  NodeState.localtime==localtime,
@@ -265,17 +268,17 @@ class BaseLogger(object):
         """
         am = AckMsg()
         am.set_seq(seq)
-        am.set_route(msg.get_route())
-        am.set_hops(msg.get_hops())
+        am.set_route(route)
+        am.set_hops(hops)
         
+        dest = route[hops-1]
         self.bif.sendMsg(am,dest)
-        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (am.get_seq(), dest, am.get_hops(), am.get_route()))
+        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (seq, dest, hops, route))
 
     
     def store_state(self, msg):
     
         # get the last source 
-        dest = msg.get_route()[msg.get_hops()-1]
 
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
@@ -296,7 +299,7 @@ class BaseLogger(object):
                                      locationId=None,
                                      nodeTypeId=(n / 4096)))
                     session.commit()
-                except:
+                except Exception:
                     session.rollback()
                     logger.exception("can't add node %d" % n)
             else:
@@ -304,19 +307,19 @@ class BaseLogger(object):
 
             
             if self.duplicate_packet(session=session,
-                                     time=t,
+                                     receipt_time=t,
                                      nodeId=n,
                                      localtime=localtime):
                 logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
 
                 # try to send an ack
-                    mask = Bitset(value=msg.get_packed_state_mask())
+                mask = Bitset(value=msg.get_packed_state_mask())
                 # find the location of the sequence number
                 seq_i = sum([mask[i] for i in range(Packets.SC_SEQ)])
                 seq = int(msg.getElement_packed_state(seq_i))
-                send_ack(seq=seq,
-                         route=msg.get_route(),
-                         hops=msg.get_hops())
+                self.send_ack(seq=seq,
+                              route=msg.get_route(),
+                              hops=msg.get_hops())
                 
                 return
 
@@ -346,7 +349,7 @@ class BaseLogger(object):
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
 
-                    if tid==SC_SEQ:
+                    if tid==Packets.SC_SEQ:
                         seq=int(v)
 
                     r = Reading(time=t,
@@ -361,9 +364,9 @@ class BaseLogger(object):
             session.commit()
 
             #send acknowledgement to base station to fwd to node
-            send_ack(seq=seq,
-                     route=msg.get_route(),
-                     hops=msg.get_hops())
+            self.send_ack(seq=seq,
+                          route=msg.get_route(),
+                          hops=msg.get_hops())
                      
             logger.debug("reading: %s, %s, %s" % (ns,mask,state))
         except Exception as e:
