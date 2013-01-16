@@ -108,7 +108,7 @@ import configobj
 import zlib
 
 import dateutil.parser
-import restful_lib
+#mport restful_lib
 import json
 import urllib
 
@@ -392,18 +392,23 @@ class Pusher(object):
         """
 
         log = self.log
-        #log.setLevel(logging.DEBUG)
+
         log.debug("Performing sync")
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
-        self.syncSensorTypes()
-        self.syncNodes()
+        
+
+        self.syncSensorTypes()       
         self.syncRoomTypes()
         self.syncRooms()
         self.syncDeployments()
-
         self.loadMappings()
         self.saveMappings()
+
+        #Moved here for the Sampson Version
+        self.syncNodes()
+        
+
         session = self.localSession()
         houses = session.query(self.House)   
         mappingConfig = self.mappingConfig
@@ -496,6 +501,7 @@ class Pusher(object):
         #Stuff that is unchanged is pretty easy to deal with
         unchanged = theDiff.unchanged()
         log.debug("Unchanged, {0}".format(unchanged))
+
         for item in unchanged:
             theItem = localTypes[item]
             mergedItems[theItem.id] = theItem.id
@@ -503,6 +509,7 @@ class Pusher(object):
         #Then stuff were the ID's different
         changed = theDiff.changed()
         log.debug("Changed, {0}".format(changed))
+        #sys.exit(0)
         for item in changed:
             localItem = localTypes[item]
             remoteItem = remoteTypes[item]
@@ -511,6 +518,7 @@ class Pusher(object):
         #And Sync New room types to the Remote DB 
         added = theDiff.added()
         log.debug("Added, {0}".format(added))
+
         for item in added:
            thisItem = remoteTypes[item]
            origId = thisItem.id
@@ -521,7 +529,9 @@ class Pusher(object):
            session.flush()
            log.info("New Id {0}".format(thisItem))
            mergedItems[origId] = thisItem.id
+        #sys.exit(0)
         session.commit()
+        
 
         #And Sync new Room Types to the Remote DB 
         removedItems = theDiff.removed()
@@ -558,6 +568,9 @@ class Pusher(object):
         localQry = session.query(self.RoomType)
         localTypes = dict([(x.name,x) for x in localQry])
 
+        log.debug(localTypes)
+        log.debug(remoteTypes)
+
         mappedRoomTypes = self._syncItems(localTypes,remoteTypes,theUrl)
         self.mappedRoomTypes = mappedRoomTypes
         
@@ -583,18 +596,6 @@ class Pusher(object):
         localQry = session.query(self.Room)
         #Dictionary of local Types
         localTypes = dict([(x.name,x) for x in localQry])
-
-        
-        
-        # print "Remote: "
-        # for item in remoteTypes.values():
-        #     print item
-        # print "Local: "
-        # for item in localTypes.values():
-        #     print item
-
-        # f = DictDiff(remoteTypes,localTypes)
-        # print "-->",f.changed()
 
         tmpTypes = {}
         for item in localQry:
@@ -639,7 +640,6 @@ class Pusher(object):
         #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)
         
-
         for item in restItems:
             #print item
             remoteTypes[item.id] = item
@@ -821,7 +821,7 @@ class Pusher(object):
         log = self.log
         log.debug("----- Syncing Locations ------")
         lSess = self.localSession()
-
+        
         #Get the list of deployments that may need updating
         #Deployment = models.Deployment
         mappedHouses = self.mappedHouses
@@ -896,6 +896,8 @@ class Pusher(object):
         #Items not in the Local Database
         log.debug("Dealing with new items in Local DB:")
         newItems = theDiff.added()
+        log.debug(newItems)
+
         #log.debug(newItems)
         for item in newItems:
             thisItem = remoteNodes[item]
@@ -977,7 +979,6 @@ class Pusher(object):
         self.saveMappings()
 
 
-
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
 
@@ -1025,9 +1026,6 @@ class Pusher(object):
                 
                 jsonList.append(dictReading)
                 lastSample = reading.time
-
-            log.setLevel(logging.DEBUG)
-
             
             jsonStr = json.dumps(jsonList)
             gzStr = zlib.compress(jsonStr)
@@ -1055,7 +1053,7 @@ class Pusher(object):
             lastUpdate = lastSample
             
             #And save the last date in the config file
-            uploadDates[str(theHouse.id)] = lastDate
+            uploadDates[str(theHouse.id)] = lastUpdate
             mappingConfig["lastupdate"] = uploadDates
             self.saveMappings()
 

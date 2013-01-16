@@ -65,14 +65,16 @@ import configobj
 
 import dateutil.parser
 
-import restful_lib
+
 import json
 import urllib
 
+import requests
 import RestPusher
+import zlib
 
 #Major Change,  Reflect remote DB
-dbString = "mysql://root:Ex3lS4ga@127.0.0.1/old-sampson"
+dbString = "mysql://root:Ex3lS4ga@127.0.0.1/faraday"
 
 #Setup New Delariative Reflection stuff, (REQUIRES SQLA > 0.8)
 from sqlalchemy.ext.declarative import declarative_base, DeferredReflection
@@ -83,23 +85,63 @@ Base = declarative_base(cls=DeferredReflection)
 class SensorType(Base,meta.InnoDBMix):
     __tablename__ = "SensorType"
 
+    def __cmp__(self,other):
+        
+        if self.id == other.id:
+            return 0
+            #if self.name == other.name:
+            #    return 0
+        return -1
+
 class RoomType(Base,meta.InnoDBMix):
     __tablename__ = "RoomType"
+    
+    def __cmp__(self,other):
+        if self.id == other.id:
+            if self.name == other.name:
+                return 0
+            return -1
+        return self.id - other.id
 
 class Room(Base,meta.InnoDBMix):
     __tablename__ = "Room"
 
+    def __cmp__(self,other):
+        if self.id == other.id:
+            if self.name == other.name:
+                return 0
+            return -1
+        return self.id - other.id
+        
+
 class Deployment(Base,meta.InnoDBMix):
     __tablename__ = "Deployment"
+    
+    def __cmp__(self,other):
+        if self.id == other.id:
+            if self.name == other.name:
+                return 0
+            return -1
+        return self.id - other.id
 
 class House(Base,meta.InnoDBMix):
     __tablename__ = "House"
+    
+    def __cmp__(self,other):
+        if self.id == other.id:
+            if self.address == other.address:
+                return 0
+            return -1
+        return self.id - other.id
 
 class Node(Base,meta.InnoDBMix):
     __tablename__ = "Node"
+    def __cmp__(self,other):
+        return self.id - other.id
 
 class Reading(Base,meta.InnoDBMix):
     __tablename__ = "Reading"
+    pass
 
 class PushServer(RestPusher.PushServer):
     """Subclass of the Rest Pusher to deal with old style Sampson Databases"""
@@ -202,23 +244,7 @@ class SampsonPusher(RestPusher.Pusher):
 
             theModel.fromJSON(item)
             yield theModel
-            
-    def loadMappings(self):
-        """Load known mappings from the config file,
-        then update with new mappings"""
-        log = self.log
-        log.info("--- Loading Mappings ---")
-        #log.setLevel(logging.DEBUG)
-        self.mapSensors()
-        self.mapRooms()
-        self.mapDeployments()
-        self.mapHouses() #Then houses
-        self.mapLocations()
-        log.info("---- Save Mappings ----")
-        self.saveMappings()
-        #sys.exit(0)
-        return
-    
+                
     def mapLocations(self):
         #Synchronise Locations
         # Rather than deal with new locations, this instead just loads the location map
@@ -238,36 +264,17 @@ class SampsonPusher(RestPusher.Pusher):
         mappingConfig = self.mappingConfig
         configLoc = mappingConfig.get("location",{})
         mappedLocations.update(dict([(int(k),v) for k,v in configLoc.iteritems()]))
-        #theMap = {}
-
-        # for item in theQry:
-        #     #log.debug(item)
-        #     if item.id in mappedLocations:
-        #         log.debug("Location Exists in Config File {0}".format(item))
-        #         continue
-
-        #     #print item
-        #     hId = mappedHouses[int(item.houseId)]
-        #     if item.roomId is None:
-        #         rId = None
-        #     else:
-        #         rId =mappedRooms[int(item.roomId)].id
-
-        #     #We need to make sure the deployment is mapped correctly
-        #     params = {"houseId":hId,
-        #               "roomId":rId}
-        #     theUrl = "location/?{0}".format(urllib.urlencode(params))                            
-        #     #Look for the item
-        #     theBody = item.toDict()
-        #     theBody["houseId"] = hId
-        #     theBody["roomId"] = rId
-        #     #log.debug("LOCATION {0}={1}".format(item,theBody))
-        #     del(theBody["id"])
-        #     newItem = self.uploadItem(theUrl,theBody)
-        #     #theMap[item.id] = newItem
-        #     mappedLocations[item.id] = newItem.id
-
-        # #self.mappedLocations = theMap
+#         for k,v in configLoc.iteritems():
+#             log.debug("K {0} V {1}".format(k,v))
+#             keyParts = k.strip("()").split(",")
+#  #           print keyParts
+#             theKey = tuple([int(x.strip("L")) for x in keyParts])
+# #            print theKey
+#             mappedLocations[theKey] = int(v)
+#             #keyParts = k.split(",")
+#             #theKey = (keyParts[0].strip(),keyParts[1].strip())
+#             #print theKey
+#         #sys.exit(0)
 
     def syncNodes(self):
         """Synchronise Nodes between databases
@@ -279,17 +286,37 @@ class SampsonPusher(RestPusher.Pusher):
         """
         log = self.log
         log.debug("----- Syncing Nodes ------")
-        lSess = self.localSession()
-        restSession = self.restSession
+        session = self.localSession()
+        #restSession = self.restSession
 
-        #Get the list of deployments that may need updating
-        #Deployment = models.Deployment
-        theQry = lSess.query(self.Node)#.limit(10)
+        #Get Local Nodes
+        theQry = session.query(self.Node)
+        #Then we want to map and compare our node dictionarys
+        localNodes = dict([(x.id,x) for x in theQry])
 
+        #Remote Nodes
+        theUrl = "{0}node/".format(self.restUrl)
+        theRequest = requests.get(theUrl)
+        rNodes = self.unpackJSON(theRequest.json())
+        #FOO
+        remoteNodes = dict([(x.id,x) for x in rNodes])
+
+
+        # #Get the list of deployments that may need updating
+        # #Deployment = models.Deployment
+        # theQry = lSess.query(self.Node)#.limit(10)
+
+        # sys.exit(0)
         #Location Mappings
         locMap = self.mappedLocations
         houseMap = self.mappedHouses
         roomMap = self.mappedRooms
+
+        #log.debug("{0} HOUSE {0}".format("-"*20))
+        #log.debug(houseMap)
+        #log.debug("{0} ROOM {0}".format("-"*20))
+        #log.debug(roomMap)
+
         #print locMap
         #print houseMap
         #print roomMap
@@ -299,47 +326,68 @@ class SampsonPusher(RestPusher.Pusher):
             #We need to make sure the deployment is mapped correctly
             params = {"id":item.id}
             theUrl = "node/?{0}".format(urllib.urlencode(params))                            
-            
+            log.debug("-"*60)
             log.debug("Node {0} = HouseId {1} Room Id {2}".format(item.id,item.houseId,item.roomId))
-
+            
             #Check if we have a location for this node in the Map
-            theLocation = locMap.get(item.id,None)
+            theLocation = locMap.get((item.houseId,item.roomId),None)
             log.debug("--> Location is {0}".format(theLocation))
+            
+            if theLocation is None:
+                log.debug("No Such Location, Checking for mapping on remote server")
 
-            #Check if this location exist on the remote server
-            hId = houseMap[item.houseId]
-            rId = roomMap.get(item.roomId,None)
-            params = {"houseId":hId,
-                      "roomId":rId}
-            theUrl = "location/" 
-            restQuery = restSession.request_get(theUrl,args=params)
-            log.debug("--> Get {0}".format(restQuery))
-            jsonBody = json.loads(restQuery["body"])
-            log.debug(jsonBody)
-
-            if not jsonBody:
-                params['__table__'] = 'Location'
-                #We need to upload the new Location
-                #newItem = self.uploadItem(theUrl,params)
-                log.info("Creating new location on remote server {0}".format(params))
+            
+                hId = houseMap[item.houseId]
+                rId = roomMap.get(item.roomId,None)
+                params = {"houseId":hId,
+                          "roomId":rId}
+                log.debug("Updated Parameters {0}".format(params))
+                theUrl = "{0}location/".format(self.restUrl)
+                restQuery = requests.get(theUrl,params = params)
+                jsonBody = restQuery.json()
+                log.debug(jsonBody)
                 
-                restQry = restSession.request_post(theUrl,
-                                                   body=json.dumps(params))
+                if jsonBody == []:
+                    log.debug("No Such Location in remote database, Creating")
+                    restQry = requests.post(theUrl,data=json.dumps(params))
+                    log.debug(restQry)
+                    jsonBody = restQry.json()
+                    log.debug(jsonBody)
+                    #newItem = self.uploadItem(theUrl,params)
+                    #log.debug(newItem)
+                    #sys.exit(0)
+                else:
+                    jsonBody = jsonBody[0]
+                log.debug("Room {0} House {1} Maps to Location {2}".format(hId,rId,jsonBody["id"]))
+                locMap[item.id] = jsonBody["id"]
+            #restQuery = restSession.request_get(theUrl,args=params)
+            #log.debug("--> Get {0}".format(restQuery))
+            #jsonBody = json.loads(restQuery["body"])
+            #log.debug(jsonBody)
+            # sys.exit(0)
+            # if not jsonBody:
+            #     params['__table__'] = 'Location'
+            #     #We need to upload the new Location
+            #     #newItem = self.uploadItem(theUrl,params)
+            #     log.info("Creating new location on remote server {0}".format(params))
+                
+            #     restQry = restSession.request_post(theUrl,
+            #                                        body=json.dumps(params))
 
-                #The Query should now hold the Id of the item on the remote DB
-                log.debug(restQry)
-                theItem = json.loads(restQry["body"])
-                print theItem
-                locMap[item.id] = theItem[0]['id']
-            else:
-                log.debug("--> Mapping Location {0}".format(item))
-                locMap[item.id] = jsonBody[0]['id']
+            #     #The Query should now hold the Id of the item on the remote DB
+            #     log.debug(restQry)
+            #     theItem = json.loads(restQry["body"])
+            #     print theItem
+            #     locMap[item.id] = theItem[0]['id']
+            # else:
+            #     log.debug("--> Mapping Location {0}".format(item))
+            #     locMap[item.id] = jsonBody[0]['id']
             
             #Look for the item
             #theBody = item.toDict()
             #del(theBody["nodeTypeId"])
         self.mappedLocations = locMap
-        
+        log.debug(locMap)
         #sys.exit(0)
 
         
@@ -354,115 +402,154 @@ class SampsonPusher(RestPusher.Pusher):
         #Load the Mapped items to the local namespace
         mappedLocations = self.mappedLocations
         mappedTypes = self.mappedSensorTypes
-        
+        #print mappedTypes
         #Mapping Config
         mappingConfig = self.mappingConfig
-
-        #Load the last upload Date from config file [Not Implemented at the moment]
-        # uploadDates = mappingConfig.get("lastupdate",{})
-        # lastUpload = uploadDates.get(str(theHouse.id),None)
-        # log.debug("Last Upload is {0}".format(lastUpload))
-        # if lastUpload is not None:
-        #     #Process the last upload Date
-        #     lastUpload = dateutil.parser.parse(lastUpload)
-        #     log.debug("--> Processed last Upload is {0}".format(lastUpload))
-
         
+        #Fetch the last Date from the mapping config
+        uploadDates = mappingConfig.get("lastupdate",None)
+        lastUpdate = None
+        if uploadDates:
+            lastUpdate = uploadDates.get(str(theHouse.id),None)
+            if lastUpdate and lastUpdate != 'None':
+                lastUpdate = dateutil.parser.parse(lastUpdate)
+        log.info("Last Update from Config is {0}".format(lastUpdate))
+
         #Get the last reading for this House
         session = self.localSession()
-        restSession =self.restSession
-        
-        log.info("--> Requesting date of last reading in Remote DB")
-        params = {"house":theHouse.address}
-        theUrl = "lastSync/"
-        restQuery = restSession.request_get(theUrl,args=params)
+        #restSession =self.restSession
 
-        log.debug(restQuery)        
-        strDate = json.loads(restQuery['body'])
-        log.debug("Str Date {0}".format(strDate))
-        if strDate is None:
-            log.info("--> --> No Readings in Remote DB")
-            lastDate = None
-        else:
-            lastDate = dateutil.parser.parse(strDate)
-            log.info("--> Last Upload Date {0}".format(lastDate))
+        #Request node Ids first, this will save on requesting times for houses where we have no data
+        nodeQry = session.query(Node).filter_by(houseId = theHouse.id)
+        if nodeQry.count() == 0:
+            log.info("No Node Ids for this House. {0}".format(theHouse.id))
+            return 0
 
+        nodeIds = [x.id for x in nodeQry]
+        log.info("--> Node Ids {0}".format(nodeIds))
+
+        #As we should be able to trust the last update field of the config file.
+        #Only request the last sample from the remote DB if this does not exist.
+        if lastUpdate is None:
+            log.info("--> Requesting date of last reading in Remote DB")
+            params = {"house":theHouse.address,
+                      "lastUpdate":lastUpdate}
+            theUrl = "{0}lastSync/".format(self.restUrl)
+            #restQuery = restSession.request_get(theUrl,args=params)
+            restQuery = requests.get(theUrl,params=params)
+            strDate =  restQuery.json()
+
+            log.debug("Str Date {0}".format(strDate))
+            if strDate is None:
+                log.info("--> --> No Readings in Remote DB")
+                lastDate = None
+            else:
+                lastDate = dateutil.parser.parse(strDate)
+                log.info("--> Last Upload Date {0}".format(lastDate))
+
+            lastUpdate = lastDate
+
+        #Then Save 
+        uploadDates[str(theHouse.id)] = lastUpdate
+        mappingConfig["lastupdate"] = uploadDates
+        self.saveMappings()
+
+        #We Dont have any locations in the Local DB so this bit needs reworking
+        #nodeIds = [x.id for x in theHouse.nodes]
+
+
+        # #Get locations associated with this House
+        # theLocations = [x.id for x in theHouse.locations]
+
+        #Count the Number of Readings we need to transfer
+        #theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
+        theReadings = session.query(Reading).filter(Reading.nodeId.in_(nodeIds))
+        if lastUpdate:
+            theReadings = theReadings.filter(Reading.time > lastUpdate)
+
+        #print theReadings.first()
         #sys.exit(0)
-        
-        #Get locations (In this Case Nodes) associated with this House
-        theNodes = session.query(Node).filter_by(houseId = theHouse.id)
-        nIds = [x.id for x in theNodes]
-
-        
-        #theLocations = [x.id for x in theHouse.locations]
-
-        #Fetch some readings
-        theReadings = session.query(Reading).filter(Reading.nodeId.in_(nIds))
-        if lastDate:
-            theReadings = theReadings.filter(Reading.time > lastDate)
-        theReadings = theReadings.order_by(Reading.time)
+        #sys.exit(0)
         origCount = theReadings.count()
         log.info("--> Total of {0} samples to transfer".format(origCount))
         rdgCount = origCount
         transferCount = 0
-        #return            
-        #sys.exit(0)
-        
-        for x in range(2):
-        #while rdgCount > 0:
+                          
+        #for x in range(2):
+        while rdgCount > 0:
         #while True:
             #Add some timings
             stTime = time.time()
-            # theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
-            # if lastDate:
-            #     theReadings = theReadings.filter(models.Reading.time > lastDate)
-            # theReadings = theReadings.order_by(models.Reading.time)
-            theReadings = session.query(Reading).filter(Reading.nodeId.in_(nIds))
-            if lastDate:
-                theReadings = theReadings.filter(Reading.time > lastDate)
+            theReadings = session.query(Reading).filter(Reading.nodeId.in_(nodeIds))
+            if lastUpdate:
+                theReadings = theReadings.filter(Reading.time > lastUpdate)
             theReadings = theReadings.order_by(Reading.time)
-            theReadings = theReadings.limit(self.pushLimit)
-            #theReadings = theReadings.limit(5)
+            #theReadings = theReadings.limit(self.pushLimit)
+            theReadings = theReadings.limit(10000)
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
                 return True
-
+            
             transferCount += rdgCount
 
             log.debug("--> Transfer {0}/{1} Readings to remote DB".format(transferCount,origCount))
+
             jsonList = [] #Blank Object to hold readings
             for reading in theReadings:
-                #log.debug(reading)
-
                 #Convert our Readings to REST, and remap to the new locations
                 dictReading = reading.toDict()
-                dictReading['typeId'] = mappedTypes[reading.type].id
-                dictReading['locationId']= mappedLocations[reading.nodeId]
-                #dictReading['locationId'] = mappedLocations[reading.locationId]
+                log.debug("==> {0}".format(dictReading))
 
-                #log.debug("--> {0}".format(dictReading))            
+                #Convert the Reading to the new Location Format 
+                theLocation = mappedLocations[reading.nodeId]
+                #log.debug("--> Node {0} Maps to Location {1}".format(reading.nodeId,theLocation))
+                
+                dictReading['locationId'] = mappedLocations[reading.nodeId]
+                dictReading['typeId'] = mappedTypes[reading.type]
+                dictReading['type'] = mappedTypes[reading.type]
+                del(dictReading['id'])
+                
+                log.debug("--> {0}".format(dictReading))            
+                
                 jsonList.append(dictReading)
                 lastSample = reading.time
 
+            #sys.exit(0)
+            jsonStr = json.dumps(jsonList)
+            gzStr = zlib.compress(jsonStr)
+            #log.debug("Size of Compressed JSON {0}kB".format(sys.getsizeof(gzStr)/1024))
+
             qryTime = time.time()
              #And then try to bulk upload them
-            restQry = restSession.request_post("/bulk/",
-                                               body=json.dumps(jsonList))
-            log.debug(restQry)
+            theUrl = "{0}bulk/".format(self.restUrl)
+            #restQry = restSession.request_post("/bulk/",
+            #                                   body=json.dumps(jsonList))
+            #log.debug(restQry)
+            restQry = requests.post(theUrl,data=gzStr)
+            #print restQry
+            #print restQry.status_code
 
             transTime = time.time()
-            if restQry["headers"]["status"] == '404':
+            if restQry.status_code == 500:
                 log.warning("Upload Fails")
                 log.warning(restQry)
                 raise Exception ("Upload Fails")            
+            
 
             log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
             log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
-            lastDate = lastSample
-                     
+            lastUpdate = lastSample
+            
+            #And save the last date in the config file
+            uploadDates[str(theHouse.id)] = lastUpdate
+            mappingConfig["lastupdate"] = uploadDates
+            self.saveMappings()
+            #sys.exit(0)
+
         #Return True if we need to upload more
         return rdgCount > 0
+
 
 
 
