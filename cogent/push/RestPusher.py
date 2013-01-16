@@ -108,7 +108,6 @@ import configobj
 import zlib
 
 import dateutil.parser
-import restful_lib
 import json
 import urllib
 
@@ -392,27 +391,30 @@ class Pusher(object):
         """
 
         log = self.log
-        #log.setLevel(logging.DEBUG)
+
         log.debug("Performing sync")
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
-        self.syncSensorTypes()
-        self.syncNodes()
+        self.syncSensorTypes()       
         self.syncRoomTypes()
         self.syncRooms()
         self.syncDeployments()
-
         self.loadMappings()
         self.saveMappings()
+
+        #Moved here for the Sampson Version
+        self.syncNodes()
+        
+
         session = self.localSession()
         houses = session.query(self.House)   
         mappingConfig = self.mappingConfig
 
-        #FIXME
+        ##FIXME
         for item in houses:
-            log.info("Synchronising Readings for House {0}".format(item))
-            #Look for the Last update
-            self.uploadReadings(item)
+           log.info("Synchronising Readings for House {0}".format(item))
+           #Look for the Last update
+           self.uploadReadings(item)
 
         self.saveMappings()
 
@@ -496,6 +498,7 @@ class Pusher(object):
         #Stuff that is unchanged is pretty easy to deal with
         unchanged = theDiff.unchanged()
         log.debug("Unchanged, {0}".format(unchanged))
+
         for item in unchanged:
             theItem = localTypes[item]
             mergedItems[theItem.id] = theItem.id
@@ -503,6 +506,7 @@ class Pusher(object):
         #Then stuff were the ID's different
         changed = theDiff.changed()
         log.debug("Changed, {0}".format(changed))
+        #sys.exit(0)
         for item in changed:
             localItem = localTypes[item]
             remoteItem = remoteTypes[item]
@@ -511,6 +515,7 @@ class Pusher(object):
         #And Sync New room types to the Remote DB 
         added = theDiff.added()
         log.debug("Added, {0}".format(added))
+
         for item in added:
            thisItem = remoteTypes[item]
            origId = thisItem.id
@@ -521,7 +526,9 @@ class Pusher(object):
            session.flush()
            log.info("New Id {0}".format(thisItem))
            mergedItems[origId] = thisItem.id
+        #sys.exit(0)
         session.commit()
+        
 
         #And Sync new Room Types to the Remote DB 
         removedItems = theDiff.removed()
@@ -558,6 +565,9 @@ class Pusher(object):
         localQry = session.query(self.RoomType)
         localTypes = dict([(x.name,x) for x in localQry])
 
+        log.debug(localTypes)
+        log.debug(remoteTypes)
+
         mappedRoomTypes = self._syncItems(localTypes,remoteTypes,theUrl)
         self.mappedRoomTypes = mappedRoomTypes
         
@@ -583,18 +593,6 @@ class Pusher(object):
         localQry = session.query(self.Room)
         #Dictionary of local Types
         localTypes = dict([(x.name,x) for x in localQry])
-
-        
-        
-        # print "Remote: "
-        # for item in remoteTypes.values():
-        #     print item
-        # print "Local: "
-        # for item in localTypes.values():
-        #     print item
-
-        # f = DictDiff(remoteTypes,localTypes)
-        # print "-->",f.changed()
 
         tmpTypes = {}
         for item in localQry:
@@ -639,7 +637,6 @@ class Pusher(object):
         #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)
         
-
         for item in restItems:
             #print item
             remoteTypes[item.id] = item
@@ -797,7 +794,7 @@ class Pusher(object):
             log.debug("Check Mapping for {0}".format(item))
 
             #Calculate the Deployment Id:
-            mapDep = mappedDeployments[item.deploymentId]
+            mapDep = mappedDeployments.get(item.deploymentId,None)
             log.debug("-->Maps to deployment {0}".format(mapDep))
 
             params = {"address":item.address,
@@ -821,7 +818,7 @@ class Pusher(object):
         log = self.log
         log.debug("----- Syncing Locations ------")
         lSess = self.localSession()
-
+        
         #Get the list of deployments that may need updating
         #Deployment = models.Deployment
         mappedHouses = self.mappedHouses
@@ -896,10 +893,14 @@ class Pusher(object):
         #Items not in the Local Database
         log.debug("Dealing with new items in Local DB:")
         newItems = theDiff.added()
+        log.debug(newItems)
+
         #log.debug(newItems)
         for item in newItems:
             thisItem = remoteNodes[item]
             log.info("Node {0}:{1} Not in Local Database".format(item,thisItem))
+            thisItem.nodeTypeId = None #Set node type to none
+            thisItem.locationId = None
             session.add(thisItem)
             session.flush()
         
@@ -935,10 +936,11 @@ class Pusher(object):
         
         #Fetch the last Date from the mapping config
         uploadDates = mappingConfig.get("lastupdate",None)
+        lastUpdate = None
         if uploadDates:
             print uploadDates
             lastUpdate = uploadDates.get(str(theHouse.id),None)
-            if lastUpdate:
+            if lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
         log.info("Last Update from Config is {0}".format(lastUpdate))
             
@@ -946,36 +948,42 @@ class Pusher(object):
         session = self.localSession()
         #restSession =self.restSession
 
-        log.info("--> Requesting date of last reading in Remote DB")
-        params = {"house":theHouse.address,
-                  "lastUpdate":lastUpdate}
-        theUrl = "{0}lastSync/".format(self.restUrl)
-        #restQuery = restSession.request_get(theUrl,args=params)
-        restQuery = requests.get(theUrl,params=params)
-        strDate =  restQuery.json()
+        #As we should be able to trust the last update field of the config file.
+        #Only request the last sample from the remote DB if this does not exist.
 
-        log.debug("Str Date {0}".format(strDate))
-        if strDate is None:
-            log.info("--> --> No Readings in Remote DB")
-            lastDate = None
-        else:
-            lastDate = dateutil.parser.parse(strDate)
-            log.info("--> Last Upload Date {0}".format(lastDate))
+        if lastUpdate is None:
+            log.info("--> Requesting date of last reading in Remote DB")
+            params = {"house":theHouse.address,
+                      "lastUpdate":lastUpdate}
+            theUrl = "{0}lastSync/".format(self.restUrl)
+            #restQuery = restSession.request_get(theUrl,args=params)
+            restQuery = requests.get(theUrl,params=params)
+            strDate =  restQuery.json()
 
-        uploadDates[str(theHouse.id)] = lastDate
+            log.debug("Str Date {0}".format(strDate))
+            if strDate is None:
+                log.info("--> --> No Readings in Remote DB")
+                lastDate = None
+            else:
+                lastDate = dateutil.parser.parse(strDate)
+                log.info("--> Last Upload Date {0}".format(lastDate))
+
+            lastUpdate = lastDate
+
+        #Then Save 
+        uploadDates[str(theHouse.id)] = lastUpdate
         mappingConfig["lastupdate"] = uploadDates
         self.saveMappings()
-
 
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
 
-        #Fetch some readings
+        #Count the Number of Readings we need to transfer
         theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
-        if lastDate:
-            theReadings = theReadings.filter(models.Reading.time > lastDate)
-        theReadings = theReadings.order_by(models.Reading.time)
+        if lastUpdate:
+            theReadings = theReadings.filter(models.Reading.time > lastUpdate)
+
         origCount = theReadings.count()
         log.info("--> Total of {0} samples to transfer".format(origCount))
         rdgCount = origCount
@@ -987,8 +995,8 @@ class Pusher(object):
             #Add some timings
             stTime = time.time()
             theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
-            if lastDate:
-                theReadings = theReadings.filter(models.Reading.time > lastDate)
+            if lastUpdate:
+                theReadings = theReadings.filter(models.Reading.time > lastUpdate)
             theReadings = theReadings.order_by(models.Reading.time)
             theReadings = theReadings.limit(self.pushLimit)
             #theReadings = theReadings.limit(10000)
@@ -1015,36 +1023,10 @@ class Pusher(object):
                 
                 jsonList.append(dictReading)
                 lastSample = reading.time
-
-            log.setLevel(logging.DEBUG)
-
             
             jsonStr = json.dumps(jsonList)
-            # print "--------- STD JSON ----------"
-            # #print jsonStr
-            # print sys.getsizeof(jsonStr)
-
-            # print "---------- JSON H --------------"
-
-            # otherStr = jsonh.dumps(jsonList)
-            # #print otherStr
-            # print sys.getsizeof(otherStr)
-
-            # import zlib
-            # print "---------- GZ JSONH H ---------------"
-            
             gzStr = zlib.compress(jsonStr)
-            log.debug("Size of Compressed JSON {0}kB".format(sys.getsizeof(gzStr)/1024))
-            #print sys.getsizeof(gzStr)
-
-            #Then Unzip
-            #unGZ = zlib.decompress(jsonStr)
-            #unGZ = zlib.decompress(gzStr)
-            #unJson = jsonh.loads(unGZ)
-
-            #print jsonList
-            #print unJson          
-
+            #log.debug("Size of Compressed JSON {0}kB".format(sys.getsizeof(gzStr)/1024))
 
             qryTime = time.time()
              #And then try to bulk upload them
@@ -1065,143 +1047,18 @@ class Pusher(object):
 
             log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
             log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
-            lastDate = lastSample
+            lastUpdate = lastSample
             
             #And save the last date in the config file
+            uploadDates[str(theHouse.id)] = lastUpdate
+            mappingConfig["lastupdate"] = uploadDates
             self.saveMappings()
 
         #Return True if we need to upload more
         return rdgCount > 0
             
 
-        
-    # def syncReadings(self, theHouse):
-    #     """Synchronise readings between two databases
-
-    #     :param DateTime cutTime: Time to start the Sync from
-    #     :return: (Number of Readings that remain to be synchronised,
-    #               Timestamp of last reading)
-
-    #     This assumes that Sync Nodes has been called.
-
-    #     The Algorithm for this is:
-
-    #     Initialise Temporary Storage, (Location = {})
-
-    #     #. Get the time of the most recent update from the local database
-    #     #. Get all Local Readings after this time.
-    #     #. For Each Reading
-
-    #         #. If !Location in TempStore:
-    #             #. Add Location()
-    #         #. Else:
-    #             #. Add Sample
-
-    #     # If Sync is successful, fix the last update timestamp and return
-    #     """
-
-    #     log = self.log
-    #     lSess = self.localSession()
-    #     restSession = self.restSession
-
-    #     mappedLocations = self.mappedLocations
-
-    #     #Time stamp to check readings against
-    #     if not cutTime:
-    #         cutTime = self.lastUpdate
-
-    #     log.info("Synchronising Readings from {0}".format(cutTime))
-
-    #     #Get the Readings
-    #     readings = lSess.query(models.Reading).order_by(models.Reading.time)
-    #     if cutTime:
-    #         log.debug("Filter all readings since {0}".format(cutTime))
-    #         readings = readings.filter(models.Reading.time >= cutTime)
-
-    #     #Skip Sensor Type of 14
-    #     readings = readings.filter(models.Reading.typeId != 14)
-            
-    #     remainingReadings = readings.count()
-
-
-
-    #     if remainingReadings == 0:
-    #         log.info("No More Readings to Sync")
-    #         return (remainingReadings, cutTime)
-    #     #Limit by the number of items specified in the Config file
-    #     #readings = readings.limit(self.pushLimit)
-
-    #     #Its a bit of a pain in the Arse, but having this cutoff date makes life a tad tricky.
-    #     #Therefore we find the date of the last sample up to the limit.
-    #     log.setLevel(logging.DEBUG)
-    #     cutoffTime = readings.offset(self.pushLimit).first()
-    #     log.debug("Date of {1}th Reading is {0}".format(cutoffTime,self.pushLimit))
-        
-    #     #We can then rebuild our query to go up to this Date 
-        
-    #     readings = lSess.query(models.Reading).order_by(models.Reading.time)
-    #     readings = readings.filter(models.Reading.typeId != 14)
-    #     if cutTime:
-    #         readings = readings.filter(models.Reading.time >= cutTime)
-    #     if cutoffTime:
-    #         readings = readings.filter(models.Reading.time <= cutoffTime.time)
-    #         log.debug("Transfer a total of {0} Readings to {1}".format(readings.count(),cutoffTime.time))
-        
-
-    #     log.setLevel(logging.WARNING)
-
-
-
-    #     jsonList = []
-    #     for reading in readings:
-    #         #Convert to a JSON and remap the location
-    #         dictReading = reading.toDict()
-    #         #dictReading['locationId'] = mappedLocations[reading.locationId]
-    #         dictReading['locationId'] = mappedLocations.get(reading.locationId,None)
-    #         jsonList.append(dictReading)
-
-    #     #And then try to bulk upload them
-    #     restQry = restSession.request_post("/bulk/",
-    #                                        body=json.dumps(jsonList))
-    #     #log.debug(restQry)
-    #     if restQry["headers"]["status"] == '404':
-    #         print" ==="*80
-    #         log.warning("Upload Fails")
-    #         log.warning(restQry)
-
-    #         sys.exit(0)
-    #         raise Exception ("Bad Things Happen")
-    
-
-    #     #We also want to update the Node States
-    #     lastSample = readings[-1].time
-    #     log.debug("Last Sample Time {0}".format(lastSample))
-
-    #     nodeStates = lSess.query(models.NodeState)
-    #     if cutTime:
-    #         nodeStates = nodeStates.filter(models.NodeState.time >= cutTime)
-    #     nodeStates = nodeStates.filter(models.NodeState.time <= lastSample)
-
-    #     restStates = [x.toDict() for x in nodeStates]
-    #     for item in restStates:
-    #         item["id"] = None
-
-    #     log.debug("Rest States {0}".format(restStates))
-    #     if restStates:
-    #         restQry = restSession.request_post("/bulk/",
-    #                                            body=json.dumps(restStates))
-
-    #         if restQry["headers"]["status"] == '404':
-    #             print "==="*80
-    #             log.warning("Upload Fails")
-    #             log.warning(restQry)
-
-    #             sys.exit(0)
-
-    #     log.debug("Node States")
-
-    #     return remainingReadings, lastSample
-
+  
 
 if __name__ == "__main__":
     import datetime
