@@ -18,6 +18,7 @@ from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
 #from Bitset import Bitset
 
+
 class Node(Base,meta.InnoDBMix): 
     """
     Class to hold detals of the nodes themselves
@@ -125,7 +126,7 @@ class Node(Base,meta.InnoDBMix):
             #Force an Update
             log.debug("Forcing Location Update to {0}".format(locId))
             self.locationId = locId
-            log.debug("New Loc {0} {1}".format(self.locationId,self.location))
+            log.debug("New Loc {} {}".format(self.locationId,self.location))
 
         elif self.location.id == locId:
             log.debug("Location has been updated correctly")

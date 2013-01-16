@@ -23,8 +23,8 @@ import ConfigParser
 try:
     import cogentviewer
     viewer = True
-except ImportError:
-    log.debug("Using Base Namespace")
+except:
+    print "Using Base Namespace"
 
 if viewer:
     from pyramid import testing

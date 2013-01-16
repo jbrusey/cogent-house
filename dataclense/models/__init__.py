@@ -40,7 +40,7 @@ from sensortype import *
 from weather import *
 from uploadurl import *
 from event import *
-
+from summary import *
 #import populateData
 
 import json
@@ -110,7 +110,7 @@ def findClass(tableName):
     if mappedTable:
         return mappedTable
 
-    log.debug("Looking for {0}".format(tableName))
+
     for x in mapperlib._mapper_registry.items():
         #mapped table
         log.debug("--> Checking against {0}".format(x))
@@ -123,8 +123,7 @@ def findClass(tableName):
             log.debug("--> Match {0}".format(checkTable.name))
             log.debug("--> Class is {0}".format(theClass))
             mappedTable = theClass
-
-    log.debug("--> Final Verison {0}".format(mappedTable))
+            
     return mappedTable
 
 def newClsFromJSON(jsonItem):
