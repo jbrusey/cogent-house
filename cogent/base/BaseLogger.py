@@ -81,7 +81,7 @@ class BaseLogger(object):
         am.set_route(route)
         am.set_hops(hops)
         
-        dest = route[hops-1]
+        dest = route[hops]
         self.bif.sendMsg(am,dest)
         logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (seq, dest, hops, route))
 
