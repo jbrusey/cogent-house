@@ -1,3 +1,8 @@
+#
+# Check Data Script,  Modified for the old sampson close table
+#
+
+
 library(RMySQL)
 library(ggplot2)
 
@@ -29,29 +34,31 @@ houseQry <- paste("SELECT * FROM House WHERE address = '",hseName,"'",sep="")
 sourceHouse <- dbGetQuery(sourceDb,statement=houseQry)
 
 #Work out locations attached to this house
-sourceLocQry <- paste("SELECT * FROM Location as Loc ",
-                  "LEFT OUTER JOIN Room as Room ",
-                  "ON Loc.roomId = Room.id ",
-                  "WHERE houseId =",sourceHouse$id,
-                  " AND Room.name NOT LIKE 'PhyNet%' ",
-                  " AND Room.name NOT IN ('Hot Water','Cold Water','Flow','Return','Hot','Cold','HotWater','ColdWater') ",
-                  sep="")
+#sourceLocQry <- paste("SELECT * FROM Location as Loc ",
+#                  "LEFT OUTER JOIN Room as Room ",
+#                  "ON Loc.roomId = Room.id ",
+#                  "WHERE houseId =",sourceHouse$id,
+#                  " AND Room.name NOT LIKE 'PhyNet%' ",
+#                  " AND Room.name NOT IN ('Hot Water','Cold Water','Flow','Return','Hot','Cold','HotWater','ColdWater') ",
+#                  sep="")
+sourceLocQry <- paste("SELECT * FROM Node WHERE houseId = ",
+                      sourceHouse$id)
 
-sourceLocations <- dbGetQuery(sourceDb,statement=sourceLocQry)
-sourceLocationIds <- paste(sourceLocations$id,collapse=",")
+sourceNodes <- dbGetQuery(sourceDb,statement=sourceLocQry)
+sourceNodeIds <- paste(sourceNodes$id,collapse=",")
 
-sourceDataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) as count, min(time) as minTime,max(time) as maxTime, min(value) as minVal, max(value) as maxVal, avg(value) as meanVal",
-                   " FROM Reading WHERE locationId IN (",
-                   sourceLocationIds,") ",
+sourceDataQry <- paste("SELECT nodeId,type,DATE(time) as date,count(*) as count, min(time) as minTime,max(time) as maxTime, min(value) as minVal, max(value) as maxVal, avg(value) as meanVal",
+                   " FROM Reading WHERE nodeId IN (",
+                   sourceNodeIds,") ",
                    " AND type = 0 ",
                    " GROUP BY nodeId,type,DATE(time)",
                    sep="")
 
 sourceData <- dbGetQuery(sourceDb,sourceDataQry)
 sourceData$ts <- as.POSIXlt(sourceData$date,tz="gmt")
-
+sourceData$dset <-  "SOURCE"
 #Try to merge the Locations Table
-sourceData <- merge(sourceData,sourceLocations,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
+#sourceData <- merge(sourceData,sourceLocations,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
 
 #----------------------------------------------------
 
@@ -79,13 +86,13 @@ destDataQry <- paste("SELECT nodeId,type,locationId,DATE(time) as date,count(*) 
 
 destData <- dbGetQuery(destDb,destDataQry)
 destData$ts <- as.POSIXlt(destData$date,tz="gmt")
-
+destData$dset <- "DEST"
 #Try to merge the Locations Table
-destData <- merge(destData,destLocations,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
+#destData <- merge(destData,destLocations,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
 
 
 ## #Plot Source Data
-## plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
+## plt <- ggplot(sourceData,aes(ts,meanVal))
 ## plt <- plt+geom_point()
 ## plt + facet_grid(nodeId~.)
 
@@ -95,9 +102,15 @@ destData <- merge(destData,destLocations,by.x=c("locationId"),by.y=c("id"),all.x
 ## plt + facet_grid(nodeId~.)
 
 #And Both Together
-plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
-plt <- plt+geom_point()
-plt <- plt+geom_line(data=destData)
+plt <- ggplot(sourceData,aes(ts,meanVal,color=dset))
+plt <- plt+geom_line()
+plt <- plt+geom_point(data=destData)
+plt + facet_grid(nodeId~.)
+
+
+plt <- ggplot(sourceData,aes(ts,meanVal,color=dset))
+plt <- plt+geom_point(shape=0)
+plt <- plt+geom_point(data=destData,shape=4)
 plt + facet_grid(nodeId~.)
 
 #Both together with Location names rtather than Ids
