@@ -25,7 +25,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('NodeType',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False,autoincrement=False),
     sa.Column('name', sa.String(length=20), nullable=True),
     sa.Column('time', sa.DateTime(), nullable=True),
     sa.Column('seq', sa.Integer(), nullable=True),
@@ -57,7 +57,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('SensorType',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False,autoincrement=False),
     sa.Column('name', sa.String(length=255), nullable=True),
     sa.Column('code', sa.String(length=50), nullable=True),
     sa.Column('units', sa.String(length=20), nullable=True),
