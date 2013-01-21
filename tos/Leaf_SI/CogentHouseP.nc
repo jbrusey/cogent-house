@@ -518,7 +518,6 @@ implementation
 	  call RadioControl.stop();
 	  
 	  my_settings->samplePeriod = DEF_SENSE_PERIOD;
-	  retries=0;
 	  //update txcontrol
 	  for (i = 0; i < RS_SIZE; i ++) {
 	    if (call ExpectSendDone.get(i))
@@ -580,7 +579,6 @@ implementation
     else{
       reportError(ERR_EXCEED_MAX_RETRIES);
       my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
-      retries=0;
       call RadioControl.stop();
 
 #ifdef DEBUG
