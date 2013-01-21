@@ -39,130 +39,6 @@ reading_limits = {
     }
 
 
-# Yes, run this when this file is imported
-calib = {}
-
-def fetch_calib(filename, dtype):
-    calib_file = csv.reader(open(os.path.join(os.path.dirname(__file__), 'Calibration', filename), 'r'), delimiter=',')
-
-    for row in calib_file:
-        if len(row) == 2:
-            node_id,c = row
-            m = 1.0
-        elif len(row) == 3:
-            node_id,m,c = row
-        else:
-            continue
-        
-        if m == '':
-            m = 1.0
-        if c == '':
-            c = 0.0
-            
-        node_id = int(node_id)
-        m = float(m)
-        c = float(c)
-        
-        if node_id not in calib:
-            calib[node_id] = {}
-        
-        calib[node_id][dtype] = (m, c)
-
-fetch_calib('temp_coeffs.csv', 'temperature')
-fetch_calib('hum_coeffs.csv', 'humidity')
-fetch_calib('co2_coeffs.csv', 'co2')
-fetch_calib('voc_coeffs.csv', 'voc')
-fetch_calib('aq_coeffs.csv', 'aq')
-fetch_calib('cc_coeffs.csv', 'cc')
-    
-# Get calibration constants from local files. Once Sampson Close is set up,
-# this (and the mess above) can go away.
-def get_calibration(session, node_id, reading_type):
-    try:
-        values = calib[node_id][reading_type]
-    except:
-        values = (1.0, 0.0)
-    return values
-
-
-# Get calibration constants from the database. Note that Sampson Close does not
-# have this set up yet.
-def get_calibration_db(session, node_id, reading_type):
-	rtype_id = reading_types.index(reading_type)
-	row = session.query(Sensor.calibrationSlope, Sensor.calibrationOffset).filter(and_(Sensor.nodeId == node_id, Sensor.sensorTypeId == rtype_id)).first()
-	if row == None: return (1.0, 0.0)
-	return (row.calibrationSlope, row.calibrationOffset)
-
-
-# Calibrate data.
-def calibrate(session, data, node_id = None, reading_type = None, cal_func = get_calibration):
-    if node_id != None or reading_type != None:
-        print >> sys.stderr, "[db_access.calibrate] Use of the node_id and reading_type parameters is deprecated."
-
-    if reading_type == None:
-        if type(data) == ReadingList:
-            reading_type = data.get_meta_data('reading_type')
-        else:
-            print >> sys.stderr, "No reading type specified for calibration."
-            exit(1)
-    
-    if node_id == None:
-        if type(data) == ReadingList:
-            node_id = data.get_meta_data('node_id')
-        else:
-            print >> sys.stderr, "No node_id specified for calibration."
-            exit(1)
-    
-    # Until the copy is transparent
-    md = data.meta_data
-    
-    m, c = cal_func(session, node_id, reading_type)
-    if data.get_meta_data('has_deltas'):
-        data = ReadingList((row[0], m * row[1] + c, row[2]) for row in data)
-    else:
-        data = ReadingList((row[0], m * row[1] + c) for row in data)
-    
-    # Until the copy is transparent
-    data.meta_data = md
-    return data
-
-
-def _query_by_node_and_type_with_join_target(session, node_id, reading_type, start_time, end_time, target, filter_values = True):
-    rtype_id = reading_types.index(reading_type)
-    if reading_type in reading_limits and filter_values:
-        return session.query(Reading.time, Reading.value, target.c.Reading_value).filter(and_(
-            Reading.time >= start_time,
-            Reading.time < end_time,
-            Reading.nodeId == node_id,
-            Reading.typeId == rtype_id,
-            Reading.value >= reading_limits[reading_type][0],
-            Reading.value <= reading_limits[reading_type][1]))
-    else:
-        return session.query(Reading.time, Reading.value, target.c.Reading_value).filter(and_(
-            Reading.time >= start_time,
-            Reading.time < end_time,
-            Reading.nodeId == node_id,
-            Reading.typeId == rtype_id))
-
-def _query_by_node_and_type(session, node_id, reading_type, start_time, end_time, filter_values = True):
-    rtype_id = reading_types.index(reading_type)
-    if reading_type in reading_limits and filter_values:
-        return session.query(Reading.time, Reading.value).filter(and_(
-            Reading.time >= start_time,
-            Reading.time < end_time,
-            Reading.nodeId == node_id,
-            Reading.typeId == rtype_id,
-            Reading.value >= reading_limits[reading_type][0],
-            Reading.value <= reading_limits[reading_type][1]))
-    else:
-        return session.query(Reading.time, Reading.value).filter(and_(
-            Reading.time >= start_time,
-            Reading.time < end_time,
-            Reading.nodeId == node_id,
-            Reading.typeId == rtype_id))
-
-
-
 def _locCalibrateReadings(session,theQuery):
     """Generator object to calibate all readings,
     hopefully this gathers all calibration based readings into one 
@@ -194,6 +70,82 @@ def _locCalibrateReadings(session,theQuery):
 
 
 
+def _query_by_location_and_type_with_join_target(session, loc_id, reading_type, start_time, end_time, target, filter_values = True, calib=True):
+    rtype_id = reading_types.index(reading_type)
+    if reading_type in reading_limits and filter_values:
+        theQuery = session.query(Reading, target.c.Reading_value).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.locationId == loc_id,
+            Reading.typeId == rtype_id,
+            Reading.value >= reading_limits[reading_type][0],
+            Reading.value <= reading_limits[reading_type][1])).order_by(Reading.time)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
+
+    else:
+        theQuery = session.query(Reading, target.c.Reading_value).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.locationId == loc_id,
+            Reading.typeId == rtype_id)).order_by(Reading.time)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
+
+
+
+def _query_by_type_location(session, reading_type, start_time, end_time, filter_values = True, calib=True):
+    rtype_id = reading_types.index(reading_type)
+    if reading_type in reading_limits and filter_values:
+        theQuery = session.query(Reading).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.typeId == rtype_id,
+            Reading.value >= reading_limits[reading_type][0],
+            Reading.value <= reading_limits[reading_type][1]))
+ 	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery   
+    else:
+        theQuery = session.query(Reading).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.typeId == rtype_id))
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
+
+
+def _query_by_location_and_type(session, loc_id, reading_type, start_time, end_time, filter_values = True, calib=True):
+    rtype_id = reading_types.index(reading_type)
+    if reading_type in reading_limits and filter_values:
+        theQuery =  session.query(Reading).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.locationId == loc_id,
+            Reading.typeId == rtype_id,
+            Reading.value >= reading_limits[reading_type][0],
+            Reading.value <= reading_limits[reading_type][1])).order_by(Reading.time)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
+    else:
+        theQuery =  session.query(Reading).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.locationId == loc_id,
+            Reading.typeId == rtype_id)).order_by(Reading.time)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
     
 def _query_by_type_with_join_target(session, reading_type, start_time, end_time, target, filter_values = True):
     rtype_id = reading_types.index(reading_type)
@@ -207,23 +159,6 @@ def _query_by_type_with_join_target(session, reading_type, start_time, end_time,
     
     else:
         return session.query(Reading.nodeId, Reading.time, Reading.value, target.c.Reading_value).filter(and_(
-            Reading.time >= start_time,
-            Reading.time < end_time,
-            Reading.typeId == rtype_id))
-
-
-def _query_by_type(session, reading_type, start_time, end_time, filter_values = True):
-    rtype_id = reading_types.index(reading_type)
-    if reading_type in reading_limits and filter_values:
-        return session.query(Reading.nodeId, Reading.time, Reading.value).filter(and_(
-            Reading.time >= start_time,
-            Reading.time < end_time,
-            Reading.typeId == rtype_id,
-            Reading.value >= reading_limits[reading_type][0],
-            Reading.value <= reading_limits[reading_type][1]))
-    
-    else:
-        return session.query(Reading.nodeId, Reading.time, Reading.value).filter(and_(
             Reading.time >= start_time,
             Reading.time < end_time,
             Reading.typeId == rtype_id))
@@ -258,74 +193,39 @@ def get_house_id(session, address):
     return row.id
 
 
-def get_node_locations_by_house(session, house_id, include_external=True):
+def get_locations_by_house(session, house_id, include_external=True):
     node_details={}
 
-    rows = session.query(Node).filter(Node.houseId==house_id).join(House, Room).order_by(House.address, Room.name)
+    rows = session.query(Location).filter(Location.houseId==house_id).join(House, Room).order_by(House.address, Room.name)
     for row in rows:
         node_id = int(row.id)
-
-        if row.nodeTypeId == node_types.index('electricity'):
-            if include_external:
-                node_details['External'] = node_id
-        else:
-            node_details[row.room.name] = node_id
-    
+        node_details[row.room.name] = node_id   
     return node_details
 
 
-
-def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, with_deltas=False):
-    if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
-        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
-
-    if with_deltas:
-        delta_rows = _query_by_type(session, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
-        rows = _query_by_type_with_join_target(session, reading_type, start_time, end_time, delta_rows, filter_values = False)
-        rows = rows.join((delta_rows, Reading.time == delta_rows.c.Reading_time))
-    else:
-        rows = _query_by_type(session, reading_type, start_time, end_time, filter_values = False)
-        
-    rows.order_by(Reading.time)
-    
-    data = {}
-    for row in rows:
-        node_id = int(row.nodeId)
-        if node_id not in data:
-            data[node_id] = ReadingList()
-            data[node_id].set_meta_data('reading_type', reading_type)
-            data[node_id].set_meta_data('node_id', node_id)
-            data[node_id].set_meta_data('has_deltas', with_deltas)
-
-        if with_deltas:
-            data[node_id].append((row.time, row.value, row.Reading_value))
-        else:
-            data[node_id].append((row.time, row.value))
-    
-    if postprocess:
-        for node_id,values in data.iteritems():
-            data[node_id] = calibrate(session, values, cal_func = cal_func)
-        data = clean_data(session, data)
-    
-    return data
+def get_nodeId_by_location(session, loc_id):
+    nid=None
+    rows = session.query(Reading).filter(Reading.locationId==loc_id).order_by(Reading.nodeId).first()
+    nid = int(rows.nodeId)
+    return nid
 
 
-def get_data_by_node_and_type(session, node_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, cal_func=get_calibration, with_deltas=False):
+def get_data_by_location_and_type(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
      
     if with_deltas:
-        delta_rows = _query_by_node_and_type(session, node_id, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
-        rows = _query_by_node_and_type_with_join_target(session, node_id, reading_type, start_time, end_time, delta_rows, filter_values = False)
+        delta_rows = _query_by_location_and_type(session, loc_id, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
+        rows = _query_by_location_and_type_with_join_target(session, loc_id, reading_type, start_time, end_time, delta_rows, filter_values = False)
         rows = rows.join((delta_rows, Reading.time == delta_rows.c.Reading_time))
     else:
-        rows = _query_by_node_and_type(session, node_id, reading_type, start_time, end_time, filter_values = False) 
-        
-    rows.order_by(Reading.time)
+        rows = _query_by_location_and_type(session, loc_id, reading_type, start_time, end_time, filter_values = False) 
     
+
+
     data = ReadingList()
     data.set_meta_data('reading_type', reading_type)
-    data.set_meta_data('node_id', node_id)
+    data.set_meta_data('location_id', loc_id)
     data.set_meta_data('has_deltas', with_deltas)
     for row in rows:
         if with_deltas:
@@ -334,10 +234,78 @@ def get_data_by_node_and_type(session, node_id, reading_type, start_time = datet
             data.append((row.time, row.value))
 
     if postprocess:
-        data = calibrate(session, data, cal_func = cal_func)
         data = clean_data(session, data)
     
     return data
+
+
+def get_location_types(session, loc_id, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+    theQuery =  session.query(distinct(Reading.typeId)).filter(and_(
+        Reading.time >= start_time,
+        Reading.time < end_time,
+        Reading.locationId == loc_id)).order_by(Reading.time)
+
+    types=[]
+    for row in theQuery:
+        types.append(int(row[0]))
+    
+    return types
+
+
+
+def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True):
+    if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
+        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+     
+    battery_rows = _query_by_location_and_type(session, loc_id, "battery", start_time, end_time, filter_values = False,calib=False).with_labels().subquery()
+    rows = _query_by_location_and_type_with_join_target(session, loc_id, reading_type, start_time, end_time, battery_rows, filter_values = False,calib=False)
+    rows = rows.join((battery_rows, Reading.time == battery_rows.c.Reading_time))
+
+    data = ReadingList()
+    data.set_meta_data('reading_type', reading_type)
+    data.set_meta_data('location_id', loc_id)
+    for row in rows:
+        data.append((row[0].time, row[0].value, row[1]))
+
+    if postprocess:
+        data = clean_data(session, data)
+    
+    return data
+
+
+
+
+
+def get_data_by_type_location(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, with_deltas=False):
+    if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
+        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+
+    if with_deltas:
+        delta_rows = _query_by_type(session, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
+        rows = _query_by_type_with_join_target(session, reading_type, start_time, end_time, delta_rows, filter_values = False)
+        rows = rows.join((delta_rows, Reading.time == delta_rows.c.Reading_time))
+    else:
+        rows = _query_by_type_location(session, reading_type, start_time, end_time, filter_values = False)
+    
+    data = {}
+    for row in rows:
+        loc_id = int(row.locationId)
+        if loc_id not in data:
+            data[loc_id] = ReadingList()
+            data[loc_id].set_meta_data('reading_type', reading_type)
+            data[loc_id].set_meta_data('loc_id', loc_id)
+            data[loc_id].set_meta_data('has_deltas', with_deltas)
+
+        if with_deltas:
+            data[loc_id].append((row.time, row.value, row.Reading_value))
+        else:
+            data[loc_id].append((row.time, row.value))
+    
+    if postprocess:
+        data = clean_data(session, data)
+    
+    return data
+
     
 
 def clean_data(session, data, reading_type = None):
@@ -392,14 +360,14 @@ def _get_outlier_thresholds(data):
     return (ub, lb)
 
 
-def get_yield(session, node_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+def get_yield_location(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
     days = int((end_time - start_time).days)
     expected_rows = float(days * 288.)
     
-    row_count = _query_by_node_and_type(session, node_id, reading_type, start_time, end_time).count()
-
+    rows = _query_by_location_and_type(session, loc_id, reading_type, start_time, end_time)
+    row_count=len(list(rows))
+   
     return (row_count * 100.0) / expected_rows
-
 
 
 def get_houses(session):
@@ -411,6 +379,6 @@ def get_houses(session):
     return houses
 
 
-def node_is_battery_powered(session, node_id):
+def node_is_battery_powered(node_id):
     return node_id < 2000
 
