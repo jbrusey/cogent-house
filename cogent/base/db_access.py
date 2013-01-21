@@ -220,6 +220,32 @@ def _query_by_location_and_type_with_join_target(session, loc_id, reading_type, 
 	else:
 		return theQuery
 
+
+
+def _query_by_type_location(session, reading_type, start_time, end_time, filter_values = True, calib=True):
+    rtype_id = reading_types.index(reading_type)
+    if reading_type in reading_limits and filter_values:
+        theQuery = session.query(Reading).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.typeId == rtype_id,
+            Reading.value >= reading_limits[reading_type][0],
+            Reading.value <= reading_limits[reading_type][1]))
+ 	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery   
+    else:
+        theQuery = session.query(Reading).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.typeId == rtype_id))
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
+
+
 def _query_by_location_and_type(session, loc_id, reading_type, start_time, end_time, filter_values = True, calib=True):
     rtype_id = reading_types.index(reading_type)
     if reading_type in reading_limits and filter_values:
@@ -398,6 +424,40 @@ def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, st
     for row in rows:
         data.append((row[0].time, row[0].value, row[1]))
 
+    if postprocess:
+        data = clean_data(session, data)
+    
+    return data
+
+
+
+
+
+def get_data_by_type_location(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, with_deltas=False):
+    if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
+        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+
+    if with_deltas:
+        delta_rows = _query_by_type(session, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
+        rows = _query_by_type_with_join_target(session, reading_type, start_time, end_time, delta_rows, filter_values = False)
+        rows = rows.join((delta_rows, Reading.time == delta_rows.c.Reading_time))
+    else:
+        rows = _query_by_type_location(session, reading_type, start_time, end_time, filter_values = False)
+    
+    data = {}
+    for row in rows:
+        loc_id = int(row.locationId)
+        if loc_id not in data:
+            data[loc_id] = ReadingList()
+            data[loc_id].set_meta_data('reading_type', reading_type)
+            data[loc_id].set_meta_data('loc_id', loc_id)
+            data[loc_id].set_meta_data('has_deltas', with_deltas)
+
+        if with_deltas:
+            data[loc_id].append((row.time, row.value, row.Reading_value))
+        else:
+            data[loc_id].append((row.time, row.value))
+    
     if postprocess:
         data = clean_data(session, data)
     
