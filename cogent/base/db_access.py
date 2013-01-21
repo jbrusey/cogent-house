@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, and_
+from sqlalchemy import create_engine, and_, distinct, select, alias
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
 from datetime import datetime
@@ -194,7 +194,7 @@ def _locCalibrateReadings(session,theQuery):
 
 
 
-def _query_by_location_and_type_with_join_target(session, loc_id, reading_type, start_time, end_time, target, filter_values = True):
+def _query_by_location_and_type_with_join_target(session, loc_id, reading_type, start_time, end_time, target, filter_values = True, calib=True):
     rtype_id = reading_types.index(reading_type)
     if reading_type in reading_limits and filter_values:
         theQuery = session.query(Reading, target.c.Reading_value).filter(and_(
@@ -204,16 +204,23 @@ def _query_by_location_and_type_with_join_target(session, loc_id, reading_type, 
             Reading.typeId == rtype_id,
             Reading.value >= reading_limits[reading_type][0],
             Reading.value <= reading_limits[reading_type][1])).order_by(Reading.time)
-        return _locCalibrateReadings(session,theQuery)
-    else:
-        theQuery = session.query(Reading, target.c.Reading_value).filter(and_(
-            Reading.time >= start_time,
-            Reading.time < end_time,
-            Reading.locationId == loc_id,
-            Reading.typeId == rtype_id)).order_by(Reading.time)
-        return _locCalibrateReadings(session,theQuery)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
 
-def _query_by_location_and_type(session, loc_id, reading_type, start_time, end_time, filter_values = True):
+    else:
+        theQuery = session.query(Reading, target.c.Reading_value).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.locationId == loc_id,
+            Reading.typeId == rtype_id)).order_by(Reading.time)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
+
+def _query_by_location_and_type(session, loc_id, reading_type, start_time, end_time, filter_values = True, calib=True):
     rtype_id = reading_types.index(reading_type)
     if reading_type in reading_limits and filter_values:
         theQuery =  session.query(Reading).filter(and_(
@@ -223,14 +230,20 @@ def _query_by_location_and_type(session, loc_id, reading_type, start_time, end_t
             Reading.typeId == rtype_id,
             Reading.value >= reading_limits[reading_type][0],
             Reading.value <= reading_limits[reading_type][1])).order_by(Reading.time)
-        return _locCalibrateReadings(session,theQuery)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
     else:
         theQuery =  session.query(Reading).filter(and_(
             Reading.time >= start_time,
             Reading.time < end_time,
             Reading.locationId == loc_id,
             Reading.typeId == rtype_id)).order_by(Reading.time)
-        return _locCalibrateReadings(session,theQuery)
+	if calib:
+	        return _locCalibrateReadings(session,theQuery)
+	else:
+		return theQuery
     
 def _query_by_type_with_join_target(session, reading_type, start_time, end_time, target, filter_values = True):
     rtype_id = reading_types.index(reading_type)
@@ -281,6 +294,9 @@ def create_session_mysql(username, database, host='localhost'):
     db_engine = create_db_engine_mysql(username, database, host)
     return create_session(db_engine)
 
+def get_house_details(session, house_id):
+    row = session.query(House).filter(House.id==house_id).first()
+    return row
 
 def get_house_address(session, house_id):
     row = session.query(House).filter(House.id==house_id).first()
@@ -347,6 +363,40 @@ def get_data_by_location_and_type(session, loc_id, reading_type, start_time = da
             data.append((row.time, row.value, row.Reading_value))
         else:
             data.append((row.time, row.value))
+
+    if postprocess:
+        data = clean_data(session, data)
+    
+    return data
+
+
+def get_location_types(session, loc_id, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+    theQuery =  session.query(distinct(Reading.typeId)).filter(and_(
+        Reading.time >= start_time,
+        Reading.time < end_time,
+        Reading.locationId == loc_id)).order_by(Reading.time)
+
+    types=[]
+    for row in theQuery:
+        types.append(int(row[0]))
+    
+    return types
+
+
+
+def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True):
+    if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
+        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+     
+    battery_rows = _query_by_location_and_type(session, loc_id, "battery", start_time, end_time, filter_values = False,calib=False).with_labels().subquery()
+    rows = _query_by_location_and_type_with_join_target(session, loc_id, reading_type, start_time, end_time, battery_rows, filter_values = False,calib=False)
+    rows = rows.join((battery_rows, Reading.time == battery_rows.c.Reading_time))
+
+    data = ReadingList()
+    data.set_meta_data('reading_type', reading_type)
+    data.set_meta_data('location_id', loc_id)
+    for row in rows:
+        data.append((row[0].time, row[0].value, row[1]))
 
     if postprocess:
         data = clean_data(session, data)
