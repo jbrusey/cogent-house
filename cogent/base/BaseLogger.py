@@ -4,6 +4,15 @@
 # log data from mote to a database and also print out 
 #
 # J. Brusey, R. Wilkins, April 2011
+"""BaseLogger - cogent-house data logging process.
+
+Receives sensor readings from the base station and logs them to the
+database.
+
+This version also acknowledges logged data once it has been
+successfully written to the database.
+
+"""
 
 import logging
 import sys
@@ -23,20 +32,55 @@ from Queue import Empty
 
 from datetime import datetime, timedelta
 
-import time
+#import time
 
 from cogent.base.model import (Reading, NodeState, SensorType,
-                               Base, Session, init_model, Node, Bitset)
+                               Base, Session, init_model, Node)
 
-logger = logging.getLogger("ch.base")
+from cogent.base.packstate import PackState
+
+LOGGER = logging.getLogger("ch.base")
 
 DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, and_
 
 
+def duplicate_packet(session, receipt_time, node_id, localtime):
+    """ duplicate packets can occur because in a large network,
+    the duplicate packet cache used is not sufficient. If such
+    packets occur, then they will have the same node id, same
+    local time and arrive within a few seconds of each other. In
+    some cases, the first received copy may be corrupt and this is
+    not dealt with within this code yet.
+    """
+    earliest = receipt_time - timedelta(minutes=1)
+    return session.query(NodeState).filter(
+        and_(NodeState.nodeId==node_id,
+             NodeState.localtime==localtime,
+             NodeState.time > earliest)).first() is not None
+
+def add_node(session, node_id):
+    """ add a database entry for a node
+    """
+    try:
+        session.add(Node(id=node_id,
+                         locationId=None,
+            nodeTypeId=(node_id / 4096)))
+        session.commit()
+    except Exception:
+        session.rollback()
+        LOGGER.exception("can't add node %d" % node_id)
+
+
 class BaseLogger(object):
+    """ BaseLogger class receives sensor messages and writes them to
+    the database.
+    """
     def __init__(self, bif=None, dbfile=DBFILE):
+        """ create a new BaseLogger and connect it to the sensor
+        source (bif) and the database (dbfile).
+        """
         self.engine = create_engine(dbfile, echo=False)
         init_model(self.engine)
         self.metadata = Base.metadata
@@ -47,129 +91,96 @@ class BaseLogger(object):
             self.bif = bif
 
     def create_tables(self):
+        """ create any missing tables using sqlalchemy
+        """
         self.metadata.create_all(self.engine)
-        # TODO: follow the instructions at url: https://alembic.readthedocs.org/en/latest/tutorial.html#building-an-up-to-date-database-from-scratch to write an alembic version string
+        # TODO: follow the instructions at url:
+        # https://alembic.readthedocs.org/en/latest/tutorial.html#building-an-up-to-date-database-from-scratch
+        # to write an alembic version string
 
         session = Session()
         if session.query(SensorType).get(0) is None:
-            raise Exception("SensorType must be populated by alembic before starting BaseLogger")
+            raise Exception("SensorType must be populated by alembic " +
+                            "before starting BaseLogger")
         session.close()    
                              
-
-    def duplicate_packet(self, session, receipt_time, nodeId, localtime):
-        """ duplicate packets can occur because in a large network,
-        the duplicate packet cache used is not sufficient. If such
-        packets occur, then they will have the same node id, same
-        local time and arrive within a few seconds of each other. In
-        some cases, the first received copy may be corrupt and this is
-        not dealt with within this code yet.
-        """
-        earliest = receipt_time - timedelta(minutes=1)
-        return session.query(NodeState).filter(
-            and_(NodeState.nodeId==nodeId,
-                 NodeState.localtime==localtime,
-                 NodeState.time > earliest)).first() is not None
 
     def send_ack(self,
                  seq=None,
                  route=None,
                  hops=None):
-        """ send acknowledge message
+        """ send acknowledgement message
         """
-        am = AckMsg()
-        am.set_seq(seq)
-        am.set_route(route)
-        am.set_hops(hops)
+        ack_msg = AckMsg()
+        ack_msg.set_seq(seq)
+        ack_msg.set_route(route)
+        ack_msg.set_hops(hops)
         
         dest = route[hops]
-        self.bif.sendMsg(am,dest)
-        logger.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" % (seq, dest, hops, route))
+        self.bif.sendMsg(ack_msg, dest)
+        LOGGER.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" %
+                     (seq, dest, hops, route))
 
-    
+
     def store_state(self, msg):
+        """ receive and process a message object from the base station
+        """
     
         # get the last source 
 
         if msg.get_special() != Packets.SPECIAL:
-            raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
+            raise Exception("Corrupted packet - special is %02x not %02x" %
+                            (msg.get_special(), Packets.SPECIAL))
 
         try:
             session = Session()
-            t = datetime.utcnow()
-            n=msg.get_route()[0]
-            pid=msg.get_route()[1]
+            current_time = datetime.utcnow()
+            node_id = msg.get_route()[0]
+            parent_id = msg.get_route()[1]
 
-            localtime = msg.get_timestamp()
-
-            node = session.query(Node).get(n)
-            locId = None
+            node = session.query(Node).get(node_id)
+            loc_id = None
             if node is None:
-                try:
-                    session.add(Node(id=n,
-                                     locationId=None,
-                                     nodeTypeId=(n / 4096)))
-                    session.commit()
-                except Exception:
-                    session.rollback()
-                    logger.exception("can't add node %d" % n)
+                add_node(session, node_id)
             else:
-                locId = node.locationId
+                loc_id = node.locationId
 
+
+            pack_state = PackState.from_message(msg)
+            seq = int(pack_state[Packets.SC_SEQ])
             
-            if self.duplicate_packet(session=session,
-                                     receipt_time=t,
-                                     nodeId=n,
-                                     localtime=localtime):
-                logger.info("duplicate packet %d->%d, %d %s" % (n, pid, localtime, str(msg)))
+            if duplicate_packet(session=session,
+                                receipt_time=current_time,
+                                node_id=node_id,
+                                localtime=msg.get_timestamp()):
+                LOGGER.info("duplicate packet %d->%d, %d %s" %
+                            (node_id, parent_id, msg.get_timestamp(), str(msg)))
 
                 # try to send an ack
-                mask = Bitset(value=msg.get_packed_state_mask())
-                # find the location of the sequence number
-                seq_i = sum([mask[i] for i in range(Packets.SC_SEQ)])
-                seq = int(msg.getElement_packed_state(seq_i))
                 self.send_ack(seq=seq,
                               route=msg.get_route(),
                               hops=msg.get_hops())
-                
                 return
 
+            # write a node state row
+            node_state = NodeState(time=current_time,
+                                   nodeId=node_id,
+                                   parent=parent_id,
+                localtime=msg.get_timestamp())
+            session.add(node_state)
 
-            ns = NodeState(time=t,
-                           nodeId=n,
-                           parent=pid,
-                           localtime=msg.get_timestamp())
-            session.add(ns)
+            for i, value in pack_state.d.iteritems():
+                if (msg.get_amType() == Packets.AM_BNMSG and
+                    i not in [Packets.SC_VOLTAGE, Packets.SC_SEQ]):
+                    type_id = i + 50   # TODO: fix magic number
+                else:
+                    type_id = i
 
-
-            seq=0            
-            j = 0
-            mask = Bitset(value=msg.get_packed_state_mask())
-            state = []
-            for i in range(msg.totalSizeBits_packed_state_mask()):
-                if mask[i]:
-                    tid=None
-                    if msg.get_amType()==Packets.AM_BNMSG:
-                        if i not in [Packets.SC_VOLTAGE,Packets.SC_SEQ]:
-                            tid=i+50   # TODO: fix magic number
-                        else:
-                            tid=i
-                    else:
-                        tid=i
-
-                    v = msg.getElement_packed_state(j)
-                    state.append((i,v))
-
-                    if tid==Packets.SC_SEQ:
-                        seq=int(v)
-
-                    r = Reading(time=t,
-                                nodeId=n,
-                                typeId=tid,
-                                locationId=locId,
-                                value=v)
-                    session.add(r)
-                    j += 1
-
+                session.add(Reading(time=current_time,
+                                    nodeId=node_id,
+                                    typeId=type_id,
+                                    locationId=loc_id,
+                    value=value))
 
             session.commit()
 
@@ -178,14 +189,20 @@ class BaseLogger(object):
                           route=msg.get_route(),
                           hops=msg.get_hops())
                      
-            logger.debug("reading: %s, %s, %s" % (ns,mask,state))
-        except Exception as e:
+            LOGGER.debug("reading: %s, %s" % (node_state, pack_state))
+        except Exception as exc:
             session.rollback()
-            logger.exception("during storing: " + str(e))
+            LOGGER.exception("during storing: " + str(exc))
         finally:
             session.close()
 
     def run(self):
+        """ run - main loop
+
+        At the moment this is just receiving from the sensor message
+        queue and processing the message.
+
+        """
 
         try:
             while True:
@@ -195,8 +212,9 @@ class BaseLogger(object):
                     self.store_state(msg)
                 except Empty:
                     pass
-                except Exception as e:
-                    logger.exception("during receiving or storing msg: " + str(e))
+                except Exception as exc:
+                    LOGGER.exception("during receiving or storing msg: " +
+                                     str(exc))
 
         except KeyboardInterrupt:
             self.bif.finishAll()
@@ -205,7 +223,8 @@ class BaseLogger(object):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
-                      help="Set log level to LEVEL: debug,info,warning,error, [default: info]",
+                      help="Set log level to LEVEL: debug,info,warning,error"+
+                      " [default: info]",
                       default="info",
                       metavar="LEVEL")
 
@@ -213,13 +232,13 @@ if __name__ == '__main__':
     if len(args) != 0:
         parser.error("incorrect number of arguments")
 
-    lvlmap = {"debug": logging.DEBUG,
+    LEVEL_MAP = {"debug": logging.DEBUG,
               "info": logging.INFO,
               "warning": logging.WARNING,
               "error": logging.ERROR,
               "critical": logging.CRITICAL}
 
-    if options.log_level not in lvlmap:
+    if options.log_level not in LEVEL_MAP:
         parser.error("invalid LEVEL: " + options.log_level)
 
     
@@ -227,9 +246,9 @@ if __name__ == '__main__':
     logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
-                        level=lvlmap[options.log_level])
-    logger.info("Starting BaseLogger with log-level %s" % (options.log_level))
-    lm = BaseLogger()
-    lm.create_tables()
+                        level=LEVEL_MAP[options.log_level])
+    LOGGER.info("Starting BaseLogger with log-level %s" % (options.log_level))
+    LM = BaseLogger()
+    LM.create_tables()
     
-    lm.run()
+    LM.run()

@@ -50,8 +50,8 @@ implementation
   command float Predict.predictState(FilterState *fs, uint32_t t)
   {
     float deltaT;
-    // TODO: fix magic numbers below!
-    deltaT = (float) subtract_time(t, fs->time) / (300.*1024.); //Find how many sensing periods have passed
+    //Find how many sensing periods have passed
+    deltaT = ((float) subtract_time(t, fs->time)) / DEF_SENSE_PERIOD; 
     return fs->x + (fs->dx * deltaT);
   }		
  

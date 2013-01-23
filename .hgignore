@@ -13,3 +13,4 @@ build/
 cogent/push/.cache
 cogent/push/.coverage
 tos/*/build/*
+.pythoscope/
