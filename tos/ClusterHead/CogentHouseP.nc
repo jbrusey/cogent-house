@@ -193,9 +193,6 @@ implementation
 	  
 	  memcpy(newData->packed_state_mask, sMsg->packed_state_mask,sizeof sMsg->packed_state_mask);
 	  memcpy(newData->packed_state, sMsg->packed_state,sizeof sMsg->packed_state);
-#ifdef DEBUG
-	  printf("size %u\n", slen);
-#endif
 	  if (call StateForwarder.send(LEAF_CLUSTER_HEAD, &fwdMsg,  slen)==SUCCESS){
 #ifdef DEBUG
 	    printf("Forward SM %lu\n", call LocalTime.get());
