@@ -20,5 +20,6 @@ implementation
     currentState.dx = 0;
     signal Read.readDone(SUCCESS, &currentState);	
     i=i+1;
+    return SUCCESS;
   }
 }

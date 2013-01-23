@@ -65,10 +65,11 @@ implementation
   
   
   static char* testEventDetector(void){
-    while (test != SUCCESS)
-      {
-	call EventRead.read();
-      }
+    call EventRead.read();
+    mu_assert("First event should always be SUCCESS", test == SUCCESS);
+    do {
+      call EventRead.read();
+    } while (test != SUCCESS);
     printf("Reading is : "); printfloat2(var);
     printf("\n");
     mu_assert("Reading: var != 10", var == 10.);
