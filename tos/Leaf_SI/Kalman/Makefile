@@ -1,4 +1,4 @@
-PFLAGS += -I../ -I ../FilterWrapper
+PFLAGS += -I../ -I ../FilterWrapper -I%T/lib/printf 
 
 COMPONENT=KalmanTestC
 CFLAGS += -I$(TOSDIR)/lib/printf -Wall 

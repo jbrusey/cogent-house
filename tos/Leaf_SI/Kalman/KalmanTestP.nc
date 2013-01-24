@@ -190,24 +190,37 @@ implementation
 
    
   static char* all_tests(void) { 
+    printf("Starting Tests\n");
+    printfflush();
     mu_run_test(test_mat22_add_v); 
+    printf("Test 1\n");
+    printfflush();
     call Leds.led2On();
     mu_run_test(testKalmanDeltaSine);  //Not working
+    printf("Test 2\n");
+    printfflush();
     call Leds.led1Toggle(); 
     mu_run_test(testKalmanDelta); //Not Working
+    printf("Test 3\n");
+    printfflush();
     call Leds.led1Toggle(); 
     mu_run_test(testKalmanDeltaSineDiscretised);
+    printf("Test 4\n");
+    printfflush();
     call Leds.led1Toggle(); 
     mu_run_test(testKalmanDeltaSineDiscretisedRandom);
+    printf("Test 5\n");
+    printfflush();
     call Leds.led1Toggle(); 
     mu_run_test(testTimeOverflow);
     return 0;
   }
 
 
-  event void Boot.booted()
-  {
+  event void Boot.booted() {
     char *result = all_tests();
+    printf("Tests done\n");
+    printfflush();
     call Leds.led2Off();
     call Leds.led1Off();
     if (result != 0) {
@@ -220,7 +233,6 @@ implementation
     }
     printf("Tests run: %d\n", tests_run);
     printfflush();
-    
   }
   
 
