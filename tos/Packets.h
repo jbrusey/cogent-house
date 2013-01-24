@@ -173,13 +173,11 @@ typedef nx_struct ConfigMsg {
 typedef struct CRCStruct {
   nx_uint16_t node_id;
   nx_uint8_t seq;
-  nx_uint32_t special;
 } CRCStruct;
 
 typedef nx_struct AckMsg {
   nx_uint16_t node_id;
   nx_uint8_t seq;
-  nx_uint32_t special;
   nx_uint16_t crc;
 } AckMsg;
 
