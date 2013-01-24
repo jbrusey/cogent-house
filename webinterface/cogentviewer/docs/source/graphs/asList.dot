@@ -1,0 +1,6 @@
+digraph g{
+  Deployment -> House
+  House -> Location
+  Location -> Node
+  Node -> Sensor
+}
