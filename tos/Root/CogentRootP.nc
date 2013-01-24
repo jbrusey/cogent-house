@@ -83,24 +83,17 @@ implementation
 	void *uart_payload;
 	memcpy(&uartmsg, radio_payload, len);
 
-#ifdef BLINKY 
-	if (((StateMsg *) radio_payload)->special != 0xc7)
-	  call Leds.led1On();
-#endif
 	call UartPacket.clear(msg);
 	call UartAMPacket.setSource(msg, src);
 	uart_payload = call UartPacket.getPayload(msg, len);
 	if (uart_payload != NULL) { 
 	  memcpy(uart_payload, &uartmsg, len);
-#ifdef BLINKY 
-	  if (((StateMsg *) uart_payload)->special != 0xc7)
-	    call Leds.led2On();
-#endif
       
 	  if (call UartSend.send[id](AM_BROADCAST_ADDR, msg, len) == SUCCESS) { 
 	    fwdBusy = TRUE;
 	  }
-	  else { 
+	  else {
+	    // TODO consider restarting the serial port here
 #ifdef BLINKY
 	    call Leds.led0On();
 #endif
@@ -125,6 +118,11 @@ implementation
 	post serialForwardTask();
       }
       return tmp;
+    }
+    else {
+#ifdef BLINKY
+      call Leds.led2On(); // buffer overflow
+#endif
     }
     return msg;
   }
@@ -162,6 +160,7 @@ implementation
     fwdBusy = FALSE;
     if (error == FAIL)
       call SerialControl.start();
+    // TODO: make sure that we don't try to use the serial port until it is up
   }
   event void SerialControl.stopDone(error_t error) { }
 
