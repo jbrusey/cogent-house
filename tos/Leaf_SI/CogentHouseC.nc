@@ -1,5 +1,6 @@
 // -*- c -*-
 #include "../Packets.h"
+#include "Collection.h"
 #include "PolyClass/horner.c"
 #include "CurrentCost/cc_struct.h"
 #include "Filter.h"
@@ -22,21 +23,37 @@ implementation
 	
   //import timers
   components new TimerMilliC() as SenseTimer;
-  components new TimerMilliC() as AckTimeoutTimer;
   components new TimerMilliC() as BlinkTimer;
-  components new TimerMilliC() as WarmUpTimer;   
+  components new TimerMilliC() as WarmUpTimer;
+  components new TimerMilliC() as SendTimeOutTimer;
+  
   components RandomC;
-  components new AMSenderC(AM_STATEMSG) as StateSender;
-  components new AMReceiverC(AM_ACKMSG) as AckReceiver;
+
 
   CogentHouseP.Boot -> MainC.Boot;
-  CogentHouseP.StateSender -> StateSender;  
-  CogentHouseP.AckReceiver -> AckReceiver;
   CogentHouseP.SenseTimer -> SenseTimer;
-  CogentHouseP.AckTimeoutTimer -> AckTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
+  CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
   CogentHouseP.Leds -> LedsC;
   CogentHouseP.RadioControl -> ActiveMessageC;
+
+
+  // Instantiate and wire our collection service
+  components CollectionC;
+  components new CollectionSenderC(AM_STATEMSG) as StateSender;
+
+  CogentHouseP.CollectionControl -> CollectionC;
+  CogentHouseP.CtpInfo -> CollectionC;
+  CogentHouseP.StateSender -> StateSender;
+
+  // Instantiate and wire the settings dissemination service 
+  components DisseminationC;
+  CogentHouseP.DisseminationControl -> DisseminationC;
+	
+  components new DisseminatorC(AckMsg, AM_ACKMSG);
+  CogentHouseP.AckValue -> DisseminatorC;
+  components CrcC;
+  CogentHouseP.CRCCalc -> CrcC;
 
   //sensing interfaces
   components new SensirionSht11C();

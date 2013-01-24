@@ -34,7 +34,7 @@ from datetime import datetime, timedelta
 #import time
 
 from cogent.base.model import (Reading, NodeState, SensorType,
-                               Base, Session, init_model, Node)
+                               Base, Session, init_model, Node, Bitset)
 
 from cogent.base.packstate import PackState
 
@@ -44,7 +44,7 @@ DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, and_
 
-
+BN_OFFSET=50
 def duplicate_packet(session, receipt_time, node_id, localtime):
     """ duplicate packets can occur because in a large network,
     the duplicate packet cache used is not sufficient. If such
@@ -106,19 +106,17 @@ class BaseLogger(object):
 
     def send_ack(self,
                  seq=None,
-                 route=None,
-                 hops=None):
+                 node_id=None):
         """ send acknowledgement message
         """
         ack_msg = AckMsg()
         ack_msg.set_seq(seq)
-        ack_msg.set_route(route)
-        ack_msg.set_hops(hops)
+        ack_msg.set_node_id(node_id)
+        ack_msg.set_special(Packets.SPECIAL)
         
-        dest = route[hops]
         self.bif.sendMsg(ack_msg, dest)
-        LOGGER.debug("Sending Ack %s to %s:, Hops: %s, Route: %s" %
-                     (seq, dest, hops, route))
+        LOGGER.debug("Sending Ack %s to %s" %
+                     (seq, node_id))
 
 
     def store_state(self, msg):
@@ -134,8 +132,9 @@ class BaseLogger(object):
         try:
             session = Session()
             current_time = datetime.utcnow()
-            node_id = msg.get_route()[0]
-            parent_id = msg.get_route()[1]
+            node_id = msg.getAddr()
+            parent_id = msg.get_ctp_parent_id()
+            seq = msg.get_seq()
 
             node = session.query(Node).get(node_id)
             loc_id = None
@@ -146,7 +145,6 @@ class BaseLogger(object):
 
 
             pack_state = PackState.from_message(msg)
-            seq = int(pack_state[Packets.SC_SEQ])
             
             if duplicate_packet(session=session,
                                 receipt_time=current_time,
@@ -155,13 +153,13 @@ class BaseLogger(object):
                 LOGGER.info("duplicate packet %d->%d, %d %s" %
                             (node_id, parent_id, msg.get_timestamp(), str(msg)))
 
-                # try to send an ack
-                self.send_ack(seq=seq,
-                              route=msg.get_route(),
-                              hops=msg.get_hops())
+                #send acknowledgement to base station to fwd to node
+                #self.send_ack(seq=seq,
+                #              node_id=node_id)
                 return
 
             # write a node state row
+            #TODO: need to add sequence number to nodestate
             node_state = NodeState(time=current_time,
                                    nodeId=node_id,
                                    parent=parent_id,
@@ -170,8 +168,8 @@ class BaseLogger(object):
 
             for i, value in pack_state.d.iteritems():
                 if (msg.get_amType() == Packets.AM_BNMSG and
-                    i not in [Packets.SC_VOLTAGE, Packets.SC_SEQ]):
-                    type_id = i + 50   # TODO: fix magic number
+                    i not in [Packets.SC_VOLTAGE]):
+                    type_id = i + BN_OFFSET   # TODO: ideally should be a flag in datbase or something
                 else:
                     type_id = i
 
@@ -184,9 +182,8 @@ class BaseLogger(object):
             session.commit()
 
             #send acknowledgement to base station to fwd to node
-            self.send_ack(seq=seq,
-                          route=msg.get_route(),
-                          hops=msg.get_hops())
+            #self.send_ack(seq=seq,
+            #              node_id=node_id)
                      
             LOGGER.debug("reading: %s, %s" % (node_state, pack_state))
         except Exception as exc:

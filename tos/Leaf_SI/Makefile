@@ -1,4 +1,4 @@
-PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA
+PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
 COMPONENT=CogentHouseC
 
 PFLAGS +=-DTOSH_DATA_LENGTH=118
@@ -8,21 +8,20 @@ PFLAGS +=-DTOSH_DATA_LENGTH=118
 CFLAGS += -DDEBUG
 
 #time out time in seconds
-CFLAGS += -DLEAF_TIMEOUT_TIME=1024L
+CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
-#CFLAGS += -DDEF_SENSE_PERIOD=307200L
-CFLAGS += -DDEF_SENSE_PERIOD=10240
-#CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
-CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=10240L
+CFLAGS += -DDEF_SENSE_PERIOD=30720L
+CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=30720L
 
-CFLAGS += -DLEAF_CLUSTER_HEAD=40975L
+#can this be done as a bool?
+CFLAGS += -DLEAF_CLUSTER_HEAD=1
 CFLAGS += -DLEAF_MAX_RETRIES=3
 CFLAGS += -DHEARTBEAT_PERIOD=89 #7 hours
 
 CFLAGS += -DSIP  -DDEWMA #-DKALMAN
-CFLAGS += -DSIP_TEMP_THRESH=0.01
+CFLAGS += -DSIP_TEMP_THRESH=0.0
 CFLAGS += -DSIP_TEMP_ALPHA=0.2
 CFLAGS += -DSIP_TEMP_BETA=0.2
 

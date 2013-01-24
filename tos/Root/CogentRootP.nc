@@ -2,30 +2,39 @@
 #include "AM.h"
 #include "Serial.h"
 
-module CogentRootP @safe() {
-  uses {
-    interface Boot;
-    interface SplitControl as SerialControl;
-    interface SplitControl as RadioControl;
-    
-    interface AMSend as UartSend[am_id_t id];
-    interface Receive as UartAckReceive;
-    interface Packet as UartPacket;
-    interface AMPacket as UartAMPacket;
-    
-    interface AMSend as RadioSend;
-    interface Receive as SMRadioReceive;
-    interface Receive as BNRadioReceive;
-    interface Packet as RadioPacket;
-    interface AMPacket as RadioAMPacket;
-    
-    // queuing
-    interface Queue<message_t *>;
-    interface Pool<message_t>;
-    
-    interface Timer<TMilli> as BlinkTimer;
-    interface Leds;
-  }
+module CogentRootP{
+  uses
+  {
+      interface Boot;
+      interface SplitControl as SerialControl;
+      interface SplitControl as RadioControl;
+
+      interface StdControl as CollectionControl;
+      interface RootControl;
+
+      //receive interfaces
+      interface Receive as CollectionReceive[am_id_t id];
+      interface Packet as RadioPacket;
+      interface CollectionPacket;
+
+      // dissemination
+      interface DisseminationUpdate<AckMsg> as AckUpdate;
+      interface StdControl as DisseminationControl;
+      interface Crc as CRCCalc ;
+
+      //data forwarding interfaces
+      interface AMSend as UartSend[am_id_t id];
+      interface Packet as UartPacket;
+      interface AMPacket as UartAMPacket;
+      interface Receive as UartAckReceive;
+
+      // queuing
+      interface Queue<message_t *>;
+      interface Pool<message_t>;
+
+      interface Timer<TMilli> as BlinkTimer;
+      interface Leds;
+    }
 }
 
 implementation
@@ -38,12 +47,19 @@ implementation
   {
     call SerialControl.start();
     call RadioControl.start();
-    //call BlinkTimer.startOneShot(512L);
+    call BlinkTimer.startOneShot(512L);
   }
 
   event void RadioControl.startDone(error_t error) {
     if (error == FAIL)
       call RadioControl.start();
+    else {
+      call CollectionControl.start();
+#ifdef DISSEMINATION
+      call DisseminationControl.start();
+#endif
+      call RootControl.setRoot();
+    }
   }
 	
   event void RadioControl.stopDone(error_t error) { }
@@ -57,18 +73,26 @@ implementation
       message_t* msg = call Queue.dequeue();
       uint8_t len = call RadioPacket.payloadLength(msg);
       void *radio_payload = call RadioPacket.getPayload(msg, len);
-      am_id_t id = call RadioAMPacket.type(msg);
-      am_addr_t src = call RadioAMPacket.source(msg);
+      collection_id_t id = call CollectionPacket.getType(msg);
+      am_addr_t src = call CollectionPacket.getOrigin(msg);
 
       if (radio_payload != NULL) { 
 	void *uart_payload;
 	memcpy(&uartmsg, radio_payload, len);
 
+#ifdef BLINKY 
+	if (((StateMsg *) radio_payload)->special != 0xc7)
+	  call Leds.led1On();
+#endif
 	call UartPacket.clear(msg);
 	call UartAMPacket.setSource(msg, src);
 	uart_payload = call UartPacket.getPayload(msg, len);
 	if (uart_payload != NULL) { 
 	  memcpy(uart_payload, &uartmsg, len);
+#ifdef BLINKY 
+	  if (((StateMsg *) uart_payload)->special != 0xc7)
+	    call Leds.led2On();
+#endif
       
 	  if (call UartSend.send[id](AM_BROADCAST_ADDR, msg, len) == SUCCESS) { 
 	    fwdBusy = TRUE;
@@ -84,26 +108,7 @@ implementation
   }
   
 
-  event message_t *SMRadioReceive.receive(message_t* msg, 
-						    void* payload, 
-						    uint8_t len)
-  {
-#ifdef BLINKY
-    call Leds.led1Toggle();
-#endif
-    if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) { 
-      message_t *tmp = call Pool.get();
-      call Queue.enqueue(msg);
-      if (!fwdBusy) {
-	post serialForwardTask();
-      }
-      return tmp;
-    }
-    return msg;
-  }
-
-
-  event message_t *BNRadioReceive.receive(message_t* msg, 
+  event message_t *CollectionReceive.receive[collection_id_t id](message_t* msg, 
 						    void* payload, 
 						    uint8_t len)
   {
@@ -128,19 +133,31 @@ implementation
       post serialForwardTask();
   }
 
-  /** send ack */
-  event message_t* UartAckReceive.receive(message_t* msg, void* payload, uint8_t len)
+
+ /** disseminate new settings */
+  event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len)
   {
-    am_addr_t addr = call UartAMPacket.destination(msg);
-    call Leds.led0Toggle();
+    AckMsg *ackMsg = payload;
+    CRCStruct crs;
+    uint16_t crc;
 
-    call RadioSend.send(addr, msg, len);
+    if (len == sizeof(*ackMsg)) {
+      if (ackMsg->special == SPECIAL) {
+	//message is ok calculate crc
+	crs.node_id = ackMsg->node_id;
+	crs.seq = ackMsg->seq;
+	crs.special = ackMsg->special;
+	crc = call CRCCalc.crc16(&crs, sizeof crs);
+	ackMsg->crc=crc;
+	call AckUpdate.change(ackMsg);
+      }
+      else {
+#ifdef BLINKY
+	call Leds.led2Toggle();
+#endif
+      }
+    }
     return msg;
-  }
-
-
-  event void RadioSend.sendDone(message_t* msg, error_t error) {
-    call Leds.led2Toggle();
   }
 
   event void SerialControl.startDone(error_t error) {

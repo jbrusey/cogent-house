@@ -62,9 +62,8 @@ enum {
   SC_D_CO2 = 20,
   SC_D_VOC = 21,
   SC_D_AQ = 22,
-  SC_SEQ = 23,
-  SC_HEARTBEAT = 24,
-  SC_SIZE = 25, // SC_SIZE must be 1 greater than last entry
+  SC_HEARTBEAT = 23,
+  SC_SIZE = 24, // SC_SIZE must be 1 greater than last entry
   
   
   //BN Codes
@@ -120,12 +119,7 @@ enum {
   ERR_SEND_FAILED = 5,
   ERR_SEND_WHILE_PACKET_PENDING = 7,
   ERR_SEND_WHILE_SENDING = 11,
-  ERR_FWD_FAILED = 13,
-  ERR_ACK_HOP_SIZE=17,
-  ERR_PACKET_STATE_SIZE=19,
-  ERR_PACKET_ACK_SIZE=23,
-  ERR_STATE_HOP_SIZE=29,
-  ERR_EXCEED_MAX_RETRIES=31
+  ERR_NO_ACK=13
 };
 
 
@@ -142,11 +136,21 @@ typedef nx_struct BNMsg {
   nx_float packed_state[SC_SIZE];
 } BNMsg; // varies depending on SC_SIZE 
 
-typedef nx_struct StateMsg {
+/*typedef nx_struct StateMsg {
   nx_uint32_t timestamp;
   nx_uint8_t special;
   nx_uint8_t hops;
   nx_uint16_t route[MAX_HOPS];
+  nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
+  nx_float packed_state[SC_SIZE];
+  } StateMsg; // varies depending on SC_SIZE */
+
+
+typedef nx_struct StateMsg {
+  nx_uint16_t ctp_parent_id;
+  nx_uint32_t timestamp;
+  nx_uint8_t special;
+  nx_uint8_t seq;
   nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
   nx_float packed_state[SC_SIZE];
 } StateMsg; // varies depending on SC_SIZE 
@@ -165,10 +169,18 @@ typedef nx_struct ConfigMsg {
 } ConfigMsg;
 
 
-typedef nx_struct AckMsg {
-  nx_uint16_t route[MAX_HOPS];
-  nx_uint8_t hops;
+
+typedef struct CRCStruct {
+  nx_uint16_t node_id;
   nx_uint8_t seq;
+  nx_uint32_t special;
+} CRCStruct;
+
+typedef nx_struct AckMsg {
+  nx_uint16_t node_id;
+  nx_uint8_t seq;
+  nx_uint32_t special;
+  nx_uint16_t crc;
 } AckMsg;
 
 
