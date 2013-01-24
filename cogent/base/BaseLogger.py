@@ -34,7 +34,7 @@ from datetime import datetime, timedelta
 #import time
 
 from cogent.base.model import (Reading, NodeState, SensorType,
-                               Base, Session, init_model, Node, Bitset)
+                               Base, Session, init_model, Node)
 
 from cogent.base.packstate import PackState
 
