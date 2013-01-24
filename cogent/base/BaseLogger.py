@@ -25,7 +25,6 @@ sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 
 from cogent.node import (AckMsg,
                          Packets)
-                         
 from cogent.base.BaseIF import BaseIF
 
 from Queue import Empty
