@@ -153,16 +153,16 @@ class BaseLogger(object):
                             (node_id, parent_id, msg.get_timestamp(), str(msg)))
 
                 #send acknowledgement to base station to fwd to node
-                #self.send_ack(seq=seq,
-                #              node_id=node_id)
+                self.send_ack(seq=seq,
+                              node_id=node_id)
                 return
 
             # write a node state row
-            #TODO: need to add sequence number to nodestate
             node_state = NodeState(time=current_time,
                                    nodeId=node_id,
                                    parent=parent_id,
-                localtime=msg.get_timestamp())
+                localtime=msg.get_timestamp(),
+                seq_num=seq)
             session.add(node_state)
 
             for i, value in pack_state.d.iteritems():
@@ -181,8 +181,8 @@ class BaseLogger(object):
             session.commit()
 
             #send acknowledgement to base station to fwd to node
-            #self.send_ack(seq=seq,
-            #              node_id=node_id)
+            self.send_ack(seq=seq,
+                          node_id=node_id)
                      
             LOGGER.debug("reading: %s, %s" % (node_state, pack_state))
         except Exception as exc:

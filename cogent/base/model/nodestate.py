@@ -36,7 +36,8 @@ class NodeState(Base,meta.InnoDBMix):
     :var DateTime time: Timestamp of state 
     :var Integer nodeId: :class:`cogentviewer.models.node.Node` this state belongs to
     :var Integer parent: Parent node in the routing tree?
-    :var BigInteger localtime: Local time of the node (in unix time??)
+    :var BigInteger localtime: Local time of the node
+    :var Integer seq_num: Packet sequence number
     """
 
     __tablename__ = "NodeState"
@@ -47,6 +48,7 @@ class NodeState(Base,meta.InnoDBMix):
     nodeId = Column(Integer, ForeignKey('Node.id'))
     parent = Column(Integer)
     localtime = Column(BigInteger)
+    seq_num = Column(Integer)
 
     def __repr__(self):
         return ("NodeState(" +
@@ -54,6 +56,7 @@ class NodeState(Base,meta.InnoDBMix):
                 str(self.time) + "," +
                 str(self.nodeId) + "," +
                 str(self.parent) + "," +
+                str(self.seq_num) + "," +
                 str(self.localtime) + ")")
 
 
