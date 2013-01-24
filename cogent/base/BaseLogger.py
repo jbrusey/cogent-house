@@ -112,7 +112,6 @@ class BaseLogger(object):
         ack_msg = AckMsg()
         ack_msg.set_seq(seq)
         ack_msg.set_node_id(node_id)
-        ack_msg.set_special(Packets.SPECIAL)
         
         self.bif.sendMsg(ack_msg, dest)
         LOGGER.debug("Sending Ack %s to %s" %

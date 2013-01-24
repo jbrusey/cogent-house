@@ -539,28 +539,25 @@ implementation
     printfflush();
 #endif
     
-    if (ackMsg->special == SPECIAL) {
-      crs.node_id = ackMsg->node_id;
-      crs.seq = ackMsg->seq;
-      crs.special = ackMsg->special;
-      crc = call CRCCalc.crc16(&crs, sizeof crs);
-
+    crs.node_id = ackMsg->node_id;
+    crs.seq = ackMsg->seq;
+    crc = call CRCCalc.crc16(&crs, sizeof crs);
+    
 #ifdef DEBUG
-      printf("exp seq %u\n", expSeq);
-      printf("rec seq %u\n", ackMsg->seq);
-      printf("exp nid %u\n", TOS_NODE_ID);
-      printf("rec nid %u\n", ackMsg->node_id);
-      printf("exp CRC %u\n", crc);
-      printf("rec CRC %u\n", ackMsg->crc);
-      printfflush();
+    printf("exp seq %u\n", expSeq);
+    printf("rec seq %u\n", ackMsg->seq);
+    printf("exp nid %u\n", TOS_NODE_ID);
+    printf("rec nid %u\n", ackMsg->node_id);
+    printf("exp CRC %u\n", crc);
+    printf("rec CRC %u\n", ackMsg->crc);
+    printfflush();
 #endif 
-      
-      //check crc's, nid and seq match
-      if (crc == ackMsg->crc)
-	if (TOS_NODE_ID == ackMsg->node_id)
-	  if (expSeq == ackMsg->seq)
-	    ackReceived();	  
-    }
+    
+    //check crc's, nid and seq match
+    if (crc == ackMsg->crc)
+      if (TOS_NODE_ID == ackMsg->node_id)
+	if (expSeq == ackMsg->seq)
+	  ackReceived();	  
     return;
   }
 

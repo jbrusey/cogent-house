@@ -142,20 +142,12 @@ implementation
     uint16_t crc;
 
     if (len == sizeof(*ackMsg)) {
-      if (ackMsg->special == SPECIAL) {
-	//message is ok calculate crc
-	crs.node_id = ackMsg->node_id;
-	crs.seq = ackMsg->seq;
-	crs.special = ackMsg->special;
-	crc = call CRCCalc.crc16(&crs, sizeof crs);
-	ackMsg->crc=crc;
-	call AckUpdate.change(ackMsg);
-      }
-      else {
-#ifdef BLINKY
-	call Leds.led2Toggle();
-#endif
-      }
+      //message is ok calculate crc
+      crs.node_id = ackMsg->node_id;
+      crs.seq = ackMsg->seq;
+      crc = call CRCCalc.crc16(&crs, sizeof crs);
+      ackMsg->crc=crc;
+      call AckUpdate.change(ackMsg);
     }
     return msg;
   }
