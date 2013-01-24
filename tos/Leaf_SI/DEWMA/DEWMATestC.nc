@@ -12,7 +12,7 @@ implementation
 {
   components MainC, DEWMATestP;
   
-  components new DEWMAC(10., 1/64., 0.1, 0.1) as DEWMASine;
+  components new DEWMAC(10., 1/64., TRUE, 0.1, 0.1) as DEWMASine;
 
   components PrintfC;
   components SerialStartC;
