@@ -5,15 +5,26 @@ module CogentHouseP
   uses {
     //low-level stuff
     interface Timer<TMilli> as SenseTimer;
-    interface Timer<TMilli> as AckTimeoutTimer;
     interface Timer<TMilli> as BlinkTimer;
+    interface Timer<TMilli> as SendTimeOutTimer;
     interface Leds;
     interface Boot;
     
     //radio
     interface SplitControl as RadioControl;
-    interface AMSend as StateSender;
-    interface Receive as AckReceiver;
+
+    //ctp
+    interface StdControl as CollectionControl;
+    interface CtpInfo;
+
+    // dissemination
+    interface StdControl as DisseminationControl;
+    interface DisseminationValue<AckMsg> as AckValue;
+    interface Crc as CRCCalc ;
+		
+    //sending interfaces
+    interface Send as StateSender;
+
     //SI Sensing
     interface Read<float *> as ReadTemp;
     interface TransmissionControl as TempTrans;
@@ -28,7 +39,6 @@ module CogentHouseP
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
-    interface BitVector as ExpectSendDone;
     interface PackState;
 
     //Time
@@ -40,7 +50,6 @@ implementation
   float last_duty = 0.;
 
   float last_errno = 1.;
-
   float last_transmitted_errno;
 
   uint32_t send_start_time;  
@@ -58,12 +67,10 @@ implementation
   bool packet_pending = FALSE;
 
   message_t dataMsg;
-  message_t fwdMsg;
-  message_t ackMsg;
   uint16_t message_size;
   uint8_t msgSeq = 0;
-  uint8_t retries = 0;
   uint8_t expSeq = 0;
+  bool toSend = 0;
 
   int periodsToHeartbeat=HEARTBEAT_PERIOD;
   struct nodeType nt;
@@ -91,6 +98,7 @@ implementation
     BNMsg *newData;
     int pslen;
     int i;
+    am_addr_t parent;
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -103,11 +111,6 @@ implementation
       reportError(ERR_SEND_WHILE_PACKET_PENDING);
       return;
     }
-
-    //increment and pack seq
-    expSeq = msgSeq;
-    msgSeq++;
-    call PackState.add(SC_SEQ, expSeq);
 
     if (periodsToHeartbeat<=0)
       call PackState.add(SC_HEARTBEAT, 1);
@@ -123,19 +126,18 @@ implementation
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
-      newData->special = 0xc7;
       //we're going do a send so pack the msg count and then increment
       newData->timestamp = call LocalTime.get();
-      newData->hops = 0;
+      newData->special = 0xc7;
 
-      //pack empty route array
-      for (i = 0; i < MAX_HOPS; i++) {
-	if (i==0) {
-          newData->route[i] = TOS_NODE_ID;
-        }
-	else {
-          newData->route[i]=0;
-        }
+      //increment and pack seq
+      expSeq = msgSeq;
+      msgSeq++;
+      newData->seq = expSeq;
+
+      newData->ctp_parent_id = -1;
+      if (call CtpInfo.getParent(&parent) == SUCCESS) { 
+	newData->ctp_parent_id = parent;
       }
      
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
@@ -145,11 +147,10 @@ implementation
 	newData->packed_state[i] = ps.p[i];
       }
       send_start_time = call LocalTime.get();
-      if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
-	call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);
+      call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
+      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
-	  printf("sending to %lu\n", LEAF_CLUSTER_HEAD);
 	  printfflush();
 #endif
 	sending = TRUE;
@@ -165,6 +166,9 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
+
+    if (LEAF_CLUSTER_HEAD)
+      call RadioControl.start();
 
     nodeType = TOS_NODE_ID >> 12;
     my_settings = &settings.byType[nodeType];
@@ -247,7 +251,6 @@ implementation
    */
   task void checkDataGathered() {
     bool allDone = TRUE;
-    bool toSend = FALSE;
     uint8_t i;
 
     for (i = 0; i < RS_SIZE; i++) {
@@ -261,18 +264,14 @@ implementation
       if (phase_two_sensing) {
 #ifdef DEBUG
 	printf("allDone %lu\n", call LocalTime.get());
+	printf("toSend %u\n", (int)toSend);
 	printfflush();
-#endif
-	
-	for (i = 0; i < RS_SIZE; i++) {
-	  if (call ExpectSendDone.get(i)) {
-	    toSend = TRUE;
-	    break;
-	  }
-	}
-
+#endif	
 	if (toSend){
-	  call RadioControl.start();
+          if (!LEAF_CLUSTER_HEAD)
+	    call RadioControl.start();
+          else
+            sendState();
 	}
 	else
 	  restartSenseTimer();
@@ -294,7 +293,7 @@ implementation
 
     //starting reads decrease periods To Heartbeat
     periodsToHeartbeat=periodsToHeartbeat-1;
-
+    toSend=FALSE;
     sense_start_time = call LocalTime.get();
 #ifdef BLINKY
     call Leds.led0Toggle();
@@ -362,11 +361,13 @@ implementation
 
   void do_readDone_BN(error_t result, float* data,  uint raw_sensor,  uint state_count, uint state_first){
     int i;
-    if (result == SUCCESS || periodsToHeartbeat<=0){ 
-      for(i = 0; i < state_count; i++){
-	call PackState.add(state_first+i,data[i]);
-      }
-      call ExpectSendDone.set(raw_sensor);
+
+    for(i = 0; i < state_count; i++){
+      call PackState.add(state_first+i,data[i]);
+    }
+
+    if (result == SUCCESS || periodsToHeartbeat<=0){
+      toSend=TRUE;
     }
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
@@ -399,11 +400,14 @@ implementation
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS)
       {
+	call CollectionControl.start();
+	call DisseminationControl.start();
 #ifdef DEBUG
-        printf("Radio On\n");
+	printf("Radio On %lu\n", call LocalTime.get());
         printfflush();
 #endif
-	sendState();
+        if (!LEAF_CLUSTER_HEAD)
+          sendState();
       }
     else
       call RadioControl.start();
@@ -413,8 +417,8 @@ implementation
   //Empty methods
   event void RadioControl.stopDone(error_t ok) { 
 #ifdef DEBUG
-        printf("Radio Off\n");
-        printfflush();
+    printf("Radio Off %lu\n", call LocalTime.get());
+    printfflush();
 #endif
 
 #ifdef BLINKY
@@ -462,128 +466,103 @@ implementation
     }
   }
 
+  event void SendTimeOutTimer.fired() {
+    if (!LEAF_CLUSTER_HEAD)
+      call RadioControl.stop();
 
-  //---------------- Deal with Acknowledgements --------------------------------
-  event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
-    int h;
-    AckMsg* aMsg;
-    int i;
+    reportError(ERR_NO_ACK);
+    my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
+
+#ifdef DEBUG
+    printf("ack receving failed %lu\n", call LocalTime.get());
+    printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
+    printfflush();
+#endif
+    restartSenseTimer();
+  }
+
+
+  //updates SIP models and restarts sense timers and calculate duty time
+  void ackReceived(){
     uint32_t stop_time;
     uint32_t send_time;
+    int i;
+
+    if (!LEAF_CLUSTER_HEAD)
+      call RadioControl.stop();
+    call SendTimeOutTimer.stop();
+
+    stop_time = call LocalTime.get();
+    //Calculate the next interval
+    if (stop_time < send_start_time) // deal with overflow
+      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
+    else
+      send_time = (stop_time - send_start_time);
+    last_duty = (float) send_time;
+
+    
+#ifdef DEBUG
+    printf("Time to send %lu\n", send_time);
+    printfflush();
+#endif 
+    
+    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+
+    for (i = 0; i < RS_SIZE; i++) { 
+      if (call Configured.get(i)) {
+	if (i == RS_TEMPERATURE)
+	  call TempTrans.transmissionDone();
+	else if (i == RS_HUMIDITY)
+	  call HumTrans.transmissionDone();
+	else if (i == RS_CO2)
+	  call CO2Trans.transmissionDone();
+      }
+    }
+
+    //reset heartbeat period
+    periodsToHeartbeat=HEARTBEAT_PERIOD;
+    restartSenseTimer();
+  }
+
+
+  /** AckValue.changed
+   *
+   * - triggered when ack messgaes are disseminated
+   * - checks if this ack message is for the packet
+   */
+
+
+  event void AckValue.changed() { 
+    const AckMsg *ackMsg = call AckValue.get();
+    CRCStruct crs;
+    uint16_t crc;
 
 #ifdef DEBUG
     call Leds.led2Toggle();
     printf("ack packet rec at %lu\n", call LocalTime.get());
     printfflush();
 #endif
-    aMsg = (AckMsg*)payload;
-    if (len == sizeof(AckMsg)){
-      h=aMsg->hops;
-      
+
+    crs.node_id = ackMsg->node_id;
+    crs.seq = ackMsg->seq;
+    crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
+
 #ifdef DEBUG
-      call Leds.led2Toggle();
-      printf("hops %u\n", h);
-      printfflush();
-#endif   
-      
-      if (h==0){
-	int ackSeq = aMsg->seq;	 
-	
-#ifdef DEBUG
-	call Leds.led2Toggle();
-	printf("exp seq %u\n", expSeq);
-	printf("rec seq %u\n", ackSeq);
-	printfflush();
+    printf("exp seq %u\n", expSeq);
+    printf("rec seq %u\n", ackMsg->seq);
+    printf("exp nid %u\n", TOS_NODE_ID);
+    printf("rec nid %u\n", ackMsg->node_id);
+    printf("exp CRC %u\n", crc);
+    printf("rec CRC %u\n", ackMsg->crc);
+    printfflush();
 #endif 
-	if (expSeq==ackSeq){
-
-	  stop_time = call LocalTime.get();
-	  //Calculate the next interval
-	  if (stop_time < send_start_time) // deal with overflow
-	      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
-	  else
-	      send_time = (stop_time - send_start_time);
-	  last_duty = (float) send_time;
-	  
-#ifdef DEBUG
-	  call Leds.led2Toggle();
-	  printf("correct packet confirtmed at %lu\n", call LocalTime.get());
-	  printfflush();
-#endif   
-	  
-	  call AckTimeoutTimer.stop();
-	  call RadioControl.stop();
-	  
-	  my_settings->samplePeriod = DEF_SENSE_PERIOD;
-	  retries=0;
-	  //update txcontrol
-	  for (i = 0; i < RS_SIZE; i ++) {
-	    if (call ExpectSendDone.get(i))
-	      switch (i) {
-	      case RS_TEMPERATURE:
-		call TempTrans.transmissionDone();
-		break;
-	      case RS_HUMIDITY:
-		call HumTrans.transmissionDone();
-		break;
-	      case RS_CO2:
-		call CO2Trans.transmissionDone();
-		break;
-	      default:
-		break;
-	      }
-	  }
-	  call ExpectSendDone.clearAll();
-
-	  //reset heartbeat period
-	  periodsToHeartbeat=HEARTBEAT_PERIOD;
-
-	  restartSenseTimer();
-	}
-      }
-    }
-    else{
-      reportError(ERR_PACKET_ACK_SIZE);
-    }
-    return msg; 
+    
+    //check crc's, nid and seq match
+    if (crc == ackMsg->crc)
+      if (TOS_NODE_ID == ackMsg->node_id)
+	if (expSeq == ackMsg->seq)
+	  ackReceived();	  
+    return;
   }
-
-
-  /* If the number of sending retries < LEAF_MAX_RETRIES then try sending the message again, else
-   * assume the message is not going to get through, cancel send and call restartSenseTimer with a 
-   * FAIL status, this will restart sense timer with 5 minuite period
-   */
-  event void AckTimeoutTimer.fired() {
-    //if retries < max retries send else give up
-      reportError(ERR_SEND_TIMEOUT);
-#ifdef DEBUG
-      printf("timeout at %lu\n", call LocalTime.get());
-      printfflush();
-#endif
-    if (retries < LEAF_MAX_RETRIES) {
-      retries+=1;
-      call AckTimeoutTimer.startOneShot(LEAF_TIMEOUT_TIME);
-      if (call StateSender.send(LEAF_CLUSTER_HEAD, &dataMsg, message_size) == SUCCESS) {
-	sending = TRUE;
-      }
-#ifdef DEBUG
-      printf("resending begun at %lu\n", call LocalTime.get());
-      printfflush();
-#endif
-    }
-    else{
-      reportError(ERR_EXCEED_MAX_RETRIES);
-      my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
-      retries=0;
-      call RadioControl.stop();
-
-#ifdef DEBUG
-      printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
-      printf("ack waiting failed %lu\n", call LocalTime.get());
-      printfflush();
-#endif
-      restartSenseTimer();
-    }  
-  }
-  
 }
+

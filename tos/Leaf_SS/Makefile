@@ -1,30 +1,26 @@
-PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector
+PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector  -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
 COMPONENT=CogentHouseC
+
+PFLAGS +=-DTOSH_DATA_LENGTH=118
 
 PYTHON_TARGET_DIR=../../cogent/node
 PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py BNMsg.py)
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
-PFLAGS +=-DTOSH_DATA_LENGTH=118
-
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
 #CFLAGS += -DDEBUG
-
-#time out time in seconds
-CFLAGS += -DLEAF_TIMEOUT_TIME=10L
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
 CFLAGS += -DDEF_SENSE_PERIOD=307200L
 CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
 
-CFLAGS += -DLEAF_CLUSTER_HEAD=40974L
-CFLAGS += -DLEAF_MAX_RETRIES=3
+CFLAGS += -DLEAF_CLUSTER_HEAD=0
+
 
 include $(MAKERULES)
-
 
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h

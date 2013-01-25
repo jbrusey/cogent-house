@@ -1,7 +1,6 @@
 PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
 COMPONENT=CogentHouseC
 
-
 PFLAGS +=-DTOSH_DATA_LENGTH=118
 
 PYTHON_TARGET_DIR=../../cogent/node
@@ -21,7 +20,7 @@ CFLAGS += -DDEF_FIRST_PERIOD=10240
 CFLAGS += -DDEF_SENSE_PERIOD=307200L
 CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
 
-#can this be done as a bool?
+#can this be done as a bool guess just cast in P file?
 CFLAGS += -DLEAF_CLUSTER_HEAD=0
 CFLAGS += -DHEARTBEAT_PERIOD=89 #7 hours
 

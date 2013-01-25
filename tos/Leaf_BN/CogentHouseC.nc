@@ -1,5 +1,6 @@
 // -*- c -*-
 #include "../Packets.h"
+#include "Collection.h"
 #include "PolyClass/horner.c"
 #include "CurrentCost/cc_struct.h"
 #include "exposure.h"
@@ -22,21 +23,36 @@ implementation
 	
   //import timers
   components new TimerMilliC() as SenseTimer;
-  components new TimerMilliC() as AckTimeoutTimer;
   components new TimerMilliC() as BlinkTimer;
-  components new TimerMilliC() as WarmUpTimer;   
+  components new TimerMilliC() as WarmUpTimer;
+  components new TimerMilliC() as SendTimeOutTimer;
+  
   components RandomC;
-  components new AMSenderC(AM_BNMSG) as StateSender;
-  components new AMReceiverC(AM_ACKMSG) as AckReceiver;
+
 
   CogentHouseP.Boot -> MainC.Boot;
-  CogentHouseP.StateSender -> StateSender;  
-  CogentHouseP.AckReceiver -> AckReceiver;
   CogentHouseP.SenseTimer -> SenseTimer;
-  CogentHouseP.AckTimeoutTimer -> AckTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
+  CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
   CogentHouseP.Leds -> LedsC;
   CogentHouseP.RadioControl -> ActiveMessageC;
+
+
+  // Instantiate and wire our collection service
+  components CollectionC;
+  components new CollectionSenderC(AM_BNMSG) as StateSender;
+
+  CogentHouseP.CollectionControl -> CollectionC;
+  CogentHouseP.CtpInfo -> CollectionC;
+  CogentHouseP.StateSender -> StateSender;
+
+  components DisseminationC;
+  CogentHouseP.DisseminationControl -> DisseminationC;
+	
+  components new DisseminatorC(AckMsg, AM_ACKMSG);
+  CogentHouseP.AckValue -> DisseminatorC;
+  components CrcC;
+  CogentHouseP.CRCCalc -> CrcC;
 
   //sensing interfaces
   components new SensirionSht11C();
@@ -90,12 +106,10 @@ implementation
   CogentHouseP.ReadCO2 -> CO2Detector.Read;
   CogentHouseP.CO2Trans -> CO2Detector.TransmissionControl;
 
-  components new BitVectorC(RS_SIZE) as ExpectSendDone;
-  CogentHouseP.ExpectSendDone -> ExpectSendDone.BitVector; 
+
 
   CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
   CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
-
   BatterySensingM.GetVoltage -> Volt;
   CogentHouseP.ReadVolt->BatterySensingM.ReadBattery;
 
