@@ -5,8 +5,8 @@ module CogentHouseP
   uses {
     //low-level stuff
     interface Timer<TMilli> as SenseTimer;
-    interface Timer<TMilli> as BlinkTimer;
     interface Timer<TMilli> as SendTimeOutTimer;
+    interface Timer<TMilli> as BlinkTimer;
     interface Leds;
     interface Boot;
     
@@ -16,7 +16,6 @@ module CogentHouseP
     //ctp
     interface StdControl as CollectionControl;
     interface CtpInfo;
-
 
     // dissemination
     interface StdControl as DisseminationControl;
@@ -43,7 +42,6 @@ module CogentHouseP
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
-    interface BitVector as ExpectSendDone;
     interface PackState;
 
     //Time
@@ -60,7 +58,7 @@ implementation
   uint32_t send_start_time;  
   uint32_t sense_start_time;
   bool phase_two_sensing = FALSE;
-	
+  
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
 
@@ -75,10 +73,10 @@ implementation
   uint16_t message_size;
   uint8_t msgSeq = 0;
   uint8_t expSeq = 0;
-  bool toSend = FALSE;
-
-  int periodsToHeartbeat=HEARTBEAT_PERIOD;
   struct nodeType nt;
+
+  bool toSend = 0;
+  int periodsToHeartbeat=HEARTBEAT_PERIOD;
 	
 
   /** reportError records a code to be sent on the next transmission. 
@@ -116,7 +114,6 @@ implementation
       reportError(ERR_SEND_WHILE_PACKET_PENDING);
       return;
     }
-
     if (periodsToHeartbeat<=0)
       call PackState.add(SC_HEARTBEAT, 1);
 
@@ -173,7 +170,7 @@ implementation
     printfflush();
 #endif
 
-    if (LEAF_CLUSTER_HEAD==1)
+    if (LEAF_CLUSTER_HEAD)
       call RadioControl.start();
 
     nodeType = TOS_NODE_ID >> 12;
@@ -203,7 +200,7 @@ implementation
       call Configured.set(RS_DUTY);
     }
     
-    //call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
@@ -271,11 +268,10 @@ implementation
 #ifdef DEBUG
 	printf("allDone %lu\n", call LocalTime.get());
 	printf("toSend %u\n", (int)toSend);
-
 	printfflush();
 #endif	
 	if (toSend){
-          if (LEAF_CLUSTER_HEAD!=1)
+          if (!LEAF_CLUSTER_HEAD)
 	    call RadioControl.start();
           else
             sendState();
@@ -310,7 +306,6 @@ implementation
 #ifdef DEBUG
       printf("\n\nsensing begun at %lu\n", sense_start_time);
       printf("periodsToHeartbeat %u\n", periodsToHeartbeat);
-      printf("toSend reset %u\n", (int)toSend);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
@@ -405,14 +400,13 @@ implementation
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS)
       {
-
 	call CollectionControl.start();
 	call DisseminationControl.start();
 #ifdef DEBUG
 	printf("Radio On %lu\n", call LocalTime.get());
         printfflush();
 #endif
-        if (LEAF_CLUSTER_HEAD<1)
+        if (!LEAF_CLUSTER_HEAD)
           sendState();
       }
     else
@@ -473,7 +467,7 @@ implementation
   }
 
   event void SendTimeOutTimer.fired() {
-    if (LEAF_CLUSTER_HEAD!=1)
+    if (!LEAF_CLUSTER_HEAD)
       call RadioControl.stop();
 
     reportError(ERR_NO_ACK);
@@ -494,7 +488,7 @@ implementation
     uint32_t send_time;
     int i;
 
-    if (LEAF_CLUSTER_HEAD!=1)
+    if (!LEAF_CLUSTER_HEAD)
       call RadioControl.stop();
     call SendTimeOutTimer.stop();
 
@@ -512,9 +506,6 @@ implementation
     printfflush();
 #endif 
     
-
-
-	  
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
 
     for (i = 0; i < RS_SIZE; i++) { 

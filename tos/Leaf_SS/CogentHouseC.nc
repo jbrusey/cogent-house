@@ -1,5 +1,6 @@
 // -*- c -*-
 #include "../Packets.h"
+#include "Collection.h"
 #include "PolyClass/horner.c"
 #include "CurrentCost/cc_struct.h"
 #include "HeatMeter/hm_struct.h"
@@ -21,21 +22,26 @@ implementation
 	
   //import timers
   components new TimerMilliC() as SenseTimer;
-  components new TimerMilliC() as AckTimeoutTimer;
   components new TimerMilliC() as BlinkTimer;
-  components new TimerMilliC() as WarmUpTimer;   
+  components new TimerMilliC() as WarmUpTimer;
+  components new TimerMilliC() as SendTimeOutTimer;
+  
   components RandomC;
-  components new AMSenderC(AM_STATEMSG) as StateSender;
-  components new AMReceiverC(AM_ACKMSG) as AckReceiver;
 
   CogentHouseP.Boot -> MainC.Boot;
-  CogentHouseP.StateSender -> StateSender;  
-  CogentHouseP.AckReceiver -> AckReceiver;
   CogentHouseP.SenseTimer -> SenseTimer;
-  CogentHouseP.AckTimeoutTimer -> AckTimeoutTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
   CogentHouseP.Leds -> LedsC;
   CogentHouseP.RadioControl -> ActiveMessageC;
+
+
+  // Instantiate and wire our collection service
+  components CollectionC;
+  components new CollectionSenderC(AM_STATEMSG) as StateSender;
+
+  CogentHouseP.CollectionControl -> CollectionC;
+  CogentHouseP.CtpInfo -> CollectionC;
+  CogentHouseP.StateSender -> StateSender;
 
   //sensing interfaces
   components new SensirionSht11C();
@@ -86,6 +92,8 @@ implementation
   components new TimerMilliC() as TimeoutTimer;
   components new TimerMilliC() as ResumeTimer;
   components new TimerMilliC() as FirstByteTimer;
+  CogentHouseP.ReadWattage->CurrentCostM.ReadWattage;
+  CogentHouseP.CurrentCostControl -> CurrentCostM.CurrentCostControl;
 
   CurrentCostM.CurrentCostUartStream -> CurrentCostSerialC;
   CurrentCostM.UartControl -> CurrentCostSerialC;
@@ -95,10 +103,6 @@ implementation
   CurrentCostM.Leds -> LedsC;
   CurrentCostM.LocalTime -> HilTimerMilliC;
   
-  CogentHouseP.ReadWattage->CurrentCostM.ReadWattage;
-  CogentHouseP.CurrentCostControl -> CurrentCostM.CurrentCostControl;
-
-
   //Configured
   //Need to define right size
   components new AccessibleBitVectorC(RS_SIZE) as Configured;
@@ -115,4 +119,5 @@ implementation
 
   PackState.Mask -> ABV;
   CogentHouseP.PackState -> PackState;
+
 }

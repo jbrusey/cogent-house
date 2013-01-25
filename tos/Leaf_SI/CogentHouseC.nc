@@ -202,8 +202,7 @@ implementation
   CogentHouseP.ReadVOC -> VOCDetector.Read;
   CogentHouseP.VOCTrans -> VOCDetector.TransmissionControl;
 
-  components new BitVectorC(RS_SIZE) as ExpectSendDone;
-  CogentHouseP.ExpectSendDone -> ExpectSendDone.BitVector; 
+
 
   components HilTimerMilliC;
 	
@@ -225,4 +224,5 @@ implementation
 
   PackState.Mask -> ABV;
   CogentHouseP.PackState -> PackState;
+
 }
