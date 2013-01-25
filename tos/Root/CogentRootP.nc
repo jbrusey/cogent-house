@@ -42,12 +42,14 @@ implementation
   message_t fwdMsg;
   bool fwdBusy;
   uint8_t lastLen;
+  int mSeq=0;
 
   event void Boot.booted()
   {
     call SerialControl.start();
     call RadioControl.start();
     call BlinkTimer.startOneShot(512L);
+
   }
 
   event void RadioControl.startDone(error_t error) {
@@ -55,9 +57,7 @@ implementation
       call RadioControl.start();
     else {
       call CollectionControl.start();
-#ifdef DISSEMINATION
       call DisseminationControl.start();
-#endif
       call RootControl.setRoot();
     }
   }
@@ -80,19 +80,11 @@ implementation
 	void *uart_payload;
 	memcpy(&uartmsg, radio_payload, len);
 
-#ifdef BLINKY 
-	if (((StateMsg *) radio_payload)->special != 0xc7)
-	  call Leds.led1On();
-#endif
 	call UartPacket.clear(msg);
 	call UartAMPacket.setSource(msg, src);
 	uart_payload = call UartPacket.getPayload(msg, len);
 	if (uart_payload != NULL) { 
 	  memcpy(uart_payload, &uartmsg, len);
-#ifdef BLINKY 
-	  if (((StateMsg *) uart_payload)->special != 0xc7)
-	    call Leds.led2On();
-#endif
       
 	  if (call UartSend.send[id](AM_BROADCAST_ADDR, msg, len) == SUCCESS) { 
 	    fwdBusy = TRUE;
@@ -113,7 +105,7 @@ implementation
 						    uint8_t len)
   {
 #ifdef BLINKY
-    call Leds.led1Toggle();
+    call Leds.led2Toggle();
 #endif
     if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) { 
       message_t *tmp = call Pool.get();
@@ -133,14 +125,15 @@ implementation
       post serialForwardTask();
   }
 
-
- /** disseminate new settings */
   event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len)
-  {
+  {    
     AckMsg *ackMsg = payload;
     CRCStruct crs;
     uint16_t crc;
 
+#ifdef BLINKY 
+    call Leds.led1Toggle();
+#endif
     if (len == sizeof(*ackMsg)) {
       //message is ok calculate crc
       crs.node_id = ackMsg->node_id;
@@ -173,7 +166,5 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
-    
-
 
 }

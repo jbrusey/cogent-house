@@ -46,7 +46,6 @@ implementation
   CogentHouseP.CtpInfo -> CollectionC;
   CogentHouseP.StateSender -> StateSender;
 
-  // Instantiate and wire the settings dissemination service 
   components DisseminationC;
   CogentHouseP.DisseminationControl -> DisseminationC;
 	

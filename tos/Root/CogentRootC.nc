@@ -7,6 +7,11 @@ implementation
   components SerialActiveMessageC as Serial;
   components ActiveMessageC as Radio;
 
+  components new SerialAMReceiverC(AM_ACKMSG) as AckReceiver;
+
+
+  CogentRootP.UartAckReceive -> AckReceiver;
+
   CogentRootP.Boot -> MainC;
 
   CogentRootP.SerialControl -> Serial;

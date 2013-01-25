@@ -106,16 +106,16 @@ class BaseLogger(object):
 
     def send_ack(self,
                  seq=None,
-                 node_id=None):
+                 dest=None):
         """ send acknowledgement message
         """
         ack_msg = AckMsg()
         ack_msg.set_seq(seq)
-        ack_msg.set_node_id(node_id)
+        ack_msg.set_node_id(dest)
         
         self.bif.sendMsg(ack_msg, dest)
         LOGGER.debug("Sending Ack %s to %s" %
-                     (seq, node_id))
+                     (seq, dest))
 
 
     def store_state(self, msg):
@@ -154,7 +154,7 @@ class BaseLogger(object):
 
                 #send acknowledgement to base station to fwd to node
                 self.send_ack(seq=seq,
-                              node_id=node_id)
+                              dest=node_id)
                 return
 
             # write a node state row
@@ -182,7 +182,7 @@ class BaseLogger(object):
 
             #send acknowledgement to base station to fwd to node
             self.send_ack(seq=seq,
-                          node_id=node_id)
+                          dest=node_id)
                      
             LOGGER.debug("reading: %s, %s" % (node_state, pack_state))
         except Exception as exc:

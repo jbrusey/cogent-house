@@ -55,7 +55,6 @@ implementation
   float last_duty = 0.;
 
   float last_errno = 1.;
-
   float last_transmitted_errno;
 
   uint32_t send_start_time;  
@@ -73,10 +72,8 @@ implementation
   bool packet_pending = FALSE;
 
   message_t dataMsg;
-  message_t fwdMsg;
   uint16_t message_size;
   uint8_t msgSeq = 0;
-  uint8_t retries = 0;
   uint8_t expSeq = 0;
   bool toSend = FALSE;
 
@@ -107,7 +104,6 @@ implementation
     int pslen;
     int i;
     am_addr_t parent;
-    retries=0;
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -142,7 +138,7 @@ implementation
       //increment and pack seq
       expSeq = msgSeq;
       msgSeq++;
-      newData->special = expSeq;
+      newData->seq = expSeq;
 
       newData->ctp_parent_id = -1;
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
@@ -177,6 +173,9 @@ implementation
     printfflush();
 #endif
 
+    if (LEAF_CLUSTER_HEAD==1)
+      call RadioControl.start();
+
     nodeType = TOS_NODE_ID >> 12;
     my_settings = &settings.byType[nodeType];
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
@@ -204,7 +203,7 @@ implementation
       call Configured.set(RS_DUTY);
     }
     
-    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+    //call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
@@ -271,10 +270,15 @@ implementation
       if (phase_two_sensing) {
 #ifdef DEBUG
 	printf("allDone %lu\n", call LocalTime.get());
+	printf("toSend %u\n", (int)toSend);
+
 	printfflush();
 #endif	
 	if (toSend){
-	  call RadioControl.start();
+          if (LEAF_CLUSTER_HEAD!=1)
+	    call RadioControl.start();
+          else
+            sendState();
 	}
 	else
 	  restartSenseTimer();
@@ -306,6 +310,7 @@ implementation
 #ifdef DEBUG
       printf("\n\nsensing begun at %lu\n", sense_start_time);
       printf("periodsToHeartbeat %u\n", periodsToHeartbeat);
+      printf("toSend reset %u\n", (int)toSend);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
@@ -400,12 +405,15 @@ implementation
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS)
       {
+
 	call CollectionControl.start();
+	call DisseminationControl.start();
 #ifdef DEBUG
-        printf("Radio On\n");
+	printf("Radio On %lu\n", call LocalTime.get());
         printfflush();
 #endif
-	sendState();
+        if (LEAF_CLUSTER_HEAD<1)
+          sendState();
       }
     else
       call RadioControl.start();
@@ -415,8 +423,8 @@ implementation
   //Empty methods
   event void RadioControl.stopDone(error_t ok) { 
 #ifdef DEBUG
-        printf("Radio Off\n");
-        printfflush();
+    printf("Radio Off %lu\n", call LocalTime.get());
+    printfflush();
 #endif
 
 #ifdef BLINKY
@@ -486,6 +494,10 @@ implementation
     uint32_t send_time;
     int i;
 
+    if (LEAF_CLUSTER_HEAD!=1)
+      call RadioControl.stop();
+    call SendTimeOutTimer.stop();
+
     stop_time = call LocalTime.get();
     //Calculate the next interval
     if (stop_time < send_start_time) // deal with overflow
@@ -494,9 +506,14 @@ implementation
       send_time = (stop_time - send_start_time);
     last_duty = (float) send_time;
 
-    call SendTimeOutTimer.stop();
-    if (LEAF_CLUSTER_HEAD!=1)
-      call RadioControl.stop();
+    
+#ifdef DEBUG
+    printf("Time to send %lu\n", send_time);
+    printfflush();
+#endif 
+    
+
+
 	  
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
 
@@ -528,6 +545,8 @@ implementation
    * - triggered when ack messgaes are disseminated
    * - checks if this ack message is for the packet
    */
+
+
   event void AckValue.changed() { 
     const AckMsg *ackMsg = call AckValue.get();
     CRCStruct crs;
@@ -538,11 +557,11 @@ implementation
     printf("ack packet rec at %lu\n", call LocalTime.get());
     printfflush();
 #endif
-    
+
     crs.node_id = ackMsg->node_id;
     crs.seq = ackMsg->seq;
-    crc = call CRCCalc.crc16(&crs, sizeof crs);
-    
+    crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
+
 #ifdef DEBUG
     printf("exp seq %u\n", expSeq);
     printf("rec seq %u\n", ackMsg->seq);
@@ -560,6 +579,5 @@ implementation
 	  ackReceived();	  
     return;
   }
-
-
 }
+
