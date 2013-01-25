@@ -136,15 +136,6 @@ typedef nx_struct BNMsg {
   nx_float packed_state[SC_SIZE];
 } BNMsg; // varies depending on SC_SIZE 
 
-/*typedef nx_struct StateMsg {
-  nx_uint32_t timestamp;
-  nx_uint8_t special;
-  nx_uint8_t hops;
-  nx_uint16_t route[MAX_HOPS];
-  nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
-  nx_float packed_state[SC_SIZE];
-  } StateMsg; // varies depending on SC_SIZE */
-
 
 typedef nx_struct StateMsg {
   nx_uint16_t ctp_parent_id;
@@ -172,8 +163,9 @@ typedef nx_struct ConfigMsg {
 
 typedef struct CRCStruct {
   nx_uint16_t node_id;
-  nx_uint8_t seq;
+  nx_uint16_t seq;
 } CRCStruct;
+
 
 typedef nx_struct AckMsg {
   nx_uint16_t node_id;
