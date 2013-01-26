@@ -164,7 +164,7 @@ implementation
     printfflush();
 #endif
 
-    if ((bool)CLUSTER_HEAD)
+    if (CLUSTER_HEAD)
       call RadioControl.start();
 
     nodeType = TOS_NODE_ID >> 12;
@@ -270,7 +270,7 @@ implementation
 	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
 #endif
-	if (!(bool)CLUSTER_HEAD)
+	if (!CLUSTER_HEAD)
 	  call RadioControl.start();
 	else
 	  sendState();
@@ -415,7 +415,7 @@ implementation
 	printf("Radio On %lu\n", call LocalTime.get());
         printfflush();
 #endif
-        if (!(bool)CLUSTER_HEAD)
+        if (!CLUSTER_HEAD)
           sendState();
       }
     else
@@ -444,7 +444,7 @@ implementation
     uint32_t stop_time;
     uint32_t send_time;
 
-    if (!(bool)CLUSTER_HEAD)
+    if (!CLUSTER_HEAD)
       call RadioControl.stop();
 
     stop_time = call LocalTime.get();
