@@ -155,7 +155,6 @@ def upgrade():
     sa.Column('nodeId', sa.Integer(), nullable=True),
     sa.Column('parent', sa.Integer(), nullable=True),
     sa.Column('localtime', sa.BigInteger(), nullable=True),
-    sa.Column('seq_num', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['nodeId'], ['Node.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
