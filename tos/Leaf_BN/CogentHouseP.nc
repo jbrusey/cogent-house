@@ -488,6 +488,10 @@ implementation
     uint32_t send_time;
     int i;
 
+#ifdef BLINKY
+    call Leds.led2Toggle();
+#endif
+
     if (!CLUSTER_HEAD)
       call RadioControl.stop();
     call SendTimeOutTimer.stop();
@@ -536,9 +540,7 @@ implementation
     const AckMsg *ackMsg = call AckValue.get();
     CRCStruct crs;
     uint16_t crc;
-
 #ifdef DEBUG
-    call Leds.led2Toggle();
     printf("ack packet rec at %lu\n", call LocalTime.get());
     printfflush();
 #endif
