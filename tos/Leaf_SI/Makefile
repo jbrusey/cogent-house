@@ -9,7 +9,7 @@ BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
 # turn on leds for debugging?
-CFLAGS += -DBLINKY
+#CFLAGS += -DBLINKY
 #CFLAGS += -DDEBUG
 
 #time out time in seconds
