@@ -13,7 +13,7 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 #CFLAGS += -DDEBUG
 
 #time out time in seconds
-CFLAGS += -DLEAF_TIMEOUT_TIME=5120L
+CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
