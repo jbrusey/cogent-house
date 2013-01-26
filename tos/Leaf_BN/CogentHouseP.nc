@@ -180,13 +180,13 @@ implementation
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_VOLTAGE);
-      call Configured.set(RS_DUTY);
+      //call Configured.set(RS_DUTY);
     }
     else if (nodeType == 2) { /* co2 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
-      call Configured.set(RS_DUTY);
+      //call Configured.set(RS_DUTY);
     }
     else if (nodeType == 3) { /* air quality */
       call Configured.set(RS_TEMPERATURE);
@@ -194,7 +194,7 @@ implementation
       call Configured.set(RS_CO2);
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
-      call Configured.set(RS_DUTY);
+      //call Configured.set(RS_DUTY);
     }
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
