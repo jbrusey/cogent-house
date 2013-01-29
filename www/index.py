@@ -28,7 +28,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
 
-_DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
+_DBURL = "mysql://ross@localhost/SampsonClose?connect_timeout=1"
 
 engine = create_engine(_DBURL, echo=False, pool_recycle=60)
 #engine.execute("pragma foreign_keys=on")
@@ -135,7 +135,7 @@ def tree(req, period='hour'):
         req.content_type = "image/svg+xml"
 #        req.content_type = "text/plain"
 
-        t = datetime.utcnow() - timedelta(minutes=mins)
+        #t = datetime.utcnow() - timedelta(minutes=mins)
 
         p = Popen("dot -Tsvg", shell=True, bufsize=4096,
 #        p = Popen("cat", shell=True, bufsize=4096,
@@ -146,7 +146,7 @@ def tree(req, period='hour'):
             dotfile.write("digraph {");
             for (ni,pa) in session.query(NodeState.nodeId,
                                             NodeState.parent
-                                            ).group_by(NodeState.nodeId, NodeState.parent).filter(NodeState.time>t):
+                                            ).group_by(NodeState.nodeId, NodeState.parent):#.filter(NodeState.time>t):
                 
                 dotfile.write("%d->%d;" % (ni, pa))
             dotfile.write("}");
