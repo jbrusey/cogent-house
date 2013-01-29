@@ -103,8 +103,9 @@ implementation
        mu_assert("should be able to use put", 
 		 call LittleMap.put(i, i));
      }
+
      mu_assert("should overflow",
-	       call LittleMap.put(102, 102));
+	       !call LittleMap.put(102, 102));
      return 0;
    }
 
