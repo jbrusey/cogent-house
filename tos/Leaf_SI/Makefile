@@ -1,9 +1,9 @@
-PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
+PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap
 COMPONENT=CogentHouseC
 
 
 PFLAGS +=-DTOSH_DATA_LENGTH=118
-CFLAGS += -DCC2420_DEF_RFPOWER=1
+#CFLAGS += -DCC2420_DEF_RFPOWER=1
 
 PYTHON_TARGET_DIR=../../cogent/node
 PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py BNMsg.py)
@@ -14,13 +14,17 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 #CFLAGS += -DBLINKY
 CFLAGS += -DDEBUG
 
+#ACK queue and hash maps sizes
+CFLAGS += -DRADIO_QUEUE_SIZE=15
+CFLAGS += -DHASH_SIZE=19
+
 #time out time in seconds
 CFLAGS += -DLEAF_TIMEOUT_TIME=5120L
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
-CFLAGS += -DDEF_SENSE_PERIOD=30720L
-CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=30720L
+CFLAGS += -DDEF_SENSE_PERIOD=10240L
+CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=10240L
 
 CFLAGS += -DCLUSTER_HEAD=0
 CFLAGS += -DHEARTBEAT_PERIOD=89 #7 hours
