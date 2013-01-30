@@ -30,11 +30,14 @@ def lowBat(session,
     lowBatHeader = True
 
     lowbat_set = set()
-    for (n,c) in session.query(Reading.nodeId, func.count(Reading.nodeId).label('count')).filter(
-        and_(Reading.typeId==6,
-             Reading.time >= start_t,
-             Reading.time < end_t,
-             Reading.value < bat_thresh)).group_by(Reading.nodeId).all():
+    for (n, c) in (session.query(Reading.nodeId,
+                                func.count(Reading.nodeId).label('count'))
+                         .filter(
+                             and_(Reading.typeId==6,
+                                  Reading.time >= start_t,
+                                  Reading.time < end_t,
+                                  Reading.value < bat_thresh))
+                         .group_by(Reading.nodeId).all()):
 
         if c >= count_thresh:
             lowbat_set.add(n)
