@@ -1,0 +1,19 @@
+digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname="Courier"];
+  Reading[label=<
+	  <table border="0" cellborder="1" cellspacing="0">
+	  <tr><td><font face="Helvetica"><b>Reading</b></font></td></tr>
+	  <tr><td port="time"><font color="red">time</font></td></tr>
+	  <tr><td port="nodeId"><font color="red">nodeId</font></td></tr>
+	  <tr><td port="typeId"><font color="red">typeId</font></td></tr>
+	  <tr><td port="locationId"><font color="red">locationId</font></td></tr>
+	  <tr><td>value</td></tr>
+	  </table>>];
+  
+  aNode[label="Node"];
+
+  Reading:nodeId -> aNode:id;
+  Reading:locationId -> Location:id;
+  Reading:typeId -> Type:id;
+}

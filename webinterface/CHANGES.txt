@@ -1,0 +1,10 @@
+0.0
+---
+
+-  Initial version
+
+0.1
+----
+
+-  Change Reading -> SensorType "typ" backref to "sensorType"
+-  Remove 
