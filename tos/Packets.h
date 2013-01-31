@@ -160,7 +160,6 @@ typedef nx_struct ConfigMsg {
 } ConfigMsg;
 
 
-
 typedef struct CRCStruct {
   nx_uint16_t node_id;
   nx_uint16_t seq;
@@ -169,9 +168,9 @@ typedef struct CRCStruct {
 
 typedef nx_struct AckMsg {
   nx_uint16_t node_id;
-  nx_uint8_t seq;
+  nx_uint16_t seq;
   nx_uint16_t crc;
-} AckMsg;
+} AckMsg_t;
 
 
 #endif

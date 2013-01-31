@@ -46,11 +46,22 @@ implementation
   CogentHouseP.CtpInfo -> CollectionC;
   CogentHouseP.StateSender -> StateSender;
 
-  components DisseminationC;
-  CogentHouseP.DisseminationControl -> DisseminationC;
-	
-  components new DisseminatorC(AckMsg, AM_ACKMSG);
-  CogentHouseP.AckValue -> DisseminatorC;
+  // ack interfaces
+  components new AMReceiverC(AM_ACKMSG) as AckReceiver;
+  CogentHouseP.AckReceiver -> AckReceiver;
+  components new AMSenderC(AM_ACKMSG) as AckForwarder;
+  CogentHouseP.AckForwarder -> AckForwarder;
+  CogentHouseP.Packet -> AckForwarder;
+
+  components new HashMapC(HASH_SIZE) as AckHeardMap;
+  CogentHouseP.AckHeardMap -> AckHeardMap;
+
+  components new QueueC(AckMsg_t*, RADIO_QUEUE_SIZE) as AckQueue;
+  components new PoolC(message_t, RADIO_QUEUE_SIZE) as AckPool;
+  CogentHouseP.AckQueue -> AckQueue;
+  CogentHouseP.AckPool -> AckPool;
+
+
   components CrcC;
   CogentHouseP.CRCCalc -> CrcC;
 
@@ -97,7 +108,7 @@ implementation
   CogentHouseP.ReadHum -> HumDetector.Read;
   CogentHouseP.HumTrans -> HumDetector.TransmissionControl;
 
-  //Hum
+  //CO2
   components new ExposureEventDetectorC(CO2_BAND_LEN,BN_CO2_BAND_THRESH) as CO2Detector;
   components new ExposureC(CO2_BAND_LEN, RS_CO2, BN_GAMMA) as CO2Exposure;
   
@@ -105,8 +116,6 @@ implementation
   CO2Detector.ExposureRead -> CO2Exposure.Read;
   CogentHouseP.ReadCO2 -> CO2Detector.Read;
   CogentHouseP.CO2Trans -> CO2Detector.TransmissionControl;
-
-
 
   CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
   CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
