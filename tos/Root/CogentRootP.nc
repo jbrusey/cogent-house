@@ -1,10 +1,8 @@
 // -*- c -*-
-#include "AM.h"
-#include "Serial.h"
 
-module CogentRootP{
-  uses
-  {
+
+module CogentRootP @safe() {
+  uses {
       interface Boot;
       interface SplitControl as SerialControl;
       interface SplitControl as RadioControl;
@@ -17,10 +15,12 @@ module CogentRootP{
       interface Packet as RadioPacket;
       interface CollectionPacket;
 
-      // dissemination
-      interface DisseminationUpdate<AckMsg> as AckUpdate;
-      interface StdControl as DisseminationControl;
+      //ack interfaces
+      interface AMSend as AckForwarder;
+      interface Packet;
       interface Crc as CRCCalc ;
+      interface Queue<AckMsg_t *> as AckQueue;
+      interface Pool<message_t> as AckPool;
 
       //data forwarding interfaces
       interface AMSend as UartSend[am_id_t id];
@@ -29,8 +29,8 @@ module CogentRootP{
       interface Receive as UartAckReceive;
 
       // queuing
-      interface Queue<message_t *>;
-      interface Pool<message_t>;
+      interface Queue<message_t *> as DataQueue;
+      interface Pool<message_t> as DataPool;
 
       interface Timer<TMilli> as BlinkTimer;
       interface Leds;
@@ -41,15 +41,15 @@ implementation
 {
   message_t fwdMsg;
   bool fwdBusy;
-  uint8_t lastLen;
-  int mSeq=0;
+  bool fwdAck = FALSE;
+  message_t dataMsg;
+  message_t uartmsg;
 
   event void Boot.booted()
   {
     call SerialControl.start();
     call RadioControl.start();
     call BlinkTimer.startOneShot(512L);
-
   }
 
   event void RadioControl.startDone(error_t error) {
@@ -57,7 +57,6 @@ implementation
       call RadioControl.start();
     else {
       call CollectionControl.start();
-      call DisseminationControl.start();
       call RootControl.setRoot();
     }
   }
@@ -66,11 +65,9 @@ implementation
 
 
   //DEAL WITH STATE
-  message_t uartmsg;
-
   task void serialForwardTask() { 
-    if (!call Queue.empty() && !fwdBusy) {
-      message_t* msg = call Queue.dequeue();
+    if (!call DataQueue.empty() && !fwdBusy) {
+      message_t* msg = call DataQueue.dequeue();
       uint8_t len = call RadioPacket.payloadLength(msg);
       void *radio_payload = call RadioPacket.getPayload(msg, len);
       collection_id_t id = call CollectionPacket.getType(msg);
@@ -91,7 +88,7 @@ implementation
 	  }
 	  else { 
 #ifdef BLINKY
-	    call Leds.led0On();
+	    //	    call Leds.led0Toggle();
 #endif
 	  }
 	}
@@ -105,11 +102,11 @@ implementation
 						    uint8_t len)
   {
 #ifdef BLINKY
-    call Leds.led2Toggle();
+    //    call Leds.led2Toggle();
 #endif
-    if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) { 
-      message_t *tmp = call Pool.get();
-      call Queue.enqueue(msg);
+    if (!call DataPool.empty() && call DataQueue.size() < call DataQueue.maxSize()) { 
+      message_t *tmp = call DataPool.get();
+      call DataQueue.enqueue(msg);
       if (!fwdBusy) {
 	post serialForwardTask();
       }
@@ -120,27 +117,72 @@ implementation
 
   event void UartSend.sendDone[am_id_t id](message_t *msg, error_t error) {
     fwdBusy = FALSE;
-    call Pool.put(msg);
-    if (! call Queue.empty())
+    call DataPool.put(msg);
+    if (! call DataQueue.empty())
       post serialForwardTask();
   }
 
-  event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len)
-  {    
-    AckMsg *ackMsg = payload;
+
+  task void transmit() {
+    AckMsg_t *ackData;
+    AckMsg_t* aMsg;
     CRCStruct crs;
     uint16_t crc;
-
+    
 #ifdef BLINKY 
     call Leds.led1Toggle();
 #endif
-    if (len == sizeof(*ackMsg)) {
-      //message is ok calculate crc
-      crs.node_id = ackMsg->node_id;
-      crs.seq = ackMsg->seq;
-      crc = call CRCCalc.crc16(&crs, sizeof crs);
-      ackMsg->crc=crc;
-      call AckUpdate.change(ackMsg);
+    
+    if (!call AckQueue.empty() && !fwdAck) {
+      aMsg = call AckQueue.dequeue();
+      ackData = (AckMsg_t *) call Packet.getPayload(&dataMsg,  sizeof (AckMsg_t));
+      if (ackData != NULL) { 
+	
+	//calculate crc
+	crs.node_id = aMsg->node_id;
+	crs.seq = aMsg->seq;
+	crc = call CRCCalc.crc16(&crs, sizeof crs);
+        ackData->node_id = crs.node_id;
+        ackData->seq = crs.seq;
+        ackData->crc = crc;
+	if (call AckForwarder.send(AM_BROADCAST_ADDR, &dataMsg,  sizeof (AckMsg_t)) == SUCCESS) {
+	  fwdAck = TRUE;	
+#ifdef BLINKY
+	  call Leds.led2On();
+#endif
+	}	  
+      }
+    }
+  }
+
+  event void AckForwarder.sendDone(message_t *msg, error_t ok) {
+    fwdAck = FALSE;
+#ifdef BLINKY
+    call Leds.led2Off();
+#endif
+	
+#ifdef BLINKY 
+    call Leds.led0Toggle();
+#endif
+    call AckPool.put(msg);
+    if (! call AckQueue.empty())
+      post transmit();
+  }
+
+  event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len){
+    AckMsg_t* aMsg;
+#ifdef BLINKY
+    call Leds.led0Toggle();
+#endif
+    if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) {
+      message_t *tmp = call AckPool.get();
+      aMsg = (AckMsg_t*)payload;
+      call AckQueue.enqueue(aMsg);
+      
+      if (!fwdAck)
+	post transmit();
+      
+      return tmp;
     }
     return msg;
   }
@@ -150,6 +192,7 @@ implementation
     if (error == FAIL)
       call SerialControl.start();
   }
+
   event void SerialControl.stopDone(error_t error) { }
 
   uint8_t blink_state = 0;

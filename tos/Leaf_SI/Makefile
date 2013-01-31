@@ -1,4 +1,4 @@
-PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
+PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap
 COMPONENT=CogentHouseC
 
 PFLAGS +=-DTOSH_DATA_LENGTH=118
@@ -11,6 +11,10 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
 #CFLAGS += -DDEBUG
+
+#ACK queue and hash maps sizes
+CFLAGS += -DRADIO_QUEUE_SIZE=15
+CFLAGS += -DHASH_SIZE=19
 
 #time out time in seconds
 CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
@@ -36,7 +40,7 @@ CFLAGS += -DSIP_CO2_THRESH=100.
 CFLAGS += -DSIP_CO2_ALPHA=0.2
 CFLAGS += -DSIP_CO2_BETA=0.2
 
-CFLAGS += -DSIP_AQ_THRESH=0.2
+CFLAGS += -DSIP_AQ_THRESH=0.1
 CFLAGS += -DSIP_AQ_ALPHA=0.05
 CFLAGS += -DSIP_AQ_BETA=0.05
 
@@ -61,6 +65,4 @@ $(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
 
 $(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
 	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
-
-
 

@@ -5,8 +5,8 @@ module CogentHouseP
   uses {
     //low-level stuff
     interface Timer<TMilli> as SenseTimer;
-    interface Timer<TMilli> as BlinkTimer;
     interface Timer<TMilli> as SendTimeOutTimer;
+    interface Timer<TMilli> as BlinkTimer;
     interface Leds;
     interface Boot;
     
@@ -17,10 +17,14 @@ module CogentHouseP
     interface StdControl as CollectionControl;
     interface CtpInfo;
 
-    // dissemination
-    interface StdControl as DisseminationControl;
-    interface DisseminationValue<AckMsg> as AckValue;
-    interface Crc as CRCCalc ;
+    // ack interfaces
+    interface Receive as AckReceiver;
+    interface AMSend as AckForwarder;
+    interface Packet;
+    interface Crc as CRCCalc;
+    interface Queue<AckMsg_t *> as AckQueue;
+    interface Pool<message_t> as AckPool;
+    interface Map as AckHeardMap;
 		
     //sending interfaces
     interface Send as StateSender;
@@ -47,6 +51,7 @@ module CogentHouseP
 }
 implementation
 {
+  bool fwdAck;
   float last_duty = 0.;
 
   float last_errno = 1.;
@@ -55,7 +60,7 @@ implementation
   uint32_t send_start_time;  
   uint32_t sense_start_time;
   bool phase_two_sensing = FALSE;
-	
+
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
 
@@ -70,11 +75,10 @@ implementation
   uint16_t message_size;
   uint8_t msgSeq = 0;
   uint8_t expSeq = 0;
-  bool toSend = 0;
-
-  int periodsToHeartbeat=HEARTBEAT_PERIOD;
   struct nodeType nt;
-	
+
+  bool toSend = 0;
+  int periodsToHeartbeat=HEARTBEAT_PERIOD;
 
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
@@ -148,6 +152,7 @@ implementation
       }
       send_start_time = call LocalTime.get();
       call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
+
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
@@ -167,6 +172,7 @@ implementation
     printfflush();
 #endif
 
+    call AckHeardMap.init();
     if (CLUSTER_HEAD)
       call RadioControl.start();
 
@@ -401,7 +407,6 @@ implementation
     if (ok == SUCCESS)
       {
 	call CollectionControl.start();
-	call DisseminationControl.start();
 #ifdef DEBUG
 	printf("Radio On %lu\n", call LocalTime.get());
         printfflush();
@@ -437,13 +442,7 @@ implementation
 #ifdef BLINKY
       call Leds.led0Toggle(); 
 #endif
-      reportError(ERR_SEND_FAILED);    
-    }
-    else {
-      if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-	last_errno = last_errno / last_transmitted_errno;
-      else
-	last_errno = 1.;
+      reportError(ERR_SEND_FAILED);
     }
   }
 
@@ -496,6 +495,12 @@ implementation
       call RadioControl.stop();
     call SendTimeOutTimer.stop();
 
+    //reset errors
+    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
+      last_errno = last_errno / last_transmitted_errno;
+    else
+      last_errno = 1.;
+
     stop_time = call LocalTime.get();
     //Calculate the next interval
     if (stop_time < send_start_time) // deal with overflow
@@ -529,42 +534,119 @@ implementation
   }
 
 
-  /** AckValue.changed
-   *
-   * - triggered when ack messgaes are disseminated
-   * - checks if this ack message is for the packet
-   */
+  bool beenHeard(uint16_t nodeId, uint16_t seq){
+    uint16_t val1;
+    if (call AckHeardMap.contains(nodeId)){
+      call AckHeardMap.get(nodeId, &val1);
+      if (val1==seq)
+        return TRUE;
+    }
+    return FALSE;
+  }
 
+  task void transmit() {
+    AckMsg_t *ackData;
+    AckMsg_t* aMsg;
+    
+#ifdef BLINKY 
+    call Leds.led1Toggle();
+#endif
+    
+    if (!call AckQueue.empty() && !fwdAck) {
+      aMsg = call AckQueue.dequeue();
+      ackData = (AckMsg_t *) call Packet.getPayload(&dataMsg,  sizeof (AckMsg_t));
+      if (ackData != NULL) { 
+	//memcpy(ackData, aMsg, sizeof (AckMsg_t);
+	ackData->node_id = aMsg->node_id;
+        ackData->seq = aMsg->seq;
+        ackData->crc = aMsg->crc;
+	if (call AckForwarder.send(AM_BROADCAST_ADDR, &dataMsg,  sizeof (AckMsg_t)) == SUCCESS) {
+	  fwdAck = TRUE;
+#ifdef DEBUG
+	printf("Sending out flood acks %lu\n", call LocalTime.get());
+	printfflush();
+#endif
+#ifdef BLINKY
+	  call Leds.led2On();
+#endif
+	}	  
+      }
+    }
+  }
 
-  event void AckValue.changed() { 
-    const AckMsg *ackMsg = call AckValue.get();
+  event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
+    AckMsg_t* aMsg;
     CRCStruct crs;
     uint16_t crc;
+    bool fwd=TRUE;
+
 #ifdef DEBUG
     printf("ack packet rec at %lu\n", call LocalTime.get());
     printfflush();
 #endif
-
-    crs.node_id = ackMsg->node_id;
-    crs.seq = ackMsg->seq;
-    crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
-
-#ifdef DEBUG
-    printf("exp seq %u\n", expSeq);
-    printf("rec seq %u\n", ackMsg->seq);
-    printf("exp nid %u\n", TOS_NODE_ID);
-    printf("rec nid %u\n", ackMsg->node_id);
-    printf("exp CRC %u\n", crc);
-    printf("rec CRC %u\n", ackMsg->crc);
-    printfflush();
-#endif 
     
+    aMsg = (AckMsg_t*)payload;
+    if (len == sizeof(AckMsg_t)){
+
+      crs.node_id = aMsg->node_id;
+      crs.seq = aMsg->seq;
+      crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
+      
+#ifdef DEBUG
+      printf("exp seq %u\n", expSeq);
+      printf("rec seq %u\n", aMsg->seq);
+      printf("exp nid %u\n", TOS_NODE_ID);
+      printf("rec nid %u\n", aMsg->node_id);
+      printf("exp CRC %u\n", crc);
+      printf("rec CRC %u\n", aMsg->crc);
+      printfflush();
+#endif 
+    }
     //check crc's, nid and seq match
-    if (crc == ackMsg->crc)
-      if (TOS_NODE_ID == ackMsg->node_id)
-	if (expSeq == ackMsg->seq)
-	  ackReceived();	  
-    return;
+    if (crc == aMsg->crc)
+      if(!beenHeard(aMsg->node_id, aMsg->seq)){
+#ifdef DEBUG
+	printf("not been heard %lu\n", call LocalTime.get());
+	printfflush();
+#endif
+	if (TOS_NODE_ID == aMsg->node_id)
+	  if (expSeq == aMsg->seq){
+	    fwd=FALSE;
+	    call AckHeardMap.put(aMsg->node_id,aMsg->seq);
+	    ackReceived();
+	  }
+
+	if (fwd){
+	  call AckHeardMap.put(aMsg->node_id,aMsg->seq);
+	  if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) { 
+	    message_t *tmp = call AckPool.get();
+	    aMsg = (AckMsg_t*)payload;
+	    call AckQueue.enqueue(aMsg);
+	    if (!fwdAck)
+	      post transmit();
+	    return tmp;
+	  }
+	}
+      }
+#ifdef DEBUG
+      else{
+	printf("heard previously ignore %lu\n", call LocalTime.get());
+	printfflush();
+      }
+#endif
+    return msg;
   }
+
+  
+  event void AckForwarder.sendDone(message_t *msg, error_t ok) {
+    fwdAck = FALSE;
+#ifdef BLINKY 
+    call Leds.led0Toggle();
+#endif
+    call AckPool.put(msg);
+    if (! call AckQueue.empty())
+      post transmit();
+  }
+  
 }
 
