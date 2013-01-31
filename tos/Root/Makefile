@@ -6,6 +6,5 @@ CFLAGS += -DBLINKY
 CFLAGS += -DRADIO_QUEUE_SIZE=15
 
 
-
 include $(MAKERULES)
 

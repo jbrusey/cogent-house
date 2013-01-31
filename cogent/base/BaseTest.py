@@ -253,12 +253,13 @@ if __name__ == '__main__':
     seq = 0
     time.sleep(2)
     while True:
+        seq = 1
         print "sending ack"
         send_ack(bif=bif,
                  seq=seq,
-                 dest=14)
-        seq += 1
-        if seq > 255:
-            seq = 0
+                 dest=19)
+        #seq = 1
+        #if seq > 255:
+        #    seq = 0
         time.sleep(2)
     
