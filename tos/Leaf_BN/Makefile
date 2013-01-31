@@ -1,4 +1,4 @@
-PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I./Exposure -I./ExposureEventDetector  -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
+PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I./Exposure -I./ExposureEventDetector  -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap
 COMPONENT=CogentHouseC
 
 PFLAGS +=-DTOSH_DATA_LENGTH=118
@@ -12,6 +12,10 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 #CFLAGS += -DBLINKY
 #CFLAGS += -DDEBUG
 
+#ACK queue and hash maps sizes
+CFLAGS += -DRADIO_QUEUE_SIZE=15
+CFLAGS += -DHASH_SIZE=19
+
 #time out time in seconds
 CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
 
@@ -20,7 +24,6 @@ CFLAGS += -DDEF_FIRST_PERIOD=10240
 CFLAGS += -DDEF_SENSE_PERIOD=307200L
 CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
 
-#can this be done as a bool guess just cast in P file?
 CFLAGS += -DCLUSTER_HEAD=0
 CFLAGS += -DHEARTBEAT_PERIOD=14688 #51 days
 

@@ -1,9 +1,7 @@
 PFLAGS += -I./AirQuality -I./CurrentCost -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./HeatMeter -I./Kalman -I./FilterWrapper -I./EventDetector -I./DEWMA -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap
 COMPONENT=CogentHouseC
 
-
 PFLAGS +=-DTOSH_DATA_LENGTH=118
-#CFLAGS += -DCC2420_DEF_RFPOWER=1
 
 PYTHON_TARGET_DIR=../../cogent/node
 PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py BNMsg.py)
@@ -12,29 +10,29 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
-CFLAGS += -DDEBUG
+#CFLAGS += -DDEBUG
 
 #ACK queue and hash maps sizes
 CFLAGS += -DRADIO_QUEUE_SIZE=15
 CFLAGS += -DHASH_SIZE=19
 
 #time out time in seconds
-CFLAGS += -DLEAF_TIMEOUT_TIME=5120L
+CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
-CFLAGS += -DDEF_SENSE_PERIOD=10240L
-CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=10240L
+CFLAGS += -DDEF_SENSE_PERIOD=307200L
+CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
 
 CFLAGS += -DCLUSTER_HEAD=0
 CFLAGS += -DHEARTBEAT_PERIOD=89 #7 hours
 
 CFLAGS += -DSIP  -DDEWMA #-DKALMAN
-CFLAGS += -DSIP_TEMP_THRESH=0.0
+CFLAGS += -DSIP_TEMP_THRESH=0.5
 CFLAGS += -DSIP_TEMP_ALPHA=0.2
 CFLAGS += -DSIP_TEMP_BETA=0.2
 
-CFLAGS += -DSIP_HUM_THRESH=1.
+CFLAGS += -DSIP_HUM_THRESH=2.
 CFLAGS += -DSIP_HUM_ALPHA=0.1
 CFLAGS += -DSIP_HUM_BETA=0.1
 
@@ -67,6 +65,4 @@ $(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
 
 $(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
 	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
-
-
 

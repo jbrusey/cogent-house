@@ -1,11 +1,8 @@
 // -*- c -*-
-#include "AM.h"
-#include "Serial.h"
-#include "limits.h"
 
-module CogentRootP{
-  uses
-  {
+
+module CogentRootP @safe() {
+  uses {
       interface Boot;
       interface SplitControl as SerialControl;
       interface SplitControl as RadioControl;
@@ -19,11 +16,10 @@ module CogentRootP{
       interface CollectionPacket;
 
       //ack interfaces
-      interface Timer<TMilli> as RandomTimer;
       interface AMSend as AckForwarder;
+      interface Packet;
       interface Crc as CRCCalc ;
-      interface Random;
-      interface Queue<AckMsg *> as AckQueue;
+      interface Queue<AckMsg_t *> as AckQueue;
       interface Pool<message_t> as AckPool;
 
       //data forwarding interfaces
@@ -36,8 +32,6 @@ module CogentRootP{
       interface Queue<message_t *> as DataQueue;
       interface Pool<message_t> as DataPool;
 
-
-
       interface Timer<TMilli> as BlinkTimer;
       interface Leds;
     }
@@ -47,15 +41,15 @@ implementation
 {
   message_t fwdMsg;
   bool fwdBusy;
-  uint8_t lastLen;
-  int mSeq=0;
+  bool fwdAck = FALSE;
+  message_t dataMsg;
+  message_t uartmsg;
 
   event void Boot.booted()
   {
     call SerialControl.start();
     call RadioControl.start();
     call BlinkTimer.startOneShot(512L);
-
   }
 
   event void RadioControl.startDone(error_t error) {
@@ -71,8 +65,6 @@ implementation
 
 
   //DEAL WITH STATE
-  message_t uartmsg;
-
   task void serialForwardTask() { 
     if (!call DataQueue.empty() && !fwdBusy) {
       message_t* msg = call DataQueue.dequeue();
@@ -131,14 +123,9 @@ implementation
   }
 
 
-  bool fwdAck=FALSE;
-
-  event void RandomTimer.fired(){}
-
   task void transmit() {
-    message_t dataMsg;
-    AckMsg *ackData;
-    AckMsg* aMsg;
+    AckMsg_t *ackData;
+    AckMsg_t* aMsg;
     CRCStruct crs;
     uint16_t crc;
     
@@ -148,7 +135,7 @@ implementation
     
     if (!call AckQueue.empty() && !fwdAck) {
       aMsg = call AckQueue.dequeue();
-      ackData = call AckForwarder.getPayload(&dataMsg,  sizeof(AckMsg));
+      ackData = (AckMsg_t *) call Packet.getPayload(&dataMsg,  sizeof (AckMsg_t));
       if (ackData != NULL) { 
 	
 	//calculate crc
@@ -158,9 +145,7 @@ implementation
         ackData->node_id = crs.node_id;
         ackData->seq = crs.seq;
         ackData->crc = crc;
-	
-
-	if (call AckForwarder.send(AM_BROADCAST_ADDR, &dataMsg,  sizeof(AckMsg)) == SUCCESS) {
+	if (call AckForwarder.send(AM_BROADCAST_ADDR, &dataMsg,  sizeof (AckMsg_t)) == SUCCESS) {
 	  fwdAck = TRUE;	
 #ifdef BLINKY
 	  call Leds.led2On();
@@ -171,41 +156,34 @@ implementation
   }
 
   event void AckForwarder.sendDone(message_t *msg, error_t ok) {
-    // uint16_t r = call Random.rand16();
-    //uint16_t time = r >> 8;
     fwdAck = FALSE;
 #ifdef BLINKY
-	  call Leds.led2Off();
+    call Leds.led2Off();
 #endif
-
+	
 #ifdef BLINKY 
-	  //call Leds.led0Toggle();
+    call Leds.led0Toggle();
 #endif
     call AckPool.put(msg);
     if (! call AckQueue.empty())
       post transmit();
-    //call RandomTimer.startOneShot(time);
   }
 
   event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len){
-    //uint16_t r = call Random.rand16();
-    //uint16_t time = r >> 8;
-
-    AckMsg* aMsg;
-#ifdef BLINKY 
+    AckMsg_t* aMsg;
+#ifdef BLINKY
     call Leds.led0Toggle();
 #endif
-    if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) { 
+    if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) {
       message_t *tmp = call AckPool.get();
-      aMsg = (AckMsg*)payload;
+      aMsg = (AckMsg_t*)payload;
       call AckQueue.enqueue(aMsg);
-
+      
       if (!fwdAck)
-        //call RandomTimer.startOneShot(time);
 	post transmit();
-
+      
       return tmp;
-    }  
+    }
     return msg;
   }
 

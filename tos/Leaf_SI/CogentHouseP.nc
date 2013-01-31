@@ -18,12 +18,11 @@ module CogentHouseP
     interface CtpInfo;
 
     // ack interfaces
-    interface Timer<TMilli> as RandomTimer;
-    interface Random;
     interface Receive as AckReceiver;
     interface AMSend as AckForwarder;
+    interface Packet;
     interface Crc as CRCCalc;
-    interface Queue<AckMsg *> as AckQueue;
+    interface Queue<AckMsg_t *> as AckQueue;
     interface Pool<message_t> as AckPool;
     interface Map as AckHeardMap;
 		
@@ -55,6 +54,7 @@ module CogentHouseP
 }
 implementation
 {
+  bool fwdAck;
   float last_duty = 0.;
 
   float last_errno = 1.;
@@ -63,7 +63,7 @@ implementation
   uint32_t send_start_time;  
   uint32_t sense_start_time;
   bool phase_two_sensing = FALSE;
-  
+
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
 
@@ -82,7 +82,6 @@ implementation
 
   bool toSend = 0;
   int periodsToHeartbeat=HEARTBEAT_PERIOD;
-	
 
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
@@ -119,6 +118,7 @@ implementation
       reportError(ERR_SEND_WHILE_PACKET_PENDING);
       return;
     }
+
     if (periodsToHeartbeat<=0)
       call PackState.add(SC_HEARTBEAT, 1);
 
@@ -174,7 +174,6 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
-
 
     call AckHeardMap.init();
     if (CLUSTER_HEAD)
@@ -443,13 +442,7 @@ implementation
 #ifdef BLINKY
       call Leds.led0Toggle(); 
 #endif
-      reportError(ERR_SEND_FAILED);    
-    }
-    else {
-      if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-	last_errno = last_errno / last_transmitted_errno;
-      else
-	last_errno = 1.;
+      reportError(ERR_SEND_FAILED);
     }
   }
 
@@ -502,6 +495,12 @@ implementation
       call RadioControl.stop();
     call SendTimeOutTimer.stop();
 
+    //reset errors
+    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
+      last_errno = last_errno / last_transmitted_errno;
+    else
+      last_errno = 1.;
+
     stop_time = call LocalTime.get();
     //Calculate the next interval
     if (stop_time < send_start_time) // deal with overflow
@@ -517,7 +516,7 @@ implementation
 #endif 
     
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
-    
+
     for (i = 0; i < RS_SIZE; i++) { 
       if (call Configured.get(i)) {
 	if (i == RS_TEMPERATURE)
@@ -534,7 +533,7 @@ implementation
 	  call VOCTrans.transmissionDone();
       }
     }
-    
+
     //reset heartbeat period
     periodsToHeartbeat=HEARTBEAT_PERIOD;
     restartSenseTimer();
@@ -544,30 +543,56 @@ implementation
   bool beenHeard(uint16_t nodeId, uint16_t seq){
     uint16_t val1;
     if (call AckHeardMap.contains(nodeId)){
-      call AckHeardMap.get(200, &val1);
+      call AckHeardMap.get(nodeId, &val1);
       if (val1==seq)
         return TRUE;
     }
     return FALSE;
   }
 
-  bool fwdAck;
+  task void transmit() {
+    AckMsg_t *ackData;
+    AckMsg_t* aMsg;
+    
+#ifdef BLINKY 
+    call Leds.led1Toggle();
+#endif
+    
+    if (!call AckQueue.empty() && !fwdAck) {
+      aMsg = call AckQueue.dequeue();
+      ackData = (AckMsg_t *) call Packet.getPayload(&dataMsg,  sizeof (AckMsg_t));
+      if (ackData != NULL) { 
+	//memcpy(ackData, aMsg, sizeof (AckMsg_t);
+	ackData->node_id = aMsg->node_id;
+        ackData->seq = aMsg->seq;
+        ackData->crc = aMsg->crc;
+	if (call AckForwarder.send(AM_BROADCAST_ADDR, &dataMsg,  sizeof (AckMsg_t)) == SUCCESS) {
+	  fwdAck = TRUE;
+#ifdef DEBUG
+	printf("Sending out flood acks %lu\n", call LocalTime.get());
+	printfflush();
+#endif
+#ifdef BLINKY
+	  call Leds.led2On();
+#endif
+	}	  
+      }
+    }
+  }
 
   event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
-    AckMsg* aMsg;
+    AckMsg_t* aMsg;
     CRCStruct crs;
     uint16_t crc;
     bool fwd=TRUE;
-    uint16_t r = call Random.rand16();
-    uint16_t time = r >> 7;
 
 #ifdef DEBUG
     printf("ack packet rec at %lu\n", call LocalTime.get());
     printfflush();
 #endif
     
-    /*  aMsg = (AckMsg*)payload;
-    if (len == sizeof(AckMsg)){
+    aMsg = (AckMsg_t*)payload;
+    if (len == sizeof(AckMsg_t)){
 
       crs.node_id = aMsg->node_id;
       crs.seq = aMsg->seq;
@@ -582,88 +607,52 @@ implementation
       printf("rec CRC %u\n", aMsg->crc);
       printfflush();
 #endif 
-
-      //check crc's, nid and seq match
-      if (crc == aMsg->crc){
-        if(!beenHeard(aMsg->node_id, aMsg->seq)){
+    }
+    //check crc's, nid and seq match
+    if (crc == aMsg->crc)
+      if(!beenHeard(aMsg->node_id, aMsg->seq)){
 #ifdef DEBUG
-	  printf("not been heard %lu\n", call LocalTime.get());
-	  printfflush();
+	printf("not been heard %lu\n", call LocalTime.get());
+	printfflush();
 #endif
-          if (TOS_NODE_ID == aMsg->node_id)
-  	    if (expSeq == aMsg->seq){
-              fwd=FALSE;
-              call AckHeardMap.put(aMsg->node_id,aMsg->seq);
-	      ackReceived();
-            }
-	}
-
-	//this is not the ack we are looking for so forawrd if this ack has not been heard
-	if (fwd){
-	  if(!beenHeard(aMsg->node_id, aMsg->seq)){
+	if (TOS_NODE_ID == aMsg->node_id)
+	  if (expSeq == aMsg->seq){
+	    fwd=FALSE;
 	    call AckHeardMap.put(aMsg->node_id,aMsg->seq);
-	    if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) { 
-	      message_t *tmp = call AckPool.get();
-	      aMsg = (AckMsg*)payload;
-	      call AckQueue.enqueue(aMsg);
-	      if (!fwdAck)
-		call RandomTimer.startOneShot(time);
-	      return tmp;
-	    }
+	    ackReceived();
+	  }
+
+	if (fwd){
+	  call AckHeardMap.put(aMsg->node_id,aMsg->seq);
+	  if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) { 
+	    message_t *tmp = call AckPool.get();
+	    aMsg = (AckMsg_t*)payload;
+	    call AckQueue.enqueue(aMsg);
+	    if (!fwdAck)
+	      post transmit();
+	    return tmp;
 	  }
 	}
       }
-      }*/
-    return msg;
-  }
-
-  event void RandomTimer.fired() {
-    AckMsg *ackData;
-    AckMsg* aMsg;
-    CRCStruct crs;
-    uint16_t crc;
-    
-#ifdef BLINKY 
-    call Leds.led1Toggle();
-#endif
-    
-    if (!call AckQueue.empty() && !fwdAck) {
-      aMsg = call AckQueue.dequeue();
-      ackData = call AckForwarder.getPayload(&dataMsg,  sizeof(AckMsg));
-      if (ackData != NULL) { 
-	
-	//calculate crc
-	crs.node_id = aMsg->node_id;
-	crs.seq = aMsg->seq;
-	crc = call CRCCalc.crc16(&crs, sizeof crs);
-        ackData->node_id = crs.node_id;
-        ackData->seq = crs.seq;
-        ackData->crc = crc;
-	     
 #ifdef DEBUG
-        printf("forward ack (Node: %u, Seq: %u) %lu\n", aMsg->node_id, aMsg->seq, call LocalTime.get());
-        printfflush();
+      else{
+	printf("heard previously ignore %lu\n", call LocalTime.get());
+	printfflush();
+      }
 #endif
-	if (call AckForwarder.send(AM_BROADCAST_ADDR, &dataMsg,  sizeof(AckMsg)) == SUCCESS) { 
-	  fwdAck = TRUE;
-	}	
-      }
-      }
+    return msg;
   }
 
   
   event void AckForwarder.sendDone(message_t *msg, error_t ok) {
-    uint16_t r = call Random.rand16();
-    uint16_t time = r >> 7;
     fwdAck = FALSE;
 #ifdef BLINKY 
     call Leds.led0Toggle();
 #endif
     call AckPool.put(msg);
     if (! call AckQueue.empty())
-      call RandomTimer.startOneShot(time);
+      post transmit();
   }
-
-
+  
 }
 
