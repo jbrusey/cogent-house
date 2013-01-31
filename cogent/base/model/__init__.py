@@ -42,6 +42,7 @@ from sensor import *
 from sensortype import *
 from weather import *
 from uploadurl import *
+from timings import *
 
 import populateData
 
