@@ -139,15 +139,26 @@ implementation
       return;
     }
 
-    if (periodsToHeartbeat<=0)
-      call PackState.add(SC_HEARTBEAT, 1);
 
+#ifdef SIP
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
+#endif
+
+#ifdef BNP
+    if (call Configured.get(RS_DUTY))
+      call PackState.add(BN_DUTY_TIME, last_duty);
+    if (last_errno != 1.)
+      call PackState.add(BN_ERRNO, last_errno);
+#endif
 
     last_transmitted_errno = last_errno;
+
+    if (periodsToHeartbeat<=0)
+      call PackState.add(SC_HEARTBEAT, 1);
+
     pslen = call PackState.pack(&ps);
 		
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
@@ -440,15 +451,15 @@ implementation
   }
 
   event void ReadTemp.readDone(error_t result, float* data) {
-    do_readDone_BN(result, data, RS_TEMPERATURE, SC_TEMP_COUNT, SC_TEMP_FIRST);
+    do_readDone_BN(result, data, RS_TEMPERATURE, BN_TEMP_COUNT, BN_TEMP_FIRST);
   }
 	
   event void ReadHum.readDone(error_t result, float* data) {
-    do_readDone_BN(result, data, RS_HUMIDITY, SC_HUM_COUNT, SC_HUM_FIRST);
+    do_readDone_BN(result, data, RS_HUMIDITY, BN_HUM_COUNT, BN_HUM_FIRST);
   }    
 
   event void ReadCO2.readDone(error_t result, float* data) {
-    do_readDone_BN(result, data, RS_CO2, SC_CO2_COUNT, SC_CO2_FIRST);
+    do_readDone_BN(result, data, RS_CO2, BN_CO2_COUNT, BN_CO2_FIRST);
   }
    
   event void ReadAQ.readDone(error_t result, float data) {
@@ -460,7 +471,7 @@ implementation
   }
 
   event void ReadVolt.readDone(error_t result, float data) {
-    do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
+    do_readDone(result,(data), RS_VOLTAGE, BN_VOLTAGE);
   }
 #endif
 

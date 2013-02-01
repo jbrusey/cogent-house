@@ -228,7 +228,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
         
         dryqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 62)).order_by(Reading.time)
+                 Reading.typeId == 56)).order_by(Reading.time)
             
         for qt, qv in dryqry:
             bv.append(100.0)
@@ -239,7 +239,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
 
         comfortqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 63)).order_by(Reading.time)
+                 Reading.typeId == 57)).order_by(Reading.time)
 
         for qt, qv in comfortqry:
             comfort.append(qv)
@@ -248,7 +248,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
 
         dampqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 64)).order_by(Reading.time)
+                 Reading.typeId == 58)).order_by(Reading.time)
 
         for qt, qv in dampqry:
             damp.append(qv)
@@ -257,7 +257,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
 
         riskqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 65)).order_by(Reading.time)
+                 Reading.typeId == 59)).order_by(Reading.time)
 
         for qt, qv in riskqry:
             risk.append(qv)
@@ -378,7 +378,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
         
         healthqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 57)).order_by(Reading.time)
+                 Reading.typeId == 50)).order_by(Reading.time)
             
         lasthealth=None
         for qt, qv in healthqry:
@@ -390,7 +390,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         coldqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 58)).order_by(Reading.time)
+                 Reading.typeId == 51)).order_by(Reading.time)
 
         for qt, qv in coldqry:
             cold.append(qv)
@@ -399,7 +399,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         comfortqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 59)).order_by(Reading.time)
+                 Reading.typeId == 52)).order_by(Reading.time)
 
         for qt, qv in comfortqry:
             comfort.append(qv)
@@ -408,7 +408,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         warmqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 60)).order_by(Reading.time)
+                 Reading.typeId == 53)).order_by(Reading.time)
 
         for qt, qv in warmqry:
             warm.append(qv)
@@ -417,7 +417,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         overqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 61)).order_by(Reading.time)
+                 Reading.typeId == 54)).order_by(Reading.time)
 
         for qt, qv in overqry:
             over.append(qv)
@@ -493,7 +493,7 @@ def tempExposure():
             is_empty = False
 
             fr = session.query(Reading).filter(and_(Reading.nodeId==i,
-                                                    Reading.typeId==57)).first()
+                                                    Reading.typeId==50)).first()
 
             if fr is not None:
                 u = _url("tempExpNodeGraph", [('node', i)])
