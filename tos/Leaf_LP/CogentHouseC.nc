@@ -244,14 +244,32 @@ implementation
   //CO2
   components new ExposureEventDetectorC(CO2_BAND_LEN,BN_CO2_BAND_THRESH) as CO2Detector;
   components new ExposureC(CO2_BAND_LEN, RS_CO2, BN_GAMMA) as CO2Exposure;
+  
   CO2Exposure.GetValue -> AirQualityM.ReadCO2;
   CO2Detector.ExposureRead -> CO2Exposure.Read;
 
   CogentHouseP.ReadCO2 -> CO2Detector.Read;
   CogentHouseP.CO2Trans -> CO2Detector.TransmissionControl;
 
-  CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
-  CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
+  //VOC
+  components new ExposureEventDetectorC(VOC_BAND_LEN,BN_VOC_BAND_THRESH) as VOCDetector;
+  components new ExposureC(VOC_BAND_LEN, RS_VOC, BN_GAMMA) as VOCExposure;
+  VOCExposure.GetValue -> AirQualityM.ReadVOC;
+  VOCDetector.ExposureRead -> VOCExposure.Read;
+
+  CogentHouseP.ReadVOC -> VOCDetector.Read;
+  CogentHouseP.VOCTrans -> VOCDetector.TransmissionControl;
+
+
+  //AQ
+  components new ExposureEventDetectorC(AQ_BAND_LEN,BN_AQ_BAND_THRESH) as AQDetector;
+  components new ExposureC(AQ_BAND_LEN, RS_AQ, BN_GAMMA) as AQExposure;
+  AQExposure.GetValue -> AirQualityM.ReadAQ;
+  AQDetector.ExposureRead -> AQExposure.Read;
+
+  CogentHouseP.ReadAQ -> AQDetector.Read;
+  CogentHouseP.AQTrans -> AQDetector.TransmissionControl;
+
   BatterySensingM.GetVoltage -> Volt;
   CogentHouseP.ReadVolt->BatterySensingM.ReadBattery;
 #endif

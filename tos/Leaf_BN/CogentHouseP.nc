@@ -31,14 +31,19 @@ module CogentHouseP
 
     //SI Sensing
     interface Read<float *> as ReadTemp;
-    interface TransmissionControl as TempTrans;
     interface Read<float *> as ReadHum;
-    interface TransmissionControl as HumTrans;
     interface Read<float *> as ReadCO2;
-    interface TransmissionControl as CO2Trans;
+    interface Read<float *> as ReadVOC;
+    interface Read<float *> as ReadAQ;
     interface Read<float> as ReadVolt;
-    interface Read<float> as ReadVOC;
-    interface Read<float> as ReadAQ;
+
+    interface TransmissionControl as TempTrans;
+    interface TransmissionControl as HumTrans;
+    interface TransmissionControl as CO2Trans;
+    interface TransmissionControl as VOCTrans;
+    interface TransmissionControl as AQTrans;
+
+
 
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -117,17 +122,17 @@ implementation
     }
 
     if (periodsToHeartbeat<=0)
-      call PackState.add(SC_HEARTBEAT, 1);
+      call PackState.add(BN_HEARTBEAT, 1);
 
     if (call Configured.get(RS_DUTY))
-      call PackState.add(SC_DUTY_TIME, last_duty);
+      call PackState.add(BN_DUTY_TIME, last_duty);
     if (last_errno != 1.)
-      call PackState.add(SC_ERRNO, last_errno);
+      call PackState.add(BN_ERRNO, last_errno);
 
     last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
 		
-    message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
+    message_size = sizeof (StateMsg) - (BN_SIZE - pslen) * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       //we're going do a send so pack the msg count and then increment
@@ -380,27 +385,27 @@ implementation
   }
 
   event void ReadTemp.readDone(error_t result, float* data) {
-    do_readDone_BN(result, data, RS_TEMPERATURE, SC_TEMP_COUNT, SC_TEMP_FIRST);
+    do_readDone_BN(result, data, RS_TEMPERATURE, BN_TEMP_COUNT, BN_TEMP_FIRST);
   }
 	
   event void ReadHum.readDone(error_t result, float* data) {
-    do_readDone_BN(result, data, RS_HUMIDITY, SC_HUM_COUNT, SC_HUM_FIRST);
+    do_readDone_BN(result, data, RS_HUMIDITY, BN_HUM_COUNT, BN_HUM_FIRST);
   }    
 
   event void ReadCO2.readDone(error_t result, float* data) {
-    do_readDone_BN(result, data, RS_CO2, SC_CO2_COUNT, SC_CO2_FIRST);
+    do_readDone_BN(result, data, RS_CO2, BN_CO2_COUNT, BN_CO2_FIRST);
   }
    
-  event void ReadAQ.readDone(error_t result, float data) {
-    do_readDone(result, data, RS_AQ, SC_AQ);
+  event void ReadAQ.readDone(error_t result, float* data) {
+    do_readDone_BN(result, data, RS_AQ, BN_AQ_COUNT, BN_AQ_FIRST);
   }
   
-  event void ReadVOC.readDone(error_t result, float data) {	
-    do_readDone(result, data, RS_VOC, SC_VOC);
+  event void ReadVOC.readDone(error_t result, float* data) {
+    do_readDone_BN(result, data, RS_VOC, BN_VOC_COUNT, BN_VOC_FIRST);	
   }
 
   event void ReadVolt.readDone(error_t result, float data) {
-    do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
+    do_readDone(result,(data), RS_VOLTAGE, BN_VOLTAGE);
   }
 
   event void RadioControl.startDone(error_t ok) {
@@ -525,6 +530,10 @@ implementation
 	  call HumTrans.transmissionDone();
 	else if (i == RS_CO2)
 	  call CO2Trans.transmissionDone();
+	else if (i == RS_AQ)
+	  call AQTrans.transmissionDone();
+	else if (i == RS_VOC)
+	  call VOCTrans.transmissionDone();
       }
     }
 

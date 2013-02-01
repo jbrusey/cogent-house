@@ -18,6 +18,10 @@ implementation
       bandLimit=hBands;
     else if (raw_sensor == RS_CO2)
       bandLimit=cBands;
+    else if (raw_sensor == RS_VOC)
+      bandLimit=vBands;
+    else if (raw_sensor == RS_AQ)
+      bandLimit=aBands;
     else
       bandLimit=nullBands;
   } 
