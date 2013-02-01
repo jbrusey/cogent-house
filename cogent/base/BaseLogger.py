@@ -44,7 +44,12 @@ DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, and_
 
-BN_OFFSET=50
+BN_OFFSET = 50
+# Used to map common elements to the correct type
+BN_SC_MAP = {Packets.BN_VOLTAGE:Packets.SC_VOLTAGE, 
+             Packets.BN_DUTY_TIME:Packets.SC_DUTY_TIME, 
+             Packets.BN_ERRNO:Packets.SC_ERRNO} 
+
 def duplicate_packet(session, receipt_time, node_id, localtime):
     """ duplicate packets can occur because in a large network,
     the duplicate packet cache used is not sufficient. If such
@@ -166,9 +171,11 @@ class BaseLogger(object):
             session.add(node_state)
 
             for i, value in pack_state.d.iteritems():
-                if (msg.get_amType() == Packets.AM_BNMSG and
-                    i not in [Packets.SC_VOLTAGE]):
-                    type_id = i + BN_OFFSET   # TODO: ideally should be a flag in datbase or something
+                if msg.get_amType() == Packets.AM_BNMSG:
+                    if i not in BN_SC_MAP:
+                        type_id = i + BN_OFFSET
+                    else:
+                        type_id = BN_SC_MAP[i]
                 else:
                     type_id = i
 
