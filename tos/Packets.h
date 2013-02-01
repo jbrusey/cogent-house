@@ -73,9 +73,16 @@ enum {
   BN_HUM_FIRST = 5,
   BN_CO2_COUNT = 4,
   BN_CO2_FIRST = 9,
-  BN_VOLTAGE = 13,
-  BN_DUTY_TIME= 14,
-  BN_ERRNO = 15,
+  BN_VOC_COUNT = 2,
+  BN_VOC_FIRST = 13,
+  BN_AQ_COUNT = 2,
+  BN_AQ_FIRST = 15,
+  BN_VOLTAGE = 17,
+  BN_DUTY_TIME= 18,
+  BN_ERRNO = 19,
+  BN_HEARTBEAT = 20,
+  BN_SIZE = 21
+
 };
 
 #include "Leaf_SS/PackState/packstate.h"

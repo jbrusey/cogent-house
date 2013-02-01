@@ -48,7 +48,11 @@ BN_OFFSET = 50
 # Used to map common elements to the correct type
 BN_SC_MAP = {Packets.BN_VOLTAGE:Packets.SC_VOLTAGE, 
              Packets.BN_DUTY_TIME:Packets.SC_DUTY_TIME, 
-             Packets.BN_ERRNO:Packets.SC_ERRNO} 
+             Packets.BN_ERRNO:Packets.SC_ERRNO,
+             Packets.BN_HEARTBEAT:Packets.SC_HEARTBEAT} 
+
+
+
 
 def duplicate_packet(session, receipt_time, node_id, localtime):
     """ duplicate packets can occur because in a large network,

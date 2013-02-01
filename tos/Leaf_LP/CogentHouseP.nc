@@ -33,29 +33,29 @@ module CogentHouseP
 #ifdef SIP
     interface Read<FilterState *> as ReadTemp;
     interface Read<FilterState *> as ReadHum;
-    interface Read<FilterState *> as ReadVolt;
     interface Read<FilterState *> as ReadCO2;
     interface Read<FilterState *> as ReadVOC;
     interface Read<FilterState *> as ReadAQ;
+    interface Read<FilterState *> as ReadVolt;
 #endif
 
 #ifdef BNP
     interface Read<float *> as ReadTemp;
     interface Read<float *> as ReadHum;
     interface Read<float *> as ReadCO2;
+    interface Read<float *> as ReadVOC;
+    interface Read<float *> as ReadAQ;
     interface Read<float> as ReadVolt;
-    interface Read<float> as ReadVOC;
-    interface Read<float> as ReadAQ;
 #endif
 
     interface TransmissionControl as TempTrans;
     interface TransmissionControl as HumTrans;
     interface TransmissionControl as CO2Trans;
+    interface TransmissionControl as VOCTrans;
+    interface TransmissionControl as AQTrans;
 
 #ifdef SIP
     interface TransmissionControl as VoltTrans;
-    interface TransmissionControl as AQTrans;
-    interface TransmissionControl as VOCTrans;
 #endif
 
     //Bitmask and packstate
@@ -145,6 +145,8 @@ implementation
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
+    if (periodsToHeartbeat<=0)
+      call PackState.add(SC_HEARTBEAT, 1);
 #endif
 
 #ifdef BNP
@@ -152,16 +154,20 @@ implementation
       call PackState.add(BN_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(BN_ERRNO, last_errno);
+    if (periodsToHeartbeat<=0)
+      call PackState.add(BN_HEARTBEAT, 1);
 #endif
 
     last_transmitted_errno = last_errno;
 
-    if (periodsToHeartbeat<=0)
-      call PackState.add(SC_HEARTBEAT, 1);
-
     pslen = call PackState.pack(&ps);
 		
+#ifdef SIP
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
+#endif
+#ifdef BNP
+    message_size = sizeof (StateMsg) - (BN_SIZE - pslen) * sizeof (float);
+#endif
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       //we're going do a send so pack the msg count and then increment
@@ -462,12 +468,12 @@ implementation
     do_readDone_BN(result, data, RS_CO2, BN_CO2_COUNT, BN_CO2_FIRST);
   }
    
-  event void ReadAQ.readDone(error_t result, float data) {
-    do_readDone(result, data, RS_AQ, SC_AQ);
+  event void ReadAQ.readDone(error_t result, float* data) {
+    do_readDone_BN(result, data, RS_AQ, BN_AQ_COUNT, BN_AQ_FIRST);
   }
   
-  event void ReadVOC.readDone(error_t result, float data) {	
-    do_readDone(result, data, RS_VOC, SC_VOC);
+  event void ReadVOC.readDone(error_t result, float* data) {
+    do_readDone_BN(result, data, RS_VOC, BN_VOC_COUNT, BN_VOC_FIRST);	
   }
 
   event void ReadVolt.readDone(error_t result, float data) {
@@ -597,13 +603,13 @@ implementation
 	  call HumTrans.transmissionDone();
 	else if (i == RS_CO2)
 	  call CO2Trans.transmissionDone();
-#ifdef SIP
-	else if (i == RS_VOLTAGE)
-	    call VoltTrans.transmissionDone();
 	else if (i == RS_AQ)
 	  call AQTrans.transmissionDone();
 	else if (i == RS_VOC)
 	  call VOCTrans.transmissionDone();
+#ifdef SIP
+	else if (i == RS_VOLTAGE)
+	    call VoltTrans.transmissionDone();
 #endif
       }
     }
