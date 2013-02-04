@@ -61,17 +61,21 @@ implementation
   }
 
   event void GetSensorValue.readDone(error_t result, float data) {
-    float v[2];
-    uint32_t time;
-    //get local time
-    time = call LocalTime.get();
-    currentState.z = data;
+    if (result==SUCCESS){
+      float v[2];
+      uint32_t time;
+      //get local time
+      time = call LocalTime.get();
+      currentState.z = data;
 
-    call Filter.filter(data, time, v);
-    currentState.time = time;
-    currentState.x = v[0];
-    currentState.dx = v[1];
-    signal Read.readDone(SUCCESS, &currentState);	    
+      call Filter.filter(data, time, v);
+      currentState.time = time;
+      currentState.x = v[0];
+      currentState.dx = v[1];
+      signal Read.readDone(SUCCESS, &currentState);
+    }
+    else
+      signal Read.readDone(FAIL, NULL);
   }
 	
 	

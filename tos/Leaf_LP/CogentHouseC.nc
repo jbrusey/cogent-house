@@ -27,6 +27,7 @@ implementation
   components new TimerMilliC() as BlinkTimer;
   components new TimerMilliC() as WarmUpTimer;
   components new TimerMilliC() as SendTimeOutTimer;
+  components new TimerMilliC() as HeartBeatTimer;
   
   components RandomC;
 
@@ -35,6 +36,7 @@ implementation
   CogentHouseP.SenseTimer -> SenseTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
   CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
+  CogentHouseP.HeartBeatTimer -> HeartBeatTimer;
   CogentHouseP.Leds -> LedsC;
   CogentHouseP.RadioControl -> ActiveMessageC;
 

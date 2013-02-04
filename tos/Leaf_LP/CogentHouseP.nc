@@ -7,6 +7,7 @@ module CogentHouseP
     interface Timer<TMilli> as SenseTimer;
     interface Timer<TMilli> as SendTimeOutTimer;
     interface Timer<TMilli> as BlinkTimer;
+    interface Timer<TMilli> as HeartBeatTimer;
     interface Leds;
     interface Boot;
     
@@ -96,7 +97,8 @@ implementation
   struct nodeType nt;
 
   bool toSend = 0;
-  int periodsToHeartbeat=HEARTBEAT_PERIOD;
+
+  int periodsToHeartbeat=HEARTBEAT_MULTIPLIER;
 
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
@@ -145,8 +147,6 @@ implementation
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
-    if (periodsToHeartbeat<=0)
-      call PackState.add(SC_HEARTBEAT, 1);
 #endif
 
 #ifdef BNP
@@ -154,9 +154,8 @@ implementation
       call PackState.add(BN_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(BN_ERRNO, last_errno);
-    if (periodsToHeartbeat<=0)
-      call PackState.add(BN_HEARTBEAT, 1);
 #endif
+
 
     last_transmitted_errno = last_errno;
 
@@ -247,6 +246,7 @@ implementation
 
     sending = FALSE;
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
+    call HeartBeatTimer.startOneShot(HEARTBEAT_PERIOD);
   }
 
   /** Restart the sense timer as a one shot. Using a one shot here
@@ -261,7 +261,9 @@ implementation
   void restartSenseTimer() {
     uint32_t stop_time = call LocalTime.get();
     uint32_t send_time, next_interval;
+
     sending = FALSE;
+    toSend=FALSE;
 
 #ifdef DEBUG
     printf("restartSenseTimer at %lu\n", call LocalTime.get());
@@ -305,7 +307,6 @@ implementation
 	break;
       }
     }
-
     if (allDone) {
       if (phase_two_sensing) {
 #ifdef DEBUG
@@ -313,6 +314,12 @@ implementation
 	printf("toSend %u\n", (int)toSend);
 	printfflush();
 #endif	
+
+	if (periodsToHeartbeat==0){
+	  reportError(ERR_HEARTBEAT);
+	  toSend=TRUE;
+	}
+
 	if (toSend){
           if (!CLUSTER_HEAD)
 	    call RadioControl.start();
@@ -337,9 +344,6 @@ implementation
   event void SenseTimer.fired() {
     int i;
 
-    //starting reads decrease periods To Heartbeat
-    periodsToHeartbeat=periodsToHeartbeat-1;
-    toSend=FALSE;
     sense_start_time = call LocalTime.get();
 #ifdef BLINKY
     call Leds.led0Toggle();
@@ -399,7 +403,7 @@ implementation
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
   {
-    if (result == SUCCESS || periodsToHeartbeat<=0)
+    if (result == SUCCESS)
       call PackState.add(state_code, data);
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
@@ -411,9 +415,9 @@ implementation
     call PackState.add(state_code, s->x);
     call PackState.add(delta_state_code, s->dx);
 
-    if (result == SUCCESS || periodsToHeartbeat<=0){
+    if (result == SUCCESS)
       toSend=TRUE;
-    }
+
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
@@ -426,12 +430,11 @@ implementation
   }    
   event void ReadCO2.readDone(error_t result, FilterState* data) {
     do_readDone_delta(result, data, RS_CO2, SC_CO2, SC_D_CO2);
- }
-    
+  }
   event void ReadAQ.readDone(error_t result, FilterState* data) {
     do_readDone_delta(result, data, RS_AQ, SC_AQ, SC_D_AQ);
   }
- event void ReadVOC.readDone(error_t result, FilterState* data) {
+  event void ReadVOC.readDone(error_t result, FilterState* data) {
     do_readDone_delta(result, data, RS_VOC, SC_VOC, SC_D_VOC);
   }
   event void ReadVolt.readDone(error_t result, FilterState* data) {
@@ -449,7 +452,7 @@ implementation
       call PackState.add(state_first+i,data[i]);
     }
 
-    if (result == SUCCESS || periodsToHeartbeat<=0){
+    if (result == SUCCESS){
       toSend=TRUE;
     }
     call ExpectReadDone.clear(raw_sensor);
@@ -458,40 +461,35 @@ implementation
 
   event void ReadTemp.readDone(error_t result, float* data) {
     do_readDone_BN(result, data, RS_TEMPERATURE, BN_TEMP_COUNT, BN_TEMP_FIRST);
-  }
-	
+  }	
   event void ReadHum.readDone(error_t result, float* data) {
     do_readDone_BN(result, data, RS_HUMIDITY, BN_HUM_COUNT, BN_HUM_FIRST);
   }    
-
   event void ReadCO2.readDone(error_t result, float* data) {
     do_readDone_BN(result, data, RS_CO2, BN_CO2_COUNT, BN_CO2_FIRST);
   }
-   
   event void ReadAQ.readDone(error_t result, float* data) {
     do_readDone_BN(result, data, RS_AQ, BN_AQ_COUNT, BN_AQ_FIRST);
   }
-  
   event void ReadVOC.readDone(error_t result, float* data) {
     do_readDone_BN(result, data, RS_VOC, BN_VOC_COUNT, BN_VOC_FIRST);	
   }
-
   event void ReadVolt.readDone(error_t result, float data) {
     do_readDone(result,(data), RS_VOLTAGE, BN_VOLTAGE);
   }
 #endif
 
+
   event void RadioControl.startDone(error_t ok) {
-    if (ok == SUCCESS)
-      {
-	call CollectionControl.start();
+    if (ok == SUCCESS){
+      call CollectionControl.start();
 #ifdef DEBUG
-	printf("Radio On %lu\n", call LocalTime.get());
-        printfflush();
+      printf("Radio On %lu\n", call LocalTime.get());
+      printfflush();
 #endif
-        if (!CLUSTER_HEAD)
-          sendState();
-      }
+      if (!CLUSTER_HEAD)
+	sendState();
+    }
     else
       call RadioControl.start();
   }
@@ -517,6 +515,11 @@ implementation
   */
   event void StateSender.sendDone(message_t *msg, error_t ok) {
     if (ok != SUCCESS) {
+
+      //reset heartbeat period seeing as we have sent
+      atomic
+	periodsToHeartbeat=HEARTBEAT_MULTIPLIER;
+
 #ifdef BLINKY
       call Leds.led0Toggle(); 
 #endif
@@ -613,9 +616,6 @@ implementation
 #endif
       }
     }
-
-    //reset heartbeat period
-    periodsToHeartbeat=HEARTBEAT_PERIOD;
     restartSenseTimer();
   }
 
@@ -732,6 +732,16 @@ implementation
     call AckPool.put(msg);
     if (! call AckQueue.empty())
       post transmit();
+  }
+
+
+  //Heartbeat processing
+  event void HeartBeatTimer.fired(){
+    //starting reads decrease periods To Heartbeat
+    if (periodsToHeartbeat > 0)
+      atomic
+	periodsToHeartbeat=periodsToHeartbeat-1;
+    call HeartBeatTimer.startOneShot(HEARTBEAT_PERIOD);
   }
   
 }
