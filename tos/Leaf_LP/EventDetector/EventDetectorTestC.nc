@@ -9,16 +9,16 @@ implementation
 {
   //const float Thresh = 3.;
   components MainC,EventDetectorTestP;
-  components new EventDetectorC(9.) as ED;
+  components EventDetectorC as ED;
   components PrintfC;
   components SerialStartC;
   components DemoFilterM;
   components DemoPredictM;
 
-  ED.FilterRead -> DemoFilterM.Read;
-  ED.ValuePredict -> DemoPredictM;
-  EventDetectorTestP.EventRead -> ED.Read;
+  ED.FilterRead[0] -> DemoFilterM.Read;
+  ED.ValuePredict[0] -> DemoPredictM;
+  EventDetectorTestP.EventRead -> ED.Read[0];
   EventDetectorTestP.Boot -> MainC.Boot; 
-  EventDetectorTestP.TransmissionControl -> ED;
+  EventDetectorTestP.TransmissionControl -> ED.TransmissionControl[0];
 }
 

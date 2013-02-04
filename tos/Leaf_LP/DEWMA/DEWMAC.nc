@@ -40,8 +40,8 @@ implementation
         xhat[1] = (xhat[1] + yd);
     }
     mat22_copy_v(xhat, v);
-  }	
-  
+  }
+
   /**
    * Get prediction of state based on a past state and current time.
    * @param fs "ONE FilterState *" state to use as basis for prediction

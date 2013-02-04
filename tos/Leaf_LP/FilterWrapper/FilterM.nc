@@ -30,8 +30,6 @@
    ===================
 
 
-
-
    :author: Ross Wilkins
    :email: ross.wilkins87@googlemail.com
    :date:  05/01/2011
@@ -42,6 +40,7 @@ generic module FilterM() @safe() {
   provides 
     {
       interface Read<FilterState *>;
+      interface FilterWrapper;
     }
   uses
     {		
@@ -52,8 +51,14 @@ generic module FilterM() @safe() {
 }
 implementation
 {
-	
+  uint8_t id=NULL:
   FilterState currentState;
+
+  command void FilterWrapper.setId(){
+  }
+
+  command void FilterWrapper.getId(){
+  }
 
   command error_t Read.read()
   {

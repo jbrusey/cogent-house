@@ -1,4 +1,5 @@
 // -*- c -*- 
+#include "stdlib.h"
 
 generic module ExposureEventDetectorC(uint8_t num_bands, float threshold) @safe()
 {
@@ -18,13 +19,6 @@ implementation
   }
   
   
-  float abs(float f) {
-    if (f < 0)
-      return -f;
-    else 
-      return f;
-  }
-
   event void ExposureRead.readDone( error_t result, float* data) {  
     uint8_t x;
     float diff;
