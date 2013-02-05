@@ -98,7 +98,7 @@ implementation
 
   bool toSend = 0;
 
-  int periodsToHeartbeat=HEARTBEAT_MULTIPLIER;
+  int periodsToHeartbeat = HEARTBEAT_MULTIPLIER;
 
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
@@ -263,7 +263,7 @@ implementation
     uint32_t send_time, next_interval;
 
     sending = FALSE;
-    toSend=FALSE;
+    toSend = FALSE;
 
 #ifdef DEBUG
     printf("restartSenseTimer at %lu\n", call LocalTime.get());
@@ -315,9 +315,9 @@ implementation
 	printfflush();
 #endif	
 
-	if (periodsToHeartbeat==0){
+	if (!toSend && periodsToHeartbeat == 0){
 	  reportError(ERR_HEARTBEAT);
-	  toSend=TRUE;
+	  toSend = TRUE;
 	}
 
 	if (toSend){
@@ -416,7 +416,7 @@ implementation
     call PackState.add(delta_state_code, s->dx);
 
     if (result == SUCCESS)
-      toSend=TRUE;
+      toSend = TRUE;
 
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
@@ -453,7 +453,7 @@ implementation
     }
 
     if (result == SUCCESS){
-      toSend=TRUE;
+      toSend = TRUE;
     }
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
@@ -515,10 +515,8 @@ implementation
   */
   event void StateSender.sendDone(message_t *msg, error_t ok) {
     if (ok != SUCCESS) {
-
       //reset heartbeat period seeing as we have sent
-      atomic
-	periodsToHeartbeat=HEARTBEAT_MULTIPLIER;
+      periodsToHeartbeat = HEARTBEAT_MULTIPLIER;
 
 #ifdef BLINKY
       call Leds.led0Toggle(); 
@@ -738,10 +736,12 @@ implementation
   //Heartbeat processing
   event void HeartBeatTimer.fired(){
     //starting reads decrease periods To Heartbeat
-    if (periodsToHeartbeat > 0)
-      atomic
+    if (periodsToHeartbeat > 0){
 	periodsToHeartbeat=periodsToHeartbeat-1;
-    call HeartBeatTimer.startOneShot(HEARTBEAT_PERIOD);
+	call HeartBeatTimer.startOneShot(HEARTBEAT_PERIOD);
+    }
+    else //should not trigger
+      periodsToHeartbeat = 0;
   }
   
 }
