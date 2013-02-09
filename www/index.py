@@ -28,7 +28,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
 
-_DBURL = "mysql://ross@localhost/SampsonClose?connect_timeout=1"
+_DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
 
 engine = create_engine(_DBURL, echo=False, pool_recycle=60)
 #engine.execute("pragma foreign_keys=on")
@@ -59,7 +59,8 @@ _sidebars = [
 
     ("Network tree", "treePage", "Show a network tree diagram"),
     ("Missing and extra nodes", "missing", "Show unregistered nodes and missing nodes"),
-    ("Packet yield", "dataYield", "Show network performance"),
+    ("Packet yield", "yield24", "Show network performance"),
+    ("Long term yield", "dataYield", "Show network performance"),
     ("Low batteries", "lowbat", "Report any low batteries"),
     ("View log", "viewLog", "View a detailed log"),
     ("Export data", "exportDataForm", "Export data to CSV"),
@@ -778,30 +779,81 @@ def yield24():
 
         s.append("<table border=\"1\">")
         s.append("<tr>")
-        headings = ["Node", "House", "Room", "Message count", "Last heard", "Yield"]
+        headings = ["Node", "House", "Room", "Message count", "Min seq", "Max seq", "Yield"]
         s.extend(["<th>%s</th>" % x for x in headings])
         s.append("</tr>")
 
-        t = datetime.utcnow() - timedelta(days=1)
+        start_t = datetime.utcnow() - timedelta(days=1)
 
-        nodestateq = session.query(
-            NodeState,
-            func.count(NodeState),
-            func.max(NodeState.time),
-            House.address,
-            Room.name
-            ).filter(NodeState.time > t
-                     ).group_by(NodeState.nodeId
-                                ).join(Node,Location,House,Room).order_by(House.address, Room.name).all()
+        # next get the count per node
+        seqcnt_q = (session.query(NodeState.nodeId.label('nodeId'),
+                              func.count(NodeState.seq_num).label('cnt'))
+                    .filter(NodeState.time >= start_t)
+                    .group_by(NodeState.nodeId)
+                    .subquery(name='seqcnt'))
 
-        for (ns, cnt, maxtime, house, room) in nodestateq:
+        # next get the first occurring sequence number per node
+        selmint_q = (session.query(NodeState.nodeId.label('nodeId'),
+                               func.min(NodeState.time).label('mint'))
+                        .filter(NodeState.time >=start_t)
+                        .group_by(NodeState.nodeId)
+                        .subquery(name='selmint'))
 
-            yield_secs = (1 * 24 * 3600)
+        minseq_q = (session.query(NodeState.nodeId.label('nodeId'),
+                             NodeState.seq_num.label('seq_num'))
+                        .join(selmint_q,
+                              and_(NodeState.time == selmint_q.c.mint,
+                                   NodeState.nodeId == selmint_q.c.nodeId))
+                        .subquery(name='minseq'))
 
-            y = (cnt) / (yield_secs / 300.0) * 100.0
+        # next get the last occurring sequence number per node
+        selmaxt_q = (session.query(NodeState.nodeId.label('nodeId'),
+                               func.max(NodeState.time).label('maxt'))
+                        .filter(NodeState.time >=start_t)
+                        .group_by(NodeState.nodeId)
+                        .subquery(name='selmaxt'))
 
-            values = [ns.nodeId, house, room, cnt, maxtime, y]
-            fmt = ['%d', '%s', '%s', '%d', '%s', '%8.2f']
+        maxseq_q = (session.query(NodeState.nodeId.label('nodeId'),
+                              NodeState.seq_num.label('seq_num'),
+                              NodeState.time.label('time'))
+                        .join(selmaxt_q,
+                              and_(NodeState.time == selmaxt_q.c.maxt,
+                                   NodeState.nodeId == selmaxt_q.c.nodeId))
+                        .subquery(name='maxseq'))
+
+        yield_q = (session.query(maxseq_q.c.nodeId,
+                             maxseq_q.c.seq_num,
+                             minseq_q.c.seq_num,
+                             seqcnt_q.c.cnt,
+                             maxseq_q.c.time,
+                             House.address,
+                             Room.name)
+                        .select_from(maxseq_q)
+                        .join(minseq_q, minseq_q.c.nodeId == maxseq_q.c.nodeId)
+                        .join(seqcnt_q, maxseq_q.c.nodeId == seqcnt_q.c.nodeId)
+                        .join(Node, Node.id == maxseq_q.c.nodeId)
+                        .join(Location, House, Room)
+                        .order_by(House.address, Room.name))
+
+
+        # nodestateq = session.query(
+        #     NodeState,
+        #     func.count(NodeState),
+        #     func.max(NodeState.time),
+        #     House.address,
+        #     Room.name
+        #     ).filter(NodeState.time > t
+        #              ).group_by(NodeState.nodeId
+        #                         ).join(Node,Location,House,Room).order_by(House.address, Room.name).all()
+
+        for (node_id, maxseq, minseq, seqcnt, last_heard,
+             house_name, room_name) in yield_q.all():
+
+            missed = (maxseq - minseq + 257) % 256 - seqcnt
+            y = (seqcnt * 100.) / ((maxseq - minseq + 257) % 256)
+
+            values = [node_id, house_name, room_name, seqcnt, minseq, maxseq, y]
+            fmt = ['%d', '%s', '%s', '%d', '%d', '%d', '%8.2f']
             s.append("<tr>")
             s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
             s.append("</tr>")
@@ -816,9 +868,33 @@ def dataYield():
     try:
         session = Session()
         s = []
-
+        s.append("<h4>Note: this page does not yet support SIP and the yield may be wrong.</h4>")
         s.append("<table border=\"1\">")
         s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Message Count</th><th>First heard</th><th>Last heard</th><th>Yield</th></tr>")
+
+        # TODO finish this code
+        # clock_over_count = {}
+        # seq_q = (session.query(NodeState.nodeId,
+        #               NodeState.seq_num)
+        #     .group_by(NodeState.nodeId)
+        #     .order_by(NodeState.time)
+        #     .all())
+
+        # last_node = None
+        # last_seq = None
+        # for node_id, seq_num in seq_q:
+        #     if not node_id in clock_over_count:
+        #         clock_over_count[node_id] = 0
+
+        #     if (last_seq is not None and
+        #         seq_num < last_seq and
+        #         last_node is not None and
+        #         node_id == last_node):
+        #         clock_over_count[node_id] += 1
+                
+        #     last_seq = seq_num
+        #     last_node = node_id
+
 
         for nid, cnt, mintime, maxtime in session.query(
             
