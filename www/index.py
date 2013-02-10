@@ -24,9 +24,20 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 
-from cogent.base.model import *
-from sqlalchemy import create_engine, and_, or_, distinct, func, desc
-from sqlalchemy.orm import sessionmaker, aliased
+from cogent.base.model import (Node,
+                               Reading,
+                               Location,
+                               House,
+                               Room,
+                               RoomType,
+                               NodeState,
+                               init_model,
+                               Session,
+                               Sensor,
+                               SensorType,
+    )
+from sqlalchemy import create_engine, and_, distinct, func
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
 
 
@@ -107,10 +118,10 @@ def _url(path, query=None):
         return path + "?" + urllib.urlencode(query)
 
 def _main(html):
-    return '<div id="main">' + html + '</div>';
+    return '<div id="main">' + html + '</div>'
 
 def _wrap(html):
-    return '<div id="wrap">' + html + '</div>';
+    return '<div id="wrap">' + html + '</div>'
 
 def _nav():
     return ('<div id="nav">' +
@@ -152,38 +163,49 @@ def _footer():
     return '<div id="footer">CogentHouse &copy; <a href="http://cogentcomputing.org" title="Find out more about Cogent">Cogent Computing Applied Research Centre</a></div>'
 
 def _redirect(url=""):
-        return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
-    
+    return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
 
-        
+
+def _int(s, default=0):
+    try:
+        return int(s)
+    except ValueError:
+        return default
+
+def _float(s, default=0.0):
+    try:
+        return float(s)
+    except ValueError:
+        return default
+
+def _mins(s, default=60):
+    if s in _periods:
+        return _periods[s]
+    else:
+        return default
 
 def tree(req, period='hour'):
-    try:
-        mins = _periods[period]
-    except:
-        mins = 60
-    
+    mins = _mins(period)
     try:
         session = Session()
         from subprocess import Popen, PIPE
         req.content_type = _CONTENT_SVG
 #        req.content_type = _CONTENT_TEXT
 
-        #t = datetime.utcnow() - timedelta(minutes=mins)
+        t = datetime.utcnow() - timedelta(minutes=mins)
 
         p = Popen("dot -Tsvg", shell=True, bufsize=4096,
 #        p = Popen("cat", shell=True, bufsize=4096,
               stdin=PIPE, stdout=PIPE, close_fds=True)
-        (child_stdin, child_stdout) = (p.stdin, p.stdout)
         
         with p.stdin as dotfile:
-            dotfile.write("digraph {");
+            dotfile.write("digraph {")
             for (ni,pa) in session.query(NodeState.nodeId,
                                             NodeState.parent
-                                            ).group_by(NodeState.nodeId, NodeState.parent):#.filter(NodeState.time>t):
+                                            ).group_by(NodeState.nodeId, NodeState.parent).filter(NodeState.time > t):
                 
                 dotfile.write("%d->%d;" % (ni, pa))
-            dotfile.write("}");
+            dotfile.write("}")
 
         return p.stdout.read()
 
@@ -233,7 +255,7 @@ def humExpNodeGraph(node=None):
     try:
         session = Session()
 
-        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        (h, r) = session.query(House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
         s = ['<p>']
  
         u = _url("humExpGraph", [('node', node)])
@@ -304,7 +326,6 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
         damp=np.array(damp)+comfort
         risk=np.array(risk)+damp
 
-        nid=int(node)
         if not debug:
             fig = plt.figure()
             fig.set_size_inches(7,4)
@@ -379,7 +400,7 @@ def tempExpNodeGraph(node=None):
     try:
         session = Session()
 
-        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        (h, r) = session.query(House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
         s = ['<p>']
  
         u = _url("tempExpGraph", [('node', node)])
@@ -462,7 +483,6 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
         warm=np.array(warm)+comfort
         over=np.array(over)+warm
 
-        nid=int(node)
         if not debug:
             fig = plt.figure()
             fig.set_size_inches(7,4)
@@ -541,10 +561,7 @@ def allGraphs(typ="0",period="day"):
     try:
         session = Session()
 
-        try:
-            mins = _periods[period]
-        except:
-            mins = 1440
+        mins = _mins(period, default=1440)
 
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
@@ -584,10 +601,7 @@ def bathElec(period='day'):
     try:
         session = Session()
 
-        try:
-            mins = _periods[period]
-        except:
-            mins = 1440
+        mins = _mins(period, default=1440)
 
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
@@ -666,13 +680,13 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
             return _redirect(_url("exportDataForm", [('err', 'nostart')]))
         try:
             sd=datetime.fromtimestamp(time.mktime(time.strptime(StartDate, time_format)))
-        except:
+        except ValueError:
             return _redirect(_url("exportDataForm", [('err', 'startfmt')]))
         if EndDate==None:
             return _redirect(_url("exportDataForm", [('err', 'noend')]))
         try:
             ed=datetime.fromtimestamp(time.mktime(time.strptime(EndDate, time_format)))  
-        except:
+        except ValueError:
             return _redirect(_url("exportDataForm", [('err', 'endfmt')]))
 
         ed = ed + timedelta(days=1)
@@ -688,10 +702,10 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
             return _redirect(_url("exportDataForm", [('err', 'nodata')]))
         req.content_type = "text/csv"
         return "".join(['%d,"%s",%s\n' % (n, t, v) for n, t, v in exportData])
-        csvStr=""
-        for rn,rt,rv in exportData:
-            csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
-        return csvStr
+        # csvStr=""
+        # for rn,rt,rv in exportData:
+        #     csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
+        # return csvStr
     finally:
         session.close()
 
@@ -700,12 +714,9 @@ def nodeGraph(node=None, typ="0", period="day"):
     try:
         session = Session()
 
-        try:
-            mins = _periods[period]
-        except:
-            mins = 1440
+        mins = _mins(period, default=1440)
 
-        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        (h, r) = session.query(House.address, Room.name).join(Location, Node, Room).filter(Node.id==int(node)).one()
             
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
@@ -755,7 +766,7 @@ def missing():
             s.append("<table border=\"1\">")
             s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Last Heard</th><th></th></tr>"  )
 
-            for (ns, maxtime, nodeId, house, room) in session.query(NodeState,func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all():
+            for (maxtime, nodeId, house, room) in (session.query(func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all()):
                 u = _url("unregisterNode", [('node', nodeId)])
                 s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (nodeId, house, room, str(maxtime), u))
                   
@@ -806,7 +817,7 @@ def yield24():
 
         s.append("<table border=\"1\">")
         s.append("<tr>")
-        headings = ["Node", "House", "Room", "Message count", "Min seq", "Max seq", "Yield"]
+        headings = ["Node", "House", "Room", "Message count", "Min seq", "Max seq", "Last heard", "Yield"]
         s.extend(["<th>%s</th>" % x for x in headings])
         s.append("</tr>")
 
@@ -876,11 +887,11 @@ def yield24():
         for (node_id, maxseq, minseq, seqcnt, last_heard,
              house_name, room_name) in yield_q.all():
 
-            missed = (maxseq - minseq + 257) % 256 - seqcnt
+             #missed = (maxseq - minseq + 257) % 256 - seqcnt
             y = (seqcnt * 100.) / ((maxseq - minseq + 257) % 256)
 
-            values = [node_id, house_name, room_name, seqcnt, minseq, maxseq, y]
-            fmt = ['%d', '%s', '%s', '%d', '%d', '%d', '%8.2f']
+            values = [node_id, house_name, room_name, seqcnt, minseq, maxseq, str(last_heard), y]
+            fmt = ['%d', '%s', '%s', '%d', '%d', '%d', '%s', '%8.2f']
             s.append("<tr>")
             s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
             s.append("</tr>")
@@ -934,13 +945,13 @@ def dataYield():
                 n = session.query(Node).filter(Node.id == nid).one()
                 try:
                     house = n.location.house.address
-                except:
+                except: # TODO fix unspec exception
                     house = '-'
                 try:
                     room = n.location.room.name
-                except:
+                except: # TODO fix unspec exception
                     room = '-'
-            except:
+            except NoResultFound:
                 house = '?'
                 room = '?'
                 
@@ -1009,8 +1020,9 @@ def unregisterNode(node=None):
         session.commit()
         return _redirect("missing")
     
-    except:
+    except Exception, e:
         session.rollback()
+        raise e
         
     finally:
         session.close()
@@ -1042,8 +1054,9 @@ def registerNodeSubmit(node=None, house=None, room=None):
         session.commit()
         return _redirect("missing")
     
-    except:
+    except Exception, e:
         session.rollback()
+        raise e
     finally:
         session.close()
 
@@ -1060,8 +1073,9 @@ def unregisterNodeSubmit(node=None):
         session.commit()
         return _redirect("missing")
     
-    except:
+    except Exception, e:
         session.rollback()
+        raise e
     finally:
         session.close()
 
@@ -1265,10 +1279,7 @@ def addNewRoomTypeSubmit(ref=None, name=None):
 
 def lowbat(bat="2.6"):
     try:
-        try:
-            batlvl = float(bat)
-        except:
-            batlvl = 2.6
+        batlvl = _float(bat, default=2.6)
         t = datetime.utcnow() - timedelta(hours=1)
         session = Session()
         s = []
@@ -1300,7 +1311,7 @@ def _calibrate(session,v,node,typ):
             and_(Sensor.sensorTypeId==typ,
                  Sensor.nodeId==node)).one()
         return [x * mult + offs for x in v]
-    except NoResultFound, e:
+    except NoResultFound:
         return v
 
 
@@ -1353,7 +1364,7 @@ def _latest_reading_before(session, nid, typ, startts):
                 .first())
 
     # get corresponding delta
-    (dt, dv) = session.query(Reading.time,Reading.value).join(
+    (dv,) = session.query(Reading.value).join(
         sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == _deltaDict[typ])).first()
     return qt,qv,dv
     
@@ -1363,7 +1374,6 @@ def _interp(time, value, delta):
     ctd = datetime.utcnow()
     duration = (ctd - time).seconds
 
-    time = matplotlib.dates.date2num(time) # TODO: is this the right time to convert to num?
     ct = matplotlib.dates.date2num(ctd)
     cv = value + (duration * delta)
     
@@ -1406,7 +1416,7 @@ def _calcSpline(first, last, type_id):
     c2v = lv - (ld * halfPeriod.seconds)
 
     #get xc
-    xct = cp1t
+    #xct = cp1t
     xcv =  lv - (ld * samplePeriod.seconds)
 
     #decide on c1v (B') actual value
@@ -1459,10 +1469,10 @@ def _getSplineData(session, node_id, reading_type, delta_type, sd, ed):
                               Reading.time <= ed)))
                      #raise Exception("sql is " + str(matched_q))
 
-    for (time, value, delta) in matched_q.all():  
-        times.append(time)
+    for (x_time, value, delta) in matched_q.all():  
+        times.append(x_time)
         xs.append(value)
-        data.append({'time': time,
+        data.append({'time': x_time,
                      'value': value,
                      'delta': delta/300}) #TODO remove magic number
         
@@ -1590,22 +1600,15 @@ def graph_old(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo
 
     try:
         session = Session()
-        plotLines=False
+        #plotLines = False
 
-        try:
-            minsago_i = timedelta(minutes=int(minsago))
-        except Exception:
-            minsago_i = timedelta(minutes=1)
-
-        try:
-            duration_i = timedelta(minutes=int(duration))
-        except Exception:
-            duration_i = timedelta(minutes=1)
+        minsago_i = _int(minsago, default=60)
+        duration_i = _int(duration, default=60)
 
         debug = (debug is not None)
-        week = timedelta(minutes=int(_periods["week"]))
+        #week = timedelta(minutes=int(_periods["week"]))
         startts = datetime.utcnow() - minsago_i
-        deltats = (datetime.utcnow() - minsago_i) - week
+        #deltats = (datetime.utcnow() - minsago_i) - week
 
         endts = startts + duration_i
 
@@ -1619,12 +1622,12 @@ def graph_old(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo
         t = []
         dt = []
         v = []
-        last_value=None
+        #last_value=None
         for qt, qv in qry:
             dt.append(qt)
             t.append(matplotlib.dates.date2num(qt))
             v.append(qv)
-            last_value=float(qv)
+            #last_value=float(qv)
 
         v = _calibrate(session, v, node, typ)
 
@@ -1652,24 +1655,17 @@ def graph(req,
 
     try:
         session = Session()
-        plotLines=False
+        #plotLines=False
 
-        try:
-            minsago_i = timedelta(minutes=int(minsago))
-        except Exception:
-            minsago_i = timedelta(minutes=1)
-
-        try:
-            duration_i = timedelta(minutes=int(duration))
-        except Exception:
-            duration_i = timedelta(minutes=1)
+        minsago_i = _int(minsago, default=60)
+        duration_i = _int(duration, default=60)
 
         debug = (debug is not None)
-        week = timedelta(minutes=int(_periods["week"]))
-        startts = datetime.utcnow() - minsago_i
-        deltats = (datetime.utcnow() - minsago_i) - week
+        #week = timedelta(minutes=int(_periods["week"]))
+        startts = datetime.utcnow() - timedelta(minutes=minsago_i)
+        #deltats = (datetime.utcnow() - minsago_i) - week
 
-        endts = startts + duration_i
+        endts = startts + timedelta(minutes=duration_i)
 
         type_id = int(typ)
         if type_id not in type_delta:
@@ -1684,17 +1680,17 @@ def graph(req,
             t = []
             dt = []
             v = []
-            last_value=None
+            #last_value=None
             for qt, qv in qry:
                 dt.append(qt)
                 t.append(matplotlib.dates.date2num(qt))
                 v.append(qv)
-                last_value=float(qv)
+                #last_value=float(qv)
 
             v = _calibrate(session, v, node, typ)
             res = _plot(typ, t, v, startts, endts, debug, fmt)
         else:
-            #will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
+            # TODO will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
             res = _plotSplines(int(node),
                                type_id,
                                type_delta[type_id],
@@ -1710,22 +1706,13 @@ def graph(req,
 
 
 
-def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
+def bathElecImg(req, house='', minsago='1440',duration='1440', debug=None):
 
     try:
         session = Session()
 
-
-        try:
-            minsago_i = timedelta(minutes=int(minsago))
-        except Exception:
-            minsago_i = timedelta(minutes=1)
-
-        try:
-            duration_i = timedelta(minutes=int(duration))
-        except Exception:
-            duration_i = timedelta(minutes=1)
-
+        minsago_i = _int(minsago, default=60)
+        duration_i = _int(duration, default=60)
         debug = (debug is not None)
 
         startts = datetime.utcnow() - minsago_i
@@ -1796,7 +1783,7 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
             try:
                 thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(11)).one()
                 ax.set_ylabel("%s (%s)" % tuple(thistype))
-            except:
+            except NoResultFound:
                 pass
 
             if len(t2) > 0:
