@@ -10,10 +10,12 @@ from datetime import datetime, timedelta
 import urllib
 # set the home to a writable directory
 import os
-os.environ['HOME']='/tmp'
-from threading import Lock
-_lock = Lock()
+os.environ['HOME'] = '/tmp'
+# from threading import Lock
+# _lock = Lock()
 import numpy as np
+
+_USE_SVG_PLOTS=False
 
 # do this before importing pylab or pyplot
 import matplotlib
@@ -24,15 +26,46 @@ import matplotlib.patches as patches
 
 from cogent.base.model import *
 from sqlalchemy import create_engine, and_, or_, distinct, func, desc
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, aliased
 from sqlalchemy.orm.exc import NoResultFound
 
 
 _DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
 
+_CONTENT_SVG = "image/svg+xml"
+_CONTENT_PNG = "image/png"
+_CONTENT_TEXT = "text/plain"
+if _USE_SVG_PLOTS:
+    _CONTENT_PLOT = _CONTENT_SVG
+    _SAVEFIG_ARGS = {'format': 'svg'}
+else:
+    _CONTENT_PLOT = _CONTENT_PNG
+    _SAVEFIG_ARGS = {'format': 'png'}
+
 engine = create_engine(_DBURL, echo=False, pool_recycle=60)
 #engine.execute("pragma foreign_keys=on")
 init_model(engine)
+
+thresholds = {
+    0 : 0.25,
+    2 : 1,
+    8 : 100,
+    6 : 0.1
+    }
+
+sensor_types= {
+    0 : 0,
+    2 : 2,
+    8 : 8,
+    6 : 6
+    }
+
+type_delta = {
+    0 : 1,
+    2 : 3,
+    8 : 20,
+    6 : 7
+}
 
 _periods = {
     "hour" : 60,
@@ -133,8 +166,8 @@ def tree(req, period='hour'):
     try:
         session = Session()
         from subprocess import Popen, PIPE
-        req.content_type = "image/svg+xml"
-#        req.content_type = "text/plain"
+        req.content_type = _CONTENT_SVG
+#        req.content_type = _CONTENT_TEXT
 
         #t = datetime.utcnow() - timedelta(minutes=mins)
 
@@ -271,48 +304,45 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
         damp=np.array(damp)+comfort
         risk=np.array(risk)+damp
 
-        req.content_type = "image/png"
-
         nid=int(node)
         if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscaley_on(False)
-                ax.set_autoscalex_on(False)
-                endts=matplotlib.dates.date2num(datetime.utcnow())
-                ax.set_xlim(t[0],endts)
-                ax.set_ylim(0,100)
+            fig = plt.figure()
+            fig.set_size_inches(7,4)
+            ax = fig.add_subplot(111)
+            ax.set_autoscaley_on(False)
+            ax.set_autoscalex_on(False)
+            endts=matplotlib.dates.date2num(datetime.utcnow())
+            ax.set_xlim(t[0],endts)
+            ax.set_ylim(0,100)
 
 
-                if len(t) > 0:                            
+            if len(t) > 0:                            
 
-                    t.append(endts)
-                    bv.append(100.0)
-                    ax.fill_between(t, 0, risk, facecolor=col[3])
-                    ax.fill_between(t, 0, damp, facecolor=col[2])
-                    ax.fill_between(t, 0, comfort, facecolor=col[1])
-                    ax.fill_between(t, 0, dry, facecolor=col[0])
+                t.append(endts)
+                bv.append(100.0)
+                ax.fill_between(t, 0, risk, facecolor=col[3])
+                ax.fill_between(t, 0, damp, facecolor=col[2])
+                ax.fill_between(t, 0, comfort, facecolor=col[1])
+                ax.fill_between(t, 0, dry, facecolor=col[0])
 
-                    ax.plot_date(t, dry, fmt, lw=2, linestyle="-", color=col[0])
-                    ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[1])
-                    ax.plot_date(t, damp, fmt, lw=2,  linestyle="-", color=col[2])
-                    ax.plot_date(t, risk, fmt, lw=2,  linestyle="-", color=col[3])
+                ax.plot_date(t, dry, fmt, lw=2, linestyle="-", color=col[0])
+                ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[1])
+                ax.plot_date(t, damp, fmt, lw=2,  linestyle="-", color=col[2])
+                ax.plot_date(t, risk, fmt, lw=2,  linestyle="-", color=col[3])
 
 
-                    fig.autofmt_xdate()
-                    ax.set_xlabel("Date")
-                    ax.set_ylabel("Percentage of time (%)")
+                fig.autofmt_xdate()
+                ax.set_xlabel("Date")
+                ax.set_ylabel("Percentage of time (%)")
 
-                    image = cStringIO.StringIO()
-                    fig.savefig(image)
+                image = cStringIO.StringIO()
+                fig.savefig(image, **_SAVEFIG_ARGS)
 
-                    req.content_type = "image/png"
-                    return  image.getvalue()
-                else:
-                    req.content_type = "text/plain"
-                    return "debug"
+                req.content_type = _CONTENT_PLOT
+                return  image.getvalue()
+            else:
+                req.content_type = _CONTENT_TEXT
+                return "debug"
 
     finally:
         session.close()
@@ -432,52 +462,49 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
         warm=np.array(warm)+comfort
         over=np.array(over)+warm
 
-        req.content_type = "image/png"
-
         nid=int(node)
         if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscaley_on(False)
-                ax.set_autoscalex_on(False)
-                endts=matplotlib.dates.date2num(datetime.utcnow())
-                ax.set_xlim(t[0],endts)
-                ax.set_ylim(0,100)
+            fig = plt.figure()
+            fig.set_size_inches(7,4)
+            ax = fig.add_subplot(111)
+            ax.set_autoscaley_on(False)
+            ax.set_autoscalex_on(False)
+            endts=matplotlib.dates.date2num(datetime.utcnow())
+            ax.set_xlim(t[0],endts)
+            ax.set_ylim(0,100)
 
 
-                if len(t) > 0:                            
+            if len(t) > 0:                            
 
-                    t.append(endts)
-                    bv.append(100.0)
-                    ax.fill_between(t, 0, over, facecolor=col[4])
-                    ax.fill_between(t, 0, warm, facecolor=col[3])
-                    ax.fill_between(t, 0, comfort, facecolor=col[2])
-                    ax.fill_between(t, 0, cold, facecolor=col[1])
-                    ax.fill_between(t, 0, health, facecolor=col[0])
+                t.append(endts)
+                bv.append(100.0)
+                ax.fill_between(t, 0, over, facecolor=col[4])
+                ax.fill_between(t, 0, warm, facecolor=col[3])
+                ax.fill_between(t, 0, comfort, facecolor=col[2])
+                ax.fill_between(t, 0, cold, facecolor=col[1])
+                ax.fill_between(t, 0, health, facecolor=col[0])
 
-                    ax.plot_date(t, health, fmt, lw=2, linestyle="-", color=col[0])
-                    ax.plot_date(t, cold, fmt, lw=2,  linestyle="-", color=col[1])
-                    ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[2])
-                    ax.plot_date(t, warm, fmt, lw=2,  linestyle="-", color=col[3])
-                    ax.plot_date(t, over, fmt, lw=2,  linestyle="-",fillstyle="full", color=col[4])
+                ax.plot_date(t, health, fmt, lw=2, linestyle="-", color=col[0])
+                ax.plot_date(t, cold, fmt, lw=2,  linestyle="-", color=col[1])
+                ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[2])
+                ax.plot_date(t, warm, fmt, lw=2,  linestyle="-", color=col[3])
+                ax.plot_date(t, over, fmt, lw=2,  linestyle="-",fillstyle="full", color=col[4])
 
-                    #ax.bar(t,bv, color="black", width=0.01)
+                #ax.bar(t,bv, color="black", width=0.01)
 
-                    fig.autofmt_xdate()
-                    ax.set_xlabel("Date")
-                    ax.set_ylabel("Percentage of time (%)")
+                fig.autofmt_xdate()
+                ax.set_xlabel("Date")
+                ax.set_ylabel("Percentage of time (%)")
 
 
-                    image = cStringIO.StringIO()
-                    fig.savefig(image)
+                image = cStringIO.StringIO()
+                fig.savefig(image, **_SAVEFIG_ARGS)
 
-                    req.content_type = "image/png"
-                    return  image.getvalue()
-                else:
-                    req.content_type = "text/plain"
-                    return "debug"
+                req.content_type = _CONTENT_PLOT
+                return  image.getvalue()
+            else:
+                req.content_type = _CONTENT_TEXT
+                return "debug"
 
     finally:
         session.close()
@@ -706,8 +733,8 @@ def nodeGraph(node=None, typ="0", period="day"):
 
 def viewLog(req):
     with open("/var/log/ch/BaseLogger.log") as f:
-        req.content_type = "text/plain"
-        return f.read()
+        req.content_type = _CONTENT_TEXT
+        return f.read() # TODO limit to tail 
 
 def missing():
     try:
@@ -1280,146 +1307,74 @@ def _calibrate(session,v,node,typ):
 
 _deltaDict={0: 1, 2: 3, 6: 7, 8: 17} 
 
-def _plot(typ, t, v, startts, endts, debug, fmt, req):
+def _plot(typ, t, v, startts, endts, debug, fmt):
     if not debug:
-        with _lock:
-            fig = plt.figure()
-            fig.set_size_inches(7,4)
-            ax = fig.add_subplot(111)
-            ax.set_autoscalex_on(False)
-            ax.set_xlim((matplotlib.dates.date2num(startts),
-                         matplotlib.dates.date2num(endts)))
-                
-            if len(t) > 0:                            
-                ax.plot_date(t, v, fmt)
-                fig.autofmt_xdate()
-                ax.set_xlabel("Date")
-                try:
-                    session = Session()
-                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
-                    ax.set_ylabel("%s (%s)" % tuple(thistype))
-                    session.close()
-                except NoResultFound:
-                    pass
+        fig = plt.figure()
+        fig.set_size_inches(7,4)
+        ax = fig.add_subplot(111)
+        ax.set_autoscalex_on(False)
+        ax.set_xlim((matplotlib.dates.date2num(startts),
+                     matplotlib.dates.date2num(endts)))
+
+        if len(t) > 0:                            
+            ax.plot_date(t, v, fmt)
+            fig.autofmt_xdate()
+            ax.set_xlabel("Date")
+            try:
+                session = Session()
+                thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
+                ax.set_ylabel("%s (%s)" % tuple(thistype))
+                session.close()
+            except NoResultFound:
+                pass
 
 
-            image = cStringIO.StringIO()
-            fig.savefig(image)
+        image = cStringIO.StringIO()
+        fig.savefig(image, **_SAVEFIG_ARGS)
 
-            req.content_type = "image/png"
-            return  [req.content_type, image.getvalue()]
+        return  [_CONTENT_PLOT, image.getvalue()]
     else:
-        req.content_type = "text/plain"
-        return [req.content_type , str(t)+ str(v)]
+        return [_CONTENT_TEXT, str(t)+ str(v)]
 
-def test(req,nid,typ,minsago):
-    try:
-        session = Session()
-
-        try:
-            minsago_i = timedelta(minutes=int(minsago))
-        except Exception:
-            minsago_i = timedelta(minutes=1)
-
-        startts = datetime.utcnow() - minsago_i
-        
-        (max_time_before,) = session.query(func.max(Reading.time)).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ),
-                 Reading.time < startts)).first()
-
-        (v2,) = session.query(Reading.value).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ),
-                 Reading.time == max_time_before)).first()
-
-
-        sq = session.query(func.max(Reading.time).label('maxtime')).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ),
-                 Reading.time < startts)).subquery()
-        
-        (mt2, v3,) = session.query(Reading.time,Reading.value).join(
-            sq, Reading.time==sq.c.maxtime).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ))).first()
-
-        sql = session.query(Reading.time,Reading.value).join(
-            sq, Reading.time==sq.c.maxtime).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ))).as_scalar()
-
-        req.content_type='text/plain'
-        return repr(max_time_before) + " " + repr(v2) + " " + repr(v3) + " " + repr(mt2) + str(sql)
-        
-        
-    finally:
-        session.close()
 
 def _latest_reading_before(session, nid, typ, startts):
-        # get latest reading / time that is before start time
-        try:
-            sq = session.query(func.max(Reading.time).label('maxtime')).filter(
-                and_(Reading.nodeId == nid,
-                     Reading.typeId == typ,
-                     Reading.time < startts)).subquery()
-        
-            (qt, qv) = session.query(Reading.time,Reading.value).join(
-                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == typ)).first()
+    # get latest reading / time that is before start time
+    assert isinstance(typ, int)
+    sq = (session.query(func.max(Reading.time).label('maxtime'))
+          .filter(and_(Reading.nodeId == nid,
+                       Reading.typeId == typ,
+                       Reading.time < startts))
+          .subquery())
 
-            # get corresponding delta
-            (dt, dv) = session.query(Reading.time,Reading.value).join(
-                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == _deltaDict[typ])).first()
-            return qt,qv,dv
-        except:
-            return None,None,None
+    (qt, qv) = (session.query(Reading.time,Reading.value)
+                .join(sq, Reading.time==sq.c.maxtime)
+                .filter(and_(Reading.nodeId == nid,
+                             Reading.typeId == typ))
+                .first())
+
+    # get corresponding delta
+    (dt, dv) = session.query(Reading.time,Reading.value).join(
+        sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == _deltaDict[typ])).first()
+    return qt,qv,dv
     
 
-thresholds = {
-    0 : 0.25,
-    2 : 1,
-    8 : 100,
-    6 : 0.1
-    }
+def _interp(time, value, delta):
+    
+    ctd = datetime.utcnow()
+    duration = (ctd - time).seconds
 
-sensor_types= {
-    0 : 0,
-    2 : 2,
-    8 : 8,
-    6 : 6
-    }
-
-type_delta={
-    0 : 1,
-    2 : 3,
-    8 : 20,
-    6 : 7
-}
-
-def _interp(data):
-    ft = data["time"]
-    fv = data["value"]
-    fd = data["delta"]
-
-    ctd = datetime.now()
-    duration = (ctd - ft).seconds
-
-    ft = matplotlib.dates.date2num(ft)
+    time = matplotlib.dates.date2num(time) # TODO: is this the right time to convert to num?
     ct = matplotlib.dates.date2num(ctd)
-    cv = fv + (duration * fd)
+    cv = value + (duration * delta)
     
-    point={}
-    point["time"]=ctd
-    point["value"]=cv
-    point["delta"]=fd
+    return ct, cv, {'time': ctd, # TODO simplify return value
+                    'value': cv,
+                    'delta': delta}
 
 
-    return ct,cv,point
+def _calcSpline(first, last, type_id):
 
-
-def _calcSpline(first,last,typ):
-
-    thresh = thresholds[int(typ)]
+    thresh = thresholds[type_id]
 
     samplePeriod = timedelta(seconds = 300)
     halfPeriod = timedelta(seconds = 150)
@@ -1478,7 +1433,7 @@ def _calcSpline(first,last,typ):
     path = Path(verts, codes)
     return path
 
-def getSplineData(session, node_id, reading_type, delta_type, sd, ed):
+def _getSplineData(session, node_id, reading_type, delta_type, sd, ed):
     #get values    
     data=[]
     times=[]
@@ -1487,94 +1442,136 @@ def getSplineData(session, node_id, reading_type, delta_type, sd, ed):
     #get prev reading
     (prev_time, prev_value, prev_delta) = _latest_reading_before(session, node_id, reading_type, sd)
     if prev_time != None:
-        point={}
-        point["time"]=prev_time
         times.append(prev_time)
-        point["value"]=prev_value
         xs.append(prev_value)
-        point["delta"]=prev_delta/300.
-        data.append(point)
-        
+        data.append({'time': prev_time,
+                     'value': prev_value,
+                     'delta': prev_delta/300}) # TODO remove magic number
+ 
+    s2 = aliased(Reading)
+    matched_q = (session.query(Reading.time, Reading.value, s2.value)
+                 .join(s2, and_(Reading.time == s2.time,
+                                Reading.nodeId == s2.nodeId))
+                 .filter(and_(Reading.typeId == reading_type,
+                              s2.typeId == delta_type,
+                              Reading.nodeId == node_id,
+                              Reading.time >= sd,
+                              Reading.time <= ed)))
+                     #raise Exception("sql is " + str(matched_q))
 
-    delta_rows = session.query(Reading.time, Reading.value).filter(and_(
-            Reading.time >= sd,
-            Reading.time < ed,
-            Reading.nodeId == node_id,
-            Reading.typeId == delta_type)).with_labels().subquery()
-            
-    rows =  session.query(Reading.time, Reading.value, delta_rows.c.Reading_value).filter(and_(
-        Reading.time >= sd,
-        Reading.time < ed,
-        Reading.nodeId == node_id,
-        Reading.typeId == reading_type))
-                        
-    readings = rows.join((delta_rows, Reading.time == delta_rows.c.Reading_time))
-
-    for time,value,delta in readings:  
-        point={}
-        point["time"]=time
+    for (time, value, delta) in matched_q.all():  
         times.append(time)
-        point["value"]=value
         xs.append(value)
-        point["delta"]=delta/300.
-        data.append(point)
+        data.append({'time': time,
+                     'value': value,
+                     'delta': delta/300}) #TODO remove magic number
+        
+    points=[times, xs]
+    return (data, points)
 
-    points=[times,xs]
-    return (data,points)
-
-def _graphSplines(session, data, paths, current_point, start_time, end_time, reading_type, fmt, req):
+def _graphSplines(session, data, paths, current_point, start_time, end_time, reading_type, fmt, debug=False):
+    t_plot = []
+    t1 = time.time()
     fig = plt.figure()
+    t_plot.append(time.time() - t1)
+    t1 = time.time()
     fig.set_size_inches(7,4)
+    t_plot.append(time.time() - t1)
+    t1 = time.time()
     ax = fig.add_subplot(111)
+    t_plot.append(time.time() - t1)
+    t1 = time.time()
     ax.set_autoscalex_on(False)
+    t_plot.append(time.time() - t1)
+    t1 = time.time()
     ax.set_xlim((matplotlib.dates.date2num(start_time),
                  matplotlib.dates.date2num(end_time)))
 
-    for p in paths:
-        patch = patches.PathPatch(p, facecolor='none', lw=2)
+    t_plot.append(time.time() - t1)
+    t1 = time.time()
+    for i in range(len(paths)):
+        p = paths[i]
+        if i+1 == len(paths):
+            patch = patches.PathPatch(p, facecolor='none', lw=2, ls='dashed')
+        else:
+            patch = patches.PathPatch(p, facecolor='none', lw=2)
         ax.add_patch(patch)
+    t_plot.append(time.time() - t1)
+    t1 = time.time()
 
-    ax.plot_date(current_point[0], current_point[1], color='red', linestyle='dashed')   
+    ax.plot_date(current_point[0], current_point[1], color='red')   
     ax.plot_date(data[0], data[1],fmt)
+    t_plot.append(time.time() - t1)
+    t1 = time.time()
 
 
     fig.autofmt_xdate()
     ax.set_xlabel("Date")
-        
 
+    t_plot.append(time.time() - t1)
+
+    t1 = time.time()
     try:
         thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(reading_type)).one()
         ax.set_ylabel("%s (%s)" % tuple(thistype))
     except NoResultFound:
-        pass        
+        pass
+    t_stq = time.time() - t1
 
+    t1 = time.time()
     image = cStringIO.StringIO()
-    fig.savefig(image)
-    
-    req.content_type = "image/png"
-    return  [req.content_type, image.getvalue()]
+    fig.savefig(image, **_SAVEFIG_ARGS)
 
-def _plotSplines(node_id, reading_type, delta_type, start_time, end_time, debug, fmt, req):
+    t_savefig = time.time() - t1
+
+    if debug:
+        return [_CONTENT_TEXT,
+                "t_savefig={}\nt_stq={}\nt_plot={}"
+                .format(t_savefig,
+                        t_stq,
+                        t_plot)]
+    else:
+        return  [_CONTENT_PLOT, image.getvalue()]
+
+def _plotSplines(node_id, reading_type, delta_type, start_time, end_time, debug, fmt):
     try:
         session = Session()
-        data,points = getSplineData(session, node_id, reading_type, delta_type, start_time, end_time)
+        t1 = time.time()
+        data, points = _getSplineData(session, node_id, reading_type, delta_type, start_time, end_time)
+        t_gsd = time.time() - t1
 
         paths = []
-        msgs=len(data)
-        i=0
-        req.content_type = "text/plain"
-        while i < msgs:
-            try:
-                path = _calcSpline(data[i],data[i+1],reading_type)
-                paths.append(path)
-            except IndexError:
-                current_point = _interp(data[i])
-                path = _calcSpline(data[i],current_point[2],reading_type)
-                paths.append(path)
-                break
-            i+=1
-        if len(paths)>0:
-            return _graphSplines(session, points, paths, current_point, start_time, end_time, reading_type, fmt, req)
+
+        t1 = time.time()
+        for i in range(len(data)):
+            if i+1 < len(data):
+                next_point = data[i+1]
+            else:
+                current_point = _interp(**data[i])
+                next_point = current_point[2]
+                
+            path = _calcSpline(data[i], next_point, reading_type)
+            paths.append(path)
+
+        t_cs = time.time() - t1
+        
+        if len(paths) > 0:
+            t1 = time.time()
+            retval = _graphSplines(session, points, paths, current_point, start_time, end_time, reading_type, fmt, debug=debug)
+            t_gs = time.time() - t1
+            if debug:
+                return (_CONTENT_TEXT,
+                    "t_gsd={}, \nt_cs={},\nt_gs={}\ngraphSplines={}\npoints={}, \npaths={}, \ncurrent_point={}\n"
+                .format(t_gsd,
+                        t_cs,
+                        t_gs,
+                        retval[1],
+                    points, paths, current_point))
+            else:
+                return retval
+        else:
+            return (_CONTENT_TEXT, "no paths returned by calcspline")
+
     finally:
         session.close()
             
@@ -1589,7 +1586,7 @@ def _isPlotSpline(session, node, typ, startts, endts):
     return False
 
 
-def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
+def graph_old(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
 
     try:
         session = Session()
@@ -1632,19 +1629,81 @@ def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', t
         v = _calibrate(session, v, node, typ)
 
 
-        req.content_type = "image/png"
-
         #will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
         nid=int(node)
-        if len(t) == 0:  
-            res=_plot(typ, t, v, startts, endts, debug, fmt, req)
-            return res[1]
-        elif _isPlotSpline(session, int(node), int(typ), startts, endts):
-            res = _plotSplines(nid, typ, type_delta[int(typ)], startts, endts, debug, fmt, req)
+        if len(t) > 0 and _isPlotSpline(session, int(node), int(typ), startts, endts):
+            res = _plotSplines(nid, int(typ), type_delta[int(typ)], startts, endts, debug, fmt)
         else:
-            res=_plot(typ, t, v, startts, endts, debug, fmt, req)
+            res = _plot(typ, t, v, startts, endts, debug, fmt)
 
         req.content_type=res[0]
+        return res[1]
+    finally:
+        session.close()
+
+
+def graph(req,
+           node='64',
+           minsago='1440',
+           duration='1440',
+           debug=None,
+           fmt='bo',
+           typ='0'):
+
+    try:
+        session = Session()
+        plotLines=False
+
+        try:
+            minsago_i = timedelta(minutes=int(minsago))
+        except Exception:
+            minsago_i = timedelta(minutes=1)
+
+        try:
+            duration_i = timedelta(minutes=int(duration))
+        except Exception:
+            duration_i = timedelta(minutes=1)
+
+        debug = (debug is not None)
+        week = timedelta(minutes=int(_periods["week"]))
+        startts = datetime.utcnow() - minsago_i
+        deltats = (datetime.utcnow() - minsago_i) - week
+
+        endts = startts + duration_i
+
+        type_id = int(typ)
+        if type_id not in type_delta:
+            
+            qry = session.query(Reading.time,Reading.value).filter(
+                and_(Reading.nodeId == int(node),
+                     Reading.typeId == int(typ),
+                     Reading.time >= startts,
+                     Reading.time <= endts)).order_by(Reading.time)
+
+
+            t = []
+            dt = []
+            v = []
+            last_value=None
+            for qt, qv in qry:
+                dt.append(qt)
+                t.append(matplotlib.dates.date2num(qt))
+                v.append(qv)
+                last_value=float(qv)
+
+            v = _calibrate(session, v, node, typ)
+            res = _plot(typ, t, v, startts, endts, debug, fmt)
+        else:
+            #will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
+            res = _plotSplines(int(node),
+                               type_id,
+                               type_delta[type_id],
+                               startts,
+                               endts,
+                               debug,
+                               fmt)
+
+        req.content_type = res[0]
         return res[1]
     finally:
         session.close()
@@ -1722,39 +1781,38 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
         #    ax.plot(t,v,fmt)
 
         if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscalex_on(False)
-                ax.set_xlim((matplotlib.dates.date2num(startts),
-                         matplotlib.dates.date2num(endts)))
-                
-                if len(t) > 0:
-                    ax.plot_date(t, v, 'r-')
+            fig = plt.figure()
+            fig.set_size_inches(7,4)
+            ax = fig.add_subplot(111)
+            ax.set_autoscalex_on(False)
+            ax.set_xlim((matplotlib.dates.date2num(startts),
+                     matplotlib.dates.date2num(endts)))
 
-                fig.autofmt_xdate()
-                ax.set_xlabel("Date")
-                try:
-                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(11)).one()
-                    ax.set_ylabel("%s (%s)" % tuple(thistype))
-                except:
-                    pass
+            if len(t) > 0:
+                ax.plot_date(t, v, 'r-')
 
-                if len(t2) > 0:
-                    ax2 = ax.twinx()
-                    ax2.plot_date(t2, v2, 'b-')
-                    ax2.set_ylabel('Bathroom humidity')
+            fig.autofmt_xdate()
+            ax.set_xlabel("Date")
+            try:
+                thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(11)).one()
+                ax.set_ylabel("%s (%s)" % tuple(thistype))
+            except:
+                pass
+
+            if len(t2) > 0:
+                ax2 = ax.twinx()
+                ax2.plot_date(t2, v2, 'b-')
+                ax2.set_ylabel('Bathroom humidity')
 
 
-                image = cStringIO.StringIO()
-                fig.savefig(image)
+            image = cStringIO.StringIO()
+            fig.savefig(image, **_SAVEFIG_ARGS)
 
-            req.content_type = "image/png"
+            req.content_type = _CONTENT_PLOT
 
             return image.getvalue()
         else:
-            req.content_type = "text/plain"
+            req.content_type = _CONTENT_TEXT
             return str(t)
     finally:
         session.close()
