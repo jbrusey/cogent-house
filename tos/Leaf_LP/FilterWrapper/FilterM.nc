@@ -1,83 +1,56 @@
 // -*- c -*-
 #include "mat22.h"
-#define HIGH_COVARIANCE 1e20
-
-/* -*- c -*-
-   KalmanM.nc - Wrapper to kalman filter
-
-   Copyright (C) 2011 Ross Wilkins
-
-   This File is part of Cogent-House
-
-   Cogent-House is free software: you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation, either version 3 of the
-   License, or (at your option) any later version.
-
-   Cogent-House is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program. If not, see
-   <http://www.gnu.org/licenses/>.
-
-
-
-   ===================
-   Filter Wrapper Module
-   ===================
-
-
-   :author: Ross Wilkins
-   :email: ross.wilkins87@googlemail.com
-   :date:  05/01/2011
-*/
 #include "Filter.h"
 
-generic module FilterM() @safe() {
-  provides 
-    {
-      interface Read<FilterState *>;
-      interface FilterWrapper;
-    }
-  uses
-    {		
-      interface Read<float> as GetSensorValue;
-      interface Filter;
-      interface LocalTime<TMilli>;
-    }
+module FilterM {
+  provides {
+    interface FilterWrapper<FilterState *> as EstimateCurrentState[uint8_t id];
+  }
+  uses{		
+    interface Read<float> as GetSensorValue[uint8_t id];
+    interface Filter[uint8_t id];
+    interface LocalTime<TMilli>;
+  }
 }
-implementation
-{
-  uint8_t id=NULL:
-  FilterState currentState;
+implementation {  
+  FilterState currentState[RS_SIZE];
+  float vals[RS_SIZE][2];
 
-  command void FilterWrapper.setId(){
+  command void EstimateCurrentState.init[uint8_t id](float x_init, float dx_init, bool init_set, float a, float b){
+    call Filter.init[id](x_init,dx_init,init_set,a,b);
+  }
+  
+  command error_t EstimateCurrentState.read[uint8_t id](){
+    return call GetSensorValue.read[id]();  //Get Sensor Value (Line 1)
   }
 
-  command void FilterWrapper.getId(){
-  }
+ event void GetSensorValue.readDone[uint8_t id](error_t result, float data) {    //Estimate Current state from filter (Line 2)
 
-  command error_t Read.read()
-  {
-    return call GetSensorValue.read();
-  }
+   uint32_t time;
+   if (result==SUCCESS){
+     //get local time
+     time = call LocalTime.get(); //Get time (Line 3)
+     currentState[id].z = data;
+      
+     //Get and return current state (Line 4)
+     call Filter.filter[id](data, time, vals[id]);
+     currentState[id].time = time;
+     currentState[id].x = vals[id][0];
+     currentState[id].dx = vals[id][1];
+     signal EstimateCurrentState.readDone[id](SUCCESS, &currentState[id]);  
+   }
+   else
+     signal EstimateCurrentState.readDone[id](FAIL, NULL);
+ }
 
-  event void GetSensorValue.readDone(error_t result, float data) {
-    float v[2];
-    uint32_t time;
-    //get local time
-    time = call LocalTime.get();
-    currentState.z = data;
+ /* DEFAULTS */
+ default event void EstimateCurrentState.readDone[uint8_t id](error_t result, FilterState* data) {}
+ 
+ default command void Filter.filter[uint8_t id](float z, uint32_t t, vec2 v) {}
 
-    call Filter.filter(data, time, v);
-    currentState.time = time;
-    currentState.x = v[0];
-    currentState.dx = v[1];
-    signal Read.readDone(SUCCESS, &currentState);	    
-  }
-	
-	
+ default command void Filter.init[uint8_t id](float x_init, float dx_init, bool init_set, float a, float b){}
+
+ default command error_t GetSensorValue.read[uint8_t id](){ return SUCCESS;}
 }
+       	
+

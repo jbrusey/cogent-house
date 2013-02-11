@@ -109,7 +109,6 @@ implementation
   }
 
 
-
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
    */
@@ -160,17 +159,17 @@ implementation
       //we're going do a send so pack the msg count and then increment
       newData->timestamp = call LocalTime.get();
       newData->special = 0xc7;
-      
+
       //increment and pack seq
       expSeq = msgSeq;
       msgSeq++;
       newData->seq = expSeq;
-      
+
       newData->ctp_parent_id = -1;
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
 	newData->ctp_parent_id = parent;
       }
-      
+     
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
       }
@@ -267,7 +266,7 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
-
+    call AckHeardMap.init();
     //Start radio if this is a cluster node
     if (CLUSTER_HEAD)
       call RadioControl.start();
@@ -311,7 +310,6 @@ implementation
     
     sending = FALSE;
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
-    
   }
   
   
@@ -354,10 +352,10 @@ implementation
 	 send a packet (e.g. for duty cycle info)
       */
       post checkDataGathered();
-      
+
     }
   }
-  
+
   /* perform any phase two sensing */
   task void phaseTwoSensing() {
     int i;
@@ -454,7 +452,7 @@ implementation
   /*********** ACK Methods  *****************/
 
 
-//updates SIP models and restarts sense timers and calculate duty time
+  //updates SIP models and restarts sense timers and calculate duty time
   void ackReceived(){
     uint32_t stop_time;
     uint32_t send_time;

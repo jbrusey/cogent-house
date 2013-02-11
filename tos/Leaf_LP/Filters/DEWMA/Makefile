@@ -1,4 +1,4 @@
-PFLAGS += -I../ -I ../FilterWrapper
+PFLAGS += -I../ -I ../../FilterWrapper -I ../../SIPController
 
 COMPONENT=DEWMATestC
 CFLAGS += -I$(TOSDIR)/lib/printf -Wall 

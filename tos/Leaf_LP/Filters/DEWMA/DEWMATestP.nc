@@ -68,7 +68,7 @@ implementation
   }
   
   
-  static char* testKalmanDeltaSine(void){
+  static char* testSine(void){
     float sse;
     float z;
     float v[2];
@@ -78,21 +78,11 @@ implementation
     sse = 0.;
     for (i = 1.; i < 2001.; i++) { 
       z = ((i / 64.) + 10.);
-      call DEWMASine.filter(z, i * 1024, v);
+      call DEWMASine.filter(z, i*1024, v);
+
       err = v[0] - (z);
       sse += err * err;
     }
-    printf("V[0] ");
-    printfloat2(v[0]);
-    printf("\n");
-    
-    printf("V[1] ");
-    printfloat2(v[1]);
-    printf("\n");
-    
-    printf("sse ");
-    printfloat2(sse);
-    printf("\n");
 
     mu_assert("Sine: v[0] error", v[0] == 10.+2000./64.);
     mu_assert("Sine: v[1] error", v[1] == 1./64.); 
@@ -107,7 +97,7 @@ implementation
   static char* all_tests(void) { 
     mu_run_test(test_mat22_add_v); 
     call Leds.led2On();
-    mu_run_test(testKalmanDeltaSine);  //Not working
+    mu_run_test(testSine);
     call Leds.led1Toggle(); 
     return 0;
   }
@@ -115,7 +105,13 @@ implementation
 
   event void Boot.booted()
   {
-    char *result = all_tests();
+
+    char *result;
+    call DEWMASine.init(10., 1/64., TRUE, 0.1, 0.1);
+    printfflush();
+
+    result = all_tests();
+
     call Leds.led2Off();
     call Leds.led1Off();
     if (result != 0) {

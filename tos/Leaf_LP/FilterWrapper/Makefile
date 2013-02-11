@@ -1,4 +1,4 @@
-PFLAGS += -I../ -I ../Kalman -I. -I ../AirQuality -I ../DEWMA
+PFLAGS += -I . -I ../Sensing/Base -I ../Sensing/AirQuality -I ../Filters/. -I ../Filters/DEWMA -I ../Predict  -I ../SIPController
 
 COMPONENT=DEWMAWrapperTestC
 CFLAGS += -I$(TOSDIR)/lib/printf -Wall 

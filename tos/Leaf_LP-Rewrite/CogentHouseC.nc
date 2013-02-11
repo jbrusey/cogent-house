@@ -2,7 +2,6 @@
 #include "../Packets.h"
 #include "./Sensing/PolyClass/horner.c"
 #include "Filter.h"
-
 #ifdef DEBUG
 #define NEW_PRINTF_SEMANTICS
 #include "printf.h"
