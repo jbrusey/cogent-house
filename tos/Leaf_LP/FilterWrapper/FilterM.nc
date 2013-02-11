@@ -50,7 +50,7 @@ implementation {
 
  default command void Filter.init[uint8_t id](float x_init, float dx_init, bool init_set, float a, float b){}
 
- default command error_t GetSensorValue.read[uint8_t id](){ return SUCCESS;}
+ default command error_t GetSensorValue.read[uint8_t id](){ return FAIL;}
 }
        	
 
