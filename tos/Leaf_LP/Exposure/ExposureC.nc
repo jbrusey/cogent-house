@@ -6,8 +6,8 @@ module ExposureC @safe()
 }
 implementation
 {
-  uint32_t *bandCount[RS_SIZE];
-  float *bandPct[RS_SIZE];
+  uint32_t bandCount[RS_SIZE];
+  float bandPct[RS_SIZE];
   float *bandLimit[RS_SIZE];
   float gamma[RS_SIZE];
   uint8_t num_bands[RS_SIZE];
@@ -34,6 +34,7 @@ implementation
     num_bands[id] = nb;
 
     //initialise bandCounts and pct
+    bandCount[RS_SIZE]= float[nb]:
     
     //initialis bandLimits
     if (raw_sensor == RS_TEMPERATURE)
