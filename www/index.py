@@ -78,6 +78,13 @@ type_delta = {
     6 : 7
 }
 
+_deltaDict={
+    0: 1,
+    2: 3,
+    6: 7,
+    8: 17
+    } 
+
 _periods = {
     "hour" : 60,
     "day" : 1440,
@@ -1315,8 +1322,14 @@ def _calibrate(session,v,node,typ):
         return v
 
 
+# ------------------------------------------------------------
+#
+# TODO revise splines as follows:
+# - load sequence numbers and identify paths with gaps
+# - draw them with dashed lines
+# - use my spline algorithm and return a series of straight line segments
+#
 
-_deltaDict={0: 1, 2: 3, 6: 7, 8: 17} 
 
 def _plot(typ, t, v, startts, endts, debug, fmt):
     if not debug:
@@ -1335,9 +1348,10 @@ def _plot(typ, t, v, startts, endts, debug, fmt):
                 session = Session()
                 thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
                 ax.set_ylabel("%s (%s)" % tuple(thistype))
-                session.close()
             except NoResultFound:
                 pass
+            finally:
+                session.close()
 
 
         image = cStringIO.StringIO()
@@ -1357,15 +1371,29 @@ def _latest_reading_before(session, nid, typ, startts):
                        Reading.time < startts))
           .subquery())
 
-    (qt, qv) = (session.query(Reading.time,Reading.value)
+    q2 = (session.query(Reading.time,Reading.value)
                 .join(sq, Reading.time==sq.c.maxtime)
                 .filter(and_(Reading.nodeId == nid,
+                             Reading.typeId == typ)))
+    try:
+        (qt, qv,) = q2.one()
+    except NoResultFound:
+        # there isn't a latest reading before the start time, so
+        # return the earliest reading
+        (qt, qv,) = (session.query(Reading.time,Reading.value)
+                     .filter(and_(Reading.nodeId == nid,
                              Reading.typeId == typ))
-                .first())
-
+                     .order_by(Reading.time).first())
+        
     # get corresponding delta
-    (dv,) = session.query(Reading.value).join(
-        sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == _deltaDict[typ])).first()
+    try:
+        (dv,) = (session.query(Reading.value)
+                 .filter(and_(Reading.nodeId == nid,
+                              Reading.time == qt,
+                              Reading.typeId == _deltaDict[typ]))
+                 .one())
+    except NoResultFound:
+        dv = 0.
     return qt,qv,dv
     
 
