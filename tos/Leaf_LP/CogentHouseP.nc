@@ -170,6 +170,11 @@ implementation
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
 
+#ifdef DEBUG
+    printf("Error message sent: %lu\n", (uint32_t)last_errno);
+    printfflush();
+#endif
+
     last_transmitted_errno = last_errno;
 
     pslen = call PackState.pack(&ps);
@@ -309,6 +314,13 @@ implementation
     if (!CLUSTER_HEAD)
       call RadioControl.stop();
     
+
+    //reset errors - need to avoid getting inf
+    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
+      last_errno = last_errno / last_transmitted_errno;
+    else
+      last_errno = 1.;
+
     reportError(ERR_NO_ACK);
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
 
