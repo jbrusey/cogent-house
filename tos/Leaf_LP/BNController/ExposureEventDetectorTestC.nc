@@ -12,6 +12,8 @@ implementation
   components new ExposureControllerC(5, 10.) as ED;
   components SerialStartC;
   components DemoFilterM;
+  components PrintfC;
+
 
   ED.ExposureRead -> DemoFilterM.Read;
   ExposureEventDetectorTestP.EventRead -> ED;

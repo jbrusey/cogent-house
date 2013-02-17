@@ -43,7 +43,7 @@ implementation
     //Detect event
     for ( x = 0; x < num_bands; x++ ) {
       diff = abs(current_state[x]-sink_state[x]);
-      if (diff >=threshold) {
+      if (first || diff >=threshold) {
 	eventful = TRUE;
       }
     }
@@ -57,6 +57,7 @@ implementation
   command void BNController.transmissionDone(){
     //Successful transmission so clear flag
     eventful = FALSE;
+    first = FALSE;
 
     //update the sink state transmission done
     memcpy(sink_state , current_state, sizeof current_state); 

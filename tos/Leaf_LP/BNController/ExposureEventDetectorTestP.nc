@@ -58,17 +58,20 @@ implementation
     float* currentPct;
     currentPct = data;
     var = currentPct[2];
-    test=result;
   }
   
-  
+ 
   static char* testEventDetector(void){
-    while (test != SUCCESS)
-      {
-	call EventRead.read();
+    while (var < 10){
+      call EventRead.read();
+      printf("Reading is : "); printfloat2(var);
+      if (call EventRead.hasEvent()){
+	printf("\nEvent!!!\n");
+	mu_assert("Reading: var != 10", var == 1. || var ==10.);
+	call EventRead.transmissionDone();
       }
-    printf("Reading is : "); printfloat2(var);
-    mu_assert("Reading: var != 10", var == 10.);
+      printf("\n\n");
+    }
     return 0;
   }
      
