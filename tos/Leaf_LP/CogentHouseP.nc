@@ -3,7 +3,6 @@
 module CogentHouseP
 {
   uses {
-
     //Basic Interfaces
     interface Boot;
     interface Leds;
@@ -29,6 +28,7 @@ module CogentHouseP
     interface Queue<AckMsg_t *> as AckQueue;
     interface Pool<message_t> as AckPool;
     
+#ifdef SIP
     //SIP Modules
     interface SIPController<FilterState *> as ReadTemp;
     interface SIPController<FilterState *> as ReadHum;
@@ -37,11 +37,27 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadVOC;
     interface SIPController<FilterState *> as ReadAQ;
     interface TransmissionControl;
+#endif
+
+
+#ifdef BN
+    interface Heartbeat;
+    interface BNController<float *> as ReadTemp;
+    interface BNController<float *> as ReadHum;
+    interface BNController<float> as ReadVolt;
+    interface BNController<float *> as ReadCO2;
+    interface BNController<float *> as ReadVOC;
+    interface BNController<float *> as ReadAQ;
+#endif
     
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
     interface PackState;
+
+
+
+
   }
 }
 implementation
@@ -130,7 +146,7 @@ implementation
 #ifdef SIP
     StateMsg *newData;
 #endif
-#ifdef BNP
+#ifdef BN
     BNMsg *newData;
 #endif
     int pslen;
@@ -156,8 +172,14 @@ implementation
 
     last_transmitted_errno = last_errno;
 
-    pslen = call PackState.pack(&ps);		
+    pslen = call PackState.pack(&ps);
+	
+#ifdef SIP
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
+#endif
+#ifdef BN
+    message_size = sizeof (StateMsg) - (BN_SIZE - pslen) * sizeof (float);
+#endif
 
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
@@ -214,6 +236,9 @@ implementation
 
 
   task void checkDataGathered() {
+#ifdef BN
+    bool toSend = FALSE;
+#endif
     bool allDone = TRUE;
     uint8_t i;
     
@@ -230,6 +255,8 @@ implementation
     	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
 #endif
+
+#ifdef SIP
     	if (call TransmissionControl.hasEvent()){
           if (!CLUSTER_HEAD)
 	    call RadioControl.start();
@@ -238,6 +265,36 @@ implementation
 	}
 	else
 	  restartSenseTimer();
+#endif
+
+#ifdef BN
+	// only include phase one sensing here
+	for (i = 0; i < RS_SIZE; i++) { 
+	  if (call Configured.get(i)) {
+	    if (i == RS_TEMPERATURE)
+	      toSend = call ReadTemp.hasEvent();
+	    else if (i == RS_HUMIDITY)
+	      toSend = call ReadHum.hasEvent();
+	    else if (i == RS_VOLTAGE)
+	      toSend = call ReadVolt.hasEvent();
+	    else if (i == RS_CO2)
+	      toSend = call ReadCO2.hasEvent();
+	    else if (i == RS_AQ)
+	      toSend = call ReadAQ.hasEvent();
+	    else if (i == RS_VOC)
+	      toSend = call ReadVOC.hasEvent();
+	    else
+	      continue;
+	    if (toSend)
+	      break;
+	  }
+	}
+	if  (toSend || call Heartbeat.triggered())
+	  sendState();
+	else
+	  restartSenseTimer();
+#endif
+
       }
       else { /* phase one complete - start phase two */
 	phase_two_sensing = TRUE;
@@ -271,19 +328,26 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
+
+#ifdef BN
+    call Heartbeat.init();
+#endif
+
     call AckHeardMap.init();
     //Start radio if this is a cluster node
     if (CLUSTER_HEAD)
       call RadioControl.start();
 
     //Inititalise filters -- Configured in the makefile
+#ifdef SIP
     call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_X, SIP_TEMP_DX, SIP_TEMP_INIT, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
     call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_X, SIP_HUM_DX, SIP_HUM_INIT, SIP_HUM_ALPHA, SIP_HUM_BETA);
     call ReadVolt.init(SIP_BATTERY_THRESH, SIP_BATTERY_MASK, SIP_BATTERY_X, SIP_BATTERY_DX, SIP_BATTERY_INIT, SIP_BATTERY_ALPHA, SIP_BATTERY_BETA);
     call ReadCO2.init(SIP_CO2_THRESH, SIP_CO2_MASK, SIP_CO2_X, SIP_CO2_DX, SIP_CO2_INIT, SIP_CO2_ALPHA, SIP_CO2_BETA);
     call ReadVOC.init(SIP_VOC_THRESH, SIP_VOC_MASK, SIP_VOC_X, SIP_VOC_DX, SIP_VOC_INIT, SIP_VOC_ALPHA, SIP_VOC_BETA);
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_X, SIP_AQ_DX, SIP_AQ_INIT, SIP_AQ_ALPHA, SIP_AQ_BETA);
-    
+#endif
+
     nodeType = TOS_NODE_ID >> 12;
     my_settings = &settings.byType[nodeType];
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
@@ -381,7 +445,7 @@ implementation
   }
 
 
-  /*********** Sensing Methods *****************/
+  /*********** Sensing Methods *****************/  
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
   {
@@ -390,8 +454,10 @@ implementation
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
-  
-  void do_readDone_FilterState(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
+
+
+#ifdef SIP
+  void do_readDone_filterstate(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
   {
     if (result == SUCCESS){
       call PackState.add(state_code, s->x);
@@ -402,28 +468,70 @@ implementation
   }
 
   event void ReadTemp.readDone(error_t result, FilterState* data){
-    do_readDone_FilterState(result, data, RS_TEMPERATURE, SC_TEMPERATURE, SC_D_TEMPERATURE);
+    do_readDone_filterstate(result, data, RS_TEMPERATURE, SC_TEMPERATURE, SC_D_TEMPERATURE);
   }
 
   event void ReadHum.readDone(error_t result, FilterState* data){
-    do_readDone_FilterState(result, data, RS_HUMIDITY, SC_HUMIDITY, SC_D_HUMIDITY);
+    do_readDone_filterstate(result, data, RS_HUMIDITY, SC_HUMIDITY, SC_D_HUMIDITY);
   }
 
   event void ReadVolt.readDone(error_t result, FilterState* data){
-    do_readDone_FilterState(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
+    do_readDone_filterstate(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
   }
 
   event void ReadCO2.readDone(error_t result, FilterState* data){
-    do_readDone_FilterState(result, data, RS_CO2, SC_CO2, SC_D_CO2);
+    do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
   }
 
   event void ReadAQ.readDone(error_t result, FilterState* data){
-    do_readDone_FilterState(result, data, RS_AQ, SC_AQ, SC_D_AQ);
+    do_readDone_filterstate(result, data, RS_AQ, SC_AQ, SC_D_AQ);
   }
 
   event void ReadVOC.readDone(error_t result, FilterState* data){
-    do_readDone_FilterState(result, data, RS_VOC, SC_VOC, SC_D_VOC);
+    do_readDone_filterstate(result, data, RS_VOC, SC_VOC, SC_D_VOC);
   }
+#endif
+
+
+
+#ifdef BN
+  void do_readDone_exposure(error_t result, float* data,  uint raw_sensor,  uint state_count, uint state_first){
+    int i;
+
+    if (result == SUCCESS){
+      for(i = 0; i < state_count; i++){
+	call PackState.add(state_first+i,data[i]);
+      }
+    }
+    call ExpectReadDone.clear(raw_sensor);
+    post checkDataGathered();
+  }
+
+
+  event void ReadTemp.readDone(error_t result, float* data){
+    do_readDone_exposure(result, data, RS_TEMPERATURE, BN_TEMP_COUNT, BN_TEMP_FIRST);
+  }
+
+  event void ReadHum.readDone(error_t result, float* data){
+    do_readDone_exposure(result, data, RS_HUMIDITY, BN_HUM_COUNT, BN_HUM_FIRST);
+  }
+
+  event void ReadVolt.readDone(error_t result, float data){
+    do_readDone(result, data, RS_VOLTAGE, BN_VOLTAGE);
+  }
+
+  event void ReadCO2.readDone(error_t result, float* data){
+    do_readDone_exposure(result, data, RS_CO2, BN_CO2_COUNT, BN_CO2_FIRST);
+  }
+
+  event void ReadAQ.readDone(error_t result, float* data){
+    do_readDone_exposure(result, data, RS_AQ, BN_AQ_COUNT, BN_AQ_FIRST);
+  }
+
+  event void ReadVOC.readDone(error_t result, float* data){
+    do_readDone_exposure(result, data, RS_VOC, BN_VOC_COUNT, BN_VOC_FIRST);
+  }
+#endif
 
 
 
@@ -461,7 +569,9 @@ implementation
   void ackReceived(){
     uint32_t stop_time;
     uint32_t send_time;
-    
+#ifdef BN
+    int i;
+#endif
 #ifdef BLINKY
     call Leds.led2Toggle();
 #endif
@@ -486,7 +596,32 @@ implementation
     
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     
+
+#ifdef SIP
     call TransmissionControl.transmissionDone();
+#endif
+
+
+#ifdef BN
+    for (i = 0; i < RS_SIZE; i++) { 
+      if (call Configured.get(i)) {
+	if (i == RS_TEMPERATURE)
+	  call ReadTemp.transmissionDone();
+	else if (i == RS_HUMIDITY)
+	  call ReadHum.transmissionDone();
+	else if (i == RS_VOLTAGE)
+	  call ReadVolt.transmissionDone();
+	else if (i == RS_CO2)
+	  call ReadCO2.transmissionDone();
+	else if (i == RS_AQ)
+	  call ReadAQ.transmissionDone();
+	else if (i == RS_VOC)
+	  call ReadVOC.transmissionDone();
+	else
+	  continue;
+      }
+    }
+#endif
     restartSenseTimer();   
   }
 

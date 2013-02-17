@@ -11,6 +11,7 @@ implementation
 
   command error_t Read.read(){
     currentState[2]++;
-    signal Read.readDone(SUCCESS, currentState);	
+    signal Read.readDone(SUCCESS, currentState);
+    return SUCCESS;
   }
 }

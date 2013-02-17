@@ -1,4 +1,4 @@
-PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap
+PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap -I./Exposure -I./BNController
  
 COMPONENT=CogentHouseC
 
@@ -11,8 +11,8 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 
 
 #Low power configuration
-CFLAGS += -DSIP
-#CFLAGS += -DBNP
+#CFLAGS += -DSIP
+CFLAGS += -DBN
 CFLAGS += -DCLUSTER_HEAD=0
 
 CFLAGS += -DHEARTBEAT_MULTIPLIER=7 #7 hours SIP #51 days BN

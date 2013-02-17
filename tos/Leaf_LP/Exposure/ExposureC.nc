@@ -1,100 +1,86 @@
 // -*- c -*- 
-module ExposureC @safe()
+generic module ExposureC(uint8_t num_bands, uint raw_sensor, float gamma) @safe()
 {
-  provides interface Exposure<float*>[uint8_t id];
-  uses interface Read<float> as GetSensorValue[uint8_t id];
+  provides interface Read<float*>;
+  uses interface Read<float> as GetValue;
 }
 implementation
 {
-  uint32_t bandCount[RS_SIZE];
-  float bandPct[RS_SIZE];
-  float *bandLimit[RS_SIZE];
-  float gamma[RS_SIZE];
-  uint8_t num_bands[RS_SIZE];
+  float bandCount[num_bands];
+  float bandPct[num_bands];
+  float *bandLimit;
+  bool first=TRUE;
 
+  void getLimits(){
+    if (raw_sensor == RS_TEMPERATURE)
+      bandLimit=tBands;
+    else if (raw_sensor == RS_HUMIDITY)
+      bandLimit=hBands;
+    else if (raw_sensor == RS_CO2)
+      bandLimit=cBands;
+    else if (raw_sensor == RS_VOC)
+      bandLimit=vBands;
+    else if (raw_sensor == RS_AQ)
+      bandLimit=aBands;
+    else
+      bandLimit=nullBands;
+  } 
+  
   //find in which band a value falls.
-  uint8_t findBand(float k, float* bands, uint8_t id)
+  uint8_t findBand(float k, float* bands)
   {
     uint8_t x;
-    
-    for ( x = 0; x < (num_bands[id]); x++ ) {
-      if (k <= bandLimit[id][x]){
+
+    for ( x = 0; x < (num_bands); x++ ) {
+      if (k <= bandLimit[x]){
 	return x;
       }
     }
-    return num_bands[id]-1;
+    return num_bands-1;
   }
-
-  command void Exposure.init[uint8_t id](uint8_t nb, uint8_t raw_sensor, float g){
-    int i;
-    uint32_t count[nb];
-    float pct[nb];
-
-    gamma[id] = g;
-    num_bands[id] = nb;
-
-    //initialise bandCounts and pct
-    bandCount[RS_SIZE]= float[nb]:
-    
-    //initialis bandLimits
-    if (raw_sensor == RS_TEMPERATURE)
-      bandLimit[id] = tBands;
-    else if (raw_sensor == RS_HUMIDITY)
-      bandLimit[id] = hBands;
-    else if (raw_sensor == RS_CO2)
-      bandLimit[id] = cBands;
-    else if (raw_sensor == RS_VOC)
-      bandLimit[id] = vBands;
-    else if (raw_sensor == RS_AQ)
-      bandLimit[id] = aBands;
-    else
-      bandLimit[id] = nullBands;
-
-
-  }
-
-
   
-  command error_t Exposure.read[uint8_t id]()
+  command error_t Read.read()
   {
-    return call GetSensorValue.read[id]();
+    return call GetValue.read();
   }
 
 
- event void GetSensorValue.readDone[uint8_t id](error_t result, float data) {
+ event void GetValue.readDone(error_t result, float data) {
    uint8_t x;
    uint8_t band;
    float total=0;
    if (result == SUCCESS) {
+      if (first){
+       getLimits();
+       first=FALSE;
+     }
 
      //decay all bands
-     for ( x = 0; x < num_bands[id]; x++ ) {
-       bandCount[id][x] *= gamma[x];
+     for ( x = 0; x < num_bands; x++ ) {
+       total *= gamma;
+       bandCount[x] *= gamma;
      }
       
      //find band and increase band count and total samples
-     band=findBand(data, bandLimit[id], id);
-     bandCount[id][band]++;
+     band=findBand(data, bandLimit);
+     bandCount[band]++;
 
      //calc percentages
-     for ( x = 0; x < num_bands[id]; x++ ) {
-       total += bandCount[id][x];
+     for ( x = 0; x < num_bands; x++ ) {
+       total += bandCount[x];
      }
 
-     for ( x = 0; x < num_bands[id]; x++ ) {
-       bandPct[id][x] = (bandCount[id][x]/total)*100.0;
+     for ( x = 0; x < num_bands; x++ ) {
+       bandPct[x] = (bandCount[x]/total)*100.0;
      }
 
      //check against previous pct and decided on SUCESS or not by threshold
-     signal Exposure.readDone[id](SUCCESS, bandPct[id]);
+
+     signal Read.readDone(result, bandPct);
    }
    else 
-     signal Exposure.readDone[id](FAIL, NULL);
+     signal Read.readDone(result, NULL);
  }
-
- /* DEFAULTS */
- default event void Exposure.readDone[uint8_t id](error_t result, float* data) {}
- default command error_t GetSensorValue.read[uint8_t id](){ return FAIL;}
 
 }
 

@@ -1,26 +1,15 @@
 /* -*- c -*- */
 
-interface Exposure<val_t> {
-  /**
-   * Initialise exposure reader
-   */
-  command void init(uint8_t num_bands, uint8_t raw_sensor, float gamma_val); 
-   
-  /**
-   * Initiates a read of the value.
-   * 
-   * @return SUCCESS if a readDone() event will eventually come back.
-   */
-  command error_t read();
+#include "mat22.h"
 
+interface Filter
+{
   /**
-   * Signals the completion of the read().
-   *
-   * @param result SUCCESS if the read() was successful
-   * @param val the value that has been read
+   * perform one filter step
+   * @param t current time in milliseconds
+   * @param z current sensor value
+   * @param v returned with estimated value and rate of change
    */
-  event void readDone( error_t result, val_t val );
-
+  command void filter(float z, uint32_t t, float* v);
 }
-
 

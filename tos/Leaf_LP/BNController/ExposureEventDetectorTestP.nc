@@ -1,13 +1,10 @@
 // -*- c -*-
-#include "printf.h"
-#include "Filter.h"
-
+#include "minunit.h"
 module ExposureEventDetectorTestP @safe()
 {
   uses {
     interface Boot;
-    interface TransmissionControl;
-    interface Read<float*> as EventRead;
+    interface BNController<float*> as EventRead;
   }
 }
 
@@ -16,6 +13,8 @@ implementation
   int tests_run=0;
   error_t test=FAIL;
   float var;
+
+
 
   void printfloat2( float v) {
     int i = (int) v;
@@ -54,7 +53,6 @@ implementation
     }
   }
 
-
   event void EventRead.readDone(error_t result, float* data) {
     //read in value from data
     float* currentPct;
@@ -70,7 +68,6 @@ implementation
 	call EventRead.read();
       }
     printf("Reading is : "); printfloat2(var);
-    printf("\n");
     mu_assert("Reading: var != 10", var == 10.);
     return 0;
   }
