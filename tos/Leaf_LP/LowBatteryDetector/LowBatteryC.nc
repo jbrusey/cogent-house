@@ -14,7 +14,7 @@ module LowBatteryC
 implementation
 {
   bool eventful = FALSE;
-  float lowVoltage = 2.3;
+  float lowVoltage = 2.35;
 
   command error_t BNController.read(){
     return call BatteryRead.read();
@@ -24,7 +24,7 @@ implementation
   event void BatteryRead.readDone( error_t result, float data) {  
   
     if (result == SUCCESS){
-        if (data < lowVoltage)
+        if (data <= lowVoltage)
             eventful = TRUE;
     }
     signal BNController.readDone(result, data);
