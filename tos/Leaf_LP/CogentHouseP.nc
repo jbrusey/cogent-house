@@ -183,7 +183,7 @@ implementation
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
 #endif
 #ifdef BN
-    message_size = sizeof (StateMsg) - (BN_SIZE - pslen) * sizeof (float);
+    message_size = sizeof (BNMsg) - (BN_SIZE - pslen) * sizeof (float);
 #endif
 
     newData = call StateSender.getPayload(&dataMsg, message_size);
@@ -587,10 +587,10 @@ implementation
 #ifdef BLINKY
     call Leds.led2Toggle();
 #endif
-    
+        
     if (!CLUSTER_HEAD)
       call RadioControl.stop();
-    call SendTimeOutTimer.stop();
+
     
     //reset errors
     if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
@@ -711,6 +711,7 @@ implementation
 	if (TOS_NODE_ID == aMsg->node_id)
 	  if (expSeq == aMsg->seq){
 	    fwd=FALSE;
+        call SendTimeOutTimer.stop();
 	    call AckHeardMap.put(aMsg->node_id,aMsg->seq);
 	    ackReceived();
 	  }
