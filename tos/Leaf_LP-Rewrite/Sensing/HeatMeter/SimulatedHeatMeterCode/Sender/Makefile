@@ -1,2 +1,0 @@
-COMPONENT=DigitalC
-include $(MAKERULES)
