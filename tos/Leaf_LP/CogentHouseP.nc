@@ -295,7 +295,10 @@ implementation
 	  }
 	}
 	if  (toSend || call Heartbeat.triggered())
-	  sendState();
+          if (!CLUSTER_HEAD)
+	    call RadioControl.start();
+	  else
+	    sendState();
 	else
 	  restartSenseTimer();
 #endif
