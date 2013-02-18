@@ -2,10 +2,10 @@ PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I.
  
 COMPONENT=CogentHouseC
 
-PFLAGS +=-DTOSH_DATA_LENGTH=118
+PFLAGS +=-DTOSH_DATA_LENGTH=175
 
 PYTHON_TARGET_DIR=../../cogent/node
-PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py BNMsg.py)
+PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
@@ -93,9 +93,6 @@ include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
-
-$(PYTHON_TARGET_DIR)/BNMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BNMsg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@

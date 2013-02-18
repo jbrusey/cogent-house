@@ -39,7 +39,6 @@ module CogentHouseP
     interface TransmissionControl;
 #endif
 
-
 #ifdef BN
     interface Heartbeat;
     interface BNController<float *> as ReadTemp;
@@ -54,10 +53,6 @@ module CogentHouseP
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
     interface PackState;
-
-
-
-
   }
 }
 implementation
@@ -143,12 +138,8 @@ implementation
   void sendState()
   {
     packed_state_t ps;
-#ifdef SIP
     StateMsg *newData;
-#endif
-#ifdef BN
-    BNMsg *newData;
-#endif
+
     int pslen;
     int i;
     am_addr_t parent;
@@ -166,18 +157,11 @@ implementation
       return;
     }
 
-#ifdef SIP
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
-#endif
-#ifdef BN
-    if (call Configured.get(RS_DUTY))
-      call PackState.add(BN_DUTY_TIME, last_duty);
-    if (last_errno != 1.)
-      call PackState.add(BN_ERRNO, last_errno);
-#endif
+
 
 #ifdef DEBUG
     printf("Error message sent: %lu\n", (uint32_t)last_errno);
@@ -187,13 +171,9 @@ implementation
     last_transmitted_errno = last_errno;
 
     pslen = call PackState.pack(&ps);
-	
-#ifdef SIP
+
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
-#endif
-#ifdef BN
-    message_size = sizeof (BNMsg) - (BN_SIZE - pslen) * sizeof (float);
-#endif
+
 
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
@@ -534,27 +514,27 @@ implementation
 
 
   event void ReadTemp.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_TEMPERATURE, BN_TEMP_COUNT, BN_TEMP_FIRST);
+    do_readDone_exposure(result, data, RS_TEMPERATURE, SC_BN_TEMP_COUNT, SC_BN_TEMP_FIRST);
   }
 
   event void ReadHum.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_HUMIDITY, BN_HUM_COUNT, BN_HUM_FIRST);
+    do_readDone_exposure(result, data, RS_HUMIDITY, SC_BN_HUM_COUNT, SC_BN_HUM_FIRST);
   }
 
   event void ReadVolt.readDone(error_t result, float data){
-    do_readDone(result, data, RS_VOLTAGE, BN_VOLTAGE);
+    do_readDone(result, data, RS_VOLTAGE, SC_VOLTAGE);
   }
 
   event void ReadCO2.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_CO2, BN_CO2_COUNT, BN_CO2_FIRST);
+    do_readDone_exposure(result, data, RS_CO2, SC_BN_CO2_COUNT, SC_BN_CO2_FIRST);
   }
 
   event void ReadAQ.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_AQ, BN_AQ_COUNT, BN_AQ_FIRST);
+    do_readDone_exposure(result, data, RS_AQ, SC_BN_AQ_COUNT, SC_BN_AQ_FIRST);
   }
 
   event void ReadVOC.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_VOC, BN_VOC_COUNT, BN_VOC_FIRST);
+    do_readDone_exposure(result, data, RS_VOC, SC_BN_VOC_COUNT, SC_BN_VOC_FIRST);
   }
 #endif
 

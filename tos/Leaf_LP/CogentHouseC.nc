@@ -38,12 +38,8 @@ implementation
 
   // Instantiate and wire our collection service
   components CollectionC, ActiveMessageC;
-#ifdef SIP
   components new CollectionSenderC(AM_STATEMSG) as StateSender;
-#endif
-#ifdef BN
-  components new CollectionSenderC(AM_BNMSG) as StateSender;
-#endif
+
 
   CogentHouseP.RadioControl -> ActiveMessageC;
   CogentHouseP.CollectionControl -> CollectionC;
