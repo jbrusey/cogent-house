@@ -82,7 +82,7 @@ implementation
   float last_duty = 0.;
   float last_errno = 1.;
   float last_transmitted_errno;
-
+  
   /** Restart the sense timer as a one shot. Using a one shot here
       rather than periodic removes the possibility of re-entering the
       sense loop before the last one has finished. The only slight
@@ -152,6 +152,7 @@ implementation
     int pslen;
     int i;
     am_addr_t parent;
+    
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -164,11 +165,19 @@ implementation
       reportError(ERR_SEND_WHILE_PACKET_PENDING);
       return;
     }
-   
+
+#ifdef SIP
     if (call Configured.get(RS_DUTY))
       call PackState.add(SC_DUTY_TIME, last_duty);
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
+#endif
+#ifdef BN
+    if (call Configured.get(RS_DUTY))
+      call PackState.add(BN_DUTY_TIME, last_duty);
+    if (last_errno != 1.)
+      call PackState.add(BN_ERRNO, last_errno);
+#endif
 
 #ifdef DEBUG
     printf("Error message sent: %lu\n", (uint32_t)last_errno);
@@ -196,12 +205,13 @@ implementation
       expSeq = msgSeq;
       msgSeq++;
       newData->seq = expSeq;
+      newData->rssi = 0.;
 
       newData->ctp_parent_id = -1;
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
 	newData->ctp_parent_id = parent;
       }
-     
+      
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
       }
@@ -548,8 +558,6 @@ implementation
   }
 #endif
 
-
-
   /*********** Radio Control *****************/
 
   event void RadioControl.startDone(error_t ok) {
@@ -764,5 +772,6 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
+  
 }
 

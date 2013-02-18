@@ -1,6 +1,8 @@
 // -*- c -*-
 #include "../Packets.h"
-configuration CogentRootC { }
+configuration CogentRootC {
+  provides interface Intercept as RadioIntercept[am_id_t amid];
+}
 implementation
 {
   components CogentRootP, MainC, LedsC;
@@ -27,7 +29,8 @@ implementation
   CogentRootP.CollectionPacket -> CollectionC;
   CogentRootP.CollectionReceive -> CollectionC.Receive;
   CogentRootP.RadioPacket -> CollectionC;
-
+  
+  RadioIntercept = CogentRootP.RadioIntercept;
 
   components new AMSenderC(AM_ACKMSG) as AckForwarder;
   CogentRootP.AckForwarder -> AckForwarder;

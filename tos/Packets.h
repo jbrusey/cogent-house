@@ -143,9 +143,10 @@ typedef nx_struct BNMsg {
   nx_uint32_t timestamp;
   nx_uint8_t special;
   nx_uint8_t seq;
-  nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
-  nx_float packed_state[SC_SIZE];
-} BNMsg; // varies depending on SC_SIZE 
+  nx_int16_t rssi;
+  nx_uint8_t packed_state_mask[bitset_size(BN_SIZE)];
+  nx_float packed_state[BN_SIZE];
+} BNMsg; // varies depending on BN_SIZE 
 
 
 typedef nx_struct StateMsg {
@@ -153,6 +154,7 @@ typedef nx_struct StateMsg {
   nx_uint32_t timestamp;
   nx_uint8_t special;
   nx_uint8_t seq;
+  nx_int16_t rssi;
   nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
   nx_float packed_state[SC_SIZE];
 } StateMsg; // varies depending on SC_SIZE 

@@ -11,8 +11,8 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 
 
 #Low power configuration
-#CFLAGS += -DSIP
-CFLAGS += -DBN
+CFLAGS += -DSIP
+#CFLAGS += -DBN
 CFLAGS += -DCLUSTER_HEAD=0
 
 CFLAGS += -DHEARTBEAT_MULTIPLIER=7 #7 hours SIP #51 days BN
@@ -20,7 +20,7 @@ CFLAGS += -DHEARTBEAT_PERIOD=3686400L #1 hour  88473600 #1 day
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
-CFLAGS += -DDEBUG
+#CFLAGS += -DDEBUG
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240

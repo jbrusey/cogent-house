@@ -49,8 +49,7 @@ implementation
   CogentHouseP.CollectionControl -> CollectionC;
   CogentHouseP.CtpInfo -> CollectionC;
   CogentHouseP.StateSender -> StateSender;
-
-
+  
   //Configured
   components new AccessibleBitVectorC(RS_SIZE) as Configured;
   CogentHouseP.Configured -> Configured.AccessibleBitVector;

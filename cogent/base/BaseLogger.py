@@ -143,6 +143,7 @@ class BaseLogger(object):
             node_id = msg.getAddr()
             parent_id = msg.get_ctp_parent_id()
             seq = msg.get_seq()
+            rssi_val = msg.get_rssi()
 
             node = session.query(Node).get(node_id)
             loc_id = None
@@ -171,7 +172,8 @@ class BaseLogger(object):
                                    nodeId=node_id,
                                    parent=parent_id,
                 localtime=msg.get_timestamp(),
-                seq_num=seq)
+                seq_num=seq,
+                rssi = rssi_val)
             session.add(node_state)
 
             for i, value in pack_state.d.iteritems():

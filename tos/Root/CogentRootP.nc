@@ -35,6 +35,8 @@ module CogentRootP @safe() {
       interface Timer<TMilli> as BlinkTimer;
       interface Leds;
     }
+    
+  provides interface Intercept as RadioIntercept[am_id_t amid];
 }
 
 implementation
@@ -106,6 +108,11 @@ implementation
 #endif
     if (!call DataPool.empty() && call DataQueue.size() < call DataQueue.maxSize()) { 
       message_t *tmp = call DataPool.get();
+      
+      if (!signal RadioIntercept.forward[id](msg,payload,len))
+          return tmp;
+          
+          
       call DataQueue.enqueue(msg);
       if (!fwdBusy) {
 	post serialForwardTask();
@@ -209,5 +216,13 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
+
+  default event bool
+  RadioIntercept.forward[am_id_t amid](message_t* msg,
+				       void* payload,
+				       uint8_t len) {
+    return TRUE;
+  }
+
 
 }
