@@ -10,8 +10,8 @@ module CogentHouseP
 
     //Timers
     interface Timer<TMilli> as SenseTimer;
-    interface Timer<TMilli> as SendTimeOutTimer;
     interface Timer<TMilli> as BlinkTimer;
+    interface Timer<TMilli> as SendTimeOutTimer;
 
     //Radio + CTP
     interface SplitControl as RadioControl;
@@ -59,9 +59,8 @@ implementation
 {
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
-  
-  uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
 
+  uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
   message_t dataMsg;
   uint16_t message_size;
@@ -71,7 +70,6 @@ implementation
 
   uint32_t sense_start_time;
   uint32_t send_start_time;  
-  uint32_t sense_start_time;
 
   bool packet_pending = FALSE;
   float last_duty = 0.;
@@ -163,18 +161,9 @@ implementation
       call PackState.add(SC_ERRNO, last_errno);
 
 
-#ifdef DEBUG
-    printf("Error message sent: %lu\n", (uint32_t)last_errno);
-    printfflush();
-#endif
-
     last_transmitted_errno = last_errno;
-
     pslen = call PackState.pack(&ps);
-
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
-
-
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       //we're going do a send so pack the msg count and then increment
@@ -191,7 +180,7 @@ implementation
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
 	newData->ctp_parent_id = parent;
       }
-      
+     
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
       }
@@ -357,7 +346,7 @@ implementation
     my_settings = &settings.byType[nodeType];
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     my_settings->blink = FALSE;
-    
+
     call Configured.clearAll();
     if (nodeType == 0) { 
       call Configured.set(RS_TEMPERATURE);
@@ -381,12 +370,11 @@ implementation
     }
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
-    
+
     sending = FALSE;
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
-  
-  
+
   /* SenseTimer.fired
    *
    * - begin sensing cycle by requesting, in parallel, for all active
@@ -452,8 +440,7 @@ implementation
 
   /*********** Sensing Methods *****************/  
 
-  void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
-  {
+  void do_readDone(error_t result, float data, uint raw_sensor, uint state_code){
     if (result == SUCCESS)
       call PackState.add(state_code, data);
     call ExpectReadDone.clear(raw_sensor);
@@ -566,8 +553,6 @@ implementation
   }
 
   /*********** ACK Methods  *****************/
-
-
   //updates SIP models and restarts sense timers and calculate duty time
   void ackReceived(){
     uint32_t stop_time;
@@ -669,7 +654,6 @@ implementation
     AckMsg_t* aMsg;
     CRCStruct crs;
     uint16_t crc;
-    bool fwd=TRUE;
 
 #ifdef DEBUG
     printf("ack packet rec at %lu\n", call LocalTime.get());
@@ -699,16 +683,16 @@ implementation
       if(!beenHeard(aMsg->node_id, aMsg->seq)){
 
 	//Cherck if the ACK is for this node
-	if (TOS_NODE_ID == aMsg->node_id)
+	if (TOS_NODE_ID == aMsg->node_id){
 	  if (expSeq == aMsg->seq){
-	    fwd=FALSE;
-        call SendTimeOutTimer.stop();
+	    call SendTimeOutTimer.stop();
 	    call AckHeardMap.put(aMsg->node_id,aMsg->seq);
 	    ackReceived();
+	    return msg;
 	  }
-
-	//If not update heard map and broadcast ack
-	if (fwd){
+	}
+	else{
+	  //If not update heard map and broadcast ack
 	  call AckHeardMap.put(aMsg->node_id,aMsg->seq);
 	  if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) { 
 	    message_t *tmp = call AckPool.get();
@@ -720,7 +704,6 @@ implementation
 	  }
 	}
       }
-
     return msg;
   }
 
@@ -739,11 +722,11 @@ implementation
   // Produce a nice pattern on start-up
   //
   uint8_t blink_state = 0;
-  
+
   uint8_t gray[] = { 0, 1, 3, 2, 6, 7, 5, 4 };
-  
+
   event void BlinkTimer.fired() { 
-    if (blink_state >= 60){ /* 30 seconds */
+    if (blink_state >= 60) { /* 30 seconds */
       call Leds.set(0);
     }
     else { 

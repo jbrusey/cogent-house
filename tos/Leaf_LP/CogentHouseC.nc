@@ -29,17 +29,16 @@ implementation
   //Timers
   components new TimerMilliC() as SenseTimer;
   components new TimerMilliC() as BlinkTimer;
+  components new TimerMilliC() as WarmUpTimer;
   components new TimerMilliC() as SendTimeOutTimer;
 
   CogentHouseP.SenseTimer -> SenseTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
   CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
 
-
   // Instantiate and wire our collection service
   components CollectionC, ActiveMessageC;
   components new CollectionSenderC(AM_STATEMSG) as StateSender;
-
 
   CogentHouseP.RadioControl -> ActiveMessageC;
   CogentHouseP.CollectionControl -> CollectionC;
@@ -49,7 +48,7 @@ implementation
   //Configured
   components new AccessibleBitVectorC(RS_SIZE) as Configured;
   CogentHouseP.Configured -> Configured.AccessibleBitVector;
-  
+
   //expectReadDone
   components new BitVectorC(RS_SIZE) as ExpectReadDone;
   CogentHouseP.ExpectReadDone -> ExpectReadDone.BitVector;
@@ -75,7 +74,6 @@ implementation
 
   //Sensing Modules
   components ThermalSensingM, AirQualityM, BatterySensingM;
-  components new TimerMilliC() as WarmUpTimer;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -86,7 +84,6 @@ implementation
   AirQualityM.GetAQ -> AQ;
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
-
 
   /*********** ACK CONFIG *************/
 
@@ -218,27 +215,5 @@ implementation
   VOCBN.ExposureRead -> VOCExposure.Read;
   CogentHouseP.ReadVOC -> VOCBN.BNController;
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

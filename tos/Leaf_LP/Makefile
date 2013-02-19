@@ -1,5 +1,7 @@
 PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector
- 
+
+CFLAGS += -DCC2420_DEF_CHANNEL=15
+
 COMPONENT=CogentHouseC
 
 PFLAGS +=-DTOSH_DATA_LENGTH=175
@@ -15,8 +17,8 @@ CFLAGS += -DSIP
 #CFLAGS += -DBN
 CFLAGS += -DCLUSTER_HEAD=0
 
-CFLAGS += -DHEARTBEAT_MULTIPLIER=7 #7 hours SIP #51 days BN
-CFLAGS += -DHEARTBEAT_PERIOD=3686400L #1 hour  88473600 #1 day
+CFLAGS += -DHEARTBEAT_MULTIPLIER=51 #7 hours SIP #51 days BN
+CFLAGS += -DHEARTBEAT_PERIOD=88473600 #3686400L #1 hour  88473600 #1 day
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY

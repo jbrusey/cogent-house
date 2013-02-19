@@ -3,22 +3,29 @@
 module CogentHouseP
 {
   uses {
-    //low-level stuff
+    //Basic Interfaces
+    interface Boot;
+    interface Leds;
+    interface LocalTime<TMilli>;
+
+    //Timers
     interface Timer<TMilli> as SenseTimer;
     interface Timer<TMilli> as BlinkTimer;
-    interface Leds;
-    interface Boot;
-    
-    //radio
+
+    //Radio + CTP
     interface SplitControl as RadioControl;
-
-
-    //ctp
+    interface Send as StateSender;
     interface StdControl as CollectionControl;
     interface CtpInfo;
-		
-    //sending interfaces
-    interface Send as StateSender;
+    interface Packet;
+
+    // ack interfaces
+    interface Crc as CRCCalc;
+    interface Receive as AckReceiver;
+    interface AMSend as AckForwarder;
+    interface Map as AckHeardMap;
+    interface Queue<AckMsg_t *> as AckQueue;
+    interface Pool<message_t> as AckPool;
 
     //Sensing
     interface Read<float> as ReadTemp;
@@ -30,183 +37,33 @@ module CogentHouseP
     interface Read<float> as ReadVOC;
     interface Read<float> as ReadAQ;
 
-    interface SplitControl as CurrentCostControl;
-    interface Read<ccStruct *> as ReadWattage;
-
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
     interface PackState;
-
-    //Time
-    interface LocalTime<TMilli>;
   }
 }
 implementation
 {
-  float last_duty = 0.;
-
-  float last_errno = 1.;
-  float last_transmitted_errno;
-
-  uint32_t send_start_time;  
-  uint32_t sense_start_time;
-  bool phase_two_sensing = FALSE;
-  
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
 
-  /* default node type is determined by top 4 bits of node_id */
-  uint8_t nodeType;
-
+  uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
-
-  bool packet_pending = FALSE;
-
   message_t dataMsg;
   uint16_t message_size;
+  bool fwdAck;
   uint8_t msgSeq = 0;
   uint8_t expSeq = 0;
-  struct nodeType nt;
-	
 
-  /** reportError records a code to be sent on the next transmission. 
-   * @param errno error code
-   */
-  void reportError(uint8_t errno) {
-#ifdef DEBUG
-    printf("Error message: %u\n", errno);
-    printfflush();
-#endif
-    last_errno *= errno;
-  }
+  uint32_t sense_start_time;
+  uint32_t send_start_time;  
 
-
-  ////////////////////////////////////////////////////////////
-  //sending methods
-
-
-  void sendState()
-  {
-    packed_state_t ps;
-    StateMsg *newData;
-    int pslen;
-    int i;
-    am_addr_t parent;
-#ifdef DEBUG
-    printf("sendState %lu\n", call LocalTime.get());
-    printfflush();
-#endif
-    if (sending) {
-      reportError(ERR_SEND_WHILE_SENDING);
-      return;
-    }
-    if (packet_pending) {
-      reportError(ERR_SEND_WHILE_PACKET_PENDING);
-      return;
-    }
-
-    if (call Configured.get(RS_DUTY))
-      call PackState.add(SC_DUTY_TIME, last_duty);
-    if (last_errno != 1.)
-      call PackState.add(SC_ERRNO, last_errno);
-
-    last_transmitted_errno = last_errno;
-    pslen = call PackState.pack(&ps);
-		
-    message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
-    newData = call StateSender.getPayload(&dataMsg, message_size);
-    if (newData != NULL) { 
-      //we're going do a send so pack the msg count and then increment
-      newData->timestamp = call LocalTime.get();
-      newData->special = 0xc7;
-
-      //increment and pack seq
-      expSeq = msgSeq;
-      msgSeq++;
-      newData->seq = expSeq;
-
-      newData->ctp_parent_id = -1;
-      if (call CtpInfo.getParent(&parent) == SUCCESS) { 
-	newData->ctp_parent_id = parent;
-      }
-     
-      for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
-	newData->packed_state_mask[i] = ps.mask[i];
-      }
-      for (i = 0; i < pslen; i++) {
-	newData->packed_state[i] = ps.p[i];
-      }
-      /* UART0 must be released before the radio can work */
-      if (call Configured.get(RS_POWER)) {
-	packet_pending = TRUE;
-	call CurrentCostControl.stop();
-      }
-      else {
-	send_start_time = call LocalTime.get();
-	if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
-#ifdef DEBUG
-	  printf("sending begun at %lu\n", call LocalTime.get());
-	  printfflush();
-#endif
-	  sending = TRUE;
-	}
-      }
-    }
-  }	
+  bool packet_pending = FALSE;
+  float last_duty = 0.;
+  float last_errno = 1.;
+  float last_transmitted_errno;
   
-  ////////////////////////////////////////////////////////////
-	
-  event void Boot.booted() {
-    // initial config
-#ifdef DEBUG
-    printf("Booted %lu\n", call LocalTime.get());
-    printfflush();
-#endif
-
-    if (CLUSTER_HEAD)
-      call RadioControl.start();
-
-    nodeType = TOS_NODE_ID >> 12;
-    my_settings = &settings.byType[nodeType];
-    my_settings->samplePeriod = DEF_SENSE_PERIOD;
-    my_settings->blink = FALSE;
-		
-    call Configured.clearAll();
-    if (nodeType == 0) { 
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_VOLTAGE);
-      call Configured.set(RS_DUTY);
-    }
-    else if (nodeType == 1) { /* current cost */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_DUTY);
-      call Configured.set(RS_POWER);
-      call CurrentCostControl.start();
-    } 
-    else if (nodeType == 2) { /* co2 */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_DUTY);
-    }
-    else if (nodeType == 3) { /* air quality */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_AQ);
-      call Configured.set(RS_VOC);
-      call Configured.set(RS_DUTY);
-    }
-    
-    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
-
-    sending = FALSE;
-    call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
-  }
-
   /** Restart the sense timer as a one shot. Using a one shot here
       rather than periodic removes the possibility of re-entering the
       sense loop before the last one has finished. The only slight
@@ -248,15 +105,143 @@ implementation
       call Leds.led1Off();
   }
 
-  task void phaseTwoSensing();
 
+  /** reportError records a code to be sent on the next transmission. 
+   * @param errno error code
+   */
+  void reportError(uint8_t errno) {
+#ifdef DEBUG
+    printf("Error message: %u\n", errno);
+    printfflush();
+#endif
+    last_errno *= errno;
+  }
+
+
+  /********* Data Send Methods **********/
+
+
+  void sendState()
+  {
+    packed_state_t ps;
+    StateMsg *newData;
+
+    int pslen;
+    int i;
+    am_addr_t parent;
+    
+#ifdef DEBUG
+    printf("sendState %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+    if (sending) {
+      reportError(ERR_SEND_WHILE_SENDING);
+      return;
+    }
+    if (packet_pending) {
+      reportError(ERR_SEND_WHILE_PACKET_PENDING);
+      return;
+    }
+
+    if (call Configured.get(RS_DUTY))
+      call PackState.add(SC_DUTY_TIME, last_duty);
+    if (last_errno != 1.)
+      call PackState.add(SC_ERRNO, last_errno);
+
+
+    last_transmitted_errno = last_errno;
+    pslen = call PackState.pack(&ps);
+    message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
+    newData = call StateSender.getPayload(&dataMsg, message_size);
+    if (newData != NULL) { 
+      //we're going do a send so pack the msg count and then increment
+      newData->timestamp = call LocalTime.get();
+      newData->special = 0xc7;
+
+      //increment and pack seq
+      expSeq = msgSeq;
+      msgSeq++;
+      newData->seq = expSeq;
+      newData->rssi = 0.;
+
+      newData->ctp_parent_id = -1;
+      if (call CtpInfo.getParent(&parent) == SUCCESS) { 
+	newData->ctp_parent_id = parent;
+      }
+     
+      for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
+	newData->packed_state_mask[i] = ps.mask[i];
+      }
+      for (i = 0; i < pslen; i++) {
+	newData->packed_state[i] = ps.p[i];
+      }
+      send_start_time = call LocalTime.get();
+
+
+      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+#ifdef DEBUG
+	printf("sending begun at %lu\n", call LocalTime.get());
+	printfflush();
+#endif
+	sending = TRUE;
+      }
+    }
+  }
+
+ /** When a message has been successfully transmitted, this event is
+      triggered. Update any error messages.
+  */
+  event void StateSender.sendDone(message_t *msg, error_t ok) {
+    uint32_t stop_time;
+    uint32_t send_time;
+    
+    if (!CLUSTER_HEAD)
+      call RadioControl.stop();
+    
+    stop_time = call LocalTime.get();
+    //Calculate the duty
+    if (stop_time < send_start_time) // deal with overflow
+      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
+    else
+      send_time = (stop_time - send_start_time);
+    last_duty = (float) send_time;
+    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+
+#ifdef DEBUG
+    printf("Time to send %lu\n", send_time);
+    printfflush();
+#endif 
+    
+    if (ok != SUCCESS) {
+#ifdef BLINKY
+      call Leds.led0Toggle(); 
+#endif
+      reportError(ERR_SEND_FAILED);    
+    }
+    else {
+      if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
+	last_errno = last_errno / last_transmitted_errno;
+      else
+	last_errno = 1.;
+    }
+
+    restartSenseTimer();
+  }
+
+
+  
   /* checkDataGathered
    * - only transmit data once all sensors have been read
    */
+
+  bool phase_two_sensing = FALSE;  
+  task void phaseTwoSensing();
+
+
   task void checkDataGathered() {
     bool allDone = TRUE;
     uint8_t i;
-
+    
     for (i = 0; i < RS_SIZE; i++) {
       if (call ExpectReadDone.get(i)) {
 	allDone = FALSE;
@@ -267,39 +252,79 @@ implementation
     if (allDone) {
       if (phase_two_sensing) {
 #ifdef DEBUG
-	printf("allDone %lu\n", call LocalTime.get());
-	printfflush();
+    	printf("allDone %lu\n", call LocalTime.get());
+    	printfflush();
 #endif
-	if (!CLUSTER_HEAD)
-	  call RadioControl.start();
-	else
-	  sendState();
+    	sendState();
       }
       else { /* phase one complete - start phase two */
 	phase_two_sensing = TRUE;
 	post phaseTwoSensing();
       }
     }
+
+  }
+  
+  /********* Main Loop Methods **********/
+  
+  event void Boot.booted(){
+#ifdef DEBUG
+    printf("Booted %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+    call AckHeardMap.init();
+    //Start radio if this is a cluster node
+    if (CLUSTER_HEAD)
+      call RadioControl.start();
+
+    nodeType = TOS_NODE_ID >> 12;
+    my_settings = &settings.byType[nodeType];
+    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+    my_settings->blink = FALSE;
+
+    call Configured.clearAll();
+    if (nodeType == 0) { 
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
+    else if (nodeType == 2) { /* co2 */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+      call Configured.set(RS_DUTY);
+    }
+    else if (nodeType == 3) { /* air quality */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+      call Configured.set(RS_AQ);
+      call Configured.set(RS_VOC);
+      call Configured.set(RS_DUTY);
+    }
+    
+    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+
+    sending = FALSE;
+    call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
 
   /* SenseTimer.fired
    *
    * - begin sensing cycle by requesting, in parallel, for all active
-       sensors to start reading.
-  */
+   * sensors to start reading.
+   */
   event void SenseTimer.fired() {
     int i;
-    
-    //starting reads decrease periods To Heartbeat
-    sense_start_time = call LocalTime.get();
 #ifdef BLINKY
     call Leds.led0Toggle();
 #endif
-    
+
+    sense_start_time = call LocalTime.get();
     if (! sending) { 
 #ifdef DEBUG
       printf("\n\nsensing begun at %lu\n", sense_start_time);
-      printf("periodsToHeartbeat %u\n", periodsToHeartbeat);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
@@ -320,8 +345,6 @@ implementation
 	    call ReadTSR.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
-	  else if (i == RS_POWER)
-	    call ReadWattage.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -353,6 +376,8 @@ implementation
     post checkDataGathered();
   }
 
+
+  /*********** Sensing Methods *****************/  
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code){
     if (result == SUCCESS)
@@ -390,22 +415,10 @@ implementation
   }
 
   event void ReadVolt.readDone(error_t result, float data) {
-    do_readDone(result,(data), RS_VOLTAGE, SC_VOLTAGE);
+    do_readDone(result, data, RS_VOLTAGE, SC_VOLTAGE);
   }
 
-
-  event void ReadWattage.readDone(error_t result, ccStruct* data) {
-    if (result == SUCCESS) {
-      call PackState.add(SC_POWER_MIN, data->min);
-      call PackState.add(SC_POWER, data->average);
-      call PackState.add(SC_POWER_MAX, data->max);
-    }
-    if (data->kwh > 0){
-      call PackState.add(SC_POWER_KWH, data->kwh);
-    }
-    call ExpectReadDone.clear(RS_POWER);
-    post checkDataGathered();
-  }
+  /*********** Radio Control *****************/
 
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS)
@@ -422,59 +435,101 @@ implementation
       call RadioControl.start();
   }
 
-
-  //Empty methods
   event void RadioControl.stopDone(error_t ok) { 
 #ifdef DEBUG
     printf("Radio Off %lu\n", call LocalTime.get());
     printfflush();
 #endif
-
 #ifdef BLINKY
     call Leds.led1Toggle(); 
 #endif
   }
 
+  /*********** ACK Methods  *****************/
 
-
-  /** When a message has been successfully transmitted, this event is
-      triggered. Update any error messages.
-  */
-  event void StateSender.sendDone(message_t *msg, error_t ok) {
-    uint32_t stop_time;
-    uint32_t send_time;
-
-    if (!CLUSTER_HEAD)
-      call RadioControl.stop();
-
-    stop_time = call LocalTime.get();
-    //Calculate the duty
-    if (stop_time < send_start_time) // deal with overflow
-      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
-    else
-      send_time = (stop_time - send_start_time);
-    last_duty = (float) send_time;
-    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+  bool beenHeard(uint16_t nodeId, uint16_t seq){
+    uint16_t val1;
+    if (call AckHeardMap.contains(nodeId)){
+      call AckHeardMap.get(nodeId, &val1);
+      if (val1==seq)
+        return TRUE;
+    }
+    return FALSE;
+  }
+  
+  task void transmit() {
+    AckMsg_t *ackData;
+    AckMsg_t* aMsg;
+    
+#ifdef BLINKY 
+    call Leds.led1Toggle();
+#endif
+    
+    if (!call AckQueue.empty() && !fwdAck) {
+      aMsg = call AckQueue.dequeue();
+      ackData = (AckMsg_t *) call Packet.getPayload(&dataMsg,  sizeof (AckMsg_t));
+      if (ackData != NULL) { 
+	//memcpy(ackData, aMsg, sizeof (AckMsg_t);
+	ackData->node_id = aMsg->node_id;
+        ackData->seq = aMsg->seq;
+        ackData->crc = aMsg->crc;
+	if (call AckForwarder.send(AM_BROADCAST_ADDR, &dataMsg,  sizeof (AckMsg_t)) == SUCCESS) {
+	  fwdAck = TRUE;
+#ifdef BLINKY
+	  call Leds.led2On();
+#endif
+	}	  
+      }
+    }
+  }
+  
+  event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
+    AckMsg_t* aMsg;
+    CRCStruct crs;
+    uint16_t crc;
 
 #ifdef DEBUG
-    printf("Time to send %lu\n", send_time);
+    printf("ack packet rec at %lu\n", call LocalTime.get());
     printfflush();
-#endif 
-    
-    if (ok != SUCCESS) {
-#ifdef BLINKY
-      call Leds.led0Toggle(); 
 #endif
-      reportError(ERR_SEND_FAILED);    
-    }
-    else {
-      if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-	last_errno = last_errno / last_transmitted_errno;
-      else
-	last_errno = 1.;
+    
+    aMsg = (AckMsg_t*)payload;
+    if (len == sizeof(AckMsg_t)){
+
+      crs.node_id = aMsg->node_id;
+      crs.seq = aMsg->seq;
+      crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
     }
 
-    restartSenseTimer();
+    //check crc's, nid and seq match
+    if (crc == aMsg->crc)
+      if(!beenHeard(aMsg->node_id, aMsg->seq)){
+
+	//Cherck if the ACK is not for this node
+	if (TOS_NODE_ID != aMsg->node_id){
+	  //If not update heard map and broadcast ack
+	  call AckHeardMap.put(aMsg->node_id,aMsg->seq);
+	  if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) { 
+	    message_t *tmp = call AckPool.get();
+	    aMsg = (AckMsg_t*)payload;
+	    call AckQueue.enqueue(aMsg);
+	    if (!fwdAck)
+	      post transmit();
+	    return tmp;
+	  }
+	}
+      }
+    return msg;
+  }
+
+  event void AckForwarder.sendDone(message_t *msg, error_t ok) {
+    fwdAck = FALSE;
+#ifdef BLINKY 
+    call Leds.led0Toggle();
+#endif
+    call AckPool.put(msg);
+    if (! call AckQueue.empty())
+      post transmit();
   }
 
 
@@ -495,21 +550,6 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
-
-  event void CurrentCostControl.startDone(error_t error) {}
-
-  event void CurrentCostControl.stopDone(error_t error) { 
-    if (packet_pending) { 
-      packet_pending = FALSE;
-      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
-#ifdef DEBUG
-	printf("sending begun at %lu\n", call LocalTime.get());
-	printfflush();
-#endif
-	sending = TRUE;
-      }
-    }
-  }
-
+  
 }
 
