@@ -20,7 +20,7 @@ class TestSipPhenom(unittest.TestCase):
         last_dt = None
         for pt in SipPhenom(src=db):
             #print c, pt
-            print last_dt, pt.dt
+            #print last_dt, pt.dt
             self.assertTrue(last_dt is None or
                             pt.dt > last_dt)
             self.assertTrue(pt.dt is not None)
