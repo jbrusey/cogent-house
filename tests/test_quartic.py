@@ -1,6 +1,6 @@
 import unittest
 
-from sipsim import QuarticSpline
+from cogent.sip.sipsim import QuarticSpline
 
 class TestQuartic(unittest.TestCase):
     def testQ(self):

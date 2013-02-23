@@ -1,6 +1,6 @@
 import unittest
 
-from sipsim import SipPhenom, flat
+from cogent.sip.sipsim import SipPhenom, flat
 from datetime import datetime, timedelta
 
 class TestSipPhenom(unittest.TestCase):
