@@ -1,6 +1,6 @@
 import unittest
 
-from sipsim import CubicSpline
+from cogent.sip.sipsim import CubicSpline
 
 class TestCubic(unittest.TestCase):
     def testC(self):
