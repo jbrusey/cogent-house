@@ -10,6 +10,7 @@ import csv
 import types
 from collections import namedtuple
 from math import sqrt
+from datetime import datetime, timedelta
 
 """ PhenomTuple consists of:
 
@@ -24,12 +25,13 @@ x - original value (if simulating)
 v - velocity or rate of change
 
 """
-PhenomTuple = namedtuple('PhenomTuple', 'sp, ev, ls, lt, s, t, xn, x, v')
+PhenomTuple = namedtuple('PhenomTuple', 'dt, sp, ev, ls, lt, s, t, xn, x, v')
 
 """ null_phenom can be used to make a new tuple using _replace to only
 supply certain elements.
 """
 null_phenom = (PhenomTuple(
+    dt=None,
     x=None,
     v=None,
     sp=None,
@@ -147,6 +149,58 @@ class Event(object):
                     lt=self.last[1])
                 (s1, t1) = self.last
                 self.last = (s1 + t1, t1)
+
+
+class SipPhenom(object):
+    """ expand out SIP data from the database into a time series to
+    allow a reconstruction
+    Input: tuple with (datetime, value, delta)
+    Output: PhenomTuple with dt, ev, ls, lt, s, t
+    """
+    def __init__(self,
+                 src=None,
+                 interval=timedelta(minutes=5),
+                 duplicate_interval=timedelta(seconds=20)):
+        self.src = src
+        self.interval = interval
+        self.duplicate_interval = duplicate_interval
+
+    def __iter__(self):
+        first = True
+        last_dt = None
+        for (dt, value, delta) in self.src:
+            if first:
+                yield null_phenom._replace(ev=True,
+                                               ls=value,
+                                               lt=delta,
+                                               s=value,
+                                               t=delta,
+                                               dt=dt
+                    )
+                (ls, lt) = (value, delta)
+                first = False
+
+            elif (dt - last_dt > self.duplicate_interval):
+                # yield records for each period from last_dt until < dt
+                while dt - last_dt > self.interval + self.duplicate_interval:
+                    ls += lt
+                    last_dt = last_dt + self.interval
+                    yield null_phenom._replace(ev=False,
+                                               ls=ls,
+                                               lt=lt,
+                                               dt=last_dt
+                        )
+
+                yield null_phenom._replace(ev=True,
+                                           ls=value,
+                                           lt=delta,
+                                           s=value,
+                                           t=delta,
+                                           dt=dt
+                    )
+                (ls, lt) = (value, delta)
+
+            last_dt = dt
 
 #------------------------------------------------------------
 # spline calculations
@@ -268,6 +322,8 @@ class PartSplineReconstruct(object):
     - calculate (d) reverse extrapolated estimate of x(n-1) from xn, xdotn
     - if d < c^- use c^-, if > c+ use c+, else use d
     - calculate spline that goes through d, xn and has slope xdotn at xn
+    Input: ev, ls, lt, s, t
+    Output: sp
     """
     
     def __init__(self,
