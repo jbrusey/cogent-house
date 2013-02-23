@@ -36,6 +36,11 @@ from cogent.base.model import (Node,
                                Sensor,
                                SensorType,
     )
+from cogent.sip.sipsim import (
+    PartSplineReconstruct,
+    SipPhenom,
+    )
+
 from sqlalchemy import create_engine, and_, distinct, func
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
@@ -58,8 +63,8 @@ engine = create_engine(_DBURL, echo=False, pool_recycle=60)
 init_model(engine)
 
 thresholds = {
-    0 : 0.25,
-    2 : 1,
+    0 : 0.5,
+    2 : 2,
     8 : 100,
     6 : 0.1
     }
@@ -1507,6 +1512,7 @@ def _getSplineData(session, node_id, reading_type, delta_type, sd, ed):
     points=[times, xs]
     return (data, points)
 
+
 def _graphSplines(session, data, paths, current_point, start_time, end_time, reading_type, fmt, debug=False):
     t_plot = []
     t1 = time.time()
@@ -1671,7 +1677,132 @@ def graph_old(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo
         return res[1]
     finally:
         session.close()
+    pass
 
+#------------------------------------------------------------
+# revised spline algorithm
+#
+
+def _get_value_and_delta(session,
+                         node_id,
+                         reading_type,
+                         delta_type,
+                         sd,
+                         ed):
+    """ get values and deltas given a node id, type, delta type, start
+    and end date.
+    """
+    # make sure that time period is covered by the data
+    try:
+        (sd1,) = (session.query(func.max(Reading.time))
+                 .filter(and_(Reading.nodeId == node_id,
+                              Reading.typeId == reading_type,
+                     Reading.time < sd))
+            .one()
+            )
+        if sd1 is not None:
+            sd = sd1
+    except NoResultFound:
+        pass
+    
+    try:
+        (ed1,) = (session.query(func.min(Reading.time))
+                 .filter(and_(Reading.nodeId == node_id,
+                              Reading.typeId == reading_type,
+                     Reading.time > ed))
+            .one()
+            )
+        if ed1 is not None:
+            ed = ed1
+    except NoResultFound:
+        pass
+        
+    s2 = aliased(Reading)
+    return (session.query(Reading.time, Reading.value, s2.value)
+                      .join(s2, and_(Reading.time == s2.time,
+                                     Reading.nodeId == s2.nodeId))
+                      .filter(and_(Reading.typeId == reading_type,
+                                   s2.typeId == delta_type,
+                                   Reading.nodeId == node_id,
+                                   Reading.time >= sd,
+                                   Reading.time <= ed
+                          )))
+
+def _plot_splines(node_id,
+                  reading_type,
+                  delta_type,
+                  start_time,
+                  end_time,
+                  debug,
+                  fmt):
+    try:
+        session = Session()
+
+        first = True
+        px = []
+        py = []
+        thresh = thresholds[reading_type]
+        for pt in (PartSplineReconstruct(threshold=thresh,
+                                         src=SipPhenom
+                   (src=_get_value_and_delta
+                    (session,
+                     node_id,
+                     reading_type,
+                     delta_type,
+                     start_time,
+                     end_time
+                     )))):
+            dt = matplotlib.dates.date2num(pt.dt)
+            if first:
+                coords = [(dt, pt.sp)]
+                codes = [Path.MOVETO]
+                y_max = y_min = pt.sp
+            else:
+                coords.append((dt, pt.sp))
+                codes.append(Path.LINETO)
+                y_min = min(y_min, pt.sp)
+                y_max = max(y_max, pt.sp)
+            if pt.ev:
+                px.append(dt)
+                py.append(pt.sp)
+                    
+            first = False
+
+        path = Path(coords, codes)
+
+        fig = plt.figure()
+        fig.set_size_inches(7,4)
+        ax = fig.add_subplot(111)
+        ax.set_autoscalex_on(False)
+        ax.set_xlim((matplotlib.dates.date2num(start_time),
+                     matplotlib.dates.date2num(end_time)))
+
+        patch = patches.PathPatch(path, facecolor='none', lw=2)
+        ax.add_patch(patch)
+        ax.plot_date(px, py, fmt)
+
+        fig.autofmt_xdate()
+        ax.set_xlabel("Date")
+
+        try:
+            thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(reading_type)).one()
+            ax.set_ylabel("%s (%s)" % tuple(thistype))
+        except NoResultFound:
+            pass
+        
+        image = cStringIO.StringIO()
+        fig.savefig(image, **_SAVEFIG_ARGS)
+
+        if debug:
+            return [_CONTENT_TEXT,
+                    "px={}\npy={}"
+                    .format(px, py)]
+        else:
+            return  [_CONTENT_PLOT, image.getvalue()]
+
+    finally:
+        session.close()
+            
 
 def graph(req,
            node='64',
@@ -1718,8 +1849,7 @@ def graph(req,
             v = _calibrate(session, v, node, typ)
             res = _plot(typ, t, v, startts, endts, debug, fmt)
         else:
-            # TODO will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
-            res = _plotSplines(int(node),
+            res = _plot_splines(int(node),
                                type_id,
                                type_delta[type_id],
                                startts,
@@ -1731,7 +1861,7 @@ def graph(req,
         return res[1]
     finally:
         session.close()
-
+    pass
 
 
 def bathElecImg(req, house='', minsago='1440',duration='1440', debug=None):
