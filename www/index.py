@@ -1169,17 +1169,20 @@ def addNewRoom(regnode=None, err=None, name=None):
         if err is not None:
             s.append('<p>%s</p>' % (errors[err]))
         s.append("<form action=\"addNewRoomSubmit\">")
-        s.append('<input type="hidden" name="regnode" value="%s" />' % (regnode))
+        s.append('<input type="hidden" name="regnode" value="%s" />'
+                 % (regnode))
 
-        s.append('<p>Name: <input type="text" name="name" value="%s" /></p>' % (name))
+        s.append('<p>Name: <input type="text" name="name" value="%s" /></p>'
+                 % (name))
         
 
         s.append('<p>Type: <select name="roomtype">')
         for d in session.query(RoomType):
             s.append('<option value="%d">%s</option>' % (d.id, d.name))
         s.append('</select>')
-        u = _url("addNewRoomType", [('ref', _url("addNewRoom", [('regnode', regnode),
-                                                                ('name', name)]))])
+        u = _url("addNewRoomType",
+                 [('ref', _url("addNewRoom", [('regnode', regnode),
+                                              ('name', name)]))])
         s.append(' <a href="%s">(add new room type)</a></p>' % u)
 
         s.append("<p><input type=\"submit\" value=\"Add\"></p>")
@@ -1243,7 +1246,8 @@ def addNewRoomType(ref=None, err=None, name=None):
         s.append("<form action=\"addNewRoomTypeSubmit\">")
         s.append('<input type="hidden" name="ref" value="%s" />' % (ref))
 
-        s.append('<p>Room type: <input type="text" name="name" value="%s" /></p>' % (name))
+        s.append('<p>Room type: <input type="text" name="name" value="%s" /></p>'
+                 % (name))
 
         s.append("<p><input type=\"submit\" value=\"Add\">")
         s.append('    <a href="%s">Cancel</a></p>' % (ref))
@@ -1296,9 +1300,11 @@ def lowbat(bat="2.6"):
         session = Session()
         s = []
         empty = True
-        for r in session.query(distinct(Reading.nodeId)).filter(and_(Reading.typeId==6,
-                                                     Reading.value<=batlvl,
-                                                     Reading.time > t)).order_by(Reading.nodeId):
+        for r in (session.query(distinct(Reading.nodeId))
+                  .filter(and_(Reading.typeId==6,
+                               Reading.value<=batlvl,
+                               Reading.time > t))
+                  .order_by(Reading.nodeId)):
             r = r[0]
             u = _url("graph", [('node', r),
                                ('typ', 6),
@@ -1319,13 +1325,27 @@ def lowbat(bat="2.6"):
 def _calibrate(session,v,node,typ):
     # calibrate
     try:
-        (mult, offs) = session.query(Sensor.calibrationSlope, Sensor.calibrationOffset).filter(
-            and_(Sensor.sensorTypeId==typ,
-                 Sensor.nodeId==node)).one()
+        (mult, offs) = (session.query(Sensor.calibrationSlope,
+                                      Sensor.calibrationOffset)
+                                      .filter(
+                                          and_(Sensor.sensorTypeId==typ,
+                                               Sensor.nodeId==node)).one())
         return [x * mult + offs for x in v]
     except NoResultFound:
         return v
 
+
+def _get_y_label(reading_type):
+    try:
+        session = Session()
+        thistype = (session.query(SensorType.name, SensorType.units)
+                    .filter(SensorType.id==int(reading_type))
+            .one())
+        return "{0[0]} {0[1]}".format(thistype)
+    except NoResultFound:
+        return "unknown"
+    finally:
+        session.close()
 
 
 def _plot(typ, t, v, startts, endts, debug, fmt):
@@ -1341,14 +1361,7 @@ def _plot(typ, t, v, startts, endts, debug, fmt):
             ax.plot_date(t, v, fmt)
             fig.autofmt_xdate()
             ax.set_xlabel("Date")
-            try:
-                session = Session()
-                thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
-                ax.set_ylabel("%s (%s)" % tuple(thistype))
-            except NoResultFound:
-                pass
-            finally:
-                session.close()
+            ax.set_ylabel(int(typ))
 
 
         image = cStringIO.StringIO()
@@ -1359,317 +1372,6 @@ def _plot(typ, t, v, startts, endts, debug, fmt):
         return [_CONTENT_TEXT, str(t)+ str(v)]
 
 
-# def _latest_reading_before(session, nid, typ, startts):
-#     # get latest reading / time that is before start time
-#     assert isinstance(typ, int)
-#     sq = (session.query(func.max(Reading.time).label('maxtime'))
-#           .filter(and_(Reading.nodeId == nid,
-#                        Reading.typeId == typ,
-#                        Reading.time < startts))
-#           .subquery())
-
-#     q2 = (session.query(Reading.time,Reading.value)
-#                 .join(sq, Reading.time==sq.c.maxtime)
-#                 .filter(and_(Reading.nodeId == nid,
-#                              Reading.typeId == typ)))
-#     try:
-#         (qt, qv,) = q2.one()
-#     except NoResultFound:
-#         # there isn't a latest reading before the start time, so
-#         # return the earliest reading
-#         (qt, qv,) = (session.query(Reading.time,Reading.value)
-#                      .filter(and_(Reading.nodeId == nid,
-#                              Reading.typeId == typ))
-#                      .order_by(Reading.time).first())
-        
-#     # get corresponding delta
-#     try:
-#         (dv,) = (session.query(Reading.value)
-#                  .filter(and_(Reading.nodeId == nid,
-#                               Reading.time == qt,
-#                               Reading.typeId == _deltaDict[typ]))
-#                  .one())
-#     except NoResultFound:
-#         dv = 0.
-#     return qt,qv,dv
-    
-
-# def _interp(time, value, delta):
-    
-#     ctd = datetime.utcnow()
-#     duration = (ctd - time).seconds
-
-#     ct = matplotlib.dates.date2num(ctd)
-#     cv = value + (duration * delta)
-    
-#     return ct, cv, {'time': ctd, # TODO simplify return value
-#                     'value': cv,
-#                     'delta': delta}
-
-
-# def _calcSpline(first, last, type_id):
-
-#     thresh = thresholds[type_id]
-
-#     samplePeriod = timedelta(seconds = 300)
-#     halfPeriod = timedelta(seconds = 150)
-
-#     codes = [Path.MOVETO,
-#              Path.CURVE4,
-#              Path.CURVE4,
-#              Path.CURVE4,
-#              ]
-
-#     ft = first["time"]
-#     fv = first["value"]
-#     fd = first["delta"]
-
-#     lt = last["time"]
-#     lv = last["value"]
-#     ld = last["delta"]
-
-#     #get control point 1 time and point B
-#     cp1t = lt - samplePeriod
-#     Bv = fv + (fd * (cp1t - ft).seconds)
-
-#     #limits
-#     ul = Bv + thresh
-#     ll = Bv - thresh
-
-#     #get second control point (D)            
-#     cp2t = lt  - halfPeriod # 1/2 sample back
-#     c2v = lv - (ld * halfPeriod.seconds)
-
-#     #get xc
-#     #xct = cp1t
-#     xcv =  lv - (ld * samplePeriod.seconds)
-
-#     #decide on c1v (B') actual value
-#     if xcv < ll:
-#         c1v = ll
-#     elif xcv > ul:
-#         c1v = ul
-#     else:
-#         c1v=(xcv+Bv)/2.
-#         #c1v=Bv
-
-#     ft = matplotlib.dates.date2num(ft)
-#     cp1t = matplotlib.dates.date2num(cp1t)
-#     cp2t = matplotlib.dates.date2num(cp2t)
-#     lt = matplotlib.dates.date2num(lt)
-
-#     verts = [
-#         (ft, fv),  # P0
-#         (cp1t, c1v), # P1
-#         (cp2t, c2v), # P2
-#         (lt, lv), # P3
-#         ]
-
-#     path = Path(verts, codes)
-#     return path
-
-# def _getSplineData(session, node_id, reading_type, delta_type, sd, ed):
-#     #get values    
-#     data=[]
-#     times=[]
-#     xs=[]
-    
-#     #get prev reading
-#     (prev_time, prev_value, prev_delta) = _latest_reading_before(session, node_id, reading_type, sd)
-#     if prev_time != None:
-#         times.append(prev_time)
-#         xs.append(prev_value)
-#         data.append({'time': prev_time,
-#                      'value': prev_value,
-#                      'delta': prev_delta/300}) # TODO remove magic number
- 
-#     s2 = aliased(Reading)
-#     matched_q = (session.query(Reading.time, Reading.value, s2.value)
-#                  .join(s2, and_(Reading.time == s2.time,
-#                                 Reading.nodeId == s2.nodeId))
-#                  .filter(and_(Reading.typeId == reading_type,
-#                               s2.typeId == delta_type,
-#                               Reading.nodeId == node_id,
-#                               Reading.time >= sd,
-#                               Reading.time <= ed)))
-#                      #raise Exception("sql is " + str(matched_q))
-
-#     for (x_time, value, delta) in matched_q.all():  
-#         times.append(x_time)
-#         xs.append(value)
-#         data.append({'time': x_time,
-#                      'value': value,
-#                      'delta': delta/300}) #TODO remove magic number
-        
-#     points=[times, xs]
-#     return (data, points)
-
-
-# def _graphSplines(session, data, paths, current_point, start_time, end_time, reading_type, fmt, debug=False):
-#     t_plot = []
-#     t1 = time.time()
-#     fig = plt.figure()
-#     t_plot.append(time.time() - t1)
-#     t1 = time.time()
-#     fig.set_size_inches(7,4)
-#     t_plot.append(time.time() - t1)
-#     t1 = time.time()
-#     ax = fig.add_subplot(111)
-#     t_plot.append(time.time() - t1)
-#     t1 = time.time()
-#     ax.set_autoscalex_on(False)
-#     t_plot.append(time.time() - t1)
-#     t1 = time.time()
-#     ax.set_xlim((matplotlib.dates.date2num(start_time),
-#                  matplotlib.dates.date2num(end_time)))
-
-#     t_plot.append(time.time() - t1)
-#     t1 = time.time()
-#     for i in range(len(paths)):
-#         p = paths[i]
-#         if i+1 == len(paths):
-#             patch = patches.PathPatch(p, facecolor='none', lw=2, ls='dashed')
-#         else:
-#             patch = patches.PathPatch(p, facecolor='none', lw=2)
-#         ax.add_patch(patch)
-#     t_plot.append(time.time() - t1)
-#     t1 = time.time()
-
-#     ax.plot_date(current_point[0], current_point[1], color='red')   
-#     ax.plot_date(data[0], data[1],fmt)
-#     t_plot.append(time.time() - t1)
-#     t1 = time.time()
-
-
-#     fig.autofmt_xdate()
-#     ax.set_xlabel("Date")
-
-#     t_plot.append(time.time() - t1)
-
-#     t1 = time.time()
-#     try:
-#         thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(reading_type)).one()
-#         ax.set_ylabel("%s (%s)" % tuple(thistype))
-#     except NoResultFound:
-#         pass
-#     t_stq = time.time() - t1
-
-#     t1 = time.time()
-#     image = cStringIO.StringIO()
-#     fig.savefig(image, **_SAVEFIG_ARGS)
-
-#     t_savefig = time.time() - t1
-
-#     if debug:
-#         return [_CONTENT_TEXT,
-#                 "t_savefig={}\nt_stq={}\nt_plot={}"
-#                 .format(t_savefig,
-#                         t_stq,
-#                         t_plot)]
-#     else:
-#         return  [_CONTENT_PLOT, image.getvalue()]
-
-# def _plotSplines(node_id, reading_type, delta_type, start_time, end_time, debug, fmt):
-#     try:
-#         session = Session()
-#         t1 = time.time()
-#         data, points = _getSplineData(session, node_id, reading_type, delta_type, start_time, end_time)
-#         t_gsd = time.time() - t1
-
-#         paths = []
-
-#         t1 = time.time()
-#         for i in range(len(data)):
-#             if i+1 < len(data):
-#                 next_point = data[i+1]
-#             else:
-#                 current_point = _interp(**data[i])
-#                 next_point = current_point[2]
-                
-#             path = _calcSpline(data[i], next_point, reading_type)
-#             paths.append(path)
-
-#         t_cs = time.time() - t1
-        
-#         if len(paths) > 0:
-#             t1 = time.time()
-#             retval = _graphSplines(session, points, paths, current_point, start_time, end_time, reading_type, fmt, debug=debug)
-#             t_gs = time.time() - t1
-#             if debug:
-#                 return (_CONTENT_TEXT,
-#                     "t_gsd={}, \nt_cs={},\nt_gs={}\ngraphSplines={}\npoints={}, \npaths={}, \ncurrent_point={}\n"
-#                 .format(t_gsd,
-#                         t_cs,
-#                         t_gs,
-#                         retval[1],
-#                     points, paths, current_point))
-#             else:
-#                 return retval
-#         else:
-#             return (_CONTENT_TEXT, "no paths returned by calcspline")
-
-#     finally:
-#         session.close()
-            
-# def _isPlotSpline(session, node, typ, startts, endts):
-#     if typ in _deltaDict:
-#         dqry = session.query(Reading.time, Reading.value).filter(
-#             and_(Reading.nodeId == node,
-#                  Reading.typeId == _deltaDict[typ],
-#                  Reading.time >= startts,
-#                 Reading.time <= endts)).first()
-#         return dqry is not None
-#     return False
-
-
-# def graph_old(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
-
-#     try:
-#         session = Session()
-#         #plotLines = False
-
-#         minsago_i = _int(minsago, default=60)
-#         duration_i = _int(duration, default=60)
-
-#         debug = (debug is not None)
-#         #week = timedelta(minutes=int(_periods["week"]))
-#         startts = datetime.utcnow() - minsago_i
-#         #deltats = (datetime.utcnow() - minsago_i) - week
-
-#         endts = startts + duration_i
-
-#         qry = session.query(Reading.time,Reading.value).filter(
-#             and_(Reading.nodeId == int(node),
-#                  Reading.typeId == int(typ),
-#                  Reading.time >= startts,
-#                  Reading.time <= endts)).order_by(Reading.time)
-
-
-#         t = []
-#         dt = []
-#         v = []
-#         #last_value=None
-#         for qt, qv in qry:
-#             dt.append(qt)
-#             t.append(matplotlib.dates.date2num(qt))
-#             v.append(qv)
-#             #last_value=float(qv)
-
-#         v = _calibrate(session, v, node, typ)
-
-
-#         #will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
-#         nid=int(node)
-#         if len(t) > 0 and _isPlotSpline(session, int(node), int(typ), startts, endts):
-#             res = _plotSplines(nid, int(typ), type_delta[int(typ)], startts, endts, debug, fmt)
-#         else:
-#             res = _plot(typ, t, v, startts, endts, debug, fmt)
-
-#         req.content_type=res[0]
-#         return res[1]
-#     finally:
-#         session.close()
-#     pass
 
 #------------------------------------------------------------
 # revised spline algorithm
@@ -1727,6 +1429,11 @@ def _plot_splines(node_id,
                   end_time,
                   debug,
                   fmt):
+    """ plot splines using PartSplineReconstruct generator.  Rather
+    than using matplotlib splines, a series of LINETO path elements
+    are constructed based on a combination of two quadratic splines
+    that are fitted together.
+    """
     try:
         session = Session()
 
@@ -1764,7 +1471,7 @@ def _plot_splines(node_id,
         path = Path(coords, codes)
 
         fig = plt.figure()
-        fig.set_size_inches(7,4)
+        fig.set_size_inches(7, 4)
         ax = fig.add_subplot(111)
         ax.set_autoscalex_on(False)
         ax.set_xlim((matplotlib.dates.date2num(start_time),
@@ -1774,8 +1481,8 @@ def _plot_splines(node_id,
         ax.add_patch(patch)
 
         if last_dt < end_time:
-            # the last point is prior to then end time, so estimate the end point
-            # calculate end point
+            # the last point is prior to then end time, so estimate
+            # the end point
             delta_t = (end_time - last_dt).seconds / 300.
             ly = last_s + last_t * delta_t
             lx = matplotlib.dates.date2num(end_time)
@@ -1785,7 +1492,8 @@ def _plot_splines(node_id,
                          (lx, ly)],
                         [Path.MOVETO,
                          Path.LINETO])
-            patch = patches.PathPatch(path, linestyle='dashed', facecolor='none', lw=2)
+            patch = patches.PathPatch(path, linestyle='dashed',
+                                      facecolor='none', lw=2)
             ax.add_patch(patch)
             
 
@@ -1794,12 +1502,8 @@ def _plot_splines(node_id,
         fig.autofmt_xdate()
         ax.set_xlabel("Date")
 
-        try:
-            thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(reading_type)).one()
-            ax.set_ylabel("%s (%s)" % tuple(thistype))
-        except NoResultFound:
-            pass
-        
+        ax.set_ylabel(_get_y_label(reading_type))
+                
         image = cStringIO.StringIO()
         fig.savefig(image, **_SAVEFIG_ARGS)
 
@@ -1839,7 +1543,7 @@ def graph(req,
         type_id = int(typ)
         if type_id not in type_delta:
             
-            qry = session.query(Reading.time,Reading.value).filter(
+            qry = session.query(Reading.time, Reading.value).filter(
                 and_(Reading.nodeId == int(node),
                      Reading.typeId == int(typ),
                      Reading.time >= startts,
@@ -1871,10 +1575,13 @@ def graph(req,
         return res[1]
     finally:
         session.close()
-    pass
 
 
-def bathElecImg(req, house='', minsago='1440',duration='1440', debug=None):
+def bathElecImg(req,
+                house='',
+                minsago='1440',
+                duration='1440',
+                debug=None):
 
     try:
         session = Session()
@@ -1888,7 +1595,10 @@ def bathElecImg(req, house='', minsago='1440',duration='1440', debug=None):
 
         # find all the electricity readings for House n for the required period
 
-        nodesInHouse = session.query(Node.id).join(Location, House).filter(House.id==int(house)).all()
+        nodesInHouse = (session.query(Node.id)
+                               .join(Location, House)
+                               .filter(House.id==int(house))
+                               .all())
         nodesInHouse = [a for (a,) in nodesInHouse]
 
 
@@ -1914,7 +1624,11 @@ def bathElecImg(req, house='', minsago='1440',duration='1440', debug=None):
 
             v = _calibrate(session, v, elec_node, 11)
 
-        (bathroomNode) = session.query(Node.id).join(Location, House, Room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
+        (bathroomNode) = (session.query(Node.id)
+                                 .join(Location, House, Room)
+                                 .filter(and_(House.id==int(house),
+                                              Room.name=="Bathroom"))
+                                 .first())
 
         t2 = []
         v2 = []
@@ -1948,11 +1662,7 @@ def bathElecImg(req, house='', minsago='1440',duration='1440', debug=None):
 
             fig.autofmt_xdate()
             ax.set_xlabel("Date")
-            try:
-                thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(11)).one()
-                ax.set_ylabel("%s (%s)" % tuple(thistype))
-            except NoResultFound:
-                pass
+            ax.set_ylabel(_get_y_label(11))
 
             if len(t2) > 0:
                 ax2 = ax.twinx()
