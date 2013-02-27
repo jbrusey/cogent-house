@@ -1,11 +1,14 @@
 PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
-COMPONENT=CogentRootC
+COMPONENT=RssiCogentRootC
 
-PFLAGS +=-DTOSH_DATA_LENGTH=118
-
-# turn on leds for debugging?
+PFLAGS += -DTOSH_DATA_LENGTH=175
+#CFLAGS += -DCC2420_DEF_CHANNEL=15
 CFLAGS += -DBLINKY
 CFLAGS += -DSERIAL_QUEUE_SIZE=25
+
+ifneq ($(filter iris,$(MAKECMDGOALS)),) 
+	CFLAGS += -DRF230_RSSI_ENERGY
+endif
 
 CFLAGS += -DLOW_POWER_LISTENING
 CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=0
