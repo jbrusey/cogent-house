@@ -1,4 +1,4 @@
-PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
+PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
 COMPONENT=CogentHouseC
 
 PFLAGS +=-DTOSH_DATA_LENGTH=175
@@ -21,6 +21,7 @@ CFLAGS += -DLPL_SEND=1024L
 CFLAGS += -DSIP
 #CFLAGS += -DBN
 CFLAGS += -DCLUSTER_HEAD=0
+CFLAGS += -DCLUSTER_HEAD_TYPE=8
 
 CFLAGS += -DHEARTBEAT_MULTIPLIER=51 #7 hours SIP #51 days BN
 CFLAGS += -DHEARTBEAT_PERIOD=88473600L #3686400L #1 hour  88473600 #1 day
