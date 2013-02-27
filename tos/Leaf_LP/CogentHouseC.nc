@@ -44,6 +44,9 @@ implementation
   CogentHouseP.CollectionControl -> CollectionC;
   CogentHouseP.CtpInfo -> CollectionC;
   CogentHouseP.StateSender -> StateSender;
+  
+  //LPL
+  CogentHouseP.LowPowerListening -> ActiveMessageC;
 
   //Configured
   components new AccessibleBitVectorC(RS_SIZE) as Configured;

@@ -19,6 +19,7 @@ module CogentHouseP
     interface StdControl as CollectionControl;
     interface CtpInfo;
     interface Packet;
+    interface LowPowerListening;    
 
     // ack interfaces
     interface Crc as CRCCalc;
@@ -235,9 +236,8 @@ implementation
 #ifdef SIP
     	if (call TransmissionControl.hasEvent()){
           if (!CLUSTER_HEAD)
-	    call RadioControl.start();
-	  else
-            sendState();
+            call LowPowerListening.setLocalWakeupInterval(LPL_SEND);
+          sendState();
 	}
 	else
 	  restartSenseTimer();
@@ -267,9 +267,8 @@ implementation
 	}
 	if  (toSend || call Heartbeat.triggered())
           if (!CLUSTER_HEAD)
-	    call RadioControl.start();
-	  else
-	    sendState();
+            LowPowerListening.setLocalWakeupInterval(LPL_SEND);
+	  sendState();
 	else
 	  restartSenseTimer();
 #endif
@@ -283,10 +282,6 @@ implementation
   }
 
   event void SendTimeOutTimer.fired() {
-    if (!CLUSTER_HEAD)
-      call RadioControl.stop();
-    
-
     //reset errors - need to avoid getting inf --Check with JB
     if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
       last_errno = last_errno / last_transmitted_errno;
@@ -317,9 +312,7 @@ implementation
     call Heartbeat.init();
 #endif
 
-    //Start radio if this is a cluster node
-    if (CLUSTER_HEAD)
-      call RadioControl.start();
+    call RadioControl.start();
 
     //Inititalise filters -- Configured in the makefile
 #ifdef SIP
@@ -525,8 +518,6 @@ implementation
 	printf("Radio On %lu\n", call LocalTime.get());
         printfflush();
 #endif
-        if (!CLUSTER_HEAD)
-          sendState();
       }
     else
       call RadioControl.start();
@@ -555,7 +546,7 @@ implementation
 #endif
 
     if (!CLUSTER_HEAD)
-      call RadioControl.stop();
+      call LowPowerListening.setLocalWakeupInterval(LPL_SLEEP);
     call SendTimeOutTimer.stop();
 
     
