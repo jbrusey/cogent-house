@@ -1,8 +1,0 @@
-PFLAGS += -I../ -I ../Kalman -I ../FilterWrapper
-COMPONENT=EventDetectorTestC
-CFLAGS += -I$(TOSDIR)/lib/printf -Wall 
-CFLAGS += -DPRINTF_BUFFER_SIZE=2048
-
-include $(MAKERULES)
-
-CC=gcc

@@ -1,18 +1,18 @@
 // -*- c -*-
 #include "../Packets.h"
-configuration CogentRootC { }
+configuration CogentRootC {
+  provides interface Intercept as RadioIntercept[am_id_t amid];
+}
 implementation
 {
   components CogentRootP, MainC, LedsC;
   components SerialActiveMessageC as Serial;
   components ActiveMessageC as Radio;
 
-  components new SerialAMReceiverC(AM_ACKMSG) as AckReceiver;
-
-
-  CogentRootP.UartAckReceive -> AckReceiver;
-
   CogentRootP.Boot -> MainC;
+
+  components new SerialAMReceiverC(AM_ACKMSG) as AckReceiver;
+  CogentRootP.UartAckReceive -> AckReceiver;
 
   CogentRootP.SerialControl -> Serial;
   CogentRootP.UartSend -> Serial;
@@ -20,7 +20,6 @@ implementation
   CogentRootP.UartAMPacket -> Serial;
 
   CogentRootP.RadioControl -> Radio;
-
   CogentRootP.Leds -> LedsC;
 
   components CollectionC; 
@@ -29,6 +28,8 @@ implementation
   CogentRootP.CollectionPacket -> CollectionC;
   CogentRootP.CollectionReceive -> CollectionC.Receive;
   CogentRootP.RadioPacket -> CollectionC;
+  
+  RadioIntercept = CogentRootP.RadioIntercept;
 
   components DisseminationC;
   components new DisseminatorC(AckMsg, AM_ACKMSG);
@@ -44,5 +45,4 @@ implementation
 	
   components new TimerMilliC() as BlinkTimer;
   CogentRootP.BlinkTimer -> BlinkTimer;
-
 }

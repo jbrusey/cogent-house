@@ -22,6 +22,8 @@ import dateutil.parser
 
 import datetime
 import time
+import zlib
+import json
 
 
 def _getDeploymentTree(request):
@@ -1453,5 +1455,3 @@ def lastSync(request):
     else:
         return readingQry
 
-    #theDate = datetime.datetime.now().isoformat()
-    #return theDate

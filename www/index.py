@@ -10,10 +10,12 @@ from datetime import datetime, timedelta
 import urllib
 # set the home to a writable directory
 import os
-os.environ['HOME']='/tmp'
-from threading import Lock
-_lock = Lock()
+os.environ['HOME'] = '/tmp'
+# from threading import Lock
+# _lock = Lock()
 import numpy as np
+
+_USE_SVG_PLOTS=False
 
 # do this before importing pylab or pyplot
 import matplotlib
@@ -22,17 +24,71 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 
-from cogent.base.model import *
-from sqlalchemy import create_engine, and_, or_, distinct, func, desc
-from sqlalchemy.orm import sessionmaker
+from cogent.base.model import (Node,
+                               Reading,
+                               Location,
+                               House,
+                               Room,
+                               RoomType,
+                               NodeState,
+                               init_model,
+                               Session,
+                               Sensor,
+                               SensorType,
+    )
+from cogent.sip.sipsim import (
+    PartSplineReconstruct,
+    SipPhenom,
+    )
+
+from sqlalchemy import create_engine, and_, distinct, func
+from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
 
 
 _DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
 
+_CONTENT_SVG = "image/svg+xml"
+_CONTENT_PNG = "image/png"
+_CONTENT_TEXT = "text/plain"
+if _USE_SVG_PLOTS:
+    _CONTENT_PLOT = _CONTENT_SVG
+    _SAVEFIG_ARGS = {'format': 'svg'}
+else:
+    _CONTENT_PLOT = _CONTENT_PNG
+    _SAVEFIG_ARGS = {'format': 'png'}
+
 engine = create_engine(_DBURL, echo=False, pool_recycle=60)
 #engine.execute("pragma foreign_keys=on")
 init_model(engine)
+
+thresholds = {
+    0 : 0.5,
+    2 : 2,
+    8 : 100,
+    6 : 0.1
+    }
+
+sensor_types= {
+    0 : 0,
+    2 : 2,
+    8 : 8,
+    6 : 6
+    }
+
+type_delta = {
+    0 : 1,
+    2 : 3,
+    8 : 20,
+    6 : 7
+}
+
+_deltaDict={
+    0: 1,
+    2: 3,
+    6: 7,
+    8: 17
+    } 
 
 _periods = {
     "hour" : 60,
@@ -59,7 +115,8 @@ _sidebars = [
 
     ("Network tree", "treePage", "Show a network tree diagram"),
     ("Missing and extra nodes", "missing", "Show unregistered nodes and missing nodes"),
-    ("Packet yield", "dataYield", "Show network performance"),
+    ("Packet yield", "yield24", "Show network performance"),
+    ("Long term yield", "dataYield", "Show network performance"),
     ("Low batteries", "lowbat", "Report any low batteries"),
     ("View log", "viewLog", "View a detailed log"),
     ("Export data", "exportDataForm", "Export data to CSV"),
@@ -73,10 +130,10 @@ def _url(path, query=None):
         return path + "?" + urllib.urlencode(query)
 
 def _main(html):
-    return '<div id="main">' + html + '</div>';
+    return '<div id="main">' + html + '</div>'
 
 def _wrap(html):
-    return '<div id="wrap">' + html + '</div>';
+    return '<div id="wrap">' + html + '</div>'
 
 def _nav():
     return ('<div id="nav">' +
@@ -118,38 +175,49 @@ def _footer():
     return '<div id="footer">CogentHouse &copy; <a href="http://cogentcomputing.org" title="Find out more about Cogent">Cogent Computing Applied Research Centre</a></div>'
 
 def _redirect(url=""):
-        return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
-    
+    return "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url=%s\"></head><body><p>Redirecting...</p></body></html>" % url
 
-        
+
+def _int(s, default=0):
+    try:
+        return int(s)
+    except ValueError:
+        return default
+
+def _float(s, default=0.0):
+    try:
+        return float(s)
+    except ValueError:
+        return default
+
+def _mins(s, default=60):
+    if s in _periods:
+        return _periods[s]
+    else:
+        return default
 
 def tree(req, period='hour'):
-    try:
-        mins = _periods[period]
-    except:
-        mins = 60
-    
+    mins = _mins(period)
     try:
         session = Session()
         from subprocess import Popen, PIPE
-        req.content_type = "image/svg+xml"
-#        req.content_type = "text/plain"
+        req.content_type = _CONTENT_SVG
+#        req.content_type = _CONTENT_TEXT
 
         t = datetime.utcnow() - timedelta(minutes=mins)
 
         p = Popen("dot -Tsvg", shell=True, bufsize=4096,
 #        p = Popen("cat", shell=True, bufsize=4096,
               stdin=PIPE, stdout=PIPE, close_fds=True)
-        (child_stdin, child_stdout) = (p.stdin, p.stdout)
         
         with p.stdin as dotfile:
-            dotfile.write("digraph {");
+            dotfile.write("digraph {")
             for (ni,pa) in session.query(NodeState.nodeId,
                                             NodeState.parent
-                                            ).group_by(NodeState.nodeId, NodeState.parent).filter(NodeState.time>t):
+                                            ).group_by(NodeState.nodeId, NodeState.parent).filter(NodeState.time > t):
                 
                 dotfile.write("%d->%d;" % (ni, pa))
-            dotfile.write("}");
+            dotfile.write("}")
 
         return p.stdout.read()
 
@@ -199,7 +267,7 @@ def humExpNodeGraph(node=None):
     try:
         session = Session()
 
-        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        (h, r) = session.query(House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
         s = ['<p>']
  
         u = _url("humExpGraph", [('node', node)])
@@ -228,7 +296,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
         
         dryqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 62)).order_by(Reading.time)
+                 Reading.typeId == 56)).order_by(Reading.time)
             
         for qt, qv in dryqry:
             bv.append(100.0)
@@ -239,7 +307,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
 
         comfortqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 63)).order_by(Reading.time)
+                 Reading.typeId == 57)).order_by(Reading.time)
 
         for qt, qv in comfortqry:
             comfort.append(qv)
@@ -248,7 +316,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
 
         dampqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 64)).order_by(Reading.time)
+                 Reading.typeId == 58)).order_by(Reading.time)
 
         for qt, qv in dampqry:
             damp.append(qv)
@@ -257,7 +325,7 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
 
         riskqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 65)).order_by(Reading.time)
+                 Reading.typeId == 59)).order_by(Reading.time)
 
         for qt, qv in riskqry:
             risk.append(qv)
@@ -270,48 +338,44 @@ def humExpGraph(req,node='64', debug=None, fmt='bo'):
         damp=np.array(damp)+comfort
         risk=np.array(risk)+damp
 
-        req.content_type = "image/png"
-
-        nid=int(node)
         if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscaley_on(False)
-                ax.set_autoscalex_on(False)
-                endts=matplotlib.dates.date2num(datetime.utcnow())
-                ax.set_xlim(t[0],endts)
-                ax.set_ylim(0,100)
+            fig = plt.figure()
+            fig.set_size_inches(7,4)
+            ax = fig.add_subplot(111)
+            ax.set_autoscaley_on(False)
+            ax.set_autoscalex_on(False)
+            endts=matplotlib.dates.date2num(datetime.utcnow())
+            ax.set_xlim(t[0],endts)
+            ax.set_ylim(0,100)
 
 
-                if len(t) > 0:                            
+            if len(t) > 0:                            
 
-                    t.append(endts)
-                    bv.append(100.0)
-                    ax.fill_between(t, 0, risk, facecolor=col[3])
-                    ax.fill_between(t, 0, damp, facecolor=col[2])
-                    ax.fill_between(t, 0, comfort, facecolor=col[1])
-                    ax.fill_between(t, 0, dry, facecolor=col[0])
+                t.append(endts)
+                bv.append(100.0)
+                ax.fill_between(t, 0, risk, facecolor=col[3])
+                ax.fill_between(t, 0, damp, facecolor=col[2])
+                ax.fill_between(t, 0, comfort, facecolor=col[1])
+                ax.fill_between(t, 0, dry, facecolor=col[0])
 
-                    ax.plot_date(t, dry, fmt, lw=2, linestyle="-", color=col[0])
-                    ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[1])
-                    ax.plot_date(t, damp, fmt, lw=2,  linestyle="-", color=col[2])
-                    ax.plot_date(t, risk, fmt, lw=2,  linestyle="-", color=col[3])
+                ax.plot_date(t, dry, fmt, lw=2, linestyle="-", color=col[0])
+                ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[1])
+                ax.plot_date(t, damp, fmt, lw=2,  linestyle="-", color=col[2])
+                ax.plot_date(t, risk, fmt, lw=2,  linestyle="-", color=col[3])
 
 
-                    fig.autofmt_xdate()
-                    ax.set_xlabel("Date")
-                    ax.set_ylabel("Percentage of time (%)")
+                fig.autofmt_xdate()
+                ax.set_xlabel("Date")
+                ax.set_ylabel("Percentage of time (%)")
 
-                    image = cStringIO.StringIO()
-                    fig.savefig(image)
+                image = cStringIO.StringIO()
+                fig.savefig(image, **_SAVEFIG_ARGS)
 
-                    req.content_type = "image/png"
-                    return  image.getvalue()
-                else:
-                    req.content_type = "text/plain"
-                    return "debug"
+                req.content_type = _CONTENT_PLOT
+                return  image.getvalue()
+            else:
+                req.content_type = _CONTENT_TEXT
+                return "debug"
 
     finally:
         session.close()
@@ -348,7 +412,7 @@ def tempExpNodeGraph(node=None):
     try:
         session = Session()
 
-        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        (h, r) = session.query(House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
         s = ['<p>']
  
         u = _url("tempExpGraph", [('node', node)])
@@ -378,7 +442,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
         
         healthqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 57)).order_by(Reading.time)
+                 Reading.typeId == 50)).order_by(Reading.time)
             
         lasthealth=None
         for qt, qv in healthqry:
@@ -390,7 +454,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         coldqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 58)).order_by(Reading.time)
+                 Reading.typeId == 51)).order_by(Reading.time)
 
         for qt, qv in coldqry:
             cold.append(qv)
@@ -399,7 +463,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         comfortqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 59)).order_by(Reading.time)
+                 Reading.typeId == 52)).order_by(Reading.time)
 
         for qt, qv in comfortqry:
             comfort.append(qv)
@@ -408,7 +472,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         warmqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 60)).order_by(Reading.time)
+                 Reading.typeId == 53)).order_by(Reading.time)
 
         for qt, qv in warmqry:
             warm.append(qv)
@@ -417,7 +481,7 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
 
         overqry = session.query(Reading.time,Reading.value).filter(
             and_(Reading.nodeId == int(node),
-                 Reading.typeId == 61)).order_by(Reading.time)
+                 Reading.typeId == 54)).order_by(Reading.time)
 
         for qt, qv in overqry:
             over.append(qv)
@@ -431,52 +495,48 @@ def tempExpGraph(req,node='64', debug=None, fmt='bo'):
         warm=np.array(warm)+comfort
         over=np.array(over)+warm
 
-        req.content_type = "image/png"
-
-        nid=int(node)
         if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscaley_on(False)
-                ax.set_autoscalex_on(False)
-                endts=matplotlib.dates.date2num(datetime.utcnow())
-                ax.set_xlim(t[0],endts)
-                ax.set_ylim(0,100)
+            fig = plt.figure()
+            fig.set_size_inches(7,4)
+            ax = fig.add_subplot(111)
+            ax.set_autoscaley_on(False)
+            ax.set_autoscalex_on(False)
+            endts=matplotlib.dates.date2num(datetime.utcnow())
+            ax.set_xlim(t[0],endts)
+            ax.set_ylim(0,100)
 
 
-                if len(t) > 0:                            
+            if len(t) > 0:                            
 
-                    t.append(endts)
-                    bv.append(100.0)
-                    ax.fill_between(t, 0, over, facecolor=col[4])
-                    ax.fill_between(t, 0, warm, facecolor=col[3])
-                    ax.fill_between(t, 0, comfort, facecolor=col[2])
-                    ax.fill_between(t, 0, cold, facecolor=col[1])
-                    ax.fill_between(t, 0, health, facecolor=col[0])
+                t.append(endts)
+                bv.append(100.0)
+                ax.fill_between(t, 0, over, facecolor=col[4])
+                ax.fill_between(t, 0, warm, facecolor=col[3])
+                ax.fill_between(t, 0, comfort, facecolor=col[2])
+                ax.fill_between(t, 0, cold, facecolor=col[1])
+                ax.fill_between(t, 0, health, facecolor=col[0])
 
-                    ax.plot_date(t, health, fmt, lw=2, linestyle="-", color=col[0])
-                    ax.plot_date(t, cold, fmt, lw=2,  linestyle="-", color=col[1])
-                    ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[2])
-                    ax.plot_date(t, warm, fmt, lw=2,  linestyle="-", color=col[3])
-                    ax.plot_date(t, over, fmt, lw=2,  linestyle="-",fillstyle="full", color=col[4])
+                ax.plot_date(t, health, fmt, lw=2, linestyle="-", color=col[0])
+                ax.plot_date(t, cold, fmt, lw=2,  linestyle="-", color=col[1])
+                ax.plot_date(t, comfort, fmt, lw=2,  linestyle="-", color=col[2])
+                ax.plot_date(t, warm, fmt, lw=2,  linestyle="-", color=col[3])
+                ax.plot_date(t, over, fmt, lw=2,  linestyle="-",fillstyle="full", color=col[4])
 
-                    #ax.bar(t,bv, color="black", width=0.01)
+                #ax.bar(t,bv, color="black", width=0.01)
 
-                    fig.autofmt_xdate()
-                    ax.set_xlabel("Date")
-                    ax.set_ylabel("Percentage of time (%)")
+                fig.autofmt_xdate()
+                ax.set_xlabel("Date")
+                ax.set_ylabel("Percentage of time (%)")
 
 
-                    image = cStringIO.StringIO()
-                    fig.savefig(image)
+                image = cStringIO.StringIO()
+                fig.savefig(image, **_SAVEFIG_ARGS)
 
-                    req.content_type = "image/png"
-                    return  image.getvalue()
-                else:
-                    req.content_type = "text/plain"
-                    return "debug"
+                req.content_type = _CONTENT_PLOT
+                return  image.getvalue()
+            else:
+                req.content_type = _CONTENT_TEXT
+                return "debug"
 
     finally:
         session.close()
@@ -493,7 +553,7 @@ def tempExposure():
             is_empty = False
 
             fr = session.query(Reading).filter(and_(Reading.nodeId==i,
-                                                    Reading.typeId==57)).first()
+                                                    Reading.typeId==50)).first()
 
             if fr is not None:
                 u = _url("tempExpNodeGraph", [('node', i)])
@@ -513,10 +573,7 @@ def allGraphs(typ="0",period="day"):
     try:
         session = Session()
 
-        try:
-            mins = _periods[period]
-        except:
-            mins = 1440
+        mins = _mins(period, default=1440)
 
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
@@ -556,10 +613,7 @@ def bathElec(period='day'):
     try:
         session = Session()
 
-        try:
-            mins = _periods[period]
-        except:
-            mins = 1440
+        mins = _mins(period, default=1440)
 
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
@@ -638,13 +692,13 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
             return _redirect(_url("exportDataForm", [('err', 'nostart')]))
         try:
             sd=datetime.fromtimestamp(time.mktime(time.strptime(StartDate, time_format)))
-        except:
+        except ValueError:
             return _redirect(_url("exportDataForm", [('err', 'startfmt')]))
         if EndDate==None:
             return _redirect(_url("exportDataForm", [('err', 'noend')]))
         try:
             ed=datetime.fromtimestamp(time.mktime(time.strptime(EndDate, time_format)))  
-        except:
+        except ValueError:
             return _redirect(_url("exportDataForm", [('err', 'endfmt')]))
 
         ed = ed + timedelta(days=1)
@@ -660,10 +714,10 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
             return _redirect(_url("exportDataForm", [('err', 'nodata')]))
         req.content_type = "text/csv"
         return "".join(['%d,"%s",%s\n' % (n, t, v) for n, t, v in exportData])
-        csvStr=""
-        for rn,rt,rv in exportData:
-            csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
-        return csvStr
+        # csvStr=""
+        # for rn,rt,rv in exportData:
+        #     csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
+        # return csvStr
     finally:
         session.close()
 
@@ -672,12 +726,9 @@ def nodeGraph(node=None, typ="0", period="day"):
     try:
         session = Session()
 
-        try:
-            mins = _periods[period]
-        except:
-            mins = 1440
+        mins = _mins(period, default=1440)
 
-        (n, h, r) = session.query(Node.id, House.address, Room.name).join(Location, House, Room).filter(Node.id==int(node)).one()
+        (h, r) = session.query(House.address, Room.name).join(Location, Node, Room).filter(Node.id==int(node)).one()
             
         s = ['<p>']
         for k in sorted(_periods, key=lambda k: _periods[k]):
@@ -705,8 +756,8 @@ def nodeGraph(node=None, typ="0", period="day"):
 
 def viewLog(req):
     with open("/var/log/ch/BaseLogger.log") as f:
-        req.content_type = "text/plain"
-        return f.read()
+        req.content_type = _CONTENT_TEXT
+        return f.read() # TODO limit to tail 
 
 def missing():
     try:
@@ -727,7 +778,7 @@ def missing():
             s.append("<table border=\"1\">")
             s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Last Heard</th><th></th></tr>"  )
 
-            for (ns, maxtime, nodeId, house, room) in session.query(NodeState,func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all():
+            for (maxtime, nodeId, house, room) in (session.query(func.max(NodeState.time), NodeState.nodeId, House.address, Room.name).filter(NodeState.nodeId.in_(missing_set)).group_by(NodeState.nodeId).join(Node,Location,House,Room).order_by(House.address, Room.name).all()):
                 u = _url("unregisterNode", [('node', nodeId)])
                 s.append('<tr><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td><a href="%s">(unregister)</a></tr>' % (nodeId, house, room, str(maxtime), u))
                   
@@ -778,30 +829,81 @@ def yield24():
 
         s.append("<table border=\"1\">")
         s.append("<tr>")
-        headings = ["Node", "House", "Room", "Message count", "Last heard", "Yield"]
+        headings = ["Node", "House", "Room", "Message count", "Min seq", "Max seq", "Last heard", "Yield"]
         s.extend(["<th>%s</th>" % x for x in headings])
         s.append("</tr>")
 
-        t = datetime.utcnow() - timedelta(days=1)
+        start_t = datetime.utcnow() - timedelta(days=1)
 
-        nodestateq = session.query(
-            NodeState,
-            func.count(NodeState),
-            func.max(NodeState.time),
-            House.address,
-            Room.name
-            ).filter(NodeState.time > t
-                     ).group_by(NodeState.nodeId
-                                ).join(Node,Location,House,Room).order_by(House.address, Room.name).all()
+        # next get the count per node
+        seqcnt_q = (session.query(NodeState.nodeId.label('nodeId'),
+                              func.count(NodeState.seq_num).label('cnt'))
+                    .filter(NodeState.time >= start_t)
+                    .group_by(NodeState.nodeId)
+                    .subquery(name='seqcnt'))
 
-        for (ns, cnt, maxtime, house, room) in nodestateq:
+        # next get the first occurring sequence number per node
+        selmint_q = (session.query(NodeState.nodeId.label('nodeId'),
+                               func.min(NodeState.time).label('mint'))
+                        .filter(NodeState.time >=start_t)
+                        .group_by(NodeState.nodeId)
+                        .subquery(name='selmint'))
 
-            yield_secs = (1 * 24 * 3600)
+        minseq_q = (session.query(NodeState.nodeId.label('nodeId'),
+                             NodeState.seq_num.label('seq_num'))
+                        .join(selmint_q,
+                              and_(NodeState.time == selmint_q.c.mint,
+                                   NodeState.nodeId == selmint_q.c.nodeId))
+                        .subquery(name='minseq'))
 
-            y = (cnt) / (yield_secs / 300.0) * 100.0
+        # next get the last occurring sequence number per node
+        selmaxt_q = (session.query(NodeState.nodeId.label('nodeId'),
+                               func.max(NodeState.time).label('maxt'))
+                        .filter(NodeState.time >=start_t)
+                        .group_by(NodeState.nodeId)
+                        .subquery(name='selmaxt'))
 
-            values = [ns.nodeId, house, room, cnt, maxtime, y]
-            fmt = ['%d', '%s', '%s', '%d', '%s', '%8.2f']
+        maxseq_q = (session.query(NodeState.nodeId.label('nodeId'),
+                              NodeState.seq_num.label('seq_num'),
+                              NodeState.time.label('time'))
+                        .join(selmaxt_q,
+                              and_(NodeState.time == selmaxt_q.c.maxt,
+                                   NodeState.nodeId == selmaxt_q.c.nodeId))
+                        .subquery(name='maxseq'))
+
+        yield_q = (session.query(maxseq_q.c.nodeId,
+                             maxseq_q.c.seq_num,
+                             minseq_q.c.seq_num,
+                             seqcnt_q.c.cnt,
+                             maxseq_q.c.time,
+                             House.address,
+                             Room.name)
+                        .select_from(maxseq_q)
+                        .join(minseq_q, minseq_q.c.nodeId == maxseq_q.c.nodeId)
+                        .join(seqcnt_q, maxseq_q.c.nodeId == seqcnt_q.c.nodeId)
+                        .join(Node, Node.id == maxseq_q.c.nodeId)
+                        .join(Location, House, Room)
+                        .order_by(House.address, Room.name))
+
+
+        # nodestateq = session.query(
+        #     NodeState,
+        #     func.count(NodeState),
+        #     func.max(NodeState.time),
+        #     House.address,
+        #     Room.name
+        #     ).filter(NodeState.time > t
+        #              ).group_by(NodeState.nodeId
+        #                         ).join(Node,Location,House,Room).order_by(House.address, Room.name).all()
+
+        for (node_id, maxseq, minseq, seqcnt, last_heard,
+             house_name, room_name) in yield_q.all():
+
+             #missed = (maxseq - minseq + 257) % 256 - seqcnt
+            y = (seqcnt * 100.) / ((maxseq - minseq + 257) % 256)
+
+            values = [node_id, house_name, room_name, seqcnt, minseq, maxseq, str(last_heard), y]
+            fmt = ['%d', '%s', '%s', '%d', '%d', '%d', '%s', '%8.2f']
             s.append("<tr>")
             s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
             s.append("</tr>")
@@ -816,9 +918,33 @@ def dataYield():
     try:
         session = Session()
         s = []
-
+        s.append("<h4>Note: this page does not yet support SIP and the yield may be wrong.</h4>")
         s.append("<table border=\"1\">")
         s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Message Count</th><th>First heard</th><th>Last heard</th><th>Yield</th></tr>")
+
+        # TODO finish this code
+        # clock_over_count = {}
+        # seq_q = (session.query(NodeState.nodeId,
+        #               NodeState.seq_num)
+        #     .group_by(NodeState.nodeId)
+        #     .order_by(NodeState.time)
+        #     .all())
+
+        # last_node = None
+        # last_seq = None
+        # for node_id, seq_num in seq_q:
+        #     if not node_id in clock_over_count:
+        #         clock_over_count[node_id] = 0
+
+        #     if (last_seq is not None and
+        #         seq_num < last_seq and
+        #         last_node is not None and
+        #         node_id == last_node):
+        #         clock_over_count[node_id] += 1
+                
+        #     last_seq = seq_num
+        #     last_node = node_id
+
 
         for nid, cnt, mintime, maxtime in session.query(
             
@@ -831,13 +957,13 @@ def dataYield():
                 n = session.query(Node).filter(Node.id == nid).one()
                 try:
                     house = n.location.house.address
-                except:
+                except: # TODO fix unspec exception
                     house = '-'
                 try:
                     room = n.location.room.name
-                except:
+                except: # TODO fix unspec exception
                     room = '-'
-            except:
+            except NoResultFound:
                 house = '?'
                 room = '?'
                 
@@ -906,8 +1032,9 @@ def unregisterNode(node=None):
         session.commit()
         return _redirect("missing")
     
-    except:
+    except Exception, e:
         session.rollback()
+        raise e
         
     finally:
         session.close()
@@ -939,8 +1066,9 @@ def registerNodeSubmit(node=None, house=None, room=None):
         session.commit()
         return _redirect("missing")
     
-    except:
+    except Exception, e:
         session.rollback()
+        raise e
     finally:
         session.close()
 
@@ -957,8 +1085,9 @@ def unregisterNodeSubmit(node=None):
         session.commit()
         return _redirect("missing")
     
-    except:
+    except Exception, e:
         session.rollback()
+        raise e
     finally:
         session.close()
 
@@ -1040,17 +1169,20 @@ def addNewRoom(regnode=None, err=None, name=None):
         if err is not None:
             s.append('<p>%s</p>' % (errors[err]))
         s.append("<form action=\"addNewRoomSubmit\">")
-        s.append('<input type="hidden" name="regnode" value="%s" />' % (regnode))
+        s.append('<input type="hidden" name="regnode" value="%s" />'
+                 % (regnode))
 
-        s.append('<p>Name: <input type="text" name="name" value="%s" /></p>' % (name))
+        s.append('<p>Name: <input type="text" name="name" value="%s" /></p>'
+                 % (name))
         
 
         s.append('<p>Type: <select name="roomtype">')
         for d in session.query(RoomType):
             s.append('<option value="%d">%s</option>' % (d.id, d.name))
         s.append('</select>')
-        u = _url("addNewRoomType", [('ref', _url("addNewRoom", [('regnode', regnode),
-                                                                ('name', name)]))])
+        u = _url("addNewRoomType",
+                 [('ref', _url("addNewRoom", [('regnode', regnode),
+                                              ('name', name)]))])
         s.append(' <a href="%s">(add new room type)</a></p>' % u)
 
         s.append("<p><input type=\"submit\" value=\"Add\"></p>")
@@ -1114,7 +1246,8 @@ def addNewRoomType(ref=None, err=None, name=None):
         s.append("<form action=\"addNewRoomTypeSubmit\">")
         s.append('<input type="hidden" name="ref" value="%s" />' % (ref))
 
-        s.append('<p>Room type: <input type="text" name="name" value="%s" /></p>' % (name))
+        s.append('<p>Room type: <input type="text" name="name" value="%s" /></p>'
+                 % (name))
 
         s.append("<p><input type=\"submit\" value=\"Add\">")
         s.append('    <a href="%s">Cancel</a></p>' % (ref))
@@ -1162,17 +1295,16 @@ def addNewRoomTypeSubmit(ref=None, name=None):
 
 def lowbat(bat="2.6"):
     try:
-        try:
-            batlvl = float(bat)
-        except:
-            batlvl = 2.6
+        batlvl = _float(bat, default=2.6)
         t = datetime.utcnow() - timedelta(hours=1)
         session = Session()
         s = []
         empty = True
-        for r in session.query(distinct(Reading.nodeId)).filter(and_(Reading.typeId==6,
-                                                     Reading.value<=batlvl,
-                                                     Reading.time > t)).order_by(Reading.nodeId):
+        for r in (session.query(distinct(Reading.nodeId))
+                  .filter(and_(Reading.typeId==6,
+                               Reading.value<=batlvl,
+                               Reading.time > t))
+                  .order_by(Reading.nodeId)):
             r = r[0]
             u = _url("graph", [('node', r),
                                ('typ', 6),
@@ -1193,404 +1325,269 @@ def lowbat(bat="2.6"):
 def _calibrate(session,v,node,typ):
     # calibrate
     try:
-        (mult, offs) = session.query(Sensor.calibrationSlope, Sensor.calibrationOffset).filter(
-            and_(Sensor.sensorTypeId==typ,
-                 Sensor.nodeId==node)).one()
+        (mult, offs) = (session.query(Sensor.calibrationSlope,
+                                      Sensor.calibrationOffset)
+                                      .filter(
+                                          and_(Sensor.sensorTypeId==typ,
+                                               Sensor.nodeId==node)).one())
         return [x * mult + offs for x in v]
-    except NoResultFound, e:
+    except NoResultFound:
         return v
 
 
-
-_deltaDict={0: 1, 2: 3, 6: 7, 8: 17} 
-
-def _plot(typ, t, v, startts, endts, debug, fmt, req):
-    if not debug:
-        with _lock:
-            fig = plt.figure()
-            fig.set_size_inches(7,4)
-            ax = fig.add_subplot(111)
-            ax.set_autoscalex_on(False)
-            ax.set_xlim((matplotlib.dates.date2num(startts),
-                         matplotlib.dates.date2num(endts)))
-                
-            if len(t) > 0:                            
-                ax.plot_date(t, v, fmt)
-                fig.autofmt_xdate()
-                ax.set_xlabel("Date")
-                try:
-                    session = Session()
-                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(typ)).one()
-                    ax.set_ylabel("%s (%s)" % tuple(thistype))
-                    session.close()
-                except NoResultFound:
-                    pass
-
-
-            image = cStringIO.StringIO()
-            fig.savefig(image)
-
-            req.content_type = "image/png"
-            return  [req.content_type, image.getvalue()]
-    else:
-        req.content_type = "text/plain"
-        return [req.content_type , str(t)+ str(v)]
-
-def test(req,nid,typ,minsago):
+def _get_y_label(reading_type):
     try:
         session = Session()
-
-        try:
-            minsago_i = timedelta(minutes=int(minsago))
-        except Exception:
-            minsago_i = timedelta(minutes=1)
-
-        startts = datetime.utcnow() - minsago_i
-        
-        (max_time_before,) = session.query(func.max(Reading.time)).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ),
-                 Reading.time < startts)).first()
-
-        (v2,) = session.query(Reading.value).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ),
-                 Reading.time == max_time_before)).first()
-
-
-        sq = session.query(func.max(Reading.time).label('maxtime')).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ),
-                 Reading.time < startts)).subquery()
-        
-        (mt2, v3,) = session.query(Reading.time,Reading.value).join(
-            sq, Reading.time==sq.c.maxtime).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ))).first()
-
-        sql = session.query(Reading.time,Reading.value).join(
-            sq, Reading.time==sq.c.maxtime).filter(
-            and_(Reading.nodeId == int(nid),
-                 Reading.typeId == int(typ))).as_scalar()
-
-        req.content_type='text/plain'
-        return repr(max_time_before) + " " + repr(v2) + " " + repr(v3) + " " + repr(mt2) + str(sql)
-        
-        
+        thistype = (session.query(SensorType.name, SensorType.units)
+                    .filter(SensorType.id==int(reading_type))
+            .one())
+        return "{0[0]} {0[1]}".format(thistype)
+    except NoResultFound:
+        return "unknown"
     finally:
         session.close()
 
-def _latest_reading_before(session, nid, typ, startts):
-        # get latest reading / time that is before start time
-        try:
-            sq = session.query(func.max(Reading.time).label('maxtime')).filter(
-                and_(Reading.nodeId == nid,
-                     Reading.typeId == typ,
-                     Reading.time < startts)).subquery()
-        
-            (qt, qv) = session.query(Reading.time,Reading.value).join(
-                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == typ)).first()
 
-            # get corresponding delta
-            (dt, dv) = session.query(Reading.time,Reading.value).join(
-                sq, Reading.time==sq.c.maxtime).filter(and_(Reading.nodeId == nid,Reading.typeId == _deltaDict[typ])).first()
-            return qt,qv,dv
-        except:
-            return None,None,None
-    
+def _plot(typ, t, v, startts, endts, debug, fmt):
+    if not debug:
+        fig = plt.figure()
+        fig.set_size_inches(7,4)
+        ax = fig.add_subplot(111)
+        ax.set_autoscalex_on(False)
+        ax.set_xlim((matplotlib.dates.date2num(startts),
+                     matplotlib.dates.date2num(endts)))
 
-thresholds = {
-    0 : 0.25,
-    2 : 1,
-    8 : 100,
-    6 : 0.1
-    }
-
-sensor_types= {
-    0 : 0,
-    2 : 2,
-    8 : 8,
-    6 : 6
-    }
-
-type_delta={
-    0 : 1,
-    2 : 3,
-    8 : 20,
-    6 : 7
-}
-
-def _interp(data):
-    ft = data["time"]
-    fv = data["value"]
-    fd = data["delta"]
-
-    ctd = datetime.now()
-    duration = (ctd - ft).seconds
-
-    ft = matplotlib.dates.date2num(ft)
-    ct = matplotlib.dates.date2num(ctd)
-    cv = fv + (duration * fd)
-    
-    point={}
-    point["time"]=ctd
-    point["value"]=cv
-    point["delta"]=fd
+        if len(t) > 0:                            
+            ax.plot_date(t, v, fmt)
+            fig.autofmt_xdate()
+            ax.set_xlabel("Date")
+            ax.set_ylabel(int(typ))
 
 
-    return ct,cv,point
+        image = cStringIO.StringIO()
+        fig.savefig(image, **_SAVEFIG_ARGS)
 
-
-def _calcSpline(first,last,typ):
-
-    thresh = thresholds[int(typ)]
-
-    samplePeriod = timedelta(seconds = 300)
-    halfPeriod = timedelta(seconds = 150)
-
-    codes = [Path.MOVETO,
-             Path.CURVE4,
-             Path.CURVE4,
-             Path.CURVE4,
-             ]
-
-    ft = first["time"]
-    fv = first["value"]
-    fd = first["delta"]
-
-    lt = last["time"]
-    lv = last["value"]
-    ld = last["delta"]
-
-    #get control point 1 time and point B
-    cp1t = lt - samplePeriod
-    Bv = fv + (fd * (cp1t - ft).seconds)
-
-    #limits
-    ul = Bv + thresh
-    ll = Bv - thresh
-
-    #get second control point (D)            
-    cp2t = lt  - halfPeriod # 1/2 sample back
-    c2v = lv - (ld * halfPeriod.seconds)
-
-    #get xc
-    xct = cp1t
-    xcv =  lv - (ld * samplePeriod.seconds)
-
-    #decide on c1v (B') actual value
-    if xcv < ll:
-        c1v = ll
-    elif xcv > ul:
-        c1v = ul
+        return  [_CONTENT_PLOT, image.getvalue()]
     else:
-        c1v=(xcv+Bv)/2.
-        #c1v=Bv
+        return [_CONTENT_TEXT, str(t)+ str(v)]
 
-    ft = matplotlib.dates.date2num(ft)
-    cp1t = matplotlib.dates.date2num(cp1t)
-    cp2t = matplotlib.dates.date2num(cp2t)
-    lt = matplotlib.dates.date2num(lt)
 
-    verts = [
-        (ft, fv),  # P0
-        (cp1t, c1v), # P1
-        (cp2t, c2v), # P2
-        (lt, lv), # P3
-        ]
 
-    path = Path(verts, codes)
-    return path
+#------------------------------------------------------------
+# revised spline algorithm
+#
 
-def getSplineData(session, node_id, reading_type, delta_type, sd, ed):
-    #get values    
-    data=[]
-    times=[]
-    xs=[]
+def _get_value_and_delta(session,
+                         node_id,
+                         reading_type,
+                         delta_type,
+                         sd,
+                         ed):
+    """ get values and deltas given a node id, type, delta type, start
+    and end date.
+    """
+    # make sure that time period is covered by the data
+    try:
+        (sd1,) = (session.query(func.max(Reading.time))
+                 .filter(and_(Reading.nodeId == node_id,
+                              Reading.typeId == reading_type,
+                     Reading.time < sd))
+            .one()
+            )
+        if sd1 is not None:
+            sd = sd1
+    except NoResultFound:
+        pass
     
-    #get prev reading
-    (prev_time, prev_value, prev_delta) = _latest_reading_before(session, node_id, reading_type, sd)
-    if prev_time != None:
-        point={}
-        point["time"]=prev_time
-        times.append(prev_time)
-        point["value"]=prev_value
-        xs.append(prev_value)
-        point["delta"]=prev_delta/300.
-        data.append(point)
+    try:
+        (ed1,) = (session.query(func.min(Reading.time))
+                 .filter(and_(Reading.nodeId == node_id,
+                              Reading.typeId == reading_type,
+                     Reading.time > ed))
+            .one()
+            )
+        if ed1 is not None:
+            ed = ed1
+    except NoResultFound:
+        pass
         
+    s2 = aliased(Reading)
+    return (session.query(Reading.time, Reading.value, s2.value)
+                      .join(s2, and_(Reading.time == s2.time,
+                                     Reading.nodeId == s2.nodeId))
+                      .filter(and_(Reading.typeId == reading_type,
+                                   s2.typeId == delta_type,
+                                   Reading.nodeId == node_id,
+                                   Reading.time >= sd,
+                                   Reading.time <= ed
+                          )))
 
-    delta_rows = session.query(Reading.time, Reading.value).filter(and_(
-            Reading.time >= sd,
-            Reading.time < ed,
-            Reading.nodeId == node_id,
-            Reading.typeId == delta_type)).with_labels().subquery()
-            
-    rows =  session.query(Reading.time, Reading.value, delta_rows.c.Reading_value).filter(and_(
-        Reading.time >= sd,
-        Reading.time < ed,
-        Reading.nodeId == node_id,
-        Reading.typeId == reading_type))
-                        
-    readings = rows.join((delta_rows, Reading.time == delta_rows.c.Reading_time))
+def _plot_splines(node_id,
+                  reading_type,
+                  delta_type,
+                  start_time,
+                  end_time,
+                  debug,
+                  fmt):
+    """ plot splines using PartSplineReconstruct generator.  Rather
+    than using matplotlib splines, a series of LINETO path elements
+    are constructed based on a combination of two quadratic splines
+    that are fitted together.
+    """
+    try:
+        session = Session()
 
-    for time,value,delta in readings:  
-        point={}
-        point["time"]=time
-        times.append(time)
-        point["value"]=value
-        xs.append(value)
-        point["delta"]=delta/300.
-        data.append(point)
+        first = True
+        px = []
+        py = []
+        thresh = thresholds[reading_type]
+        for pt in (PartSplineReconstruct(threshold=thresh,
+                                         src=SipPhenom
+                   (src=_get_value_and_delta
+                    (session,
+                     node_id,
+                     reading_type,
+                     delta_type,
+                     start_time,
+                     end_time
+                     )))):
+            dt = matplotlib.dates.date2num(pt.dt)
+            if first:
+                coords = [(dt, pt.sp)]
+                codes = [Path.MOVETO]
+                y_max = y_min = pt.sp
+            else:
+                coords.append((dt, pt.sp))
+                codes.append(Path.LINETO)
+                y_min = min(y_min, pt.sp)
+                y_max = max(y_max, pt.sp)
+            if pt.ev:
+                px.append(dt)
+                py.append(pt.sp)
+                (last_dt, last_s, last_t) = (pt.dt, pt.s, pt.t) 
+                    
+            first = False
 
-    points=[times,xs]
-    return (data,points)
+        path = Path(coords, codes)
 
-def _graphSplines(session, data, paths, current_point, start_time, end_time, reading_type, fmt, req):
-    fig = plt.figure()
-    fig.set_size_inches(7,4)
-    ax = fig.add_subplot(111)
-    ax.set_autoscalex_on(False)
-    ax.set_xlim((matplotlib.dates.date2num(start_time),
-                 matplotlib.dates.date2num(end_time)))
+        fig = plt.figure()
+        fig.set_size_inches(7, 4)
+        ax = fig.add_subplot(111)
+        ax.set_autoscalex_on(False)
+        ax.set_xlim((matplotlib.dates.date2num(start_time),
+                     matplotlib.dates.date2num(end_time)))
 
-    for p in paths:
-        patch = patches.PathPatch(p, facecolor='none', lw=2)
+        patch = patches.PathPatch(path, facecolor='none', lw=2)
         ax.add_patch(patch)
 
-    ax.plot_date(current_point[0], current_point[1], color='red', linestyle='dashed')   
-    ax.plot_date(data[0], data[1],fmt)
+        if last_dt < end_time:
+            # the last point is prior to then end time, so estimate
+            # the end point
+            delta_t = (end_time - last_dt).seconds / 300.
+            ly = last_s + last_t * delta_t
+            lx = matplotlib.dates.date2num(end_time)
+            
+            ax.plot_date([lx], [ly], 'ro')
+            path = Path([(matplotlib.dates.date2num(last_dt), last_s),
+                         (lx, ly)],
+                        [Path.MOVETO,
+                         Path.LINETO])
+            patch = patches.PathPatch(path, linestyle='dashed',
+                                      facecolor='none', lw=2)
+            ax.add_patch(patch)
+            
 
+        ax.plot_date(px, py, fmt)
 
-    fig.autofmt_xdate()
-    ax.set_xlabel("Date")
-        
+        fig.autofmt_xdate()
+        ax.set_xlabel("Date")
 
-    try:
-        thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(reading_type)).one()
-        ax.set_ylabel("%s (%s)" % tuple(thistype))
-    except NoResultFound:
-        pass        
+        ax.set_ylabel(_get_y_label(reading_type))
+                
+        image = cStringIO.StringIO()
+        fig.savefig(image, **_SAVEFIG_ARGS)
 
-    image = cStringIO.StringIO()
-    fig.savefig(image)
-    
-    req.content_type = "image/png"
-    return  [req.content_type, image.getvalue()]
+        if debug:
+            return [_CONTENT_TEXT,
+                    "px={}\npy={}"
+                    .format(px, py)]
+        else:
+            return  [_CONTENT_PLOT, image.getvalue()]
 
-def _plotSplines(node_id, reading_type, delta_type, start_time, end_time, debug, fmt, req):
-    try:
-        session = Session()
-        data,points = getSplineData(session, node_id, reading_type, delta_type, start_time, end_time)
-
-        paths = []
-        msgs=len(data)
-        i=0
-        req.content_type = "text/plain"
-        while i < msgs:
-            try:
-                path = _calcSpline(data[i],data[i+1],reading_type)
-                paths.append(path)
-            except IndexError:
-                current_point = _interp(data[i])
-                path = _calcSpline(data[i],current_point[2],reading_type)
-                paths.append(path)
-                break
-            i+=1
-        if len(paths)>0:
-            return _graphSplines(session, points, paths, current_point, start_time, end_time, reading_type, fmt, req)
     finally:
         session.close()
             
-def _isPlotSpline(session, node, typ, startts, endts):
-    if typ in _deltaDict:
-        dqry = session.query(Reading.time, Reading.value).filter(
-            and_(Reading.nodeId == node,
-                 Reading.typeId == _deltaDict[typ],
-                 Reading.time >= startts,
-                Reading.time <= endts)).first()
-        return dqry is not None
-    return False
 
-
-def graph(req,node='64', minsago='1440',duration='1440', debug=None, fmt='bo', typ='0'):
+def graph(req,
+           node='64',
+           minsago='1440',
+           duration='1440',
+           debug=None,
+           fmt='bo',
+           typ='0'):
 
     try:
         session = Session()
-        plotLines=False
+        #plotLines=False
 
-        try:
-            minsago_i = timedelta(minutes=int(minsago))
-        except Exception:
-            minsago_i = timedelta(minutes=1)
-
-        try:
-            duration_i = timedelta(minutes=int(duration))
-        except Exception:
-            duration_i = timedelta(minutes=1)
+        minsago_i = _int(minsago, default=60)
+        duration_i = _int(duration, default=60)
 
         debug = (debug is not None)
-        week = timedelta(minutes=int(_periods["week"]))
-        startts = datetime.utcnow() - minsago_i
-        deltats = (datetime.utcnow() - minsago_i) - week
+        #week = timedelta(minutes=int(_periods["week"]))
+        startts = datetime.utcnow() - timedelta(minutes=minsago_i)
+        #deltats = (datetime.utcnow() - minsago_i) - week
 
-        endts = startts + duration_i
+        endts = startts + timedelta(minutes=duration_i)
 
-        qry = session.query(Reading.time,Reading.value).filter(
-            and_(Reading.nodeId == int(node),
-                 Reading.typeId == int(typ),
-                 Reading.time >= startts,
-                 Reading.time <= endts)).order_by(Reading.time)
-
-
-        t = []
-        dt = []
-        v = []
-        last_value=None
-        for qt, qv in qry:
-            dt.append(qt)
-            t.append(matplotlib.dates.date2num(qt))
-            v.append(qv)
-            last_value=float(qv)
-
-        v = _calibrate(session, v, node, typ)
+        type_id = int(typ)
+        if type_id not in type_delta:
+            
+            qry = session.query(Reading.time, Reading.value).filter(
+                and_(Reading.nodeId == int(node),
+                     Reading.typeId == int(typ),
+                     Reading.time >= startts,
+                     Reading.time <= endts)).order_by(Reading.time)
 
 
-        req.content_type = "image/png"
+            t = []
+            dt = []
+            v = []
+            #last_value=None
+            for qt, qv in qry:
+                dt.append(qt)
+                t.append(matplotlib.dates.date2num(qt))
+                v.append(qv)
+                #last_value=float(qv)
 
-        #will need a flag in the db saying if an SI node so can force a splinePlot if t == 0
-        nid=int(node)
-        if len(t) == 0:  
-            res=_plot(typ, t, v, startts, endts, debug, fmt, req)
-            return res[1]
-        elif _isPlotSpline(session, int(node), int(typ), startts, endts):
-            res = _plotSplines(nid, typ, type_delta[int(typ)], startts, endts, debug, fmt, req)
+            v = _calibrate(session, v, node, typ)
+            res = _plot(typ, t, v, startts, endts, debug, fmt)
         else:
-            res=_plot(typ, t, v, startts, endts, debug, fmt, req)
+            res = _plot_splines(int(node),
+                               type_id,
+                               type_delta[type_id],
+                               startts,
+                               endts,
+                               debug,
+                               fmt)
 
-        req.content_type=res[0]
+        req.content_type = res[0]
         return res[1]
     finally:
         session.close()
 
 
-
-def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
+def bathElecImg(req,
+                house='',
+                minsago='1440',
+                duration='1440',
+                debug=None):
 
     try:
         session = Session()
 
-
-        try:
-            minsago_i = timedelta(minutes=int(minsago))
-        except Exception:
-            minsago_i = timedelta(minutes=1)
-
-        try:
-            duration_i = timedelta(minutes=int(duration))
-        except Exception:
-            duration_i = timedelta(minutes=1)
-
+        minsago_i = _int(minsago, default=60)
+        duration_i = _int(duration, default=60)
         debug = (debug is not None)
 
         startts = datetime.utcnow() - minsago_i
@@ -1598,7 +1595,10 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
 
         # find all the electricity readings for House n for the required period
 
-        nodesInHouse = session.query(Node.id).join(Location, House).filter(House.id==int(house)).all()
+        nodesInHouse = (session.query(Node.id)
+                               .join(Location, House)
+                               .filter(House.id==int(house))
+                               .all())
         nodesInHouse = [a for (a,) in nodesInHouse]
 
 
@@ -1624,7 +1624,11 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
 
             v = _calibrate(session, v, elec_node, 11)
 
-        (bathroomNode) = session.query(Node.id).join(Location, House, Room).filter(and_(House.id==int(house), Room.name=="Bathroom")).first()
+        (bathroomNode) = (session.query(Node.id)
+                                 .join(Location, House, Room)
+                                 .filter(and_(House.id==int(house),
+                                              Room.name=="Bathroom"))
+                                 .first())
 
         t2 = []
         v2 = []
@@ -1646,39 +1650,34 @@ def bathElecImg(req,house='', minsago='1440',duration='1440', debug=None):
         #    ax.plot(t,v,fmt)
 
         if not debug:
-            with _lock:
-                fig = plt.figure()
-                fig.set_size_inches(7,4)
-                ax = fig.add_subplot(111)
-                ax.set_autoscalex_on(False)
-                ax.set_xlim((matplotlib.dates.date2num(startts),
-                         matplotlib.dates.date2num(endts)))
-                
-                if len(t) > 0:
-                    ax.plot_date(t, v, 'r-')
+            fig = plt.figure()
+            fig.set_size_inches(7,4)
+            ax = fig.add_subplot(111)
+            ax.set_autoscalex_on(False)
+            ax.set_xlim((matplotlib.dates.date2num(startts),
+                     matplotlib.dates.date2num(endts)))
 
-                fig.autofmt_xdate()
-                ax.set_xlabel("Date")
-                try:
-                    thistype = session.query(SensorType.name, SensorType.units).filter(SensorType.id==int(11)).one()
-                    ax.set_ylabel("%s (%s)" % tuple(thistype))
-                except:
-                    pass
+            if len(t) > 0:
+                ax.plot_date(t, v, 'r-')
 
-                if len(t2) > 0:
-                    ax2 = ax.twinx()
-                    ax2.plot_date(t2, v2, 'b-')
-                    ax2.set_ylabel('Bathroom humidity')
+            fig.autofmt_xdate()
+            ax.set_xlabel("Date")
+            ax.set_ylabel(_get_y_label(11))
+
+            if len(t2) > 0:
+                ax2 = ax.twinx()
+                ax2.plot_date(t2, v2, 'b-')
+                ax2.set_ylabel('Bathroom humidity')
 
 
-                image = cStringIO.StringIO()
-                fig.savefig(image)
+            image = cStringIO.StringIO()
+            fig.savefig(image, **_SAVEFIG_ARGS)
 
-            req.content_type = "image/png"
+            req.content_type = _CONTENT_PLOT
 
             return image.getvalue()
         else:
-            req.content_type = "text/plain"
+            req.content_type = _CONTENT_TEXT
             return str(t)
     finally:
         session.close()

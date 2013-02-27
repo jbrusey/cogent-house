@@ -62,17 +62,17 @@ enum {
   SC_D_CO2 = 20,
   SC_D_VOC = 21,
   SC_D_AQ = 22,
-  SC_HEARTBEAT = 23,
-  SC_SIZE = 24, // SC_SIZE must be 1 greater than last entry
-  
-  
-  //BN Codes
-  SC_TEMP_COUNT = 5,
-  SC_TEMP_FIRST = 7,
-  SC_HUM_COUNT = 4,
-  SC_HUM_FIRST = 12,
-  SC_CO2_COUNT = 4,
-  SC_CO2_FIRST = 16,
+  SC_BN_TEMP_COUNT = 5,
+  SC_BN_TEMP_FIRST = 23,
+  SC_BN_HUM_COUNT = 4,
+  SC_BN_HUM_FIRST = 28,
+  SC_BN_CO2_COUNT = 4,
+  SC_BN_CO2_FIRST = 32,
+  SC_BN_VOC_COUNT = 2,
+  SC_BN_VOC_FIRST = 36,
+  SC_BN_AQ_COUNT = 2,
+  SC_BN_AQ_FIRST = 38,
+  SC_SIZE = 40, // SC_SIZE must be 1 greater than last entry
 };
 
 #include "Leaf_SS/PackState/packstate.h"
@@ -102,7 +102,6 @@ enum {
   AM_CONFIGMSG = 5,
   DIS_SETTINGS = 6,
   AM_STATEMSG = 7,
-  AM_BNMSG = 8,
   SPECIAL = 0xc7,
   MAX_HOPS = 4
 };
@@ -119,7 +118,8 @@ enum {
   ERR_SEND_FAILED = 5,
   ERR_SEND_WHILE_PACKET_PENDING = 7,
   ERR_SEND_WHILE_SENDING = 11,
-  ERR_NO_ACK=13
+  ERR_NO_ACK=13,
+  ERR_HEARTBEAT=17
 };
 
 
@@ -127,21 +127,13 @@ enum {
   NODE_TYPE_MAX = 10
 };
 
-typedef nx_struct BNMsg {
-  nx_uint16_t ctp_parent_id;
-  nx_uint32_t timestamp;
-  nx_uint8_t special;
-  nx_uint8_t seq;
-  nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
-  nx_float packed_state[SC_SIZE];
-} BNMsg; // varies depending on SC_SIZE 
-
 
 typedef nx_struct StateMsg {
   nx_uint16_t ctp_parent_id;
   nx_uint32_t timestamp;
   nx_uint8_t special;
   nx_uint8_t seq;
+  nx_int16_t rssi;
   nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
   nx_float packed_state[SC_SIZE];
 } StateMsg; // varies depending on SC_SIZE 
@@ -158,7 +150,6 @@ typedef nx_struct ConfigMsg {
   ConfigPerType byType [NODE_TYPE_MAX];
   nx_uint8_t special;
 } ConfigMsg;
-
 
 
 typedef struct CRCStruct {
