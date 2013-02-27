@@ -454,11 +454,18 @@ implementation {
 
   // insert the neighbor at any cost (if there is a room for it)
   // even if eviction of a perfectly fine neighbor is called for
-  // TO_DO if this node is a non-cluster head node and the neighbor is a
-  // non -cluster head we ignore it
   command error_t LinkEstimator.insertNeighbor(am_addr_t neighbor) {
     uint8_t nidx;
+    uint8_t myType;
+    uint8_t neighborType;
 
+    //if this node is a leaf node return success if neighbour is a leaf node too  
+    myType = TOS_NODE_ID >> 12;
+    neighborType = neighbor >> 12;
+    if (myType != CLUSTER_HEAD_TYPE)
+      if (neighborType !=  CLUSTER_HEAD_TYPE)   
+	    return SUCCESS;    
+    
     nidx = findIdx(neighbor);
     if (nidx != INVALID_RVAL) {
       dbg("LI", "insert: Found the entry, no need to insert\n");
