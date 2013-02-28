@@ -49,6 +49,7 @@ class NodeState(Base,meta.InnoDBMix):
     parent = Column(Integer)
     localtime = Column(BigInteger)
     seq_num = Column(Integer)
+    rssi = Column(Integer)
 
     def __repr__(self):
         return ("NodeState(" +
@@ -57,6 +58,7 @@ class NodeState(Base,meta.InnoDBMix):
                 str(self.nodeId) + "," +
                 str(self.parent) + "," +
                 str(self.seq_num) + "," +
+                str(self.rssi) + "," +
                 str(self.localtime) + ")")
 
 

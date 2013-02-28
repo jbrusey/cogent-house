@@ -44,7 +44,6 @@ DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, and_
 
-BN_OFFSET=50
 def duplicate_packet(session, receipt_time, node_id, localtime):
     """ duplicate packets can occur because in a large network,
     the duplicate packet cache used is not sufficient. If such
@@ -134,6 +133,7 @@ class BaseLogger(object):
             node_id = msg.getAddr()
             parent_id = msg.get_ctp_parent_id()
             seq = msg.get_seq()
+            rssi_val = msg.get_rssi()
 
             node = session.query(Node).get(node_id)
             loc_id = None
@@ -162,15 +162,12 @@ class BaseLogger(object):
                                    nodeId=node_id,
                                    parent=parent_id,
                 localtime=msg.get_timestamp(),
-                seq_num=seq)
+                seq_num=seq,
+                rssi = rssi_val)
             session.add(node_state)
 
             for i, value in pack_state.d.iteritems():
-                if (msg.get_amType() == Packets.AM_BNMSG and
-                    i not in [Packets.SC_VOLTAGE]):
-                    type_id = i + BN_OFFSET   # TODO: ideally should be a flag in datbase or something
-                else:
-                    type_id = i
+                type_id = i
 
                 session.add(Reading(time=current_time,
                                     nodeId=node_id,

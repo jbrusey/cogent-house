@@ -63,7 +63,7 @@ implementation
   message_t dataMsg;
   uint16_t message_size;
   uint8_t msgSeq = 0;
-  uint8_t expSeq = 0;
+  uint8_t expSeq = 255;
   uint32_t sense_start_time;
   uint32_t send_start_time;  
 
@@ -235,8 +235,13 @@ implementation
 
 #ifdef SIP
     	if (call TransmissionControl.hasEvent()){
-          if (!CLUSTER_HEAD)
+          if (!CLUSTER_HEAD){
+#ifdef DEBUG
+	    printf("LPL Send %lu\n", call LocalTime.get());
+	    printfflush();
+#endif
             call LowPowerListening.setLocalWakeupInterval(LPL_SEND);
+	  }
           sendState();
 	}
 	else
@@ -265,10 +270,16 @@ implementation
 	      break;
 	  }
 	}
-	if  (toSend || call Heartbeat.triggered())
-          if (!CLUSTER_HEAD)
+	if  (toSend || call Heartbeat.triggered()){
+          if (!CLUSTER_HEAD){
+#ifdef DEBUG
+	    printf("LPL Send %lu\n", call LocalTime.get());
+	    printfflush();
+#endif
             LowPowerListening.setLocalWakeupInterval(LPL_SEND);
+	  }
 	  sendState();
+	}
 	else
 	  restartSenseTimer();
 #endif
@@ -330,7 +341,7 @@ implementation
     my_settings->blink = FALSE;
 
     call Configured.clearAll();
-    if (nodeType == 0) { 
+    if (nodeType == 0 || nodeType == CLUSTER_HEAD_TYPE) { 
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_VOLTAGE);
@@ -545,8 +556,14 @@ implementation
     call Leds.led2Toggle();
 #endif
 
-    if (!CLUSTER_HEAD)
+    if (!CLUSTER_HEAD){
+#ifdef DEBUG
+      printf("LPL Sleep %lu\n", call LocalTime.get());
+      printfflush();
+#endif
       call LowPowerListening.setLocalWakeupInterval(LPL_SLEEP);
+    }
+    
     call SendTimeOutTimer.stop();
 
     
