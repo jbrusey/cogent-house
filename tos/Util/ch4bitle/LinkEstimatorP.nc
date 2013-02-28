@@ -340,6 +340,7 @@ implementation {
 	  }
 	  ne->rcvcnt = 0;
 	  ne->failcnt = 0;
+	  
 	  updateETX(ne, computeETX(ne->inquality));
 	} else {
 	  dbg("LI", " - entry %i is invalid.\n", (int)i);
@@ -440,7 +441,15 @@ implementation {
   // return bi-directional link quality to the neighbor
   command uint16_t LinkEstimator.getLinkQuality(am_addr_t neighbor) {
     uint8_t idx;
+    
+    //return max etx value if its a leaf path
+    if (!CLUSTER_HEAD && (neighbor>> 12 !=  CLUSTER_HEAD_TYPE)){
+      dbg("LI", "updateNeighborTableEst: Set etx to max where leaf path\n");
+	  return VERY_LARGE_ETX_VALUE;
+    }
+      
     idx = findIdx(neighbor);
+   
     if (idx == INVALID_RVAL) {
       return VERY_LARGE_ETX_VALUE;
     } else {
@@ -456,12 +465,6 @@ implementation {
   // even if eviction of a perfectly fine neighbor is called for
   command error_t LinkEstimator.insertNeighbor(am_addr_t neighbor) {
     uint8_t nidx;
-
-    //ignore paths between two lead nodes by checking sensor type
-    if (!CLUSTER_HEAD && (neighbor >> 12 !=  CLUSTER_HEAD_TYPE)){
-      dbg("LI", "insert: Ignore path between two leaf nodes\n");
-      return SUCCESS;   
-    }
     
     nidx = findIdx(neighbor);
     if (nidx != INVALID_RVAL) {
