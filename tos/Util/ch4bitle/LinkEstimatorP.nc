@@ -456,15 +456,12 @@ implementation {
   // even if eviction of a perfectly fine neighbor is called for
   command error_t LinkEstimator.insertNeighbor(am_addr_t neighbor) {
     uint8_t nidx;
-    uint8_t myType;
-    uint8_t neighborType;
 
-    //if this node is a leaf node return success if neighbour is a leaf node too  
-    myType = TOS_NODE_ID >> 12;
-    neighborType = neighbor >> 12;
-    if (myType != CLUSTER_HEAD_TYPE)
-      if (neighborType !=  CLUSTER_HEAD_TYPE)   
-	    return SUCCESS;    
+    //ignore paths between two lead nodes by checking sensor type
+    if (!CLUSTER_HEAD && (neighbor >> 12 !=  CLUSTER_HEAD_TYPE)){
+      dbg("LI", "insert: Ignore path between two leaf nodes\n");
+      return SUCCESS;   
+    }
     
     nidx = findIdx(neighbor);
     if (nidx != INVALID_RVAL) {
