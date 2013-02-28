@@ -15,4 +15,4 @@ install:  all
 	alembic -c cogent/alembic.ini upgrade head
 
  $(MIGPYFILES): tos/Packets.h
-	make -C tos/Leaf_SI telosb
+	make -C tos/Leaf_LP telosb

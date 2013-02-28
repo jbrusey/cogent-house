@@ -103,7 +103,8 @@ enum {
   DIS_SETTINGS = 6,
   AM_STATEMSG = 7,
   SPECIAL = 0xc7,
-  MAX_HOPS = 4
+  MAX_HOPS = 4,
+  CLUSTER_HEAD_TYPE = 10
 };
 
 

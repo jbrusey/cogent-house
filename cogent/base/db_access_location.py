@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, and_, distinct, select, alias
+from sqlalchemy import create_engine, and_, distinct, select, alias, distinct
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
 from datetime import datetime
@@ -203,9 +203,14 @@ def get_locations_by_house(session, house_id, include_external=True):
     return node_details
 
 
-def get_nodeId_by_location(session, loc_id):
+def get_nodeId_by_location(session, loc_id, start_time, end_time, type_id=0):
     nid=None
-    rows = session.query(Reading).filter(Reading.locationId==loc_id).order_by(Reading.nodeId).first()
+    rows =  session.query(Reading.nodeId).filter(and_(
+            Reading.time >= start_time,
+            Reading.time < end_time,
+            Reading.locationId == loc_id,
+            Reading.typeId == type_id)).first()
+
     nid = int(rows.nodeId)
     return nid
 
