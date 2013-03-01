@@ -92,9 +92,13 @@ _deltaDict={
 
 _periods = {
     "hour" : 60,
+    "12-hours": 60*12,
     "day" : 1440,
+    "3-days": 1440*3,
     "week" : 1440*7,
-    "month" : 1440 * 7 * 52 / 12}
+    "month" : 1440 * 7 * 52 / 12,
+    "3-months" : 3*1440 * 7 * 52 / 12
+    }
 
 _navs = [
     ("Home", "index.py")
