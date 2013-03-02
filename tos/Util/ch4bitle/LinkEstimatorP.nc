@@ -25,8 +25,11 @@
  */
 
 /*
+ * Updated 4bitle to create cluster head links only
  @ author Omprakash Gnawali
+ @ author Ross Wilkins
  @ Created: April 24, 2006
+ @ Modified: March 2, 2013
  */
 
 #include "./LinkEstimator.h"
@@ -199,6 +202,8 @@ implementation {
 
   // find the index to the worst neighbor if the eetx
   // estimate is greater than the given threshold
+  // modified to prioritise removing leaf nodes
+  // from the neighbout table
   uint8_t findWorstNeighborIdx(uint8_t thresholdETX) {
     uint8_t i, worstNeighborIdx;
     uint16_t worstETX, thisETX;
@@ -218,7 +223,13 @@ implementation {
 	dbg("LI", "Pinned entry, so continuing\n");
 	continue;
       }
-      thisETX = NeighborTable[i].etx;
+      
+      //if leaf node ETX = VERY_LARGE_ETX_VALUE
+      if (NeighborTable[i].ll_addr >> 12 !=  CLUSTER_HEAD_TYPE)
+	thisETX = VERY_LARGE_ETX_VALUE;
+      else
+	thisETX = NeighborTable[i].etx;
+
       if (thisETX >= worstETX) {
 	worstNeighborIdx = i;
 	worstETX = thisETX;
