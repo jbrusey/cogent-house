@@ -1,8 +1,9 @@
 PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
+
 COMPONENT=CogentHouseC
 
-PYTHON_TARGET_DIR = ../../cogent/node
-PYTHON_TGTS = $(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
+PYTHON_TARGET_DIR=../../cogent/node
+PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
@@ -20,8 +21,8 @@ PFLAGS +=-DTOSH_DATA_LENGTH=175
 PFLAGS += -DCC2420_DEF_RFPOWER=3
 #CFLAGS += -DCC2420_DEF_CHANNEL=15
 
-CFLAGS += -DHEARTBEAT_MULTIPLIER = 7 #7 hours SIP #51 days BN
-CFLAGS += -DHEARTBEAT_PERIOD = 3686400L #3686400L #1 hour  88473600 #1 day
+CFLAGS += -DHEARTBEAT_MULTIPLIER=51 #7 hours SIP #51 days BN
+CFLAGS += -DHEARTBEAT_PERIOD=88473600L #3686400L #1 hour  88473600 #1 day
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
@@ -35,6 +36,7 @@ CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
 CFLAGS += -DDELAY_AFTER_RECEIVE=20
 CFLAGS += -DLPL_SLEEP=61440 #interval is a uint16_t
 CFLAGS += -DLPL_SEND=1024
+
 
 CFLAGS += -DDEWMA #-DKALMAN
 CFLAGS += -DSIP_TEMP_MASK=1
@@ -92,9 +94,7 @@ CFLAGS += -DBN_CO2_BAND_THRESH=5.
 CFLAGS += -DBN_VOC_BAND_THRESH=5.
 CFLAGS += -DBN_AQ_BAND_THRESH=5.
 
-
 include $(MAKERULES)
-
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
