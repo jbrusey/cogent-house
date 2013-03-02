@@ -223,10 +223,11 @@ implementation {
 	dbg("LI", "Pinned entry, so continuing\n");
 	continue;
       }
-      
-      //if leaf node ETX = VERY_LARGE_ETX_VALUE
-      if (NeighborTable[i].ll_addr >> 12 !=  CLUSTER_HEAD_TYPE)
-	thisETX = VERY_LARGE_ETX_VALUE;
+      //if cluster head ignore
+      if (NeighborTable[i].ll_addr >> 12 ==  CLUSTER_HEAD_TYPE){
+	dbg("LI", "Cluster Head entry, so continuing\n");
+	continue;
+      }	
       else
 	thisETX = NeighborTable[i].etx;
 
