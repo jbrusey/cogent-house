@@ -9,7 +9,7 @@ implementation
 {
   uint32_t period = p;
   uint8_t resetMult = mult;
-  uint8_t periodsToHeartbeat = p;
+  uint8_t periodsToHeartbeat = mult;
   bool initialised = FALSE;
   
   //Where will this be called?
