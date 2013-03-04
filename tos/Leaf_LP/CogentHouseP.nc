@@ -66,6 +66,7 @@ implementation
   uint8_t expSeq = 255;
   uint32_t sense_start_time;
   uint32_t send_start_time;  
+  uint8_t missedPKT = 0;
 
   bool packet_pending = FALSE;
   float last_duty = 0.;
@@ -301,6 +302,14 @@ implementation
 
     reportError(ERR_NO_ACK);
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
+
+    //if packet not through after 3 times get through recompute routes
+    if (missedPKT >= 2){
+      call CtpInfo.recomputeRoutes();
+      missedPKT = 0;
+    }
+    else
+      missedPKT += 1;
 
 #ifdef DEBUG
     printf("ack receving failed %lu\n", call LocalTime.get());
