@@ -139,6 +139,8 @@ implementation
     int i;
     am_addr_t parent;
     
+    call LowPowerListening.setLocalWakeupInterval(LPL_SEND);
+    
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -241,7 +243,6 @@ implementation
 	    printf("LPL Send %lu\n", call LocalTime.get());
 	    printfflush();
 #endif
-            call LowPowerListening.setLocalWakeupInterval(LPL_SEND);
 	  }
           sendState();
 	}
@@ -277,7 +278,6 @@ implementation
 	    printf("LPL Send %lu\n", call LocalTime.get());
 	    printfflush();
 #endif
-            LowPowerListening.setLocalWakeupInterval(LPL_SEND);
 	  }
 	  sendState();
 	}
