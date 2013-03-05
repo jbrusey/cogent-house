@@ -122,6 +122,7 @@ class BaseLogger(object):
         """
     
         # get the last source 
+         LOGGER.debug("Store State")
 
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" %
@@ -152,9 +153,6 @@ class BaseLogger(object):
                 LOGGER.info("duplicate packet %d->%d, %d %s" %
                             (node_id, parent_id, msg.get_timestamp(), str(msg)))
 
-                #send acknowledgement to base station to fwd to node
-                self.send_ack(seq=seq,
-                              dest=node_id)
                 return
 
             # write a node state row
