@@ -154,21 +154,26 @@ class Event(object):
 class SipPhenom(object):
     """ expand out SIP data from the database into a time series to
     allow a reconstruction
-    Input: tuple with (datetime, value, delta)
+
+    If the sequence numbers do not follow (modulo SEQ_MAX) then 
+    
+    Input: tuple with (datetime, value, delta, seq)
     Output: PhenomTuple with dt, ev, ls, lt, s, t
     """
     def __init__(self,
                  src=None,
+                 seq_max=256,
                  interval=timedelta(minutes=5),
                  duplicate_interval=timedelta(seconds=20)):
         self.src = src
         self.interval = interval
         self.duplicate_interval = duplicate_interval
+        self.seq_max = 256
 
     def __iter__(self):
         first = True
         last_dt = None
-        for (dt, value, delta) in self.src:
+        for (dt, value, delta, seq) in self.src:
             if first:
                 yield null_phenom._replace(ev=True,
                                                ls=value,
