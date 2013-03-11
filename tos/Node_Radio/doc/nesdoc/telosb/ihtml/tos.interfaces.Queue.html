@@ -1,0 +1,223 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Queue</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Queue</h2>
+    <b>interface Queue&lt;typedef t&gt;</b><p>
+  Interface to a FIFO list (queue) that contains items
+  of a specific type. The queue has a maximum size.
+
+  
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+  
+      </dd>
+      <dd>
+        Kyle Jamieson
+  
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          $Date: 2008-06-04 03:00:31 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command t <a href="#dequeue">dequeue</a>()
+      </span><menu>
+ Remove the head of the queue.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command t <a href="#element">element</a>(uint8_t idx)
+      </span><menu>
+ Return the nth element of the queue without dequeueing it, 
+ where 0 is the head of the queue and (size - 1) is the tail.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#empty">empty</a>()
+      </span><menu>
+ Returns if the queue is empty.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#enqueue">enqueue</a>(t newVal)
+      </span><menu>
+ Enqueue an element to the tail of the queue.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command t <a href="#head">head</a>()
+      </span><menu>
+ Get the head of the queue without removing it.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#maxSize">maxSize</a>()
+      </span><menu>
+ The maximum number of elements the queue can hold.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#size">size</a>()
+      </span><menu>
+ The number of elements currently in the queue.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="dequeue"></a>
+    <h4>dequeue
+    </h4>
+    <span id=funcnameshort>command t <b>dequeue</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Remove the head of the queue. If the queue is empty, the return
+ value is undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          't ONE' The head of the queue.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="element"></a>
+    <h4>element
+    </h4>
+    <span id=funcnameshort>command t <b>element</b>(uint8_t idx)
+    </span>
+    <p>
+    <menu>
+      
+ Return the nth element of the queue without dequeueing it, 
+ where 0 is the head of the queue and (size - 1) is the tail. 
+ If the element requested is larger than the current queue size,
+ the return value is undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>index</code> -  - the index of the element to return
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          't ONE' the requested element in the queue.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="empty"></a>
+    <h4>empty
+    </h4>
+    <span id=funcnameshort>command bool <b>empty</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns if the queue is empty.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Whether the queue is empty.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="enqueue"></a>
+    <h4>enqueue
+    </h4>
+    <span id=funcnameshort>command error_t <b>enqueue</b>(t newVal)
+    </span>
+    <p>
+    <menu>
+      
+ Enqueue an element to the tail of the queue.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          't ONE newVal' - the element to enqueue
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the element was enqueued successfully, FAIL
+                 if it was not enqueued.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="head"></a>
+    <h4>head
+    </h4>
+    <span id=funcnameshort>command t <b>head</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get the head of the queue without removing it. If the queue
+ is empty, the return value is undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          't ONE' The head of the queue.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="maxSize"></a>
+    <h4>maxSize
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>maxSize</b>()
+    </span>
+    <p>
+    <menu>
+      
+ The maximum number of elements the queue can hold.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          The maximum queue size.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="size"></a>
+    <h4>size
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>size</b>()
+    </span>
+    <p>
+    <menu>
+      
+ The number of elements currently in the queue.
+ Always less than or equal to maxSize().
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          The number of elements in the queue.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

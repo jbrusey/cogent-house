@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.lib.net.ctp.CtpRoutingEngineP</title>
+  </head>
+  <body>
+    <h2>Component: tos.lib.net.ctp.CtpRoutingEngineP
+    </h2>
+    <b>generic module CtpRoutingEngineP(uint8_t routingTableSize, uint32_t minInterval, uint32_t maxInterval)</b>
+    <p> 
+  The TreeRoutingEngine is responsible for computing the routes for
+  collection.  It builds a set of trees rooted at specific nodes (roots) and
+  maintains these trees using information provided by the link estimator on
+  the quality of one hop links.
+ 
+  <p>Each node is part of only one tree at any given time, but there is no
+  difference from the node's point of view of which tree it is part. In other
+  words, a message is sent towards <i>a</i> root, but which one is not
+  specified. It is assumed that the roots will work together to have all data
+  aggregated later if need be.  The tree routing engine's responsibility is
+  for each node to find the path with the least number of transmissions to
+  any one root.
+
+  <p>The tree is proactively maintained by periodic beacons sent by each
+  node. These beacons are jittered in time to prevent synchronizations in the
+  network. All nodes maintain the same <i>average</i> beacon sending rate
+  (defined by BEACON_INTERVAL +- 50%). The beacon contains the node's parent,
+  the current hopcount, and the cumulative path quality metric. The metric is
+  defined as the parent's metric plus the bidirectional quality of the link
+  between the current node and its parent.  The metric represents the
+  expected number of transmissions along the path to the root, and is 0 by
+  definition at the root.
+ 
+  <p>Every time a node receives an update from a neighbor it records the
+  information if the node is part of the neighbor table. The neighbor table
+  keeps the best candidates for being parents i.e., the nodes with the best
+  path metric. The neighbor table does not store the full path metric,
+  though. It stores the parent's path metric, and the link quality to the
+  parent is only added when the information is needed: (i) when choosing a
+  parent and (ii) when choosing a route. The nodes in the neighbor table are
+  a subset of the nodes in the link estimator table, as a node is not
+  admitted in the neighbor table with an estimate of infinity.
+ 
+  <p>There are two uses for the neighbor table, as mentioned above. The first
+  one is to select a parent. The parent is just the neighbor with the best
+  path metric. It serves to define the node's own path metric and hopcount,
+  and the set of child-parent links is what defines the tree. In a sense the
+  tree is defined to form a coherent propagation substrate for the path
+  metrics. The parent is (re)-selected periodically, immediately before a
+  node sends its own beacon, in the updateRouteTask.
+  
+  <p>The second use is to actually choose a next hop towards any root at
+  message forwarding time.  This need not be the current parent, even though
+  it is currently implemented as such.
+
+  <p>The operation of the routing engine has two main tasks and one main
+  event: updateRouteTask is called periodically and chooses a new parent;
+  sendBeaconTask broadcasts the current route information to the neighbors.
+  The main event is the receiving of a neighbor's beacon, which updates the
+  neighbor table.
+  
+  <p> The interface with the ForwardingEngine occurs through the nextHop()
+  call.
+ 
+  <p> Any node can become a root, and routed messages from a subset of the
+  network will be routed towards it. The RootControl interface allows
+  setting, unsetting, and querying the root state of a node. By convention,
+  when a node is root its hopcount and metric are 0, and the parent is
+  itself. A root always has a valid route, to itself.
+
+  
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Rodrigo Fonseca
+  
+      </dd>
+      <dd>
+        Philip Levis (added trickle-like updates)
+  Acknowledgment: based on MintRoute, MultiHopLQI, BVR tree construction, Berkeley's MTree
+                           
+  
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          $Date: 2010-06-29 22:07:49 $
+  
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+        Net2-WG
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.lib.net.ctp.CtpInfo.html">CtpInfo</a></div><div id=funcsig>interface <a href="../ihtml/tos.lib.net.ctp.CtpRoutingPacket.html">CtpRoutingPacket</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Init.html">Init</a></div><div id=funcsig>interface <a href="../ihtml/tos.lib.net.RootControl.html">RootControl</a></div><div id=funcsig>interface <a href="../ihtml/tos.lib.net.UnicastNameFreeRouting.html">UnicastNameFreeRouting</a> as <b>Routing</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.StdControl.html">StdControl</a></div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.AMPacket.html">AMPacket</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Receive.html">Receive</a> as <b>BeaconReceive</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.AMSend.html">AMSend</a> as <b>BeaconSend</b></div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Timer.html">Timer</a>&lt;TMilli&gt; as <b>BeaconTimer</b></div><div id=funcsig>interface <a href="../ihtml/tos.lib.net.CollectionDebug.html">CollectionDebug</a></div><div id=funcsig>interface <a href="../ihtml/tos.lib.net.ctp.CompareBit.html">CompareBit</a></div><div id=funcsig>interface <a href="../ihtml/tos.lib.net.ctp.CtpCongestion.html">CtpCongestion</a></div><div id=funcsig>interface <a href="../ihtml/...Util.ch4bitle.LinkEstimator.html">LinkEstimator</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.SplitControl.html">SplitControl</a> as <b>RadioControl</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Random.html">Random</a></div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Timer.html">Timer</a>&lt;TMilli&gt; as <b>RouteTimer</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.TaskBasic.html">TaskBasic</a> as <b>sendBeaconTask</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.TaskBasic.html">TaskBasic</a> as <b>updateRouteTask</b></div>
+  </body>
+</html>

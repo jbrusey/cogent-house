@@ -1,0 +1,8 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.timer.Msp430ClockP.html" title="Msp430ClockP" alt="" coords="192,120,328,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.chips.msp430.timer.Msp430ClockInit.html" title="Msp430ClockInit" alt="" coords="118,52 133,74 152,94 181,112 178,117 149,98 129,77 113,55">
+<area shape="rect" id="edge2" href="../ihtml/tos.chips.msp430.timer.Msp430ClockInit.html" title="Msp430ClockInit" alt="" coords="151,78,255,95">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="263,54 263,106 257,106 257,54">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="260,78,280,95">
+<area shape="rect" id="node4" href="../chtml/tos.chips.msp430.McuSleepC.html" title="McuSleepC" alt="" coords="320,5,427,53">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.McuPowerOverride.html" title="McuPowerOverride" alt="" coords="351,56 295,112 292,108 347,52">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.McuPowerOverride.html" title="McuPowerOverride" alt="" coords="323,78,441,95">

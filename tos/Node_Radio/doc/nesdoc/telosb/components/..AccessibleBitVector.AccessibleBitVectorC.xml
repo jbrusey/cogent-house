@@ -1,0 +1,54 @@
+<?xml version="1.0" ?><component abstract="" loc="35:./AccessibleBitVector/AccessibleBitVectorC.nc" nicename="..AccessibleBitVector.AccessibleBitVectorC" qname="AccessibleBitVectorC" safe="">
+      <documentation loc="23:./AccessibleBitVector/AccessibleBitVectorC.nc">
+        <short>
+ Generic bit vector implementation.</short>
+        <long>
+ Generic bit vector implementation. Note that if you use this bit vector
+ from interrupt code, you must use appropriate &lt;code&gt;atomic&lt;/code&gt;
+ statements to ensure atomicity. Updated 24/05/2011 to allow  direct
+ access to the bit vector
+
+ @param max_bits Bit vector length.
+
+ @author Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+ @author Ross Wilkins &lt;ross.wilkins87@googlemail.com&gt; 
+</long>
+      </documentation>
+      <parameters>
+        <constant loc="35:./AccessibleBitVector/AccessibleBitVectorC.nc" name="max_bits" ref="0x2b09188425e8">
+          <component-ref nicename="..AccessibleBitVector.AccessibleBitVectorC" qname="AccessibleBitVectorC"/>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <module/>
+    <specification><interface loc="37:./AccessibleBitVector/AccessibleBitVectorC.nc" name="Init" provided="1" ref="0x2b0918842e08">
+      <component-ref nicename="..AccessibleBitVector.AccessibleBitVectorC" qname="AccessibleBitVectorC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b0918842e08" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091883f1a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="38:./AccessibleBitVector/AccessibleBitVectorC.nc" name="AccessibleBitVector" provided="1" ref="0x2b091883f4f0">
+      <component-ref nicename="..AccessibleBitVector.AccessibleBitVectorC" qname="AccessibleBitVectorC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AccessibleBitVector" ref="0x2b091883f4f0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b091883f840" scoped=""/>
+        <function-ref name="setArrayElement" ref="0x2b091883f9c8" scoped=""/>
+        <function-ref name="getArray" ref="0x2b091883fb50" scoped=""/>
+        <function-ref name="clear" ref="0x2b091883fcd8" scoped=""/>
+        <function-ref name="get" ref="0x2b091883fe60" scoped=""/>
+        <function-ref name="toggle" ref="0x2b091883e020" scoped=""/>
+        <function-ref name="assign" ref="0x2b091883e1a8" scoped=""/>
+        <function-ref name="getArrayLength" ref="0x2b091883e330" scoped=""/>
+        <function-ref name="setAll" ref="0x2b091883e4b8" scoped=""/>
+        <function-ref name="set" ref="0x2b091883e640" scoped=""/>
+        <function-ref name="size" ref="0x2b091883e7c8" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

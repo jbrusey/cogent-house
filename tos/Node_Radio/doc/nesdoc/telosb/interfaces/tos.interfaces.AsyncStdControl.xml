@@ -1,0 +1,70 @@
+<?xml version="1.0" ?><interfacedef loc="86:/opt/tinyos-main-read-only/tos/interfaces/AsyncStdControl.nc" nicename="tos.interfaces.AsyncStdControl" qname="AsyncStdControl">
+      <documentation loc="72:/opt/tinyos-main-read-only/tos/interfaces/AsyncStdControl.nc">
+        <short>
+ Please refer to TEP 115 for more information about this interface and its
+ intended use.&lt;br&gt;&lt;br&gt;
+
+ This is the asynchronous counterpart to the StdContol interface.</short>
+        <long>
+ Please refer to TEP 115 for more information about this interface and its
+ intended use.&lt;br&gt;&lt;br&gt;
+
+ This is the asynchronous counterpart to the StdContol interface.  It
+ should be used for switching between the on and off power states of
+ the component providing it.  This interface differs from the
+ StdControl interface only in the fact that any of its commands can
+ be called from asynchronous context.
+
+ @author Joe Polastre
+ @author Kevin Klues (klueska@cs.wustl.edu)
+</long>
+      </documentation>
+      <function command="" loc="95:/opt/tinyos-main-read-only/tos/interfaces/AsyncStdControl.nc" name="start" provided="0" ref="0x2b0918a98748">
+        <documentation loc="88:/opt/tinyos-main-read-only/tos/interfaces/AsyncStdControl.nc">
+          <short>
+ Start this component and all of its subcomponents.</short>
+          <long>
+ Start this component and all of its subcomponents.
+
+ @return SUCCESS if the component was either already on or was 
+         successfully turned on&lt;br&gt;
+         FAIL otherwise
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.AsyncStdControl" qname="AsyncStdControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="105:/opt/tinyos-main-read-only/tos/interfaces/AsyncStdControl.nc" name="stop" provided="0" ref="0x2b0918b24020">
+        <documentation loc="97:/opt/tinyos-main-read-only/tos/interfaces/AsyncStdControl.nc">
+          <short>
+ Stop the component and any pertinent subcomponents (not all
+ subcomponents may be turned off due to wakeup timers, etc.).</short>
+          <long>
+ Stop the component and any pertinent subcomponents (not all
+ subcomponents may be turned off due to wakeup timers, etc.).
+
+ @return SUCCESS if the component was either already off or was 
+         successfully turned off&lt;br&gt;
+         FAIL otherwise
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.AsyncStdControl" qname="AsyncStdControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

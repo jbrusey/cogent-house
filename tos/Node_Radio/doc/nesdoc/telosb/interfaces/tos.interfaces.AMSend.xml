@@ -1,0 +1,235 @@
+<?xml version="1.0" ?><interfacedef loc="58:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" nicename="tos.interfaces.AMSend" qname="AMSend">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/types/TinyError.h">
+        <short>
+ </short>
+        <long>
+ @author Phil Levis
+ @author David Gay
+ Revision:  $Revision: 1.12 $
+
+ Defines global error codes for error_t in TinyOS.
+</long>
+      </documentation>
+      <function command="" loc="80:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="send" provided="0" ref="0x2b091767acd8">
+        <documentation loc="60:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc">
+          <short> 
+ Send a packet with a data payload of &lt;tt&gt;len&lt;/tt&gt; to address
+ &lt;tt&gt;addr&lt;/tt&gt;.</short>
+          <long> 
+ Send a packet with a data payload of &lt;tt&gt;len&lt;/tt&gt; to address
+ &lt;tt&gt;addr&lt;/tt&gt;. To determine the maximum available size, use the
+ Packet interface of the component providing AMSend. If send
+ returns SUCCESS, then the component will signal the sendDone
+ event in the future; if send returns an error, it will not
+ signal the event.  Note that a component may accept a send
+ request which it later finds it cannot satisfy; in this case, it
+ will signal sendDone with error code.
+
+ @param addr   address to which to send the packet
+ @param 'message_t* ONE msg'    the packet
+ @param len    the length of the data in the packet payload
+ @return       SUCCESS if the request to send succeeded and a
+               sendDone will be signaled later, EBUSY if the
+               abstraction cannot send now but will be able to
+               later, or FAIL if the communication layer is not
+               in a state that can send (e.g., off).
+ @see          sendDone
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="80:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="addr" ref="0x2b091767a3d8">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="80:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="msg" ref="0x2b091767a738">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="80:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="len" ref="0x2b091767aa48">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="135:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="getPayload" provided="0" ref="0x2b09176742d8">
+        <documentation loc="126:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc">
+          <short>
+ Return a pointer to a protocol's payload region in a packet.</short>
+          <long>
+ Return a pointer to a protocol's payload region in a packet.
+ This command behaves identically to &lt;tt&gt;Packet.getPayload&lt;/tt&gt;
+ (minus the length parameter) and is included in this interface
+ as a convenience.
+
+ @param  'message_t* ONE msg'    the packet
+ @return 'void* COUNT(len)'      the payload of the packet
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-pointer alignment="I:2" size="I:2">
+            <type-void alignment="I:1" size="I:1"/>
+          </type-pointer>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="135:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="msg" ref="0x2b0917675be8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="135:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="len" ref="0x2b0917674020">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="123:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="maxPayloadLength" provided="0" ref="0x2b09176753e0">
+        <documentation loc="113:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc">
+          <short>
+ Return the maximum payload length that this communication layer
+ can provide.</short>
+          <long>
+ Return the maximum payload length that this communication layer
+ can provide. This command behaves identically to
+ &lt;tt&gt;Packet.maxPayloadLength&lt;/tt&gt; and is included in this
+ interface as a convenience.
+
+ @return the maximum payload length
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="96:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="cancel" provided="0" ref="0x2b0917678108">
+        <documentation loc="82:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc">
+          <short>
+ Cancel a requested transmission.</short>
+          <long>
+ Cancel a requested transmission. Returns SUCCESS if the 
+ transmission was canceled properly (not sent in its
+ entirety). Note that the component may not know
+ if the send was successfully canceled, if the radio is
+ handling much of the logic; in this case, a component
+ should be conservative and return an appropriate error code.
+ A successful call to cancel must always result in a 
+ sendFailed event, and never a sendSucceeded event.
+ 
+ @param  'message_t* ONE msg'    the packet whose transmission should be cancelled.
+ @return SUCCESS if the transmission was cancelled, FAIL otherwise.
+ @see    sendDone
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="96:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="msg" ref="0x2b0917679e50">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="110:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="sendDone" provided="0" ref="0x2b09176775c8">
+        <documentation loc="98:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc">
+          <short> 
+ Signaled in response to an accepted send request.</short>
+          <long> 
+ Signaled in response to an accepted send request. &lt;tt&gt;msg&lt;/tt&gt; is
+ the message buffer sent, and &lt;tt&gt;error&lt;/tt&gt; indicates whether
+ the send was successful.
+
+ @param  'message_t* ONE msg'   the packet which was submitted as a send request
+ @param  error SUCCESS if it was sent successfully, FAIL if it was not,
+               ECANCEL if it was cancelled
+ @see send
+ @see cancel
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="110:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="msg" ref="0x2b0917677020">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="110:/opt/tinyos-main-read-only/tos/interfaces/AMSend.nc" name="error" ref="0x2b0917677348">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

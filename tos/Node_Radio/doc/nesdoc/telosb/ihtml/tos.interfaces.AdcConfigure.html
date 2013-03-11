@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.AdcConfigure</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.AdcConfigure</h2>
+    <b>interface AdcConfigure&lt;typedef adc_config_t&gt;</b><p> 
+ This interface is intended to be provided by an ADC client and used by the
+ ADC subsystem to retrieve the client's ADC configuration. 
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jan Hauer 
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+         Please refer to TEP 101 for more information about this interface and
+ its intended use.
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command adc_config_t <a href="#getConfiguration">getConfiguration</a>()
+      </span><menu> 
+ Returns the configuration of an ADC client.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getConfiguration"></a>
+    <h4>getConfiguration
+    </h4>
+    <span id=funcnameshort>command adc_config_t <b>getConfiguration</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Returns the configuration of an ADC client.  <code>adc_config_t</code> is
+ a hardware specific data type that contains all information necessary to
+ configure the respective ADC hardware for the client. A client MUST always
+ return the same configuration and, if configuration data is passed as a
+ pointer, the ADC subsystem (HIL component) MUST NOT reference it after the
+ return of this command.
+  
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          chip specific configuration.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,296 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.sht11.SensirionSht11</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.sht11.SensirionSht11</h2>
+    <b>interface SensirionSht11</b><p>
+ SensirionSht11 is the rich interface to the Sensirion SHT11
+ temperature/humidity sensor. 
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Gilman Tolle &lt;gtolle@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.4 $ $Date: 2006-12-12 18:23:12 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#measureHumidity">measureHumidity</a>()
+      </span><menu>
+ Starts a humidity measurement.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#measureTemperature">measureTemperature</a>()
+      </span><menu>
+ Starts a temperature measurement.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#readStatusReg">readStatusReg</a>()
+      </span><menu>
+ Reads the current contents of the SHT11 status and control
+ register.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#reset">reset</a>()
+      </span><menu>
+ Resets the sensor.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#writeStatusReg">writeStatusReg</a>(uint8_t val)
+      </span><menu>
+ Writes a new value to the SHT11 status and control register.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#measureHumidityDone">measureHumidityDone</a>(error_t result, uint16_t val)
+      </span><menu>
+ Presents the result of a humidity measurement.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#measureTemperatureDone">measureTemperatureDone</a>(error_t result, uint16_t val)
+      </span><menu>
+ Presents the result of a temperature measurement.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#readStatusRegDone">readStatusRegDone</a>(error_t result, uint8_t val)
+      </span><menu>
+ Presents the value of the status register.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#resetDone">resetDone</a>(error_t result)
+      </span><menu>
+ Signals that the sensor has been reset.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#writeStatusRegDone">writeStatusRegDone</a>(error_t result)
+      </span><menu>
+ Signals the completion of the status register write.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="measureHumidity"></a>
+    <h4>measureHumidity
+    </h4>
+    <span id=funcnameshort>command error_t <b>measureHumidity</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Starts a humidity measurement.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the measurement will be made
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="measureTemperature"></a>
+    <h4>measureTemperature
+    </h4>
+    <span id=funcnameshort>command error_t <b>measureTemperature</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Starts a temperature measurement.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the measurement will be made
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="readStatusReg"></a>
+    <h4>readStatusReg
+    </h4>
+    <span id=funcnameshort>command error_t <b>readStatusReg</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Reads the current contents of the SHT11 status and control
+ register. See the datasheet for interpretation of this register.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the read will be performed
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="reset"></a>
+    <h4>reset
+    </h4>
+    <span id=funcnameshort>command error_t <b>reset</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Resets the sensor.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the sensor will be reset
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="writeStatusReg"></a>
+    <h4>writeStatusReg
+    </h4>
+    <span id=funcnameshort>command error_t <b>writeStatusReg</b>(uint8_t val)
+    </span>
+    <p>
+    <menu>
+      
+ Writes a new value to the SHT11 status and control register.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>val</code> -  the new value to be written
+
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the write will be performed
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="measureHumidityDone"></a>
+    <h4>measureHumidityDone
+    </h4>
+    <span id=funcnameshort>event void <b>measureHumidityDone</b>(error_t result, uint16_t val)
+    </span>
+    <p>
+    <menu>
+      
+ Presents the result of a humidity measurement.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if the measurement was successful
+ 
+        </dd>
+        <dd>
+          <code>val</code> -  the humidity reading
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="measureTemperatureDone"></a>
+    <h4>measureTemperatureDone
+    </h4>
+    <span id=funcnameshort>event void <b>measureTemperatureDone</b>(error_t result, uint16_t val)
+    </span>
+    <p>
+    <menu>
+      
+ Presents the result of a temperature measurement.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if the measurement was successful
+ 
+        </dd>
+        <dd>
+          <code>val</code> -  the temperature reading
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="readStatusRegDone"></a>
+    <h4>readStatusRegDone
+    </h4>
+    <span id=funcnameshort>event void <b>readStatusRegDone</b>(error_t result, uint8_t val)
+    </span>
+    <p>
+    <menu>
+      
+ Presents the value of the status register.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if the read succeeded
+ 
+        </dd>
+        <dd>
+          <code>val</code> -  the value of the register
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="resetDone"></a>
+    <h4>resetDone
+    </h4>
+    <span id=funcnameshort>event void <b>resetDone</b>(error_t result)
+    </span>
+    <p>
+    <menu>
+      
+ Signals that the sensor has been reset.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if the reset succeeded
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="writeStatusRegDone"></a>
+    <h4>writeStatusRegDone
+    </h4>
+    <span id=funcnameshort>event void <b>writeStatusRegDone</b>(error_t result)
+    </span>
+    <p>
+    <menu>
+      
+ Signals the completion of the status register write.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if the write was successful
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

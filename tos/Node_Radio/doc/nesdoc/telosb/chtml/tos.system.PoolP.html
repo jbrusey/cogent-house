@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.system.PoolP</title>
+  </head>
+  <body>
+    <h2>Component: tos.system.PoolP
+    </h2>
+    <b>generic module PoolP(typedef pool_t, uint8_t size)</b>
+    <p>
+  Implementation of a general dynamic memory pool component.
+  Note that the allocation/deallocation policies are 
+  different than traditional dynamic allocators such as
+  malloc or slab allocators. When initialized, the Pool
+  contains <code>size</code> items of type <code>pool_t</code>.
+  These elements can be removed from the pool for use with 
+  <code>Pool.get</code>, and new elements can be placed in
+  the pool with <code>Pool.put</code>. The pool allows 
+  components to <code>put</code> elements besides those which
+  were obtained with <code>get</code>. The pool can never have
+  more than <code>size</code> elements in it.
+
+  
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+  
+      </dd>
+      <dd>
+        Kyle Jamieson
+  
+      </dd>
+      <dd>
+        Geoffrey Mainland
+  
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          $Date: 2010-01-20 19:59:07 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Init.html">Init</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Pool.html">Pool</a>&lt;pool_t&gt;</div>
+  </body>
+</html>

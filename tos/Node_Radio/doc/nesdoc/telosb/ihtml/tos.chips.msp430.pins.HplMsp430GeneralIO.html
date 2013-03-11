@@ -1,0 +1,266 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.pins.HplMsp430GeneralIO</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.pins.HplMsp430GeneralIO</h2>
+    <b>interface HplMsp430GeneralIO</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Phil Levis
+ 
+      </dd>
+      <dd>
+        David Gay
+ Revision:  $Revision: 1.12 $
+
+ Defines global error codes for error_t in TinyOS.
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clr">clr</a>()
+      </span><menu>
+ Set pin to low.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#get">get</a>()
+      </span><menu>
+ Read pin value.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getRaw">getRaw</a>()
+      </span><menu>
+ Get the port status that contains the pin.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getResistor">getResistor</a>()
+      </span><menu>
+ Get the pin pullup / pulldown resistor mode.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isInput">isInput</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isIOFunc">isIOFunc</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isModuleFunc">isModuleFunc</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isOutput">isOutput</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#makeInput">makeInput</a>()
+      </span><menu>
+ Set pin direction to input.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#makeOutput">makeOutput</a>()
+      </span><menu>
+ Set pin direction to output.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#selectIOFunc">selectIOFunc</a>()
+      </span><menu>
+ Set pin for I/O functionality.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#selectModuleFunc">selectModuleFunc</a>()
+      </span><menu>
+ Set pin for module specific functionality.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#set">set</a>()
+      </span><menu>
+ Set pin to high.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#setResistor">setResistor</a>(uint8_t mode)
+      </span><menu>
+ Set pin pullup / pull down resistor mode.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#toggle">toggle</a>()
+      </span><menu>
+ Toggle pin status.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="clr"></a>
+    <h4>clr
+    </h4>
+    <span id=funcnameshort>command void <b>clr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Set pin to low.
+
+    </menu>
+    <hr>
+    <a name="get"></a>
+    <h4>get
+    </h4>
+    <span id=funcnameshort>command bool <b>get</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Read pin value.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if pin is high, FALSE otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getRaw"></a>
+    <h4>getRaw
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getRaw</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get the port status that contains the pin.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Status of the port that contains the given pin. The x'th
+ pin on the port will be represented in the x'th bit.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getResistor"></a>
+    <h4>getResistor
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getResistor</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get the pin pullup / pulldown resistor mode.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          one of the MSP430_PORT_RESISTOR_* values
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isInput"></a>
+    <h4>isInput
+    </h4>
+    <span id=funcnameshort>command bool <b>isInput</b>()
+    </span><hr>
+    <a name="isIOFunc"></a>
+    <h4>isIOFunc
+    </h4>
+    <span id=funcnameshort>command bool <b>isIOFunc</b>()
+    </span><hr>
+    <a name="isModuleFunc"></a>
+    <h4>isModuleFunc
+    </h4>
+    <span id=funcnameshort>command bool <b>isModuleFunc</b>()
+    </span><hr>
+    <a name="isOutput"></a>
+    <h4>isOutput
+    </h4>
+    <span id=funcnameshort>command bool <b>isOutput</b>()
+    </span><hr>
+    <a name="makeInput"></a>
+    <h4>makeInput
+    </h4>
+    <span id=funcnameshort>command void <b>makeInput</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Set pin direction to input.
+    </menu>
+    <hr>
+    <a name="makeOutput"></a>
+    <h4>makeOutput
+    </h4>
+    <span id=funcnameshort>command void <b>makeOutput</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Set pin direction to output.
+    </menu>
+    <hr>
+    <a name="selectIOFunc"></a>
+    <h4>selectIOFunc
+    </h4>
+    <span id=funcnameshort>command void <b>selectIOFunc</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Set pin for I/O functionality.
+
+    </menu>
+    <hr>
+    <a name="selectModuleFunc"></a>
+    <h4>selectModuleFunc
+    </h4>
+    <span id=funcnameshort>command void <b>selectModuleFunc</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Set pin for module specific functionality.
+
+    </menu>
+    <hr>
+    <a name="set"></a>
+    <h4>set
+    </h4>
+    <span id=funcnameshort>command void <b>set</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Set pin to high.
+
+    </menu>
+    <hr>
+    <a name="setResistor"></a>
+    <h4>setResistor
+    </h4>
+    <span id=funcnameshort>command error_t <b>setResistor</b>(uint8_t mode)
+    </span>
+    <p>
+    <menu>
+      
+ Set pin pullup / pull down resistor mode.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>mode</code> -  One of the MSP430_PORT_RESISTOR_* values
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          EINVAL if invalid mode or pin does not support resistor configuration;
+ FAIL if pin is not an input;
+ SUCCESS if pin supports resistor configuration, is an input, and mode is valid
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="toggle"></a>
+    <h4>toggle
+    </h4>
+    <span id=funcnameshort>command void <b>toggle</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Toggle pin status.
+
+    </menu>
+  </body>
+</html>

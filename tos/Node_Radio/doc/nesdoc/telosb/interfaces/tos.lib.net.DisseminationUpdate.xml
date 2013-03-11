@@ -1,0 +1,57 @@
+<?xml version="1.0" ?><interfacedef loc="48:/opt/tinyos-main-read-only/tos/lib/net/DisseminationUpdate.nc" nicename="tos.lib.net.DisseminationUpdate" qname="DisseminationUpdate">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/lib/net/DisseminationUpdate.nc">
+        <short>
+ Update a network shared (disseminated) value.</short>
+        <long>
+ Update a network shared (disseminated) value. Updates are assured
+ to be eventually consistent across a connected network. If multiple
+ nodes update a value simultaneously, then nodes within the network
+ will see a series of one or more updates, the last update will
+ be the same for all nodes. Components that need to use the
+ variable should use the DisseminationValue interface.
+
+ @author Philip Levis
+ @author Gilman Tolle
+ @date   January 7 2006
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="48:/opt/tinyos-main-read-only/tos/lib/net/DisseminationUpdate.nc" name="t" ref="0x2b0918f4d6b8">
+          <interfacedef-ref nicename="tos.lib.net.DisseminationUpdate" qname="DisseminationUpdate"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0918f4d6b8" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <function command="" loc="60:/opt/tinyos-main-read-only/tos/lib/net/DisseminationUpdate.nc" name="change" provided="0" ref="0x2b0918f4a4b8">
+        <documentation loc="49:/opt/tinyos-main-read-only/tos/lib/net/DisseminationUpdate.nc">
+          <short>
+ Update the variable to a new value.</short>
+          <long>
+ Update the variable to a new value. This changes the local copy
+ and begins to disseminate the new value throughout the network.
+ As other nodes may have also changed the variable, it is possible
+ that an update may not 'stick,' but will instead be overwritten by
+ a separate update.
+
+ @param newVal A pointer to the new value. The memory pointed to
+ by newVal is copied out, so newVal can be reclaimed when
+ &lt;tt&gt;change&lt;/tt&gt; returns.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.DisseminationUpdate" qname="DisseminationUpdate"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0918f4d6b8" scoped=""/></type-var>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="60:/opt/tinyos-main-read-only/tos/lib/net/DisseminationUpdate.nc" name="newVal" ref="0x2b0918f4a248">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0918f4d6b8" scoped=""/></type-var>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

@@ -1,0 +1,634 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.usart.HplMsp430Usart</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.usart.HplMsp430Usart</h2>
+    <b>interface HplMsp430Usart</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Vlado Handziski &lt;handzisk@tkn.tu-berlin.de&gt;
+ 
+      </dd>
+      <dd>
+        Philipp Huppertz &lt;huppertz@tkn.tu-berlin.de&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clrIntr">clrIntr</a>()
+      </span><menu>
+ Clears both TX and RX interrupt pending flags
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#clrRxIntr">clrRxIntr</a>()
+      </span><menu>
+ Clears RX interrupt pending flag
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#clrTxIntr">clrTxIntr</a>()
+      </span><menu>
+ Clears TX interrupt pending flag
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#disableIntr">disableIntr</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableRxIntr">disableRxIntr</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableSpi">disableSpi</a>()
+      </span><menu>
+ Disables the USART when in Spi mode.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#disableTxIntr">disableTxIntr</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableUart">disableUart</a>()
+      </span><menu>
+ Disables both the Rx and the Tx Uart modules.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#disableUartRx">disableUartRx</a>()
+      </span><menu>
+ Disables the Uart RX module.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#disableUartTx">disableUartTx</a>()
+      </span><menu>
+ Disables the Uart TX module.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#enableIntr">enableIntr</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableRxIntr">enableRxIntr</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableSpi">enableSpi</a>()
+      </span><menu>
+ Enables the USART when in Spi mode.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#enableTxIntr">enableTxIntr</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableUart">enableUart</a>()
+      </span><menu>
+ Enables both the Rx and the Tx Uart modules.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#enableUartRx">enableUartRx</a>()
+      </span><menu>
+ Enables the Uart RX functionality of the USART module.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#enableUartTx">enableUartTx</a>()
+      </span><menu>
+ Enables the Uart TX functionality of the USART module.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command msp430_usartmode_t <a href="#getMode">getMode</a>()
+      </span><menu>
+ Returns an enum value corresponding to the current mode of the
+ USART module.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getUbr">getUbr</a>()
+      </span><menu>
+ Reads the UxBR0 and UxBR1 Baud Rate Control Registers
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command msp430_uctl_t <a href="#getUctl">getUctl</a>()
+      </span><menu>
+ Reads the UxCTL Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getUmctl">getUmctl</a>()
+      </span><menu>
+ Reads the UxMCTL Modulation Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command msp430_urctl_t <a href="#getUrctl">getUrctl</a>()
+      </span><menu>
+ Reads the UxRCTL Receive Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command msp430_utctl_t <a href="#getUtctl">getUtctl</a>()
+      </span><menu>
+ Reads the UxTCTL Transmit Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isRxIntrPending">isRxIntrPending</a>()
+      </span><menu>
+ TRUE if RX interrupt pending, flag must be cleared explicitly
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isSpi">isSpi</a>()
+      </span><menu>
+ Returns TRUE if the USART is set to Spi mode
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isTxEmpty">isTxEmpty</a>()
+      </span><menu>
+ SUCCESS if the TX buffer is empty and all of the bits have been
+ shifted out
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isTxIntrPending">isTxIntrPending</a>()
+      </span><menu>
+ TRUE if TX interrupt pending, flag must be cleared explicitly
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isUart">isUart</a>()
+      </span><menu>
+ Returns TRUE if the USART is set to Uart mode (both RX and TX)
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isUartRx">isUartRx</a>()
+      </span><menu>
+ Returns TRUE if the USART has Uart RX mode enabled
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isUartTx">isUartTx</a>()
+      </span><menu>
+ Returns TRUE if the USART has Uart TX mode enabled
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#resetUsart">resetUsart</a>(bool reset)
+      </span></div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#rx">rx</a>()
+      </span><menu>
+ Get current value from RX-buffer.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setModeSpi">setModeSpi</a>(msp430_spi_union_config_t *config)
+      </span><menu>
+ Switches USART to Spi mode.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setModeUart">setModeUart</a>(msp430_uart_union_config_t *config)
+      </span><menu>
+ Switches USART to Uart mode (RX and TX enabled)
+ Interrupts disabled by default.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setUbr">setUbr</a>(uint16_t ubr)
+      </span><menu>
+ Sets the UxBR0 and UxBR1 Baud Rate Control Registers
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setUctl">setUctl</a>(msp430_uctl_t control)
+      </span><menu>
+ Sets the UxCTL Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setUmctl">setUmctl</a>(uint8_t umctl)
+      </span><menu>
+ Sets the UxMCTL Modulation Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setUrctl">setUrctl</a>(msp430_urctl_t control)
+      </span><menu>
+ Sets the UxRCTL Receive Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setUtctl">setUtctl</a>(msp430_utctl_t control)
+      </span><menu>
+ Sets the UxTCTL Transmit Control Register
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#tx">tx</a>(uint8_t data)
+      </span><menu>
+ Transmit a byte of data.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="clrIntr"></a>
+    <h4>clrIntr
+    </h4>
+    <span id=funcnameshort>command void <b>clrIntr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Clears both TX and RX interrupt pending flags
+
+    </menu>
+    <hr>
+    <a name="clrRxIntr"></a>
+    <h4>clrRxIntr
+    </h4>
+    <span id=funcnameshort>command void <b>clrRxIntr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Clears RX interrupt pending flag
+
+    </menu>
+    <hr>
+    <a name="clrTxIntr"></a>
+    <h4>clrTxIntr
+    </h4>
+    <span id=funcnameshort>command void <b>clrTxIntr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Clears TX interrupt pending flag
+
+    </menu>
+    <hr>
+    <a name="disableIntr"></a>
+    <h4>disableIntr
+    </h4>
+    <span id=funcnameshort>command void <b>disableIntr</b>()
+    </span><hr>
+    <a name="disableRxIntr"></a>
+    <h4>disableRxIntr
+    </h4>
+    <span id=funcnameshort>command void <b>disableRxIntr</b>()
+    </span><hr>
+    <a name="disableSpi"></a>
+    <h4>disableSpi
+    </h4>
+    <span id=funcnameshort>command void <b>disableSpi</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Disables the USART when in Spi mode.
+    </menu>
+    <hr>
+    <a name="disableTxIntr"></a>
+    <h4>disableTxIntr
+    </h4>
+    <span id=funcnameshort>command void <b>disableTxIntr</b>()
+    </span><hr>
+    <a name="disableUart"></a>
+    <h4>disableUart
+    </h4>
+    <span id=funcnameshort>command void <b>disableUart</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Disables both the Rx and the Tx Uart modules.
+
+    </menu>
+    <hr>
+    <a name="disableUartRx"></a>
+    <h4>disableUartRx
+    </h4>
+    <span id=funcnameshort>command void <b>disableUartRx</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Disables the Uart RX module.
+    </menu>
+    <hr>
+    <a name="disableUartTx"></a>
+    <h4>disableUartTx
+    </h4>
+    <span id=funcnameshort>command void <b>disableUartTx</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Disables the Uart TX module.
+    </menu>
+    <hr>
+    <a name="enableIntr"></a>
+    <h4>enableIntr
+    </h4>
+    <span id=funcnameshort>command void <b>enableIntr</b>()
+    </span><hr>
+    <a name="enableRxIntr"></a>
+    <h4>enableRxIntr
+    </h4>
+    <span id=funcnameshort>command void <b>enableRxIntr</b>()
+    </span><hr>
+    <a name="enableSpi"></a>
+    <h4>enableSpi
+    </h4>
+    <span id=funcnameshort>command void <b>enableSpi</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Enables the USART when in Spi mode.
+    </menu>
+    <hr>
+    <a name="enableTxIntr"></a>
+    <h4>enableTxIntr
+    </h4>
+    <span id=funcnameshort>command void <b>enableTxIntr</b>()
+    </span><hr>
+    <a name="enableUart"></a>
+    <h4>enableUart
+    </h4>
+    <span id=funcnameshort>command void <b>enableUart</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Enables both the Rx and the Tx Uart modules.
+    </menu>
+    <hr>
+    <a name="enableUartRx"></a>
+    <h4>enableUartRx
+    </h4>
+    <span id=funcnameshort>command void <b>enableUartRx</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Enables the Uart RX functionality of the USART module.
+
+    </menu>
+    <hr>
+    <a name="enableUartTx"></a>
+    <h4>enableUartTx
+    </h4>
+    <span id=funcnameshort>command void <b>enableUartTx</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Enables the Uart TX functionality of the USART module.
+
+    </menu>
+    <hr>
+    <a name="getMode"></a>
+    <h4>getMode
+    </h4>
+    <span id=funcnameshort>command msp430_usartmode_t <b>getMode</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns an enum value corresponding to the current mode of the
+ USART module.
+
+    </menu>
+    <hr>
+    <a name="getUbr"></a>
+    <h4>getUbr
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getUbr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Reads the UxBR0 and UxBR1 Baud Rate Control Registers
+
+    </menu>
+    <hr>
+    <a name="getUctl"></a>
+    <h4>getUctl
+    </h4>
+    <span id=funcnameshort>command msp430_uctl_t <b>getUctl</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Reads the UxCTL Control Register
+
+    </menu>
+    <hr>
+    <a name="getUmctl"></a>
+    <h4>getUmctl
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getUmctl</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Reads the UxMCTL Modulation Control Register
+
+    </menu>
+    <hr>
+    <a name="getUrctl"></a>
+    <h4>getUrctl
+    </h4>
+    <span id=funcnameshort>command msp430_urctl_t <b>getUrctl</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Reads the UxRCTL Receive Control Register
+
+    </menu>
+    <hr>
+    <a name="getUtctl"></a>
+    <h4>getUtctl
+    </h4>
+    <span id=funcnameshort>command msp430_utctl_t <b>getUtctl</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Reads the UxTCTL Transmit Control Register
+
+    </menu>
+    <hr>
+    <a name="isRxIntrPending"></a>
+    <h4>isRxIntrPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isRxIntrPending</b>()
+    </span>
+    <p>
+    <menu>
+      
+ TRUE if RX interrupt pending, flag must be cleared explicitly
+
+    </menu>
+    <hr>
+    <a name="isSpi"></a>
+    <h4>isSpi
+    </h4>
+    <span id=funcnameshort>command bool <b>isSpi</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns TRUE if the USART is set to Spi mode
+
+    </menu>
+    <hr>
+    <a name="isTxEmpty"></a>
+    <h4>isTxEmpty
+    </h4>
+    <span id=funcnameshort>command bool <b>isTxEmpty</b>()
+    </span>
+    <p>
+    <menu>
+      
+ SUCCESS if the TX buffer is empty and all of the bits have been
+ shifted out
+
+    </menu>
+    <hr>
+    <a name="isTxIntrPending"></a>
+    <h4>isTxIntrPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isTxIntrPending</b>()
+    </span>
+    <p>
+    <menu>
+      
+ TRUE if TX interrupt pending, flag must be cleared explicitly
+
+    </menu>
+    <hr>
+    <a name="isUart"></a>
+    <h4>isUart
+    </h4>
+    <span id=funcnameshort>command bool <b>isUart</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns TRUE if the USART is set to Uart mode (both RX and TX)
+
+    </menu>
+    <hr>
+    <a name="isUartRx"></a>
+    <h4>isUartRx
+    </h4>
+    <span id=funcnameshort>command bool <b>isUartRx</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns TRUE if the USART has Uart RX mode enabled
+
+    </menu>
+    <hr>
+    <a name="isUartTx"></a>
+    <h4>isUartTx
+    </h4>
+    <span id=funcnameshort>command bool <b>isUartTx</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns TRUE if the USART has Uart TX mode enabled
+
+    </menu>
+    <hr>
+    <a name="resetUsart"></a>
+    <h4>resetUsart
+    </h4>
+    <span id=funcnameshort>command void <b>resetUsart</b>(bool reset)
+    </span><hr>
+    <a name="rx"></a>
+    <h4>rx
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>rx</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get current value from RX-buffer.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS always.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setModeSpi"></a>
+    <h4>setModeSpi
+    </h4>
+    <span id=funcnameshort>command void <b>setModeSpi</b>(msp430_spi_union_config_t *config)
+    </span>
+    <p>
+    <menu>
+      
+ Switches USART to Spi mode.
+    </menu>
+    <hr>
+    <a name="setModeUart"></a>
+    <h4>setModeUart
+    </h4>
+    <span id=funcnameshort>command void <b>setModeUart</b>(msp430_uart_union_config_t *config)
+    </span>
+    <p>
+    <menu>
+      
+ Switches USART to Uart mode (RX and TX enabled)
+ Interrupts disabled by default.
+
+    </menu>
+    <hr>
+    <a name="setUbr"></a>
+    <h4>setUbr
+    </h4>
+    <span id=funcnameshort>command void <b>setUbr</b>(uint16_t ubr)
+    </span>
+    <p>
+    <menu>
+      
+ Sets the UxBR0 and UxBR1 Baud Rate Control Registers
+
+    </menu>
+    <hr>
+    <a name="setUctl"></a>
+    <h4>setUctl
+    </h4>
+    <span id=funcnameshort>command void <b>setUctl</b>(msp430_uctl_t control)
+    </span>
+    <p>
+    <menu>
+      
+ Sets the UxCTL Control Register
+
+    </menu>
+    <hr>
+    <a name="setUmctl"></a>
+    <h4>setUmctl
+    </h4>
+    <span id=funcnameshort>command void <b>setUmctl</b>(uint8_t umctl)
+    </span>
+    <p>
+    <menu>
+      
+ Sets the UxMCTL Modulation Control Register
+
+    </menu>
+    <hr>
+    <a name="setUrctl"></a>
+    <h4>setUrctl
+    </h4>
+    <span id=funcnameshort>command void <b>setUrctl</b>(msp430_urctl_t control)
+    </span>
+    <p>
+    <menu>
+      
+ Sets the UxRCTL Receive Control Register
+
+    </menu>
+    <hr>
+    <a name="setUtctl"></a>
+    <h4>setUtctl
+    </h4>
+    <span id=funcnameshort>command void <b>setUtctl</b>(msp430_utctl_t control)
+    </span>
+    <p>
+    <menu>
+      
+ Sets the UxTCTL Transmit Control Register
+
+    </menu>
+    <hr>
+    <a name="tx"></a>
+    <h4>tx
+    </h4>
+    <span id=funcnameshort>command void <b>tx</b>(uint8_t data)
+    </span>
+    <p>
+    <menu>
+      
+ Transmit a byte of data. When the transmission is completed,
+ <code>txDone</done> is generated. Only then a new byte may be
+ transmitted, otherwise the previous byte will be overwritten.
+ The mode of transmission (Uart or Spi) depends on the current
+ state of the USART, which must be managed by a higher layer.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS always.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,116 @@
+<?xml version="1.0" ?><component loc="43:/opt/tinyos-main-read-only/tos/chips/cc2420/alarm/AlarmMultiplexC.nc" nicename="tos.chips.cc2420.alarm.AlarmMultiplexC" qname="AlarmMultiplexC">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/chips/cc2420/alarm/AlarmMultiplexC.nc">
+        <short>
+ A component that multiplexes the use of an alarm.</short>
+        <long>
+ A component that multiplexes the use of an alarm. The assumption is
+ that its use is mutually exclusive and users check whether the
+ events are for them.
+
+ @author Jonathan Hui &lt;jhui@archrock.com&gt;
+ @version $Revision: 1.1 $ $Date: 2007-07-04 00:37:14 $
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="54:/opt/tinyos-main-read-only/tos/chips/cc2420/alarm/AlarmMultiplexC.nc">
+          <from><interface-ref name="Init" ref="0x2b09178083e0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b09178437d8" scoped=""/></to>
+        </wire>
+        <wire loc="55:/opt/tinyos-main-read-only/tos/chips/cc2420/alarm/AlarmMultiplexC.nc">
+          <from><interface-ref name="Alarm32khz32" ref="0x2b0917808d58" scoped=""/></from>
+          <to><interface-ref name="Alarm32khz32" ref="0x2b0917851060" scoped=""/></to>
+        </wire>
+      </wiring>
+    <specification><interface loc="45:/opt/tinyos-main-read-only/tos/chips/cc2420/alarm/AlarmMultiplexC.nc" name="Init" provided="1" ref="0x2b09178083e0">
+      <component-ref nicename="tos.chips.cc2420.alarm.AlarmMultiplexC" qname="AlarmMultiplexC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b09178083e0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0917808730" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:/opt/tinyos-main-read-only/tos/chips/cc2420/alarm/AlarmMultiplexC.nc" name="Alarm32khz32" provided="1" ref="0x2b0917808d58">
+      <component-ref nicename="tos.chips.cc2420.alarm.AlarmMultiplexC" qname="AlarmMultiplexC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Alarm32khz32" ref="0x2b0917808d58" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Alarm" qname="Alarm"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9d70"/>
+            <typename><typedef-ref name="T32khz" ref="0x2b09170b8178"/></typename>
+          </type-tag>
+          <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+            <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b0917805410" scoped=""/>
+        <function-ref name="fired" ref="0x2b09178064a8" scoped=""/>
+        <function-ref name="startAt" ref="0x2b0917806db8" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b0917806930" scoped=""/>
+        <function-ref name="getAlarm" ref="0x2b0917805898" scoped=""/>
+        <function-ref name="start" ref="0x2b0917807af8" scoped=""/>
+        <function-ref name="stop" ref="0x2b0917806020" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced><interface loc="43:/opt/tinyos-main-read-only/tos/platforms/telosa/chips/cc2420/HplCC2420AlarmC.nc" name="Alarm32khz32" provided="1" ref="0x2b0917851060">
+      <component-ref nicename="tos.platforms.telosa.chips.cc2420.HplCC2420AlarmC" qname="AlarmMultiplexC.Alarm"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Alarm32khz32" ref="0x2b0917851060" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Alarm" qname="Alarm"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9d70"/>
+            <typename><typedef-ref name="T32khz" ref="0x2b09170b8178"/></typename>
+          </type-tag>
+          <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+            <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b091784f690" scoped=""/>
+        <function-ref name="fired" ref="0x2b0917850738" scoped=""/>
+        <function-ref name="startAt" ref="0x2b091784f088" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b0917850bc0" scoped=""/>
+        <function-ref name="getAlarm" ref="0x2b091784fb18" scoped=""/>
+        <function-ref name="start" ref="0x2b0917851db0" scoped=""/>
+        <function-ref name="stop" ref="0x2b09178502b0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="42:/opt/tinyos-main-read-only/tos/platforms/telosa/chips/cc2420/HplCC2420AlarmC.nc" name="Init" provided="1" ref="0x2b09178437d8">
+      <component-ref nicename="tos.platforms.telosa.chips.cc2420.HplCC2420AlarmC" qname="AlarmMultiplexC.Alarm"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b09178437d8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0917843b28" scoped=""/>
+      </interface-functions>
+    </interface><component loc="40(AlarmMultiplexC.Alarm):/opt/tinyos-main-read-only/tos/platforms/telosa/chips/cc2420/HplCC2420AlarmC.nc" nicename="tos.platforms.telosa.chips.cc2420.HplCC2420AlarmC" qname="AlarmMultiplexC.Alarm">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/platforms/telosa/chips/cc2420/HplCC2420AlarmC.nc">
+        <short>
+ HPL implementation of 32khz alarms for the ChipCon CC2420 radio
+ connected to a TI MSP430 processor.</short>
+        <long>
+ HPL implementation of 32khz alarms for the ChipCon CC2420 radio
+ connected to a TI MSP430 processor.
+
+ @author Jonathan Hui &lt;jhui@archrock.com&gt;
+ @version $Revision: 1.4 $ $Date: 2006-12-12 18:23:44 $
+</long>
+      </documentation>
+      <instance number="0">
+        <component-ref nicename="tos.platforms.telosa.chips.cc2420.HplCC2420AlarmC" qname="HplCC2420AlarmC"/>
+      </instance>
+      <configuration/>
+      <wiring>
+        <wire loc="51:/opt/tinyos-main-read-only/tos/platforms/telosa/chips/cc2420/HplCC2420AlarmC.nc">
+          <from><interface-ref name="Init" ref="0x2b09178437d8" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b091969c120" scoped=""/></to>
+        </wire>
+        <wire loc="52:/opt/tinyos-main-read-only/tos/platforms/telosa/chips/cc2420/HplCC2420AlarmC.nc">
+          <from><interface-ref name="Alarm32khz32" ref="0x2b0917851060" scoped=""/></from>
+          <to><interface-ref name="Alarm" ref="0x2b091969c908" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component></referenced></component>

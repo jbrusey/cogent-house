@@ -1,0 +1,187 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ReadStream</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ReadStream</h2>
+    <b>interface ReadStream&lt;typedef val_t&gt;</b><p>
+ The ReadStream interface is intended for buffered high data rate
+ reading, usually from sensor devices. The type of the values being
+ read is given as a template argument. 
+
+ <p> To use this interface, allocate one or more buffers in your own
+ space. Then, call postBuffer to pass these buffers into the
+ device. Call read() to begin the sampling process. The buffers will
+ be filled in the order originally posted, and a bufferDone() event
+ will be signaled once each buffer has been filled with data. At any
+ time while the read() is running, you may post new buffers to be
+ filled. If the lower layer finishes signaling readDone() and then
+ finds that no more buffers have been posted, it will consider the
+ read to be finished, and signal readDone(). 
+
+ <p>
+ See TEP114 - SIDs: Source and Sink Independent Drivers for details.
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>val_t</code> -  the type of the object that will be returned
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Gilman Tolle &lt;gtolle@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.5 $ $Date: 2008-06-04 03:00:31 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#postBuffer">postBuffer</a>(val_t *buf, uint16_t count)
+      </span><menu>
+ Passes a buffer to the device, and indicates how many values
+ should be placed into the buffer.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#read">read</a>(uint32_t usPeriod)
+      </span><menu>
+ Directs the device to start filling buffers by sampling with the
+ specified period.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#bufferDone">bufferDone</a>(error_t result, val_t *buf, uint16_t count)
+      </span><menu>
+ Signalled when a previously posted buffer has been filled by the
+ device.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#readDone">readDone</a>(error_t result, uint32_t usActualPeriod)
+      </span><menu>
+ Signalled when a buffer has been filled but no more buffers have
+ been posted.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="postBuffer"></a>
+    <h4>postBuffer
+    </h4>
+    <span id=funcnameshort>command error_t <b>postBuffer</b>(val_t *buf, uint16_t count)
+    </span>
+    <p>
+    <menu>
+      
+ Passes a buffer to the device, and indicates how many values
+ should be placed into the buffer. Make sure your count doesn't
+ overrun the buffer.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'val_t* COUNT(count) buf' a pointer to the buffer
+ 
+        </dd>
+        <dd>
+          <code>count</code> -  the number of values the buffer should hold
+
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the post was successful
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="read"></a>
+    <h4>read
+    </h4>
+    <span id=funcnameshort>command error_t <b>read</b>(uint32_t usPeriod)
+    </span>
+    <p>
+    <menu>
+      
+ Directs the device to start filling buffers by sampling with the
+ specified period. 
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>usPeriod</code> -  the between-sample period in microseconds
+ 
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the reading process began
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="bufferDone"></a>
+    <h4>bufferDone
+    </h4>
+    <span id=funcnameshort>event void <b>bufferDone</b>(error_t result, val_t *buf, uint16_t count)
+    </span>
+    <p>
+    <menu>
+      
+ Signalled when a previously posted buffer has been filled by the
+ device. In the event of a read error, result will not equal
+ SUCCESS, and the buffer will be filled with zeroes.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if the buffer was filled without errors
+ 
+        </dd>
+        <dd>
+          'val_t* COUNT(count) buf' a pointer to the buffer that has been filled
+ 
+        </dd>
+        <dd>
+          <code>count</code> -  the number of values actually read
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="readDone"></a>
+    <h4>readDone
+    </h4>
+    <span id=funcnameshort>event void <b>readDone</b>(error_t result, uint32_t usActualPeriod)
+    </span>
+    <p>
+    <menu>
+      
+ Signalled when a buffer has been filled but no more buffers have
+ been posted. In the event of a read error, all previously posted
+ buffers will have their bufferDone() event signalled, and then
+ this event will be signalled with a non-SUCCESS argument.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if all buffers were filled without errors
+ 
+        </dd>
+        <dd>
+          <code>usActualPeriod</code> -  Actual sampling period used - may be different
+   from period requested at read time. Undefined if result != SUCCESS.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

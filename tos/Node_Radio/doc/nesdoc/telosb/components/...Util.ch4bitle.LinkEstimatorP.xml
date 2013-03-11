@@ -1,0 +1,155 @@
+<?xml version="1.0" ?><component loc="37:../Util/ch4bitle/LinkEstimatorP.nc" nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP">
+      <module/>
+    <specification><interface loc="52:../Util/ch4bitle/LinkEstimatorP.nc" name="SubReceive" provided="0" ref="0x2b09185b3668">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubReceive" ref="0x2b09185b3668" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b09185b39b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="42:../Util/ch4bitle/LinkEstimatorP.nc" name="LinkEstimator" provided="1" ref="0x2b09185bcbe0">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="LinkEstimator" ref="0x2b09185bcbe0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="...Util.ch4bitle.LinkEstimator" qname="LinkEstimator"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="txAck" ref="0x2b09185bb020" scoped=""/>
+        <function-ref name="pinNeighbor" ref="0x2b09185bb1a8" scoped=""/>
+        <function-ref name="txNoAck" ref="0x2b09185bb330" scoped=""/>
+        <function-ref name="insertNeighbor" ref="0x2b09185bb4b8" scoped=""/>
+        <function-ref name="evicted" ref="0x2b09185bb640" scoped=""/>
+        <function-ref name="clearDLQ" ref="0x2b09185bb7c8" scoped=""/>
+        <function-ref name="unpinNeighbor" ref="0x2b09185bb950" scoped=""/>
+        <function-ref name="getLinkQuality" ref="0x2b09185bbad8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="44:../Util/ch4bitle/LinkEstimatorP.nc" name="Packet" provided="1" ref="0x2b09185ba360">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Packet" ref="0x2b09185ba360" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b09185ba6b0" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b09185ba838" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09185ba9c0" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09185bab48" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b09185bacd0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="49:../Util/ch4bitle/LinkEstimatorP.nc" name="AMSend" provided="0" ref="0x2b09185b8678">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AMSend" ref="0x2b09185b8678" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b09185b89c8" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09185b8b50" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09185b8cd8" scoped=""/>
+        <function-ref name="cancel" ref="0x2b09185b8e60" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b09185b5020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="40:../Util/ch4bitle/LinkEstimatorP.nc" name="Send" provided="1" ref="0x2b09185bd978">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Send" ref="0x2b09185bd978" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b09185bdcc8" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09185bde50" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09185bc020" scoped=""/>
+        <function-ref name="cancel" ref="0x2b09185bc1a8" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b09185bc330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="54:../Util/ch4bitle/LinkEstimatorP.nc" name="Random" provided="0" ref="0x2b09185b2328">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Random" ref="0x2b09185b2328" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Random" qname="Random"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="rand16" ref="0x2b09185b2778" scoped=""/>
+        <function-ref name="rand32" ref="0x2b09185b2900" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="51:../Util/ch4bitle/LinkEstimatorP.nc" name="SubPacket" provided="0" ref="0x2b09185b4968">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubPacket" ref="0x2b09185b4968" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b09185b4cb8" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b09185b4e40" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09185b3020" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09185b31a8" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b09185b3330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="43:../Util/ch4bitle/LinkEstimatorP.nc" name="Init" provided="1" ref="0x2b09185bbd50">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b09185bbd50" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b09185ba0d8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="50:../Util/ch4bitle/LinkEstimatorP.nc" name="SubAMPacket" provided="0" ref="0x2b09185b5370">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubAMPacket" ref="0x2b09185b5370" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AMPacket" qname="AMPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="group" ref="0x2b09185b56c0" scoped=""/>
+        <function-ref name="source" ref="0x2b09185b5848" scoped=""/>
+        <function-ref name="address" ref="0x2b09185b59d0" scoped=""/>
+        <function-ref name="destination" ref="0x2b09185b5b58" scoped=""/>
+        <function-ref name="setSource" ref="0x2b09185b5ce0" scoped=""/>
+        <function-ref name="setDestination" ref="0x2b09185b5e68" scoped=""/>
+        <function-ref name="type" ref="0x2b09185b4020" scoped=""/>
+        <function-ref name="setType" ref="0x2b09185b41a8" scoped=""/>
+        <function-ref name="isForMe" ref="0x2b09185b4330" scoped=""/>
+        <function-ref name="setGroup" ref="0x2b09185b44b8" scoped=""/>
+        <function-ref name="localGroup" ref="0x2b09185b4640" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="41:../Util/ch4bitle/LinkEstimatorP.nc" name="Receive" provided="1" ref="0x2b09185bc5c0">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Receive" ref="0x2b09185bc5c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b09185bc910" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="45:../Util/ch4bitle/LinkEstimatorP.nc" name="CompareBit" provided="1" ref="0x2b09185b8020">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CompareBit" ref="0x2b09185b8020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CompareBit" qname="CompareBit"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="shouldInsert" ref="0x2b09185b8370" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="39:../Util/ch4bitle/LinkEstimatorP.nc" name="StdControl" provided="1" ref="0x2b09185bd1a8">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StdControl" ref="0x2b09185bd1a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b09185bd4f8" scoped=""/>
+        <function-ref name="stop" ref="0x2b09185bd680" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="53:../Util/ch4bitle/LinkEstimatorP.nc" name="LinkPacketMetadata" provided="0" ref="0x2b09185b3cb8">
+      <component-ref nicename="...Util.ch4bitle.LinkEstimatorP" qname="LinkEstimatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="LinkPacketMetadata" ref="0x2b09185b3cb8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.LinkPacketMetadata" qname="LinkPacketMetadata"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="highChannelQuality" ref="0x2b09185b20a0" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

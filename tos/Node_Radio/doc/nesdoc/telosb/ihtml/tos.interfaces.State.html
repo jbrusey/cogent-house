@@ -1,0 +1,143 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.State</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.State</h2>
+    <b>interface State</b><p>
+ State machine interface
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        David Moss - dmm@rincon.com
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#forceState">forceState</a>(uint8_t reqState)
+      </span><menu>
+ Force the state machine to go into a certain state,
+ regardless of the current state it's in.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getState">getState</a>()
+      </span><menu>
+ Get the current state
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isIdle">isIdle</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isState">isState</a>(uint8_t myState)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#requestState">requestState</a>(uint8_t reqState)
+      </span><menu>
+ This will allow a state change so long as the current
+ state is S_IDLE.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#toIdle">toIdle</a>()
+      </span><menu>
+ Set the current state back to S_IDLE
+
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="forceState"></a>
+    <h4>forceState
+    </h4>
+    <span id=funcnameshort>command void <b>forceState</b>(uint8_t reqState)
+    </span>
+    <p>
+    <menu>
+      
+ Force the state machine to go into a certain state,
+ regardless of the current state it's in.
+
+    </menu>
+    <hr>
+    <a name="getState"></a>
+    <h4>getState
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getState</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get the current state
+
+    </menu>
+    <hr>
+    <a name="isIdle"></a>
+    <h4>isIdle
+    </h4>
+    <span id=funcnameshort>command bool <b>isIdle</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if the state machine is in S_IDLE
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isState"></a>
+    <h4>isState
+    </h4>
+    <span id=funcnameshort>command bool <b>isState</b>(uint8_t myState)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if the state machine is in the given state
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="requestState"></a>
+    <h4>requestState
+    </h4>
+    <span id=funcnameshort>command error_t <b>requestState</b>(uint8_t reqState)
+    </span>
+    <p>
+    <menu>
+      
+ This will allow a state change so long as the current
+ state is S_IDLE.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the state is change, FAIL if it isn't
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="toIdle"></a>
+    <h4>toIdle
+    </h4>
+    <span id=funcnameshort>command void <b>toIdle</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Set the current state back to S_IDLE
+
+    </menu>
+  </body>
+</html>

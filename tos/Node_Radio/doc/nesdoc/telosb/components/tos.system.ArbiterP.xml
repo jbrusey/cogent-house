@@ -1,0 +1,153 @@
+<?xml version="1.0" ?><component abstract="" loc="52:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" nicename="tos.system.ArbiterP" qname="ArbiterP" safe="">
+      <documentation loc="30:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc">
+        <short>
+ Please refer to TEP 108 for more information about this component and its
+ intended use.&lt;br&gt;&lt;br&gt;
+
+ This component provides the Resource, ResourceRequested, ArbiterInfo, 
+ and ResourceDefaultOwner interfaces and uses the ResourceConfigure interface as
+ described in TEP 108.</short>
+        <long>
+ Please refer to TEP 108 for more information about this component and its
+ intended use.&lt;br&gt;&lt;br&gt;
+
+ This component provides the Resource, ResourceRequested, ArbiterInfo, 
+ and ResourceDefaultOwner interfaces and uses the ResourceConfigure interface as
+ described in TEP 108.  It provides arbitration to a shared resource.
+ A Queue is used to keep track of which users have put
+ in requests for the resource.  Upon the release of the resource by one
+ of these users, the queue is checked and the next user
+ that has a pending request will ge granted control of the resource.  If
+ there are no pending requests, then the user of the ResourceDefaultOwner
+ interface gains access to the resource, and holds onto it until
+ another user makes a request.
+
+ @param &lt;b&gt;default_owner_id&lt;/b&gt; -- The id of the default owner of this 
+        resource
+ 
+ @author Kevin Klues (klues@tkn.tu-berlin.de)
+ @author Philip Levis
+</long>
+      </documentation>
+      <parameters>
+        <constant loc="52:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="default_owner_id" ref="0x2b0917cb1a90">
+          <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <module/>
+    <specification><interface loc="55:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="ResourceRequested" provided="1" ref="0x2b0917cac990">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ResourceRequested" ref="0x2b0917cac990" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ResourceRequested" qname="ResourceRequested"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="requested" ref="0x2b0917cacce0" scoped=""/>
+        <function-ref name="immediateRequested" ref="0x2b0917cace68" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="60:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="ResourceConfigure" provided="0" ref="0x2b0917caab60">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ResourceConfigure" ref="0x2b0917caab60" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ResourceConfigure" qname="ResourceConfigure"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="unconfigure" ref="0x2b0917ca9020" scoped=""/>
+        <function-ref name="configure" ref="0x2b0917ca91a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="61:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="Queue" provided="0" ref="0x2b0917ca94f0">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Queue" ref="0x2b0917ca94f0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ResourceQueue" qname="ResourceQueue"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="enqueue" ref="0x2b0917ca9840" scoped=""/>
+        <function-ref name="isEmpty" ref="0x2b0917ca99c8" scoped=""/>
+        <function-ref name="isEnqueued" ref="0x2b0917ca9b50" scoped=""/>
+        <function-ref name="dequeue" ref="0x2b0917ca9cd8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="56:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="ResourceDefaultOwner" provided="1" ref="0x2b0917cab1b0">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ResourceDefaultOwner" ref="0x2b0917cab1b0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ResourceDefaultOwner" qname="ResourceDefaultOwner"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="release" ref="0x2b0917cab500" scoped=""/>
+        <function-ref name="requested" ref="0x2b0917cab688" scoped=""/>
+        <function-ref name="granted" ref="0x2b0917cab810" scoped=""/>
+        <function-ref name="isOwner" ref="0x2b0917cab998" scoped=""/>
+        <function-ref name="immediateRequested" ref="0x2b0917cabb20" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="62:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="Leds" provided="0" ref="0x2b0917ca8020">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Leds" ref="0x2b0917ca8020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Leds" qname="Leds"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="led0Off" ref="0x2b0917ca8370" scoped=""/>
+        <function-ref name="led0Toggle" ref="0x2b0917ca84f8" scoped=""/>
+        <function-ref name="led1On" ref="0x2b0917ca8680" scoped=""/>
+        <function-ref name="led1Toggle" ref="0x2b0917ca8808" scoped=""/>
+        <function-ref name="led2Toggle" ref="0x2b0917ca8990" scoped=""/>
+        <function-ref name="get" ref="0x2b0917ca8b18" scoped=""/>
+        <function-ref name="led1Off" ref="0x2b0917ca8ca0" scoped=""/>
+        <function-ref name="led2Off" ref="0x2b0917ca7330" scoped=""/>
+        <function-ref name="set" ref="0x2b0917ca8e28" scoped=""/>
+        <function-ref name="led0On" ref="0x2b0917ca7020" scoped=""/>
+        <function-ref name="led2On" ref="0x2b0917ca71a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="54:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="Resource" provided="1" ref="0x2b0917cad800">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Resource" ref="0x2b0917cad800" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Resource" qname="Resource"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="release" ref="0x2b0917cadb50" scoped=""/>
+        <function-ref name="immediateRequest" ref="0x2b0917cadcd8" scoped=""/>
+        <function-ref name="request" ref="0x2b0917cade60" scoped=""/>
+        <function-ref name="granted" ref="0x2b0917cac020" scoped=""/>
+        <function-ref name="isOwner" ref="0x2b0917cac1a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="57:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="ArbiterInfo" provided="1" ref="0x2b0917cabdd8">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ArbiterInfo" ref="0x2b0917cabdd8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ArbiterInfo" qname="ArbiterInfo"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="inUse" ref="0x2b0917caa170" scoped=""/>
+        <function-ref name="userId" ref="0x2b0917caa2f8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="75:/opt/tinyos-main-read-only/tos/system/ArbiterP.nc" name="grantedTask" provided="0" ref="0x2b0917ca35a0">
+      <component-ref nicename="tos.system.ArbiterP" qname="ArbiterP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="grantedTask" ref="0x2b0917ca35a0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b0917ca38f0" scoped=""/>
+        <function-ref name="runTask" ref="0x2b0917ca3a78" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

@@ -1,0 +1,132 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.chips.cc2420.lpl.DefaultLplC</title>
+  </head>
+  <body>
+    <h2>Component: tos.chips.cc2420.lpl.DefaultLplC
+    </h2>
+    <b>configuration DefaultLplC</b>
+    <p>
+ The minimum number of samples that must be taken in CC2420DutyCycleP
+ that show the channel is not clear before a detection event is issued
+
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.LowPowerListening.html">LowPowerListening</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Receive.html">Receive</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Send.html">Send</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.State.html">State</a> as <b>SendState</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.SplitControl.html">SplitControl</a></div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.SplitControl.html">SplitControl</a> as <b>SubControl</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Receive.html">Receive</a> as <b>SubReceive</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Send.html">Send</a> as <b>SubSend</b></div><p><div id=heading>Wiring</div><p>
+    <map name="comp">
+      <area shape="rect" id="node2" href="../chtml/tos.chips.cc2420.lpl.PowerCycleC.html" title="PowerCycleC" alt="" coords="116,247,249,305">
+
+      <area shape="poly" id="edge2" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="75,179 75,200 81,220 105,245 102,248 76,223 69,201 69,179">
+
+      <area shape="rect" id="edge2" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="79,203,153,221">
+
+      <area shape="rect" id="node4" href="../chtml/tos.chips.cc2420.lpl.DefaultLplP.html" title="DefaultLplP" alt="" coords="997,131,1107,179">
+
+      <area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Send.html" title="Send" alt="" coords="814,49 837,62 985,126 983,131 835,66 812,54">
+
+      <area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Send.html" title="Send" alt="" coords="931,89,964,106">
+
+      <area shape="poly" id="edge22" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="997,160 522,183 287,196 185,205 178,217 176,233 171,233 173,216 183,200 287,191 522,178 997,155">
+
+      <area shape="rect" id="edge22" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="184,203,220,221">
+
+      <area shape="poly" id="edge30" href="../ihtml/tos.chips.cc2420.interfaces.PowerCycle.html" title="PowerCycle" alt="" coords="997,159 568,179 352,192 280,199 246,205 226,219 210,237 206,234 223,215 244,200 280,194 352,187 568,173 997,154">
+
+      <area shape="rect" id="edge30" href="../ihtml/tos.chips.cc2420.interfaces.PowerCycle.html" title="PowerCycle" alt="" coords="245,203,319,221">
+
+      <area shape="poly" id="edge20" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="997,159 638,176 454,190 388,197 350,205 338,213 325,224 296,237 263,248 261,243 294,232 323,219 335,209 348,200 388,192 454,184 637,171 997,154">
+
+      <area shape="rect" id="edge20" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="349,203,385,221">
+
+      <area shape="rect" id="node7" href="../chtml/tos.system.StateC.html" title="StateC\n(SendStateC)" alt="" coords="273,245,407,307">
+
+      <area shape="poly" id="edge24" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="997,160 892,167 749,183 587,209 503,226 420,248 419,243 502,221 586,203 748,177 891,162 997,154">
+
+      <area shape="rect" id="edge24" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="589,203,625,221">
+
+      <area shape="poly" id="edge12" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="997,164 879,180 741,205 662,224 585,248 562,256 560,251 583,243 661,219 739,200 878,175 997,159">
+
+      <area shape="rect" id="edge12" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="740,203,815,221">
+
+      <area shape="poly" id="edge14" href="../ihtml/tos.interfaces.Receive.html" title="Receive" alt="" coords="998,171 877,205 753,248 730,256 728,251 751,243 875,200 996,166">
+
+      <area shape="rect" id="edge14" href="../ihtml/tos.interfaces.Receive.html" title="Receive" alt="" coords="876,203,925,221">
+
+      <area shape="poly" id="edge16" href="../ihtml/tos.interfaces.Send.html" title="Send" alt="" coords="1007,181 872,253 869,248 1005,177">
+
+      <area shape="rect" id="edge16" href="../ihtml/tos.interfaces.Send.html" title="Send" alt="" coords="957,203,991,221">
+
+      <area shape="rect" id="node13" href="../chtml/tos.system.TimerMilliC.html" title="TimerMilliC\n(OffTimerC)" alt="" coords="905,245,1025,307">
+
+      <area shape="poly" id="edge26" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="1037,181 997,236 993,232 1032,178">
+
+      <area shape="rect" id="edge26" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="1016,203,1105,221">
+
+      <area shape="rect" id="node14" href="../chtml/tos.system.TimerMilliC.html" title="TimerMilliC\n(SendDoneTimerC)" alt="" coords="1049,245,1228,307">
+
+      <area shape="poly" id="edge28" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="1089,177 1111,201 1128,231 1123,234 1107,204 1085,181">
+
+      <area shape="rect" id="edge28" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="1120,203,1209,221">
+
+      <area shape="rect" id="node15" href="../chtml/tos.chips.cc2420.transmit.CC2420TransmitC.html" title="CC2420TransmitC" alt="" coords="1252,247,1423,305">
+
+      <area shape="poly" id="edge32" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Transmit.html" title="CC2420Transmit" alt="" coords="1107,165 1161,180 1216,200 1283,237 1281,241 1214,205 1159,185 1106,170">
+
+      <area shape="rect" id="edge32" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Transmit.html" title="CC2420Transmit" alt="" coords="1249,203,1355,221">
+
+      <area shape="rect" id="node16" href="../chtml/tos.chips.cc2420.CC2420RadioC.html" title="CC2420RadioC" alt="" coords="1447,247,1596,305">
+
+      <area shape="poly" id="edge34" href="../ihtml/tos.interfaces.PacketAcknowledgements.html" title="PacketAcknowledgements" alt="" coords="1107,156 1225,170 1293,183 1361,200 1409,218 1455,238 1453,243 1407,223 1359,205 1292,188 1224,176 1107,161">
+
+      <area shape="rect" id="edge34" href="../ihtml/tos.interfaces.PacketAcknowledgements.html" title="PacketAcknowledgements" alt="" coords="1409,203,1576,221">
+
+      <area shape="rect" id="node17" href="../chtml/tos.chips.cc2420.packet.CC2420PacketC.html" title="CC2420PacketC" alt="" coords="1620,247,1775,305">
+
+      <area shape="poly" id="edge36" href="../ihtml/tos.chips.cc2420.interfaces.CC2420PacketBody.html" title="CC2420PacketBody" alt="" coords="1107,154 1356,167 1487,181 1541,190 1582,200 1618,216 1651,236 1648,241 1616,221 1580,205 1540,195 1487,186 1355,173 1107,159">
+
+      <area shape="rect" id="edge36" href="../ihtml/tos.chips.cc2420.interfaces.CC2420PacketBody.html" title="CC2420PacketBody" alt="" coords="1619,203,1744,221">
+
+      <area shape="rect" id="node18" href="../chtml/tos.chips.cc2420.csma.CC2420CsmaC.html" title="CC2420CsmaC" alt="" coords="1799,247,1948,305">
+
+      <area shape="poly" id="edge38" href="../ihtml/tos.chips.cc2420.interfaces.RadioBackoff.html" title="RadioBackoff" alt="" coords="1107,153 1251,155 1437,163 1619,177 1694,187 1750,200 1789,216 1824,237 1821,241 1786,221 1749,205 1693,193 1618,182 1436,168 1250,161 1107,158">
+
+      <area shape="rect" id="edge38" href="../ihtml/tos.chips.cc2420.interfaces.RadioBackoff.html" title="RadioBackoff" alt="" coords="1792,203,1875,221">
+
+      <area shape="rect" id="node19" href="../chtml/tos.system.RandomC.html" title="RandomC" alt="" coords="1972,247,2081,305">
+
+      <area shape="poly" id="edge40" href="../ihtml/tos.interfaces.Random.html" title="Random" alt="" coords="1107,152 1275,155 1499,162 1720,176 1812,187 1881,200 1927,216 1969,237 1967,242 1925,221 1879,205 1811,192 1720,182 1498,167 1274,160 1107,158">
+
+      <area shape="rect" id="edge40" href="../ihtml/tos.interfaces.Random.html" title="Random" alt="" coords="1929,203,1983,221">
+
+      <area shape="rect" id="node20" href="../chtml/tos.system.LedsC.html" title="LedsC" alt="" coords="2105,247,2188,305">
+
+      <area shape="poly" id="edge42" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="1107,152 1294,155 1549,163 1803,177 1909,187 1989,200 2044,218 2095,242 2092,247 2042,223 1987,205 1908,193 1803,182 1549,168 1294,161 1107,158">
+
+      <area shape="rect" id="edge42" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="2041,203,2072,221">
+
+      <area shape="rect" id="node21" href="../chtml/tos.system.SystemLowPowerListeningC.html" title="SystemLowPowerListeningC" alt="" coords="2212,247,2463,305">
+
+      <area shape="poly" id="edge44" href="../ihtml/tos.interfaces.SystemLowPowerListening.html" title="SystemLowPowerListening" alt="" coords="1107,153 1591,166 1872,180 1989,189 2078,200 2161,218 2239,240 2238,245 2160,223 2077,205 1989,195 1872,185 1591,172 1107,158">
+
+      <area shape="rect" id="edge44" href="../ihtml/tos.interfaces.SystemLowPowerListening.html" title="SystemLowPowerListening" alt="" coords="2164,203,2333,221">
+
+      <area shape="poly" id="edge6" href="../ihtml/tos.interfaces.LowPowerListening.html" title="LowPowerListening" alt="" coords="971,58 983,81 998,105 1011,119 1007,123 994,108 978,84 966,60">
+
+      <area shape="rect" id="edge6" href="../ihtml/tos.interfaces.LowPowerListening.html" title="LowPowerListening" alt="" coords="996,89,1116,106">
+
+      <area shape="poly" id="edge8" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="414,180 393,223 383,236 379,233 388,220 409,177">
+
+      <area shape="rect" id="edge8" href="../ihtml/tos.interfaces.State.html" title="State" alt="" coords="401,203,437,221">
+
+      <area shape="poly" id="edge10" href="../ihtml/tos.interfaces.Receive.html" title="Receive" alt="" coords="1142,60 1132,84 1118,108 1104,124 1100,120 1114,105 1128,82 1137,58">
+
+      <area shape="rect" id="edge10" href="../ihtml/tos.interfaces.Receive.html" title="Receive" alt="" coords="1127,89,1176,106">
+
+      <area shape="rect" id="node12" href="../chtml/tos.system.MainC.html" title="MainC" alt="" coords="1221,5,1304,64">
+
+      <area shape="poly" id="edge18" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="1236,66 1211,89 1183,109 1121,137 1119,132 1180,104 1208,84 1233,62">
+
+      <area shape="rect" id="edge18" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="1205,89,1225,106">
+
+    </map>
+    <img src="tos.chips.cc2420.lpl.DefaultLplC.png" usemap="#comp" id=imgwiring>
+  </body>
+</html>

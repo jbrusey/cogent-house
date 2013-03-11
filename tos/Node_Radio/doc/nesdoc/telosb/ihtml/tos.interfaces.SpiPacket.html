@@ -1,0 +1,123 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.SpiPacket</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.SpiPacket</h2>
+    <b>interface SpiPacket</b><p>
+ SPI Packet/buffer interface for sending data over an SPI bus.  This
+ interface provides a split-phase send command which can be used for
+ sending, receiving or both. It is a "send" command because reading
+ from the SPI requires writing bytes. The send call allows NULL
+ parameters for receive or send only operations. This interface is
+ for buffer based transfers where the microcontroller is the master
+ (clocking) device.
+
+ Often, an SPI bus must first be acquired using a Resource interface
+ before sending commands with SPIPacket. In the case of multiple
+ devices attached to a single SPI bus, chip select pins are often also
+ used.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dd>
+        Jonathan Hui
+ 
+      </dd>
+      <dd>
+        Joe Polastre
+ Revision:  $Revision: 1.8 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#send">send</a>(uint8_t *txBuf, uint8_t *rxBuf, uint16_t len)
+      </span><menu>
+ Send a message over the SPI bus.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#sendDone">sendDone</a>(uint8_t *txBuf, uint8_t *rxBuf, uint16_t len, error_t error)
+      </span><menu>
+ Notification that the send command has completed.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="send"></a>
+    <h4>send
+    </h4>
+    <span id=funcnameshort>command error_t <b>send</b>(uint8_t *txBuf, uint8_t *rxBuf, uint16_t len)
+    </span>
+    <p>
+    <menu>
+      
+ Send a message over the SPI bus.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'uint8_t* COUNT_NOK(len) txBuf' A pointer to the buffer to send over the bus. If this
+              parameter is NULL, then the SPI will send zeroes.
+ 
+        </dd>
+        <dd>
+          'uint8_t* COUNT_NOK(len) rxBuf' A pointer to the buffer where received data should
+              be stored. If this parameter is NULL, then the SPI will
+              discard incoming bytes.
+ 
+        </dd>
+        <dd>
+          <code>len</code> -    Length of the message.  Note that non-NULL rxBuf and txBuf
+              parameters must be AT LEAST as large as len, or the SPI
+              will overflow a buffer.
+
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted for transfer
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="sendDone"></a>
+    <h4>sendDone
+    </h4>
+    <span id=funcnameshort>event void <b>sendDone</b>(uint8_t *txBuf, uint8_t *rxBuf, uint16_t len, error_t error)
+    </span>
+    <p>
+    <menu>
+      
+ Notification that the send command has completed.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'uint8_t* COUNT_NOK(len) txBuf' The buffer used for transmission
+ 
+        </dd>
+        <dd>
+          'uint8_t* COUNT_NOK(len) rxBuf' The buffer used for reception
+ 
+        </dd>
+        <dd>
+          <code>len</code> -     The request length of the transfer, but not necessarily
+               the number of bytes that were actually transferred
+ 
+        </dd>
+        <dd>
+          <code>error</code> -   SUCCESS if the operation completed successfully, FAIL
+               otherwise
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

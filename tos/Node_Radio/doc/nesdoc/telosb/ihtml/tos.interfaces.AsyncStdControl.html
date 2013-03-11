@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.AsyncStdControl</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.AsyncStdControl</h2>
+    <b>interface AsyncStdControl</b><p>
+ Please refer to TEP 115 for more information about this interface and its
+ intended use.<br><br>
+
+ This is the asynchronous counterpart to the StdContol interface.  It
+ should be used for switching between the on and off power states of
+ the component providing it.  This interface differs from the
+ StdControl interface only in the fact that any of its commands can
+ be called from asynchronous context.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Joe Polastre
+ 
+      </dd>
+      <dd>
+        Kevin Klues (klueska@cs.wustl.edu)
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#start">start</a>()
+      </span><menu>
+ Start this component and all of its subcomponents.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#stop">stop</a>()
+      </span><menu>
+ Stop the component and any pertinent subcomponents (not all
+ subcomponents may be turned off due to wakeup timers, etc.).
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="start"></a>
+    <h4>start
+    </h4>
+    <span id=funcnameshort>command error_t <b>start</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Start this component and all of its subcomponents.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the component was either already on or was 
+         successfully turned on<br>
+         FAIL otherwise
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="stop"></a>
+    <h4>stop
+    </h4>
+    <span id=funcnameshort>command error_t <b>stop</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Stop the component and any pertinent subcomponents (not all
+ subcomponents may be turned off due to wakeup timers, etc.).
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the component was either already off or was 
+         successfully turned off<br>
+         FAIL otherwise
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

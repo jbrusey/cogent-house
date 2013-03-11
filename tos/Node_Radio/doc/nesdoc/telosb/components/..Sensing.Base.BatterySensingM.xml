@@ -1,0 +1,31 @@
+<?xml version="1.0" ?><component loc="39:./Sensing/Base/BatterySensingM.nc" nicename="..Sensing.Base.BatterySensingM" qname="BatterySensingM" safe="">
+      <module/>
+    <specification><interface loc="47:./Sensing/Base/BatterySensingM.nc" name="GetVoltage" provided="0" ref="0x2b0918ec75b8">
+      <component-ref nicename="..Sensing.Base.BatterySensingM" qname="BatterySensingM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="GetVoltage" ref="0x2b0918ec75b8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918ec6158" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918ec65a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="43:./Sensing/Base/BatterySensingM.nc" name="ReadBattery" provided="1" ref="0x2b0918eccd88">
+      <component-ref nicename="..Sensing.Base.BatterySensingM" qname="BatterySensingM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadBattery" ref="0x2b0918eccd88" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-float alignment="I:2" cname="float" size="I:4"/>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918ec8908" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918ec8d58" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

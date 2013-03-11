@@ -1,0 +1,164 @@
+<?xml version="1.0" ?><component loc="41:./Sensing/AirQuality/AirQualityM.nc" nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM">
+      <module/>
+    <specification><interface loc="86:./Sensing/AirQuality/AirQualityM.nc" name="readAQTask" provided="0" ref="0x2b0918ee2ac0">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="readAQTask" ref="0x2b0918ee2ac0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b0918ee2e10" scoped=""/>
+        <function-ref name="runTask" ref="0x2b0918ee1020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="81:./Sensing/AirQuality/AirQualityM.nc" name="readVOCTask" provided="0" ref="0x2b0918ee3020">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="readVOCTask" ref="0x2b0918ee3020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b0918ee3370" scoped=""/>
+        <function-ref name="runTask" ref="0x2b0918ee34f8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="55:./Sensing/AirQuality/AirQualityM.nc" name="WarmUpTimer" provided="0" ref="0x2b0918eef020">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="WarmUpTimer" ref="0x2b0918eef020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b0918eec2b8" scoped=""/>
+        <function-ref name="fired" ref="0x2b0918eee978" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b0918eed6c8" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b0918eed278" scoped=""/>
+        <function-ref name="getdt" ref="0x2b0918eecb58" scoped=""/>
+        <function-ref name="gett0" ref="0x2b0918eec708" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b0918eeedc8" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b0918eefb68" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b0918eedc98" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b0918eee088" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918eee528" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="47:./Sensing/AirQuality/AirQualityM.nc" name="ReadAQ" provided="1" ref="0x2b0918e5d2d8">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadAQ" ref="0x2b0918e5d2d8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-float alignment="I:2" cname="float" size="I:4"/>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918e5de20" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918e5c2d8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="51:./Sensing/AirQuality/AirQualityM.nc" name="GetCO2" provided="0" ref="0x2b0918e5cae0">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="GetCO2" ref="0x2b0918e5cae0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918e5b658" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918e5baa8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="54:./Sensing/AirQuality/AirQualityM.nc" name="CO2On" provided="0" ref="0x2b0918ef2060">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CO2On" ref="0x2b0918ef2060" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.msp430.pins.HplMsp430GeneralIO" qname="HplMsp430GeneralIO"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="makeInput" ref="0x2b0918ef23b0" scoped=""/>
+        <function-ref name="isInput" ref="0x2b0918ef2538" scoped=""/>
+        <function-ref name="setResistor" ref="0x2b0918ef26c0" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0918ef2848" scoped=""/>
+        <function-ref name="isOutput" ref="0x2b0918ef29d0" scoped=""/>
+        <function-ref name="getResistor" ref="0x2b0918ef2b58" scoped=""/>
+        <function-ref name="makeOutput" ref="0x2b0918ef2ce0" scoped=""/>
+        <function-ref name="get" ref="0x2b0918ef2e68" scoped=""/>
+        <function-ref name="selectIOFunc" ref="0x2b0918ef1020" scoped=""/>
+        <function-ref name="getRaw" ref="0x2b0918ef11a8" scoped=""/>
+        <function-ref name="set" ref="0x2b0918ef1330" scoped=""/>
+        <function-ref name="selectModuleFunc" ref="0x2b0918ef14b8" scoped=""/>
+        <function-ref name="isIOFunc" ref="0x2b0918ef1640" scoped=""/>
+        <function-ref name="isModuleFunc" ref="0x2b0918ef18c8" scoped=""/>
+        <function-ref name="clr" ref="0x2b0918ef1a50" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="45:./Sensing/AirQuality/AirQualityM.nc" name="ReadCO2" provided="1" ref="0x2b0918e794a8">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadCO2" ref="0x2b0918e794a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-float alignment="I:2" cname="float" size="I:4"/>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918e60020" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918e60470" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="53:./Sensing/AirQuality/AirQualityM.nc" name="GetAQ" provided="0" ref="0x2b0918ef4998">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="GetAQ" ref="0x2b0918ef4998" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918ef3528" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918ef3978" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:./Sensing/AirQuality/AirQualityM.nc" name="ReadVOC" provided="1" ref="0x2b0918e60b88">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadVOC" ref="0x2b0918e60b88" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-float alignment="I:2" cname="float" size="I:4"/>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918e5e728" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918e5eb78" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="52:./Sensing/AirQuality/AirQualityM.nc" name="GetVOC" provided="0" ref="0x2b0918ef5260">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="GetVOC" ref="0x2b0918ef5260" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0918ef5da8" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0918ef4238" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="68:./Sensing/AirQuality/AirQualityM.nc" name="readCO2Task" provided="0" ref="0x2b0918ee89d0">
+      <component-ref nicename="..Sensing.AirQuality.AirQualityM" qname="AirQualityM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="readCO2Task" ref="0x2b0918ee89d0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b0918ee8d20" scoped=""/>
+        <function-ref name="runTask" ref="0x2b0918ee7020" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

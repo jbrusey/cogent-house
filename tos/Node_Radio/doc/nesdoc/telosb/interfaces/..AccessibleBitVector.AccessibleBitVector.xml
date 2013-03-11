@@ -1,0 +1,276 @@
+<?xml version="1.0" ?><interfacedef loc="29:./AccessibleBitVector/AccessibleBitVector.nc" nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector">
+      <documentation loc="23:./AccessibleBitVector/AccessibleBitVector.nc">
+        <short>
+ Interface to a bit vector.</short>
+        <long>
+ Interface to a bit vector.
+
+ @author Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+</long>
+      </documentation>
+      <function command="" loc="34:./AccessibleBitVector/AccessibleBitVector.nc" name="clearAll" provided="0" ref="0x2b09171847f0">
+        <documentation loc="31:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Clear all bits in the vector.</short>
+          <long>
+ Clear all bits in the vector.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="51:./AccessibleBitVector/AccessibleBitVector.nc" name="setArrayElement" provided="0" ref="0x2b091717d5c8">
+        <documentation loc="47:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Return array.</short>
+          <long>
+ Return array.
+ @return Array
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="int" size="I:2"/>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="51:./AccessibleBitVector/AccessibleBitVector.nc" name="i" ref="0x2b091717d020">
+            <type-int alignment="I:2" cname="int" size="I:2"/>
+          </variable>
+          <variable loc="51:./AccessibleBitVector/AccessibleBitVector.nc" name="value" ref="0x2b091717d348">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="45:./AccessibleBitVector/AccessibleBitVector.nc" name="getArray" provided="0" ref="0x2b091717e788">
+        <documentation loc="41:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Return array.</short>
+          <long>
+ Return array.
+ @return 'uint8_t*' Array
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-pointer alignment="I:2" size="I:2">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </type-pointer>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="77:./AccessibleBitVector/AccessibleBitVector.nc" name="clear" provided="0" ref="0x2b091717ba18">
+        <documentation loc="73:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Set a bit in the vector.</short>
+          <long>
+ Set a bit in the vector.
+ @param bitnum Bit to clear.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="77:./AccessibleBitVector/AccessibleBitVector.nc" name="bitnum" ref="0x2b091717b7a8">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="65:./AccessibleBitVector/AccessibleBitVector.nc" name="get" provided="0" ref="0x2b091717c710">
+        <documentation loc="60:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Read a bit from the vector.</short>
+          <long>
+ Read a bit from the vector.
+ @param bitnum Bit to read.
+ @return Bit value.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="65:./AccessibleBitVector/AccessibleBitVector.nc" name="bitnum" ref="0x2b091717c4a0">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="83:./AccessibleBitVector/AccessibleBitVector.nc" name="toggle" provided="0" ref="0x2b09171793f0">
+        <documentation loc="79:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Toggle a bit in the vector.</short>
+          <long>
+ Toggle a bit in the vector.
+ @param bitnum Bit to toggle.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="83:./AccessibleBitVector/AccessibleBitVector.nc" name="bitnum" ref="0x2b0917179180">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="90:./AccessibleBitVector/AccessibleBitVector.nc" name="assign" provided="0" ref="0x2b09171780b8">
+        <documentation loc="85:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Write a bit in the vector.</short>
+          <long>
+ Write a bit in the vector.
+ @param bitnum Bit to clear.
+ @param value New bit value.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="90:./AccessibleBitVector/AccessibleBitVector.nc" name="bitnum" ref="0x2b0917179b00">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="90:./AccessibleBitVector/AccessibleBitVector.nc" name="value" ref="0x2b0917179e10">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="57:./AccessibleBitVector/AccessibleBitVector.nc" name="getArrayLength" provided="0" ref="0x2b091717dd40">
+        <documentation loc="53:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Return array length.</short>
+          <long>
+ Return array length.
+ @return array length
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="39:./AccessibleBitVector/AccessibleBitVector.nc" name="setAll" provided="0" ref="0x2b091717e020">
+        <documentation loc="36:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Set all bits in the vector.</short>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="71:./AccessibleBitVector/AccessibleBitVector.nc" name="set" provided="0" ref="0x2b091717b0a8">
+        <documentation loc="67:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Set a bit in the vector.</short>
+          <long>
+ Set a bit in the vector.
+ @param bitnum Bit to set.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="71:./AccessibleBitVector/AccessibleBitVector.nc" name="bitnum" ref="0x2b091717ce10">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="96:./AccessibleBitVector/AccessibleBitVector.nc" name="size" provided="0" ref="0x2b0917178828">
+        <documentation loc="92:./AccessibleBitVector/AccessibleBitVector.nc">
+          <short>
+ Return bit vector length.</short>
+          <long>
+ Return bit vector length.
+ @return Bit vector length.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

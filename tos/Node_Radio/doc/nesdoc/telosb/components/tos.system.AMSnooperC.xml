@@ -1,0 +1,190 @@
+<?xml version="1.0" ?><component abstract="" loc="44:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc" nicename="tos.system.AMSnooperC" qname="AMSnooperC">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc">
+        <short>
+ The virtualization of snooping on overheard packets that are not
+ destined to this node.</short>
+        <long>
+ The virtualization of snooping on overheard packets that are not
+ destined to this node. 
+
+ @author Philip Levis
+ @date   Jan 16 2006
+ @see    TEP 116: Packet Protocols
+</long>
+      </documentation>
+      <parameters>
+        <constant loc="44:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc" name="AMId" ref="0x2b0918728020">
+          <component-ref nicename="tos.system.AMSnooperC" qname="AMSnooperC"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <configuration/>
+      <wiring>
+        <wire loc="56:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc">
+          <from><interface-ref name="Packet" ref="0x2b0918728a70" scoped=""/></from>
+          <to><interface-ref name="Packet" ref="0x2b091767b920" scoped=""/></to>
+        </wire>
+        <wire loc="55:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc">
+          <from><interface-ref name="Receive" ref="0x2b0918728498" scoped=""/></from>
+          <to><interface-ref name="Snoop" ref="0x2b091767b348" scoped=""/>
+          <arguments>
+            <value cst="U:">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+              </type-int>
+            </value>
+          </arguments>
+          </to>
+        </wire>
+        <wire loc="57:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc">
+          <from><interface-ref name="AMPacket" ref="0x2b0918727758" scoped=""/></from>
+          <to><interface-ref name="AMPacket" ref="0x2b091769b0f0" scoped=""/></to>
+        </wire>
+      </wiring>
+    <specification><interface loc="47:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc" name="Packet" provided="1" ref="0x2b0918728a70">
+      <component-ref nicename="tos.system.AMSnooperC" qname="AMSnooperC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Packet" ref="0x2b0918728a70" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b0918728dc0" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b0918727020" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09187271a8" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b0918727330" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b09187274b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc" name="Receive" provided="1" ref="0x2b0918728498">
+      <component-ref nicename="tos.system.AMSnooperC" qname="AMSnooperC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Receive" ref="0x2b0918728498" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b09187287e8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="48:/opt/tinyos-main-read-only/tos/system/AMSnooperC.nc" name="AMPacket" provided="1" ref="0x2b0918727758">
+      <component-ref nicename="tos.system.AMSnooperC" qname="AMSnooperC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AMPacket" ref="0x2b0918727758" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AMPacket" qname="AMPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="group" ref="0x2b0918727aa8" scoped=""/>
+        <function-ref name="source" ref="0x2b0918727c30" scoped=""/>
+        <function-ref name="address" ref="0x2b0918727db8" scoped=""/>
+        <function-ref name="destination" ref="0x2b0918726020" scoped=""/>
+        <function-ref name="setSource" ref="0x2b09187261a8" scoped=""/>
+        <function-ref name="setDestination" ref="0x2b0918726330" scoped=""/>
+        <function-ref name="type" ref="0x2b09187264b8" scoped=""/>
+        <function-ref name="setType" ref="0x2b0918726640" scoped=""/>
+        <function-ref name="isForMe" ref="0x2b09187267c8" scoped=""/>
+        <function-ref name="setGroup" ref="0x2b0918726950" scoped=""/>
+        <function-ref name="localGroup" ref="0x2b0918726ad8" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced><interface loc="68:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc" name="AMPacket" provided="1" ref="0x2b091769b0f0">
+      <component-ref nicename="tos.platforms.telosa.ActiveMessageC" qname="ActiveMessageC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AMPacket" ref="0x2b091769b0f0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AMPacket" qname="AMPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="group" ref="0x2b091769b440" scoped=""/>
+        <function-ref name="source" ref="0x2b091769b5c8" scoped=""/>
+        <function-ref name="address" ref="0x2b091769b750" scoped=""/>
+        <function-ref name="destination" ref="0x2b091769b8d8" scoped=""/>
+        <function-ref name="setSource" ref="0x2b091769ba60" scoped=""/>
+        <function-ref name="setDestination" ref="0x2b091769bbe8" scoped=""/>
+        <function-ref name="type" ref="0x2b091769bd70" scoped=""/>
+        <function-ref name="setType" ref="0x2b0917670020" scoped=""/>
+        <function-ref name="isForMe" ref="0x2b09176701a8" scoped=""/>
+        <function-ref name="setGroup" ref="0x2b0917670330" scoped=""/>
+        <function-ref name="localGroup" ref="0x2b09176704b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="65:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc" name="Snoop" provided="1" ref="0x2b091767b348">
+      <component-ref nicename="tos.platforms.telosa.ActiveMessageC" qname="ActiveMessageC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Snoop" ref="0x2b091767b348" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b091767b698" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="67:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc" name="Packet" provided="1" ref="0x2b091767b920">
+      <component-ref nicename="tos.platforms.telosa.ActiveMessageC" qname="ActiveMessageC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Packet" ref="0x2b091767b920" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b091767bc70" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b091767bdf8" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b0917673020" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09176731a8" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b0917673330" scoped=""/>
+      </interface-functions>
+    </interface><component loc="59:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc" nicename="tos.platforms.telosa.ActiveMessageC" qname="ActiveMessageC">
+      <documentation loc="49:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+        <short>
+
+ The Active Message layer on the Telos platform.</short>
+        <long>
+
+ The Active Message layer on the Telos platform. This is a naming wrapper
+ around the CC2420 Active Message layer.
+
+ @author Philip Levis
+ @version $Revision: 1.9 $ $Date: 2010-06-29 22:07:55 $
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="78:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="SplitControl" ref="0x2b091767e020" scoped=""/></from>
+          <to><interface-ref name="SplitControl" ref="0x2b09176b5310" scoped=""/></to>
+        </wire>
+        <wire loc="80:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="AMSend" ref="0x2b0917672688" scoped=""/></from>
+          <to><interface-ref name="AMSend" ref="0x2b09176b42b0" scoped=""/></to>
+        </wire>
+        <wire loc="82:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="Snoop" ref="0x2b091767b348" scoped=""/></from>
+          <to><interface-ref name="Snoop" ref="0x2b09176b1020" scoped=""/></to>
+        </wire>
+        <wire loc="83:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="Packet" ref="0x2b091767b920" scoped=""/></from>
+          <to><interface-ref name="Packet" ref="0x2b09176b0bd8" scoped=""/></to>
+        </wire>
+        <wire loc="89:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="PacketTimeStamp32khz" ref="0x2b091766f020" scoped=""/></from>
+          <to><interface-ref name="PacketTimeStamp32khz" ref="0x2b0918043130" scoped=""/></to>
+        </wire>
+        <wire loc="86:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="LowPowerListening" ref="0x2b0917688928" scoped=""/></from>
+          <to><interface-ref name="LowPowerListening" ref="0x2b09176e2628" scoped=""/></to>
+        </wire>
+        <wire loc="81:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="Receive" ref="0x2b091767c7a0" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b09176b33c8" scoped=""/></to>
+        </wire>
+        <wire loc="85:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="PacketAcknowledgements" ref="0x2b09176950d0" scoped=""/></from>
+          <to><interface-ref name="PacketAcknowledgements" ref="0x2b09176ae7e0" scoped=""/></to>
+        </wire>
+        <wire loc="84:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="AMPacket" ref="0x2b091769b0f0" scoped=""/></from>
+          <to><interface-ref name="AMPacket" ref="0x2b09176b1610" scoped=""/></to>
+        </wire>
+        <wire loc="90:/opt/tinyos-main-read-only/tos/platforms/telosa/ActiveMessageC.nc">
+          <from><interface-ref name="PacketTimeStampMilli" ref="0x2b091768ce48" scoped=""/></from>
+          <to><interface-ref name="PacketTimeStampMilli" ref="0x2b091803f020" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component></referenced></component>

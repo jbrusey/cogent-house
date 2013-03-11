@@ -1,0 +1,84 @@
+<?xml version="1.0" ?><interfacedef loc="52:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc" nicename="tos.interfaces.ReadNow" qname="ReadNow">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc">
+        <short>
+ The ReadNow interface is intended for split-phase low-latency
+ reading of small values.</short>
+        <long>
+ The ReadNow interface is intended for split-phase low-latency
+ reading of small values. The type of the value is given as a
+ template argument. Because this interface is split-phase, these
+ values may be backed by hardware. Providers of this interface
+ should also provide a Resource interface, and this interface should
+ only be used after the resource has been acquired. Otherwise, the
+ low-latency requirement may be impossible to meet.
+
+ &lt;p&gt;
+ This interface has the same calling semantics as the Read interface
+ described in TEP 114, except that it is async.
+ 
+ @param val_t the type of the object that will be returned
+
+ @author Gilman Tolle &lt;gtolle@archrock.com&gt;
+ @version $Revision: 1.5 $ $Date: 2008-06-16 18:58:51 $
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="52:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc" name="val_t" ref="0x2b0918a1c9f0">
+          <interfacedef-ref nicename="tos.interfaces.ReadNow" qname="ReadNow"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a1c9f0" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <function command="" loc="58:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc" name="read" provided="0" ref="0x2b0918a19290">
+        <documentation loc="53:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc">
+          <short>
+ Initiates a read of the value.</short>
+          <long>
+ Initiates a read of the value.
+ 
+ @return SUCCESS if a readDone() event will eventually come back.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ReadNow" qname="ReadNow"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function event="" loc="66:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc" name="readDone" provided="0" ref="0x2b0918a18020">
+        <documentation loc="60:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc">
+          <short>
+ Signals the completion of the read().</short>
+          <long>
+ Signals the completion of the read().
+
+ @param result SUCCESS if the read() was successful
+ @param val the value that has been read
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ReadNow" qname="ReadNow"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+            <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a1c9f0" scoped=""/></type-var>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="66:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc" name="result" ref="0x2b0918a199d8">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="66:/opt/tinyos-main-read-only/tos/interfaces/ReadNow.nc" name="val" ref="0x2b0918a19cd8">
+            <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a1c9f0" scoped=""/></type-var>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

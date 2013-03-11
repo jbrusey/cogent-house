@@ -1,0 +1,21 @@
+digraph "tos.chips.msp430.sensors.Msp430InternalVoltageC" {
+  n0x2b0918a28020 [shape=ellipse, style=filled, label="Read", fontsize=12];
+  "Msp430InternalVoltageC.AdcReadClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadClientC.html"];
+  n0x2b0918a184e8 [shape=ellipse, style=filled, label="ReadNow", fontsize=12];
+  "Msp430InternalVoltageC.AdcReadNowClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadNowClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadNowClientC.html"];
+  n0x2b0918a1fc70 [shape=ellipse, style=filled, label="ReadStream", fontsize=12];
+  "Msp430InternalVoltageC.AdcReadStreamClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadStreamClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadStreamClientC.html"];
+  n0x2b0918a1d610 [shape=ellipse, style=filled, label="Resource", fontsize=12];
+  "Msp430InternalVoltageC.AdcReadNowClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadNowClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadNowClientC.html"];
+  "Msp430InternalVoltageC.AdcReadClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadClientC.html"];
+  "Msp430InternalVoltageP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.sensors.Msp430InternalVoltageP.html"];
+  "Msp430InternalVoltageC.AdcReadStreamClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadStreamClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadStreamClientC.html"];
+  "Msp430InternalVoltageC.AdcReadNowClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadNowClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadNowClientC.html"];
+  "n0x2b0918a28020" -> "Msp430InternalVoltageC.AdcReadClientC" [label="Read<uint16_t>", URL="../ihtml/tos.interfaces.Read.html", fontsize=10];
+  "n0x2b0918a184e8" -> "Msp430InternalVoltageC.AdcReadNowClientC" [label="ReadNow<uint16_t>", URL="../ihtml/tos.interfaces.ReadNow.html", fontsize=10];
+  "n0x2b0918a1fc70" -> "Msp430InternalVoltageC.AdcReadStreamClientC" [label="ReadStream<uint16_t>", URL="../ihtml/tos.interfaces.ReadStream.html", fontsize=10];
+  "n0x2b0918a1d610" -> "Msp430InternalVoltageC.AdcReadNowClientC" [label="Resource", URL="../ihtml/tos.interfaces.Resource.html", fontsize=10];
+  "Msp430InternalVoltageC.AdcReadClientC" -> "Msp430InternalVoltageP" [label="AdcConfigure<msp430adc12_channel_config_t *>", URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "Msp430InternalVoltageC.AdcReadStreamClientC" -> "Msp430InternalVoltageP" [label="AdcConfigure<msp430adc12_channel_config_t *>", URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "Msp430InternalVoltageC.AdcReadNowClientC" -> "Msp430InternalVoltageP" [label="AdcConfigure<msp430adc12_channel_config_t *>", URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+}

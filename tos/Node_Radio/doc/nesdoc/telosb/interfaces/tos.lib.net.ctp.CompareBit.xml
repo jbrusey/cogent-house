@@ -1,0 +1,59 @@
+<?xml version="1.0" ?><interfacedef loc="47:/opt/tinyos-main-read-only/tos/lib/net/ctp/CompareBit.nc" nicename="tos.lib.net.ctp.CompareBit" qname="CompareBit">
+      <documentation loc="35:/opt/tinyos-main-read-only/tos/lib/net/ctp/CompareBit.nc">
+        <short> Link estimator asks the routing engine if this entry
+ should be inserted into the neighbor table if the
+ white bit on a link is set but there is no room for the link
+ on the link table.</short>
+        <long> Link estimator asks the routing engine if this entry
+ should be inserted into the neighbor table if the
+ white bit on a link is set but there is no room for the link
+ on the link table. The return value is the &quot;pin bit&quot; - if true
+ insert into the neighbor table. In the reference implementation
+ the router will return true if the path through the source
+ will be better than a path through at least one current neighbor.
+@ author Omprakash Gnawali
+@ Created: September 16, 2006
+@date   $Date: 2010-06-29 22:07:49 $
+</long>
+      </documentation>
+      <function event="" loc="51:/opt/tinyos-main-read-only/tos/lib/net/ctp/CompareBit.nc" name="shouldInsert" provided="0" ref="0x2b09185b6c00">
+        <interfacedef-ref nicename="tos.lib.net.ctp.CompareBit" qname="CompareBit"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-void alignment="I:1" size="I:1"/>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/lib/net/ctp/CompareBit.nc" name="msg" ref="0x2b09185b9e80">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/lib/net/ctp/CompareBit.nc" name="payload" ref="0x2b09185b6660">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-void alignment="I:1" size="I:1"/>
+            </type-pointer>
+          </variable>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/lib/net/ctp/CompareBit.nc" name="len" ref="0x2b09185b6970">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.TaskBasic</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.TaskBasic</h2>
+    <b>interface TaskBasic</b><p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#postTask">postTask</a>()
+      </span><menu>
+ Post this task to the TinyOS scheduler.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#runTask">runTask</a>()
+      </span><menu>
+ Event from the scheduler to run this task.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="postTask"></a>
+    <h4>postTask
+    </h4>
+    <span id=funcnameshort>command error_t <b>postTask</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Post this task to the TinyOS scheduler. At some later time,
+ depending on the scheduling policy, the scheduler will signal the
+ <tt>run()</tt> event. 
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if task was successfuly
+ posted; the semantics of a non-SUCCESS return value depend on the
+ implementation of this interface (the class of task).
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="runTask"></a>
+    <h4>runTask
+    </h4>
+    <span id=funcnameshort>event void <b>runTask</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Event from the scheduler to run this task. Following the TinyOS
+ concurrency model, the codes invoked from <tt>run()</tt> signals
+ execute atomically with respect to one another, but can be
+ preempted by async commands/events.
+
+    </menu>
+  </body>
+</html>

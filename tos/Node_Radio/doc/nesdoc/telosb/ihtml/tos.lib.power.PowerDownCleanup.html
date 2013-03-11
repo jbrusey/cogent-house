@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.power.PowerDownCleanup</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.power.PowerDownCleanup</h2>
+    <b>interface PowerDownCleanup</b><p>
+ Please refer to TEP 115 for more information about this interface and its
+ intended use.<br><br>
+
+ This interface exists to allow a Resource user to cleanup any state
+ information before a shared Resource is shutdown.  It should be provided
+ by the user of a shared Resource, and used by the
+ power managment component for that Resource.  The <code>cleanup()</code>
+ command will be called by the power manager just before powering down
+ the shared resource.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues (klueska@cs.wustl.edu)
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#cleanup">cleanup</a>()
+      </span><menu>
+ This command will be called by the power management component of
+ a shared Resource.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="cleanup"></a>
+    <h4>cleanup
+    </h4>
+    <span id=funcnameshort>command void <b>cleanup</b>()
+    </span>
+    <p>
+    <menu>
+      
+ This command will be called by the power management component of
+ a shared Resource.  The implementation of this command defines
+ what must be done just before that shared Resource is shut off.
+
+
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Strobe</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Strobe</h2>
+    <b>interface CC2420Strobe</b><p>
+ Interface representing one of the CC2420 command strobe registers.
+ Writing to one of these registers enacts a command on the CC2420,
+ such as power-up, transmission, or clear a FIFO.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.3 $ $Date: 2010-06-29 22:07:44 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command cc2420_status_t <a href="#strobe">strobe</a>()
+      </span><menu>
+ Send a command strobe to the register.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="strobe"></a>
+    <h4>strobe
+    </h4>
+    <span id=funcnameshort>command cc2420_status_t <b>strobe</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Send a command strobe to the register. The return value is the
+ CC2420 status register. Table 5 on page 27 of the CC2420
+ datasheet (v1.2) describes the contents of this register.
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Status byte from the CC2420.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Receive</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Receive</h2>
+    <b>interface CC2420Receive</b><p>
+ Low-level abstraction of the receive path implementation for the
+ ChipCon CC2420 radio.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jhui@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.4 $ $Date: 2008-06-17 07:28:24 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#sfd">sfd</a>(uint32_t time)
+      </span><menu>
+ Notification that an SFD capture has occured.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#sfd_dropped">sfd_dropped</a>()
+      </span><menu>
+ Notification that the packet has been dropped by the radio
+ (e.g.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#receive">receive</a>(uint8_t type, message_t *message)
+      </span><menu>
+ Signals that a message has been received.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="sfd"></a>
+    <h4>sfd
+    </h4>
+    <span id=funcnameshort>command void <b>sfd</b>(uint32_t time)
+    </span>
+    <p>
+    <menu>
+      
+ Notification that an SFD capture has occured.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>time</code> -  at which the capture happened.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="sfd_dropped"></a>
+    <h4>sfd_dropped
+    </h4>
+    <span id=funcnameshort>command void <b>sfd_dropped</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Notification that the packet has been dropped by the radio
+ (e.g. due to address rejection).
+
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="receive"></a>
+    <h4>receive
+    </h4>
+    <span id=funcnameshort>event void <b>receive</b>(uint8_t type, message_t *message)
+    </span>
+    <p>
+    <menu>
+      
+ Signals that a message has been received.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>type</code> -  of the message received.
+ 
+        </dd>
+        <dd>
+          <code>message</code> -  pointer to message received.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

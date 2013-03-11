@@ -1,0 +1,298 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Config</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Config</h2>
+    <b>interface CC2420Config</b><p>
+ An HAL abstraction of the ChipCon CC2420 radio. This abstraction
+ deals specifically with radio configurations. All get() and set()
+ commands are single-phase. After setting some values, a call to
+ sync() is required for the changes to propagate to the cc2420
+ hardware chip. This interface allows setting multiple parameters
+ before calling sync().
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jhui@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.3 $ $Date: 2008/06/16 15:33:32 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getChannel">getChannel</a>()
+      </span><menu>
+ Change the channel of the radio, between 11 and 26
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command ieee_eui64_t <a href="#getExtAddr">getExtAddr</a>()
+      </span><menu>
+ Get the long address of the radio: set in hardware
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getPanAddr">getPanAddr</a>()
+      </span><menu>
+ Change the PAN address of the radio.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getShortAddr">getShortAddr</a>()
+      </span><menu>
+ Change the short address of the radio.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isAddressRecognitionEnabled">isAddressRecognitionEnabled</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isAutoAckEnabled">isAutoAckEnabled</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isHwAddressRecognitionDefault">isHwAddressRecognitionDefault</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isHwAutoAckDefault">isHwAutoAckDefault</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setAddressRecognition">setAddressRecognition</a>(bool enableAddressRecognition, bool useHwAddressRecognition)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setAutoAck">setAutoAck</a>(bool enableAutoAck, bool hwAutoAck)
+      </span><menu>
+ Sync must be called for acknowledgement changes to take effect
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setChannel">setChannel</a>(uint8_t channel)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setPanAddr">setPanAddr</a>(uint16_t address)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setShortAddr">setShortAddr</a>(uint16_t address)
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#sync">sync</a>()
+      </span><menu>
+ Sync configuration changes with the radio hardware.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#syncDone">syncDone</a>(error_t error)
+      </span></div><p><div id=heading>Commands - Details</div>
+    <a name="getChannel"></a>
+    <h4>getChannel
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getChannel</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Change the channel of the radio, between 11 and 26
+
+    </menu>
+    <hr>
+    <a name="getExtAddr"></a>
+    <h4>getExtAddr
+    </h4>
+    <span id=funcnameshort>command ieee_eui64_t <b>getExtAddr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get the long address of the radio: set in hardware
+
+    </menu>
+    <hr>
+    <a name="getPanAddr"></a>
+    <h4>getPanAddr
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getPanAddr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Change the PAN address of the radio.
+    </menu>
+    <hr>
+    <a name="getShortAddr"></a>
+    <h4>getShortAddr
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getShortAddr</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Change the short address of the radio.
+
+    </menu>
+    <hr>
+    <a name="isAddressRecognitionEnabled"></a>
+    <h4>isAddressRecognitionEnabled
+    </h4>
+    <span id=funcnameshort>command bool <b>isAddressRecognitionEnabled</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if address recognition is enabled
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isAutoAckEnabled"></a>
+    <h4>isAutoAckEnabled
+    </h4>
+    <span id=funcnameshort>command bool <b>isAutoAckEnabled</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if auto acks are enabled
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isHwAddressRecognitionDefault"></a>
+    <h4>isHwAddressRecognitionDefault
+    </h4>
+    <span id=funcnameshort>command bool <b>isHwAddressRecognitionDefault</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if address recognition is performed first in hardware.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isHwAutoAckDefault"></a>
+    <h4>isHwAutoAckDefault
+    </h4>
+    <span id=funcnameshort>command bool <b>isHwAutoAckDefault</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if hardware auto acks are the default, FALSE if software
+     acks are the default
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setAddressRecognition"></a>
+    <h4>setAddressRecognition
+    </h4>
+    <span id=funcnameshort>command void <b>setAddressRecognition</b>(bool enableAddressRecognition, bool useHwAddressRecognition)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>enableAddressRecognition</code> -  TRUE to turn address recognition on
+ 
+        </dd>
+        <dd>
+          <code>useHwAddressRecognition</code> -  TRUE to perform address recognition first
+     in hardware. This doesn't affect software address recognition. The
+     driver must sync with the chip after changing this value.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setAutoAck"></a>
+    <h4>setAutoAck
+    </h4>
+    <span id=funcnameshort>command void <b>setAutoAck</b>(bool enableAutoAck, bool hwAutoAck)
+    </span>
+    <p>
+    <menu>
+      
+ Sync must be called for acknowledgement changes to take effect
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>enableAutoAck</code> -  TRUE to enable auto acknowledgements
+ 
+        </dd>
+        <dd>
+          <code>hwAutoAck</code> -  TRUE to default to hardware auto acks, FALSE to
+     default to software auto acknowledgements
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setChannel"></a>
+    <h4>setChannel
+    </h4>
+    <span id=funcnameshort>command void <b>setChannel</b>(uint8_t channel)
+    </span><hr>
+    <a name="setPanAddr"></a>
+    <h4>setPanAddr
+    </h4>
+    <span id=funcnameshort>command void <b>setPanAddr</b>(uint16_t address)
+    </span><hr>
+    <a name="setShortAddr"></a>
+    <h4>setShortAddr
+    </h4>
+    <span id=funcnameshort>command void <b>setShortAddr</b>(uint16_t address)
+    </span><hr>
+    <a name="sync"></a>
+    <h4>sync
+    </h4>
+    <span id=funcnameshort>command error_t <b>sync</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Sync configuration changes with the radio hardware. This only
+ applies to set commands below.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="syncDone"></a>
+    <h4>syncDone
+    </h4>
+    <span id=funcnameshort>event void <b>syncDone</b>(error_t error)
+    </span>
+  </body>
+</html>

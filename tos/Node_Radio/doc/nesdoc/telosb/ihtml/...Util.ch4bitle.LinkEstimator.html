@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: ...Util.ch4bitle.LinkEstimator</title>
+  </head>
+  <body>
+    <h2>Interface: ...Util.ch4bitle.LinkEstimator</h2>
+    <b>interface LinkEstimator</b><p> Provides an additive quality measure for a neighbor. The
+ provided quality increases when the true link quality increases.
+  
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Rodrigo Fonseca
+  
+      </dd>
+      <dd>
+        Omprakash Gnawali
+  
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          $Date: 2007/11/16 23:14:49 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#clearDLQ">clearDLQ</a>(am_addr_t neighbor)
+      </span></div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getLinkQuality">getLinkQuality</a>(uint16_t neighbor)
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#insertNeighbor">insertNeighbor</a>(am_addr_t neighbor)
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#pinNeighbor">pinNeighbor</a>(am_addr_t neighbor)
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#txAck">txAck</a>(am_addr_t neighbor)
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#txNoAck">txNoAck</a>(am_addr_t neighbor)
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#unpinNeighbor">unpinNeighbor</a>(am_addr_t neighbor)
+      </span></div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#evicted">evicted</a>(am_addr_t neighbor)
+      </span></div><p><div id=heading>Commands - Details</div>
+    <a name="clearDLQ"></a>
+    <h4>clearDLQ
+    </h4>
+    <span id=funcnameshort>command error_t <b>clearDLQ</b>(am_addr_t neighbor)
+    </span><hr>
+    <a name="getLinkQuality"></a>
+    <h4>getLinkQuality
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getLinkQuality</b>(uint16_t neighbor)
+    </span><hr>
+    <a name="insertNeighbor"></a>
+    <h4>insertNeighbor
+    </h4>
+    <span id=funcnameshort>command error_t <b>insertNeighbor</b>(am_addr_t neighbor)
+    </span><hr>
+    <a name="pinNeighbor"></a>
+    <h4>pinNeighbor
+    </h4>
+    <span id=funcnameshort>command error_t <b>pinNeighbor</b>(am_addr_t neighbor)
+    </span><hr>
+    <a name="txAck"></a>
+    <h4>txAck
+    </h4>
+    <span id=funcnameshort>command error_t <b>txAck</b>(am_addr_t neighbor)
+    </span><hr>
+    <a name="txNoAck"></a>
+    <h4>txNoAck
+    </h4>
+    <span id=funcnameshort>command error_t <b>txNoAck</b>(am_addr_t neighbor)
+    </span><hr>
+    <a name="unpinNeighbor"></a>
+    <h4>unpinNeighbor
+    </h4>
+    <span id=funcnameshort>command error_t <b>unpinNeighbor</b>(am_addr_t neighbor)
+    </span><p><div id=heading>Events - Details</div>
+    <a name="evicted"></a>
+    <h4>evicted
+    </h4>
+    <span id=funcnameshort>event void <b>evicted</b>(am_addr_t neighbor)
+    </span>
+  </body>
+</html>

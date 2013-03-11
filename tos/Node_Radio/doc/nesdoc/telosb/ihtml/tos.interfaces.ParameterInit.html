@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ParameterInit</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ParameterInit</h2>
+    <b>interface ParameterInit&lt;typedef parameter&gt;</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Phil Levis
+ 
+      </dd>
+      <dd>
+        David Gay
+ Revision:  $Revision: 1.12 $
+
+ Defines global error codes for error_t in TinyOS.
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#init">init</a>(parameter param)
+      </span><menu>
+ Initialize this component.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="init"></a>
+    <h4>init
+    </h4>
+    <span id=funcnameshort>command error_t <b>init</b>(parameter param)
+    </span>
+    <p>
+    <menu>
+      
+ Initialize this component. Initialization should not assume that
+ any component is running: init() cannot call any commands besides
+ those that initialize other components. This command behaves
+ identically to Init.init, except that it takes a parameter.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>param</code> -    the initialization parameter
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+                   SUCCESS if initialized properly, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

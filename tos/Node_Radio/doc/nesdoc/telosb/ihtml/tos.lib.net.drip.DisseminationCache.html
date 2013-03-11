@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.net.drip.DisseminationCache</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.net.drip.DisseminationCache</h2>
+    <b>interface DisseminationCache</b><p>
+ The DisseminationCache interface connects each DisseminatorC
+ component to the DisseminationEngineC component.
+
+ See TEP118 - Dissemination for details.
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Gilman Tolle &lt;gtolle@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.2 $ $Date: 2008-06-04 04:31:08 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void *<a href="#requestData">requestData</a>(uint8_t *size)
+      </span></div><div id=funcsig><span id=funcnameshort>command uint32_t <a href="#requestSeqno">requestSeqno</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#storeData">storeData</a>(void *data, uint8_t size, uint32_t seqno)
+      </span></div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#newData">newData</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>event error_t <a href="#start">start</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>event error_t <a href="#stop">stop</a>()
+      </span></div><p><div id=heading>Commands - Details</div>
+    <a name="requestData"></a>
+    <h4>requestData
+    </h4>
+    <span id=funcnameshort>command void *<b>requestData</b>(uint8_t *size)
+    </span><hr>
+    <a name="requestSeqno"></a>
+    <h4>requestSeqno
+    </h4>
+    <span id=funcnameshort>command uint32_t <b>requestSeqno</b>()
+    </span><hr>
+    <a name="storeData"></a>
+    <h4>storeData
+    </h4>
+    <span id=funcnameshort>command void <b>storeData</b>(void *data, uint8_t size, uint32_t seqno)
+    </span><p><div id=heading>Events - Details</div>
+    <a name="newData"></a>
+    <h4>newData
+    </h4>
+    <span id=funcnameshort>event void <b>newData</b>()
+    </span><hr>
+    <a name="start"></a>
+    <h4>start
+    </h4>
+    <span id=funcnameshort>event error_t <b>start</b>()
+    </span><hr>
+    <a name="stop"></a>
+    <h4>stop
+    </h4>
+    <span id=funcnameshort>event error_t <b>stop</b>()
+    </span>
+  </body>
+</html>

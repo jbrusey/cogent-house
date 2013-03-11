@@ -1,0 +1,12 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.adc12.WireAdcStreamP.html" title="WireAdcStreamP" alt="" coords="144,120,309,179">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.ReadStream.html" title="ReadStream&lt;uint16_t&gt;" alt="" coords="229,54 229,106 224,106 224,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.ReadStream.html" title="ReadStream&lt;uint16_t&gt;" alt="" coords="227,78,380,95">
+<area shape="rect" id="node3" href="../chtml/tos.chips.msp430.adc12.Msp430Adc12ClientAutoRVGC.html" title="Msp430Adc12ClientAutoRVGC\n(Msp430AdcClient)" alt="" coords="5,245,272,307">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="145,174 108,189 86,204 83,219 89,234 84,236 77,219 82,201 105,184 143,169">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="84,203,197,221">
+<area shape="poly" id="edge10" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12SingleChannel.html" title="Msp430Adc12SingleChannel[uint8_t]" alt="" coords="220,180 200,223 188,237 184,234 195,220 216,178">
+<area shape="rect" id="edge10" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12SingleChannel.html" title="Msp430Adc12SingleChannel[uint8_t]" alt="" coords="207,203,443,221">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;[uint8_t]" alt="" coords="310,157 393,174 427,186 450,201 477,238 490,274 490,293 487,312 466,351 455,361 438,369 394,383 392,378 436,364 452,356 462,348 482,310 485,292 484,275 472,240 446,205 425,191 392,179 309,162">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;[uint8_t]" alt="" coords="487,267,864,285">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;" alt="" coords="134,307 134,329 142,348 154,357 174,366 225,380 224,386 172,371 151,362 138,351 129,330 129,307">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;" alt="" coords="140,331,464,349">

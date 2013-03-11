@@ -1,0 +1,258 @@
+<?xml version="1.0" ?><interfacedef loc="44:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo">
+      <function command="" loc="96:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="getNeighborLinkQuality" provided="0" ref="0x2b0917142af8">
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="96:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="n" ref="0x2b0917142888">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="83:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="recomputeRoutes" provided="0" ref="0x2b09171441d8">
+        <documentation loc="80:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc">
+          <short> 
+ Tell the routing engine it might want to recompute its routes.</short>
+          <long> 
+ Tell the routing engine it might want to recompute its routes.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="95:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="numNeighbors" provided="0" ref="0x2b0917142178">
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="71:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="triggerRouteUpdate" provided="0" ref="0x2b0917145178">
+        <documentation loc="66:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc">
+          <short>
+ This informs the routing engine that sending a beacon soon is
+ advisable, e.g., in response to a pull bit.</short>
+          <long>
+ This informs the routing engine that sending a beacon soon is
+ advisable, e.g., in response to a pull bit.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="64:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="getEtx" provided="0" ref="0x2b09171478b0">
+        <documentation loc="55:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc">
+          <short>
+ Get the ETX for the current path to the root through the current
+ parent.</short>
+          <long>
+ Get the ETX for the current path to the root through the current
+ parent. Sets etx argument to ETX*10.  The pointer is allocated by
+ the caller.  If the parent is invalid, return FAIL (no info).
+ The caller MUST NOT use the value in parent if the return is not
+ SUCCESS. Calling getEtx at the root will set the etx argument to
+ 0.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="64:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="etx" ref="0x2b0917147640">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="78:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="triggerImmediateRouteUpdate" provided="0" ref="0x2b09171459a0">
+        <documentation loc="73:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc">
+          <short>
+ This informs the routing engine that sending a beacon as soon
+ as possible is advisable, e.g., due to queue overflow or
+ a detected loop.</short>
+          <long>
+ This informs the routing engine that sending a beacon as soon
+ as possible is advisable, e.g., due to queue overflow or
+ a detected loop.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="88:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="setNeighborCongested" provided="0" ref="0x2b0917143020">
+        <documentation loc="85:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc">
+          <short>
+ Informs the routing engine that a neighbor is congested
+</short>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="88:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="n" ref="0x2b0917144948">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="88:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="congested" ref="0x2b0917144c80">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="98:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="getNeighborAddr" provided="0" ref="0x2b0917140e00">
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="98:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="n" ref="0x2b0917140b90">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="53:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="getParent" provided="0" ref="0x2b09170e2df0">
+        <documentation loc="46:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc">
+          <short>
+ Get the parent of the node in the tree.</short>
+          <long>
+ Get the parent of the node in the tree.  The pointer is allocated
+ by the caller.  If the parent is invalid, return FAIL.  The
+ caller MUST NOT use the value in parent if the return is not
+ SUCCESS.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+              </type-int>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="53:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="parent" ref="0x2b09170e2b80">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="97:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="getNeighborRouteQuality" provided="0" ref="0x2b09171404c0">
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="97:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="n" ref="0x2b0917140250">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="93:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="isNeighborCongested" provided="0" ref="0x2b09171439d0">
+        <documentation loc="90:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc">
+          <short>
+  Returns the currently known state about a neighbor's congestion state
+</short>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="93:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpInfo.nc" name="n" ref="0x2b0917143760">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

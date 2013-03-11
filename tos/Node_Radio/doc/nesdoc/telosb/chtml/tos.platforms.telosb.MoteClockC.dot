@@ -1,0 +1,5 @@
+digraph "tos.platforms.telosb.MoteClockC" {
+  n0x2b0916efb8e8 [shape=ellipse, style=filled, label="MoteClockInit", fontsize=12];
+  "Msp430ClockC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.Msp430ClockC.html"];
+  "n0x2b0916efb8e8" -> "Msp430ClockC" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
+}

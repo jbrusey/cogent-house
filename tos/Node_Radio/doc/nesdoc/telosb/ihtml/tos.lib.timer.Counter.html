@@ -1,0 +1,125 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.timer.Counter</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.timer.Counter</h2>
+    <b>interface Counter&lt;typedef precision_tag, typedef size_type&gt;</b><p>
+ A Counter counts time in some units and in some width, signaling
+ overflow.
+
+ <p>A Counter is parameterised by its "precision" (milliseconds,
+ microseconds, etc), identified by a type. This prevents, e.g.,
+ unintentionally mixing components expecting milliseconds with those
+ expecting microseconds as those interfaces have a different type.
+
+ <p>A Counter's second parameter is its "width", i.e., the number of
+ bits used to represent time values. Width is indicated by including
+ the appropriate size integer type as a Counter parameter.
+
+ <p>See TEP102 for more details.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>precision_tag</code> -  A type indicating the precision of this Counter.
+ 
+      </dd>
+      <dd>
+        <code>size_type</code> -  An integer type representing time values for this Counter.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clearOverflow">clearOverflow</a>()
+      </span><menu>
+ Cancel a pending overflow interrupt.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command size_type <a href="#get">get</a>()
+      </span><menu> 
+ Return counter value.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isOverflowPending">isOverflowPending</a>()
+      </span><menu> 
+ Return TRUE if an overflow event will occur after the outermost atomic
+ block is exits.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#overflow">overflow</a>()
+      </span><menu>
+ Signals that the current time has overflowed.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="clearOverflow"></a>
+    <h4>clearOverflow
+    </h4>
+    <span id=funcnameshort>command void <b>clearOverflow</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Cancel a pending overflow interrupt.
+    </menu>
+    <hr>
+    <a name="get"></a>
+    <h4>get
+    </h4>
+    <span id=funcnameshort>command size_type <b>get</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Return counter value. Counters start at boot - some time sources may
+ stop counting while the processor is in low-power mode.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Current counter value.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isOverflowPending"></a>
+    <h4>isOverflowPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isOverflowPending</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Return TRUE if an overflow event will occur after the outermost atomic
+ block is exits.  FALSE otherwise.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Counter pending overflow status.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="overflow"></a>
+    <h4>overflow
+    </h4>
+    <span id=funcnameshort>event void <b>overflow</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signals that the current time has overflowed.  That is, the current
+ time has wrapped around from its maximum value to zero.
+
+    </menu>
+  </body>
+</html>

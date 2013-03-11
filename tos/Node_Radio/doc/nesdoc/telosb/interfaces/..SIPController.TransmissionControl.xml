@@ -1,0 +1,34 @@
+<?xml version="1.0" ?><interfacedef loc="3:./SIPController/TransmissionControl.nc" nicename="..SIPController.TransmissionControl" qname="TransmissionControl">
+      <function command="" loc="9:./SIPController/TransmissionControl.nc" name="transmissionDone" provided="0" ref="0x2b0917161820">
+        <documentation loc="6:./SIPController/TransmissionControl.nc">
+          <short>
+ perform one filter step
+</short>
+        </documentation>
+        <interfacedef-ref nicename="..SIPController.TransmissionControl" qname="TransmissionControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="14:./SIPController/TransmissionControl.nc" name="hasEvent" provided="0" ref="0x2b0917185020">
+        <documentation loc="11:./SIPController/TransmissionControl.nc">
+          <short>
+ Defines if an event has been triggered (pack packet and return in here?)
+</short>
+        </documentation>
+        <interfacedef-ref nicename="..SIPController.TransmissionControl" qname="TransmissionControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

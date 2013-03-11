@@ -1,0 +1,100 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Cache</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Cache</h2>
+    <b>interface Cache&lt;typedef t&gt;</b><p>
+ A data item cache. The cache does not own the items it caches:
+ there is no allocation/deallocation policy, or notification of
+ eviction. Correspondingly, using references (pointers) as data
+ items can be difficult.
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Rodrigo Fonseca
+ 
+      </dd>
+      <dd>
+        Philip Levis 
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#flush">flush</a>()
+      </span><menu>
+ Flush the cache of all entries.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#insert">insert</a>(t item)
+      </span><menu>
+ Inserts an item in the cache, evicting if necessary.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#lookup">lookup</a>(t item)
+      </span><menu>
+ Return whether the data item is in the cache.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="flush"></a>
+    <h4>flush
+    </h4>
+    <span id=funcnameshort>command void <b>flush</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Flush the cache of all entries.
+
+
+    </menu>
+    <hr>
+    <a name="insert"></a>
+    <h4>insert
+    </h4>
+    <span id=funcnameshort>command void <b>insert</b>(t item)
+    </span>
+    <p>
+    <menu>
+      
+ Inserts an item in the cache, evicting if necessary.
+ An atomic lookup after insert should return true.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>item</code> -  - the data item to insert.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="lookup"></a>
+    <h4>lookup
+    </h4>
+    <span id=funcnameshort>command bool <b>lookup</b>(t item)
+    </span>
+    <p>
+    <menu>
+      
+ Return whether the data item is in the cache.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>item</code> -  - the data item to query
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          Whether the item is in the cache.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

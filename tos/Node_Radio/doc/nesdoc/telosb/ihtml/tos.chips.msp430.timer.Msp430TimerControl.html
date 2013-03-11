@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.timer.Msp430TimerControl</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.timer.Msp430TimerControl</h2>
+    <b>interface Msp430TimerControl</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+ 
+      </dd>
+      <dd>
+        Joe Polastre
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command bool <a href="#areEventsEnabled">areEventsEnabled</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#clearPendingInterrupt">clearPendingInterrupt</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableEvents">disableEvents</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableEvents">enableEvents</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command msp430_compare_control_t <a href="#getControl">getControl</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isInterruptPending">isInterruptPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setControl">setControl</a>(msp430_compare_control_t control)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setControlAsCapture">setControlAsCapture</a>(uint8_t cm)
+      </span><menu> 
+ Sets the timer in capture mode.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setControlAsCompare">setControlAsCompare</a>()
+      </span></div><p><div id=heading>Commands - Details</div>
+    <a name="areEventsEnabled"></a>
+    <h4>areEventsEnabled
+    </h4>
+    <span id=funcnameshort>command bool <b>areEventsEnabled</b>()
+    </span><hr>
+    <a name="clearPendingInterrupt"></a>
+    <h4>clearPendingInterrupt
+    </h4>
+    <span id=funcnameshort>command void <b>clearPendingInterrupt</b>()
+    </span><hr>
+    <a name="disableEvents"></a>
+    <h4>disableEvents
+    </h4>
+    <span id=funcnameshort>command void <b>disableEvents</b>()
+    </span><hr>
+    <a name="enableEvents"></a>
+    <h4>enableEvents
+    </h4>
+    <span id=funcnameshort>command void <b>enableEvents</b>()
+    </span><hr>
+    <a name="getControl"></a>
+    <h4>getControl
+    </h4>
+    <span id=funcnameshort>command msp430_compare_control_t <b>getControl</b>()
+    </span><hr>
+    <a name="isInterruptPending"></a>
+    <h4>isInterruptPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isInterruptPending</b>()
+    </span><hr>
+    <a name="setControl"></a>
+    <h4>setControl
+    </h4>
+    <span id=funcnameshort>command void <b>setControl</b>(msp430_compare_control_t control)
+    </span><hr>
+    <a name="setControlAsCapture"></a>
+    <h4>setControlAsCapture
+    </h4>
+    <span id=funcnameshort>command void <b>setControlAsCapture</b>(uint8_t cm)
+    </span>
+    <p>
+    <menu>
+       
+ Sets the timer in capture mode.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>cm</code> -  configures the capture to occur on none, rising, falling or rising_and_falling edges
+ Msp430Timer.h has convenience definitions:
+ MSP430TIMER_CM_NONE, MSP430TIMER_CM_RISING, MSP430TIMER_CM_FALLING, MSP430TIMER_CM_BOTH
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setControlAsCompare"></a>
+    <h4>setControlAsCompare
+    </h4>
+    <span id=funcnameshort>command void <b>setControlAsCompare</b>()
+    </span>
+  </body>
+</html>

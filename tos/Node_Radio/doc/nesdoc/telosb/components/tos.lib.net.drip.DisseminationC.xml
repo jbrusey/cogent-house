@@ -1,0 +1,100 @@
+<?xml version="1.0" ?><component loc="46:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationC.nc" nicename="tos.lib.net.drip.DisseminationC" qname="DisseminationC">
+      <documentation loc="35:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationC.nc">
+        <short>
+ The DisseminationC component is the top-level interface to the
+ dissemination protocol.</short>
+        <long>
+ The DisseminationC component is the top-level interface to the
+ dissemination protocol. StdControl controls all of the trickle
+ timers used for all of the keys. 
+
+ See TEP118 - Dissemination for details.
+ 
+ @author Gilman Tolle &lt;gtolle@archrock.com&gt;
+ @version $Revision: 1.1 $
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="51:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationC.nc">
+          <from><interface-ref name="StdControl" ref="0x2b0918f43908" scoped=""/></from>
+          <to><interface-ref name="StdControl" ref="0x2b0918f42b38" scoped=""/></to>
+        </wire>
+      </wiring>
+    <specification><interface loc="47:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationC.nc" name="StdControl" provided="1" ref="0x2b0918f43908">
+      <component-ref nicename="tos.lib.net.drip.DisseminationC" qname="DisseminationC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StdControl" ref="0x2b0918f43908" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b0918f43c58" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918f43de0" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced><interface loc="48:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc" name="StdControl" provided="1" ref="0x2b0918f42b38">
+      <component-ref nicename="tos.lib.net.drip.DisseminationEngineP" qname="DisseminationEngineP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StdControl" ref="0x2b0918f42b38" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b0918f3f020" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918f3f1a8" scoped=""/>
+      </interface-functions>
+    </interface><component loc="47:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc" nicename="tos.lib.net.drip.DisseminationEngineP" qname="DisseminationEngineP">
+      <documentation loc="35:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+        <short>
+ The DisseminationEngineP component retrieves values from the
+ DisseminatorP components and disseminates them over the radio.</short>
+        <long>
+ The DisseminationEngineP component retrieves values from the
+ DisseminatorP components and disseminates them over the radio.
+
+ TODO: Hook DisseminationProbe up to the serial instead of the radio.
+
+ See TEP118 - Dissemination for details.
+ 
+ @author Gilman Tolle &lt;gtolle@archrock.com&gt;
+ @version $Revision: 1.1 $ $Date: 2007-09-14 00:22:18 $
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="58:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="StdControl" ref="0x2b0918f42b38" scoped=""/></from>
+          <to><interface-ref name="StdControl" ref="0x2b0918f37ce8" scoped=""/></to>
+        </wire>
+        <wire loc="59:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="DisseminationCache" ref="0x2b0918f2fa90" scoped=""/></from>
+          <to><interface-ref name="DisseminationCache" ref="0x2b0918f38998" scoped=""/></to>
+        </wire>
+        <wire loc="60:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="TrickleTimer" ref="0x2b0918f2ee10" scoped=""/></from>
+          <to><interface-ref name="TrickleTimer" ref="0x2b0918f336c0" scoped=""/></to>
+        </wire>
+        <wire loc="61:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="DisseminatorControl" ref="0x2b0918f2c1c8" scoped=""/></from>
+          <to><interface-ref name="DisseminatorControl" ref="0x2b0918f3da58" scoped=""/></to>
+        </wire>
+        <wire loc="64:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="AMSend" ref="0x2b0918f2c928" scoped=""/></from>
+          <to><interface-ref name="AMSend" ref="0x2b0918f7d208" scoped=""/></to>
+        </wire>
+        <wire loc="67:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="Receive" ref="0x2b0918f2b5c0" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b0918f78d90" scoped=""/></to>
+        </wire>
+        <wire loc="70:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="ProbeAMSend" ref="0x2b0918f2bc48" scoped=""/></from>
+          <to><interface-ref name="AMSend" ref="0x2b0918f73710" scoped=""/></to>
+        </wire>
+        <wire loc="74:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="ProbeReceive" ref="0x2b0918f29990" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b0918f6c5e0" scoped=""/></to>
+        </wire>
+        <wire loc="77:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationEngineP.nc">
+          <from><interface-ref name="Leds" ref="0x2b0918f28020" scoped=""/></from>
+          <to><interface-ref name="Leds" ref="0x2b0918f65020" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component></referenced></component>

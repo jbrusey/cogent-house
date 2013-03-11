@@ -1,0 +1,59 @@
+<?xml version="1.0" ?><component abstract="" loc="42:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430CounterC.nc" nicename="tos.chips.msp430.timer.Msp430CounterC" qname="Msp430CounterC" safe="">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430CounterC.nc">
+        <short>
+ Msp430Counter is a generic component that wraps the MSP430 HPL timers into a
+ TinyOS Counter.</short>
+        <long>
+ Msp430Counter is a generic component that wraps the MSP430 HPL timers into a
+ TinyOS Counter.
+
+ @author Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+ @see  Please refer to TEP 102 for more information about this component and its
+          intended use.
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="42:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430CounterC.nc" name="frequency_tag" ref="0x2b09174eca68">
+          <component-ref nicename="tos.chips.msp430.timer.Msp430CounterC" qname="Msp430CounterC"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="frequency_tag" ref="0x2b09174eca68" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <module/>
+    <specification><interface loc="45:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430CounterC.nc" name="Msp430Timer" provided="0" ref="0x2b09174e6680">
+      <component-ref nicename="tos.chips.msp430.timer.Msp430CounterC" qname="Msp430CounterC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Msp430Timer" ref="0x2b09174e6680" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430Timer" qname="Msp430Timer"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b09174e69d0" scoped=""/>
+        <function-ref name="setClockSource" ref="0x2b09174e6b58" scoped=""/>
+        <function-ref name="enableEvents" ref="0x2b09174e6ce0" scoped=""/>
+        <function-ref name="get" ref="0x2b09174e6e68" scoped=""/>
+        <function-ref name="disableEvents" ref="0x2b09174e5020" scoped=""/>
+        <function-ref name="clearOverflow" ref="0x2b09174e51a8" scoped=""/>
+        <function-ref name="getMode" ref="0x2b09174e5330" scoped=""/>
+        <function-ref name="isOverflowPending" ref="0x2b09174e54b8" scoped=""/>
+        <function-ref name="overflow" ref="0x2b09174e5640" scoped=""/>
+        <function-ref name="setMode" ref="0x2b09174e57c8" scoped=""/>
+        <function-ref name="setInputDivider" ref="0x2b09174e5950" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="44:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430CounterC.nc" name="Counter" provided="1" ref="0x2b09174e9660">
+      <component-ref nicename="tos.chips.msp430.timer.Msp430CounterC" qname="Msp430CounterC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Counter" ref="0x2b09174e9660" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Counter" qname="Counter"/>
+        <arguments>
+          <type-var alignment="U:" size="U:"><typedef-ref name="frequency_tag" ref="0x2b09174eca68" scoped=""/></type-var>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="get" ref="0x2b09174e83f0" scoped=""/>
+        <function-ref name="clearOverflow" ref="0x2b09174e8d00" scoped=""/>
+        <function-ref name="isOverflowPending" ref="0x2b09174e8878" scoped=""/>
+        <function-ref name="overflow" ref="0x2b09174e61f8" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

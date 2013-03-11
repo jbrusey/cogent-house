@@ -1,0 +1,679 @@
+<?xml version="1.0" ?><component loc="45:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+        <short>
+ A data collection service that uses a tree routing protocol
+ to deliver data to collection roots, following TEP 119.</short>
+        <long>
+ A data collection service that uses a tree routing protocol
+ to deliver data to collection roots, following TEP 119.
+
+ @author Rodrigo Fonseca
+ @author Omprakash Gnawali
+ @author Kyle Jamieson
+ @author Philip Levis
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="83:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="RootControl" ref="0x2b0917666940" scoped=""/></from>
+          <to><interface-ref name="RootControl" ref="0x2b091764f5b0" scoped=""/></to>
+        </wire>
+        <wire loc="78:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="CollectionPacket" ref="0x2b0917643940" scoped=""/></from>
+          <to><interface-ref name="CollectionPacket" ref="0x2b0917656620" scoped=""/></to>
+        </wire>
+        <wire loc="75:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="Intercept" ref="0x2b0917649b48" scoped=""/></from>
+          <to><interface-ref name="Intercept" ref="0x2b0917657398" scoped=""/></to>
+        </wire>
+        <wire loc="77:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="Packet" ref="0x2b09176162a8" scoped=""/></from>
+          <to><interface-ref name="Packet" ref="0x2b0917657970" scoped=""/></to>
+        </wire>
+        <wire loc="74:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="Snoop" ref="0x2b091761ad48" scoped=""/></from>
+          <to><interface-ref name="Snoop" ref="0x2b0917658810" scoped=""/></to>
+        </wire>
+        <wire loc="72:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="Send" ref="0x2b091761c628" scoped=""/></from>
+          <to><interface-ref name="Send" ref="0x2b091765aa88" scoped=""/></to>
+        </wire>
+        <wire loc="81:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="CtpInfo" ref="0x2b0917642b58" scoped=""/></from>
+          <to><interface-ref name="CtpInfo" ref="0x2b09176522b0" scoped=""/></to>
+        </wire>
+        <wire loc="73:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="Receive" ref="0x2b091761a208" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b0917659c88" scoped=""/></to>
+        </wire>
+        <wire loc="82:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="CtpCongestion" ref="0x2b0917669790" scoped=""/></from>
+          <to><interface-ref name="CtpCongestion" ref="0x2b0917650da8" scoped=""/></to>
+        </wire>
+        <wire loc="79:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="CtpPacket" ref="0x2b0917633d78" scoped=""/></from>
+          <to><interface-ref name="CtpPacket" ref="0x2b0917654450" scoped=""/></to>
+        </wire>
+        <wire loc="71:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="StdControl" ref="0x2b091761e998" scoped=""/></from>
+          <to><interface-ref name="StdControl" ref="0x2b0917665d98" scoped=""/></to>
+        </wire>
+        <wire loc="85:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="CollectionId" ref="0x2b09176844c0" scoped=""/></from>
+          <to><interface-ref name="CollectionId" ref="0x2b09176675b8" scoped=""/></to>
+        </wire>
+        <wire loc="86:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc">
+          <from><interface-ref name="CollectionDebug" ref="0x2b0917684bf0" scoped=""/></from>
+          <to><interface-ref name="CollectionDebug" ref="0x2b091765c640" scoped=""/></to>
+        </wire>
+      </wiring>
+    <specification><interface loc="59:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="RootControl" provided="1" ref="0x2b0917666940">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="RootControl" ref="0x2b0917666940" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.RootControl" qname="RootControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="isRoot" ref="0x2b0917666c90" scoped=""/>
+        <function-ref name="setRoot" ref="0x2b0917666e18" scoped=""/>
+        <function-ref name="unsetRoot" ref="0x2b091762f020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="54:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="CollectionPacket" provided="1" ref="0x2b0917643940">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CollectionPacket" ref="0x2b0917643940" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setSequenceNumber" ref="0x2b0917643c90" scoped=""/>
+        <function-ref name="setOrigin" ref="0x2b0917643e18" scoped=""/>
+        <function-ref name="setType" ref="0x2b091764b020" scoped=""/>
+        <function-ref name="getOrigin" ref="0x2b091764b1a8" scoped=""/>
+        <function-ref name="getSequenceNumber" ref="0x2b091764b330" scoped=""/>
+        <function-ref name="getType" ref="0x2b091764b4b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="64:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="CollectionDebug" provided="0" ref="0x2b091765c640">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CollectionDebug" ref="0x2b091765c640" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.CollectionDebug" qname="CollectionDebug"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="logEvent" ref="0x2b091765ca90" scoped=""/>
+        <function-ref name="logEventMsg" ref="0x2b091765cc18" scoped=""/>
+        <function-ref name="logEventSimple" ref="0x2b091765cda0" scoped=""/>
+        <function-ref name="logEventRoute" ref="0x2b0917665020" scoped=""/>
+        <function-ref name="logEventDbg" ref="0x2b09176651a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="51:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="Intercept" provided="1" ref="0x2b0917649b48">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Intercept" ref="0x2b0917649b48" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Intercept" qname="Intercept"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="forward" ref="0x2b0917616020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="53:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="Packet" provided="1" ref="0x2b09176162a8">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Packet" ref="0x2b09176162a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b09176165f8" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b0917616780" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b0917616908" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b0917616a90" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b0917616c18" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="50:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="Snoop" provided="1" ref="0x2b091761ad48">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Snoop" ref="0x2b091761ad48" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b09176190d8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="48:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="Send" provided="1" ref="0x2b091761c628">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Send" ref="0x2b091761c628" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Send" qname="Send"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b091761c978" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b091761cb00" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b091761cc88" scoped=""/>
+        <function-ref name="cancel" ref="0x2b091761ce10" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b091761b020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="57:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="CtpInfo" provided="1" ref="0x2b0917642b58">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CtpInfo" ref="0x2b0917642b58" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNeighborLinkQuality" ref="0x2b0917632020" scoped=""/>
+        <function-ref name="recomputeRoutes" ref="0x2b09176321a8" scoped=""/>
+        <function-ref name="numNeighbors" ref="0x2b0917632330" scoped=""/>
+        <function-ref name="triggerRouteUpdate" ref="0x2b09176324b8" scoped=""/>
+        <function-ref name="getEtx" ref="0x2b0917632640" scoped=""/>
+        <function-ref name="triggerImmediateRouteUpdate" ref="0x2b09176327c8" scoped=""/>
+        <function-ref name="setNeighborCongested" ref="0x2b0917632950" scoped=""/>
+        <function-ref name="getNeighborAddr" ref="0x2b0917632ad8" scoped=""/>
+        <function-ref name="getParent" ref="0x2b0917632c60" scoped=""/>
+        <function-ref name="getNeighborRouteQuality" ref="0x2b0917632de8" scoped=""/>
+        <function-ref name="isNeighborCongested" ref="0x2b0917631020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="49:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="Receive" provided="1" ref="0x2b091761a208">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Receive" ref="0x2b091761a208" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b091761a558" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="58:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="CtpCongestion" provided="1" ref="0x2b0917669790">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CtpCongestion" ref="0x2b0917669790" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpCongestion" qname="CtpCongestion"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="isCongested" ref="0x2b0917669ae0" scoped=""/>
+        <function-ref name="setClientCongested" ref="0x2b0917669c68" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="55:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="CtpPacket" provided="1" ref="0x2b0917633d78">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CtpPacket" ref="0x2b0917633d78" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpPacket" qname="CtpPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setSequenceNumber" ref="0x2b09176480f0" scoped=""/>
+        <function-ref name="option" ref="0x2b0917648278" scoped=""/>
+        <function-ref name="setEtx" ref="0x2b0917648400" scoped=""/>
+        <function-ref name="setOrigin" ref="0x2b0917648588" scoped=""/>
+        <function-ref name="clearOption" ref="0x2b0917648710" scoped=""/>
+        <function-ref name="getEtx" ref="0x2b0917648898" scoped=""/>
+        <function-ref name="getOrigin" ref="0x2b0917648a20" scoped=""/>
+        <function-ref name="setType" ref="0x2b0917648ba8" scoped=""/>
+        <function-ref name="setOption" ref="0x2b0917648d30" scoped=""/>
+        <function-ref name="matchPacket" ref="0x2b0917642020" scoped=""/>
+        <function-ref name="getThl" ref="0x2b09176421a8" scoped=""/>
+        <function-ref name="getSequenceNumber" ref="0x2b0917642330" scoped=""/>
+        <function-ref name="matchInstance" ref="0x2b09176424b8" scoped=""/>
+        <function-ref name="getType" ref="0x2b0917642740" scoped=""/>
+        <function-ref name="setThl" ref="0x2b09176428c8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="47:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="StdControl" provided="1" ref="0x2b091761e998">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StdControl" ref="0x2b091761e998" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b091761ece8" scoped=""/>
+        <function-ref name="stop" ref="0x2b091761ee70" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="63:/opt/tinyos-main-read-only/tos/lib/net/ctp/CollectionC.nc" name="CollectionId" provided="0" ref="0x2b09176675b8">
+      <component-ref nicename="tos.lib.net.ctp.CollectionC" qname="CollectionC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CollectionId" ref="0x2b09176675b8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.CollectionId" qname="CollectionId"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="fetch" ref="0x2b0917667908" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced><interface loc="83:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="Intercept" provided="1" ref="0x2b0917657398">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Intercept" ref="0x2b0917657398" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Intercept" qname="Intercept"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="forward" ref="0x2b09176576e8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="79:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="StdControl" provided="1" ref="0x2b0917665d98">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StdControl" ref="0x2b0917665d98" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b091765a170" scoped=""/>
+        <function-ref name="stop" ref="0x2b091765a2f8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="82:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="Snoop" provided="1" ref="0x2b0917658810">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Snoop" ref="0x2b0917658810" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b0917658b60" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="96:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="CollectionId" provided="0" ref="0x2b09176844c0">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CollectionId" ref="0x2b09176844c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.CollectionId" qname="CollectionId"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="fetch" ref="0x2b0917684910" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="81:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="Receive" provided="1" ref="0x2b0917659c88">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Receive" ref="0x2b0917659c88" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b0917658020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="85:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="Packet" provided="1" ref="0x2b0917657970">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Packet" ref="0x2b0917657970" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b0917657cc0" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b0917657e48" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b0917656020" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09176561a8" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b0917656330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="89:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="CtpInfo" provided="1" ref="0x2b09176522b0">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CtpInfo" ref="0x2b09176522b0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNeighborLinkQuality" ref="0x2b0917652600" scoped=""/>
+        <function-ref name="recomputeRoutes" ref="0x2b0917652788" scoped=""/>
+        <function-ref name="numNeighbors" ref="0x2b0917652910" scoped=""/>
+        <function-ref name="triggerRouteUpdate" ref="0x2b0917652a98" scoped=""/>
+        <function-ref name="getEtx" ref="0x2b0917652c20" scoped=""/>
+        <function-ref name="triggerImmediateRouteUpdate" ref="0x2b0917652da8" scoped=""/>
+        <function-ref name="setNeighborCongested" ref="0x2b0917651020" scoped=""/>
+        <function-ref name="getNeighborAddr" ref="0x2b09176511a8" scoped=""/>
+        <function-ref name="getParent" ref="0x2b0917651330" scoped=""/>
+        <function-ref name="getNeighborRouteQuality" ref="0x2b09176514b8" scoped=""/>
+        <function-ref name="isNeighborCongested" ref="0x2b0917651640" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="91:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="CtpCongestion" provided="1" ref="0x2b0917650da8">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CtpCongestion" ref="0x2b0917650da8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpCongestion" qname="CtpCongestion"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="isCongested" ref="0x2b091764f170" scoped=""/>
+        <function-ref name="setClientCongested" ref="0x2b091764f2f8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="80:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="Send" provided="1" ref="0x2b091765aa88">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Send" ref="0x2b091765aa88" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Send" qname="Send"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b091765add8" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b0917659020" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09176591a8" scoped=""/>
+        <function-ref name="cancel" ref="0x2b0917659330" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b09176594b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="86:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="CollectionPacket" provided="1" ref="0x2b0917656620">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CollectionPacket" ref="0x2b0917656620" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setSequenceNumber" ref="0x2b0917656970" scoped=""/>
+        <function-ref name="setOrigin" ref="0x2b0917656af8" scoped=""/>
+        <function-ref name="setType" ref="0x2b0917656c80" scoped=""/>
+        <function-ref name="getOrigin" ref="0x2b0917656e08" scoped=""/>
+        <function-ref name="getSequenceNumber" ref="0x2b0917654020" scoped=""/>
+        <function-ref name="getType" ref="0x2b09176541a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="87:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="CtpPacket" provided="1" ref="0x2b0917654450">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CtpPacket" ref="0x2b0917654450" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpPacket" qname="CtpPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setSequenceNumber" ref="0x2b09176547a0" scoped=""/>
+        <function-ref name="option" ref="0x2b0917654928" scoped=""/>
+        <function-ref name="setEtx" ref="0x2b0917654ab0" scoped=""/>
+        <function-ref name="setOrigin" ref="0x2b0917654c38" scoped=""/>
+        <function-ref name="clearOption" ref="0x2b0917654dc0" scoped=""/>
+        <function-ref name="getEtx" ref="0x2b0917653020" scoped=""/>
+        <function-ref name="getOrigin" ref="0x2b09176531a8" scoped=""/>
+        <function-ref name="setType" ref="0x2b0917653330" scoped=""/>
+        <function-ref name="setOption" ref="0x2b09176534b8" scoped=""/>
+        <function-ref name="matchPacket" ref="0x2b0917653640" scoped=""/>
+        <function-ref name="getThl" ref="0x2b09176537c8" scoped=""/>
+        <function-ref name="getSequenceNumber" ref="0x2b0917653950" scoped=""/>
+        <function-ref name="matchInstance" ref="0x2b0917653ad8" scoped=""/>
+        <function-ref name="getType" ref="0x2b0917653d60" scoped=""/>
+        <function-ref name="setThl" ref="0x2b0917652020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="92:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="RootControl" provided="1" ref="0x2b091764f5b0">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="RootControl" ref="0x2b091764f5b0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.RootControl" qname="RootControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="isRoot" ref="0x2b091764f900" scoped=""/>
+        <function-ref name="setRoot" ref="0x2b091764fa88" scoped=""/>
+        <function-ref name="unsetRoot" ref="0x2b091764fc10" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="97:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" name="CollectionDebug" provided="0" ref="0x2b0917684bf0">
+      <component-ref nicename="tos.lib.net.ctp.CtpP" qname="CtpP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CollectionDebug" ref="0x2b0917684bf0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.CollectionDebug" qname="CollectionDebug"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="logEvent" ref="0x2b0917683020" scoped=""/>
+        <function-ref name="logEventMsg" ref="0x2b09176831a8" scoped=""/>
+        <function-ref name="logEventSimple" ref="0x2b0917683330" scoped=""/>
+        <function-ref name="logEventRoute" ref="0x2b09176834b8" scoped=""/>
+        <function-ref name="logEventDbg" ref="0x2b0917683640" scoped=""/>
+      </interface-functions>
+    </interface><component loc="77:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc" nicename="tos.lib.net.ctp.CtpP" qname="CtpP">
+      <documentation loc="66:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+        <short>
+ A data collection service that uses a tree routing protocol
+ to deliver data to collection roots, following TEP 119.</short>
+        <long>
+ A data collection service that uses a tree routing protocol
+ to deliver data to collection roots, following TEP 119.
+
+ @author Rodrigo Fonseca
+ @author Omprakash Gnawali
+ @author Kyle Jamieson
+ @author Philip Levis
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="149:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="RootControl" ref="0x2b091764f5b0" scoped=""/></from>
+          <to><interface-ref name="RootControl" ref="0x2b091882ae08" scoped=""/></to>
+        </wire>
+        <wire loc="121:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CollectionPacket" ref="0x2b0917656620" scoped=""/></from>
+          <to><interface-ref name="CollectionPacket" ref="0x2b09184a5700" scoped=""/></to>
+        </wire>
+        <wire loc="190:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="LinkEstimator" ref="0x2b0917685bc8" scoped=""/></from>
+          <to><interface-ref name="LinkEstimator" ref="0x2b09185bcbe0" scoped=""/></to>
+        </wire>
+        <wire loc="118:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Intercept" ref="0x2b0917657398" scoped=""/></from>
+          <to><interface-ref name="Intercept" ref="0x2b09184a74d8" scoped=""/></to>
+        </wire>
+        <wire loc="119:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Packet" ref="0x2b0917657970" scoped=""/></from>
+          <to><interface-ref name="Packet" ref="0x2b09184a7a90" scoped=""/></to>
+        </wire>
+        <wire loc="117:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Snoop" ref="0x2b0917658810" scoped=""/></from>
+          <to><interface-ref name="Snoop" ref="0x2b09184a8db0" scoped=""/></to>
+        </wire>
+        <wire loc="114:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Send" ref="0x2b091765aa88" scoped=""/></from>
+          <to><interface-ref name="Send" ref="0x2b09184a9860" scoped=""/></to>
+        </wire>
+        <wire loc="165:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CtpInfo" ref="0x2b09176522b0" scoped=""/></from>
+          <to><interface-ref name="CtpInfo" ref="0x2b0918829700" scoped=""/></to>
+        </wire>
+        <wire loc="116:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Receive" ref="0x2b0917659c88" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b09184a8698" scoped=""/></to>
+        </wire>
+        <wire loc="123:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CtpCongestion" ref="0x2b0917650da8" scoped=""/></from>
+          <to><interface-ref name="CtpCongestion" ref="0x2b09184a23f0" scoped=""/></to>
+        </wire>
+        <wire loc="122:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CtpPacket" ref="0x2b0917654450" scoped=""/></from>
+          <to><interface-ref name="CtpPacket" ref="0x2b09184a4578" scoped=""/></to>
+        </wire>
+        <wire loc="148:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="StdControl" ref="0x2b0917665d98" scoped=""/></from>
+          <to><interface-ref name="StdControl" ref="0x2b09185bd1a8" scoped=""/></to>
+        </wire>
+        <wire loc="147:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="StdControl" ref="0x2b0917665d98" scoped=""/></from>
+          <to><interface-ref name="StdControl" ref="0x2b0918828d20" scoped=""/></to>
+        </wire>
+        <wire loc="115:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="StdControl" ref="0x2b0917665d98" scoped=""/></from>
+          <to><interface-ref name="StdControl" ref="0x2b09184a9020" scoped=""/></to>
+        </wire>
+        <wire loc="120:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CollectionId" ref="0x2b09184fc698" scoped=""/></from>
+          <to><interface-ref name="CollectionId" ref="0x2b09176844c0" scoped=""/></to>
+        </wire>
+        <wire loc="127:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="QEntryPool" ref="0x2b09185080e0" scoped=""/></from>
+          <to><interface-ref name="Pool" ref="0x2b091853a228" scoped=""/></to>
+        </wire>
+        <wire loc="128:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="MessagePool" ref="0x2b0918506868" scoped=""/></from>
+          <to><interface-ref name="Pool" ref="0x2b09184ec020" scoped=""/></to>
+        </wire>
+        <wire loc="131:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SendQueue" ref="0x2b0918499d58" scoped=""/></from>
+          <to><interface-ref name="Queue" ref="0x2b09185346e0" scoped=""/></to>
+        </wire>
+        <wire loc="134:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SentCache" ref="0x2b0918501020" scoped=""/></from>
+          <to><interface-ref name="Cache" ref="0x2b091855fe10" scoped=""/></to>
+        </wire>
+        <wire loc="139:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="LinkEstimator" ref="0x2b091849b3f8" scoped=""/></from>
+          <to><interface-ref name="LinkEstimator" ref="0x2b09185bcbe0" scoped=""/></to>
+        </wire>
+        <wire loc="226:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b09185bbd50" scoped=""/></to>
+        </wire>
+        <wire loc="175:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b09184aa980" scoped=""/></to>
+        </wire>
+        <wire loc="150:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b0918826578" scoped=""/></to>
+        </wire>
+        <wire loc="151:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="BeaconSend" ref="0x2b0918826bb0" scoped=""/></from>
+          <to><interface-ref name="Send" ref="0x2b09185bd978" scoped=""/></to>
+        </wire>
+        <wire loc="152:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="BeaconReceive" ref="0x2b09188258c8" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b09185bc5c0" scoped=""/></to>
+        </wire>
+        <wire loc="153:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="LinkEstimator" ref="0x2b0918825e60" scoped=""/></from>
+          <to><interface-ref name="LinkEstimator" ref="0x2b09185bcbe0" scoped=""/></to>
+        </wire>
+        <wire loc="155:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CompareBit" ref="0x2b0918814060" scoped=""/></from>
+          <to><interface-ref name="CompareBit" ref="0x2b09185b8020" scoped=""/></to>
+        </wire>
+        <wire loc="157:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="AMPacket" ref="0x2b0918823020" scoped=""/></from>
+          <to><interface-ref name="AMPacket" ref="0x2b091769b0f0" scoped=""/></to>
+        </wire>
+        <wire loc="158:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="RadioControl" ref="0x2b09188225b8" scoped=""/></from>
+          <to><interface-ref name="SplitControl" ref="0x2b091767e020" scoped=""/></to>
+        </wire>
+        <wire loc="159:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="BeaconTimer" ref="0x2b0918821168" scoped=""/></from>
+          <to><interface-ref name="Timer" ref="0x2b091855ccf8" scoped=""/></to>
+        </wire>
+        <wire loc="160:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="RouteTimer" ref="0x2b091881c540" scoped=""/></from>
+          <to><interface-ref name="Timer" ref="0x2b0918555350" scoped=""/></to>
+        </wire>
+        <wire loc="161:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CollectionDebug" ref="0x2b0918817cb8" scoped=""/></from>
+          <to><interface-ref name="CollectionDebug" ref="0x2b0917684bf0" scoped=""/></to>
+        </wire>
+        <wire loc="162:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CollectionDebug" ref="0x2b09184f8268" scoped=""/></from>
+          <to><interface-ref name="CollectionDebug" ref="0x2b0917684bf0" scoped=""/></to>
+        </wire>
+        <wire loc="163:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CtpInfo" ref="0x2b09184ff5b8" scoped=""/></from>
+          <to><interface-ref name="CtpInfo" ref="0x2b0918829700" scoped=""/></to>
+        </wire>
+        <wire loc="164:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="CtpCongestion" ref="0x2b0918815908" scoped=""/></from>
+          <to><interface-ref name="CtpCongestion" ref="0x2b09184a23f0" scoped=""/></to>
+        </wire>
+        <wire loc="169:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="RetxmitTimer" ref="0x2b09184a03b0" scoped=""/></from>
+          <to><interface-ref name="Timer" ref="0x2b091880b350" scoped=""/></to>
+        </wire>
+        <wire loc="172:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Random" ref="0x2b0918817598" scoped=""/></from>
+          <to><interface-ref name="Random" ref="0x2b0918125b98" scoped=""/></to>
+        </wire>
+        <wire loc="173:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Random" ref="0x2b09184f9a10" scoped=""/></from>
+          <to><interface-ref name="Random" ref="0x2b0918125b98" scoped=""/></to>
+        </wire>
+        <wire loc="176:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SubSend" ref="0x2b09184a2bb0" scoped=""/></from>
+          <to><interface-ref name="AMSend" ref="0x2b091866bda8" scoped=""/></to>
+        </wire>
+        <wire loc="177:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SubReceive" ref="0x2b0918500940" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b091872e1c8" scoped=""/></to>
+        </wire>
+        <wire loc="178:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SubSnoop" ref="0x2b09184ff020" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b09187241c8" scoped=""/></to>
+        </wire>
+        <wire loc="179:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SubPacket" ref="0x2b0918499020" scoped=""/></from>
+          <to><interface-ref name="Packet" ref="0x2b09186be9d8" scoped=""/></to>
+        </wire>
+        <wire loc="180:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="RootControl" ref="0x2b09184feb98" scoped=""/></from>
+          <to><interface-ref name="RootControl" ref="0x2b091882ae08" scoped=""/></to>
+        </wire>
+        <wire loc="181:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="UnicastNameFreeRouting" ref="0x2b091849a578" scoped=""/></from>
+          <to><interface-ref name="Routing" ref="0x2b091882a3d8" scoped=""/></to>
+        </wire>
+        <wire loc="182:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="RadioControl" ref="0x2b09184f8e60" scoped=""/></from>
+          <to><interface-ref name="SplitControl" ref="0x2b091767e020" scoped=""/></to>
+        </wire>
+        <wire loc="183:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="PacketAcknowledgements" ref="0x2b09184a1888" scoped=""/></from>
+          <to><interface-ref name="Acks" ref="0x2b09186bcd60" scoped=""/></to>
+        </wire>
+        <wire loc="184:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="AMPacket" ref="0x2b09184fce50" scoped=""/></from>
+          <to><interface-ref name="AMPacket" ref="0x2b09186bd700" scoped=""/></to>
+        </wire>
+        <wire loc="185:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Leds" ref="0x2b09184fa3f0" scoped=""/></from>
+          <to><interface-ref name="Leds" ref="0x2b091720da38" scoped=""/></to>
+        </wire>
+        <wire loc="192:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="Random" ref="0x2b09185b2328" scoped=""/></from>
+          <to><interface-ref name="Random" ref="0x2b0918125b98" scoped=""/></to>
+        </wire>
+        <wire loc="194:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="AMSend" ref="0x2b09185b8678" scoped=""/></from>
+          <to><interface-ref name="AMSend" ref="0x2b09188011a8" scoped=""/></to>
+        </wire>
+        <wire loc="195:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SubReceive" ref="0x2b09185b3668" scoped=""/></from>
+          <to><interface-ref name="Receive" ref="0x2b09187fb710" scoped=""/></to>
+        </wire>
+        <wire loc="196:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SubPacket" ref="0x2b09185b4968" scoped=""/></from>
+          <to><interface-ref name="Packet" ref="0x2b0918801d60" scoped=""/></to>
+        </wire>
+        <wire loc="197:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="SubAMPacket" ref="0x2b09185b5370" scoped=""/></from>
+          <to><interface-ref name="AMPacket" ref="0x2b0918800940" scoped=""/></to>
+        </wire>
+        <wire loc="221:/opt/tinyos-main-read-only/tos/lib/net/ctp/CtpP.nc">
+          <from><interface-ref name="LinkPacketMetadata" ref="0x2b09185b3cb8" scoped=""/></from>
+          <to><interface-ref name="LinkPacketMetadata" ref="0x2b09176e07b0" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component></referenced></component>

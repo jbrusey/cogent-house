@@ -1,0 +1,21 @@
+<?xml version="1.0" ?><component loc="4:/opt/tinyos-main-read-only/tos/platforms/epic/chips/ds2411/DallasId48ToIeeeEui64C.nc" nicename="tos.platforms.epic.chips.ds2411.DallasId48ToIeeeEui64C" qname="DallasId48ToIeeeEui64C">
+      <module/>
+    <specification><interface loc="5:/opt/tinyos-main-read-only/tos/platforms/epic/chips/ds2411/DallasId48ToIeeeEui64C.nc" name="LocalIeeeEui64" provided="1" ref="0x2b0917ebf020">
+      <component-ref nicename="tos.platforms.epic.chips.ds2411.DallasId48ToIeeeEui64C" qname="DallasId48ToIeeeEui64C"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="LocalIeeeEui64" ref="0x2b0917ebf020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.LocalIeeeEui64" qname="LocalIeeeEui64"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getId" ref="0x2b0917ebf370" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="6:/opt/tinyos-main-read-only/tos/platforms/epic/chips/ds2411/DallasId48ToIeeeEui64C.nc" name="ReadId48" provided="0" ref="0x2b0917ebf650">
+      <component-ref nicename="tos.platforms.epic.chips.ds2411.DallasId48ToIeeeEui64C" qname="DallasId48ToIeeeEui64C"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadId48" ref="0x2b0917ebf650" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.platforms.epic.chips.ds2411.ReadId48" qname="ReadId48"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0917ebf9a0" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

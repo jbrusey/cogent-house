@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Boot</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Boot</h2>
+    <b>interface Boot</b><p>
+ Interface that notifies components when TinyOS has booted
+ (initialized all of its components), as discussed in TEP 107.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          January 5 2005
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#booted">booted</a>()
+      </span><menu>
+ Signaled when the system has booted successfully.
+      </menu>
+    </div><p><div id=heading>Events - Details</div>
+    <a name="booted"></a>
+    <h4>booted
+    </h4>
+    <span id=funcnameshort>event void <b>booted</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signaled when the system has booted successfully. Components can
+ assume the system has been initialized properly. Services may
+ need to be started to work, however.
+
+ 
+      <p>
+      <dl>
+        <dt><b>See:</b>
+        <dd>
+          StdControl
+ 
+        </dd>
+        <dd>
+          SplitConrol
+ 
+        </dd>
+        <dd>
+          TEP 107: Boot Sequence
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

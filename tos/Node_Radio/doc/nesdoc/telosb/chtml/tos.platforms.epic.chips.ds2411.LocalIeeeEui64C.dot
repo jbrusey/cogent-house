@@ -1,0 +1,8 @@
+digraph "tos.platforms.epic.chips.ds2411.LocalIeeeEui64C" {
+  n0x2b0917e33ce0 [shape=ellipse, style=filled, label="LocalIeeeEui64", fontsize=12];
+  "DallasId48ToIeeeEui64C" [fontsize=12, shape=box, URL="../chtml/tos.platforms.epic.chips.ds2411.DallasId48ToIeeeEui64C.html"];
+  "DallasId48ToIeeeEui64C" [fontsize=12, shape=box, URL="../chtml/tos.platforms.epic.chips.ds2411.DallasId48ToIeeeEui64C.html"];
+  "Ds2411C" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.platforms.epic.chips.ds2411.Ds2411C.html"];
+  "n0x2b0917e33ce0" -> "DallasId48ToIeeeEui64C" [label="LocalIeeeEui64", URL="../ihtml/tos.interfaces.LocalIeeeEui64.html", fontsize=10];
+  "DallasId48ToIeeeEui64C" -> "Ds2411C" [label="ReadId48", URL="../ihtml/tos.platforms.epic.chips.ds2411.ReadId48.html", fontsize=10];
+}

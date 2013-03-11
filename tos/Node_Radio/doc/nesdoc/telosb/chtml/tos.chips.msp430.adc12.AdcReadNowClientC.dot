@@ -1,0 +1,19 @@
+digraph "tos.chips.msp430.adc12.AdcReadNowClientC" {
+  n0x2b0918e598a8 [shape=ellipse, style=filled, label="ReadNow", fontsize=12];
+  "AdcP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcP.html"];
+  n0x2b0918dc7a40 [shape=ellipse, style=filled, label="Resource", fontsize=12];
+  "AdcP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcP.html"];
+  "AdcP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcP.html"];
+  n0x2b0918e572e0 [shape=ellipse, style=filled, label="AdcConfigure", fontsize=12];
+  "AdcP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcP.html"];
+  "AdcReadNowClientC.Msp430AdcClient" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Adc12ClientAutoRVGC\n(Msp430AdcClient)", URL="../chtml/tos.chips.msp430.adc12.Msp430Adc12ClientAutoRVGC.html"];
+  "AdcP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcP.html"];
+  "AdcReadNowClientC.Msp430AdcClient" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Adc12ClientAutoRVGC\n(Msp430AdcClient)", URL="../chtml/tos.chips.msp430.adc12.Msp430Adc12ClientAutoRVGC.html"];
+  "AdcReadNowClientC.Msp430AdcClient" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Adc12ClientAutoRVGC\n(Msp430AdcClient)", URL="../chtml/tos.chips.msp430.adc12.Msp430Adc12ClientAutoRVGC.html"];
+  "n0x2b0918e598a8" -> "AdcP" [label="ReadNow<uint16_t>", URL="../ihtml/tos.interfaces.ReadNow.html", fontsize=10];
+  "n0x2b0918dc7a40" -> "AdcP" [label="Resource", URL="../ihtml/tos.interfaces.Resource.html", fontsize=10];
+  "AdcP" -> "n0x2b0918e572e0" [label="AdcConfigure<msp430adc12_channel_config_t *>[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "AdcP" -> "AdcReadNowClientC.Msp430AdcClient" [label="Msp430Adc12SingleChannel[uint8_t]", style=bold, URL="../ihtml/tos.chips.msp430.adc12.Msp430Adc12SingleChannel.html", fontsize=10];
+  "AdcP" -> "AdcReadNowClientC.Msp430AdcClient" [label="Resource[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.Resource.html", fontsize=10];
+  "AdcReadNowClientC.Msp430AdcClient" -> "n0x2b0918e572e0" [label="AdcConfigure<msp430adc12_channel_config_t *>", URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+}

@@ -1,0 +1,41 @@
+<?xml version="1.0" ?><interfacedef loc="5:./Predict/Predict.nc" nicename="..Predict.Predict" qname="Predict">
+      <function command="" loc="11:./Predict/Predict.nc" name="predictState" provided="0" ref="0x2b091906ca88">
+        <documentation loc="6:./Predict/Predict.nc">
+          <short>
+ Get prediction of state based on a past state and current time.</short>
+          <long>
+ Get prediction of state based on a past state and current time.
+ @param fs &quot;ONE FilterState *&quot; state to use as basis for prediction
+ @param t time to predict for (usually the current time or the sense time)
+</long>
+        </documentation>
+        <interfacedef-ref nicename="..Predict.Predict" qname="Predict"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-float alignment="I:2" cname="float" size="I:4"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+                <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="11:./Predict/Predict.nc" name="fs" ref="0x2b091906c4f8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+                <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="11:./Predict/Predict.nc" name="t" ref="0x2b091906c808">
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

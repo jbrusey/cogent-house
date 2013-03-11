@@ -1,0 +1,23 @@
+digraph "tos.lib.net.TrickleTimerMilliC" {
+  n0x2b0918fb2020 [shape=ellipse, style=filled, label="TrickleTimer", fontsize=12];
+  "TrickleTimerMilliC.TrickleTimerImplP" [fontsize=12, shape=box, style=dashed, label="TrickleTimerImplP", URL="../chtml/tos.lib.net.TrickleTimerImplP.html"];
+  "TrickleTimerMilliC.TrickleTimerImplP" [fontsize=12, shape=box, style=dashed, label="TrickleTimerImplP", URL="../chtml/tos.lib.net.TrickleTimerImplP.html"];
+  "TrickleTimerMilliC.TimerMilliC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="TimerMilliC", URL="../chtml/tos.system.TimerMilliC.html"];
+  "TrickleTimerMilliC.TrickleTimerImplP" [fontsize=12, shape=box, style=dashed, label="TrickleTimerImplP", URL="../chtml/tos.lib.net.TrickleTimerImplP.html"];
+  "RandomC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.RandomC.html"];
+  "TrickleTimerMilliC.TrickleTimerImplP" [fontsize=12, shape=box, style=dashed, label="TrickleTimerImplP", URL="../chtml/tos.lib.net.TrickleTimerImplP.html"];
+  "TrickleTimerMilliC.ChangeVector" [fontsize=12, shape=box, style=dashed, label="BitVectorC\n(ChangeVector)", URL="../chtml/tos.system.BitVectorC.html"];
+  "TrickleTimerMilliC.TrickleTimerImplP" [fontsize=12, shape=box, style=dashed, label="TrickleTimerImplP", URL="../chtml/tos.lib.net.TrickleTimerImplP.html"];
+  "TrickleTimerMilliC.PendingVector" [fontsize=12, shape=box, style=dashed, label="BitVectorC\n(PendingVector)", URL="../chtml/tos.system.BitVectorC.html"];
+  "TrickleTimerMilliC.TrickleTimerImplP" [fontsize=12, shape=box, style=dashed, label="TrickleTimerImplP", URL="../chtml/tos.lib.net.TrickleTimerImplP.html"];
+  "LedsC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.LedsC.html"];
+  "MainC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.MainC.html"];
+  "TrickleTimerMilliC.TrickleTimerImplP" [fontsize=12, shape=box, style=dashed, label="TrickleTimerImplP", URL="../chtml/tos.lib.net.TrickleTimerImplP.html"];
+  "n0x2b0918fb2020" -> "TrickleTimerMilliC.TrickleTimerImplP" [label="TrickleTimer[uint8_t]", style=bold, URL="../ihtml/tos.lib.net.TrickleTimer.html", fontsize=10];
+  "TrickleTimerMilliC.TrickleTimerImplP" -> "TrickleTimerMilliC.TimerMilliC" [label="Timer<TMilli>", URL="../ihtml/tos.lib.timer.Timer.html", fontsize=10];
+  "TrickleTimerMilliC.TrickleTimerImplP" -> "RandomC" [label="Random", URL="../ihtml/tos.interfaces.Random.html", fontsize=10];
+  "TrickleTimerMilliC.TrickleTimerImplP" -> "TrickleTimerMilliC.ChangeVector" [label="BitVector", URL="../ihtml/tos.interfaces.BitVector.html", fontsize=10];
+  "TrickleTimerMilliC.TrickleTimerImplP" -> "TrickleTimerMilliC.PendingVector" [label="BitVector", URL="../ihtml/tos.interfaces.BitVector.html", fontsize=10];
+  "TrickleTimerMilliC.TrickleTimerImplP" -> "LedsC" [label="Leds", URL="../ihtml/tos.interfaces.Leds.html", fontsize=10];
+  "MainC" -> "TrickleTimerMilliC.TrickleTimerImplP" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
+}

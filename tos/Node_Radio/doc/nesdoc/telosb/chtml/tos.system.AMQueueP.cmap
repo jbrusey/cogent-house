@@ -1,0 +1,10 @@
+<area shape="rect" id="node2" href="../chtml/tos.system.AMQueueImplP.html" title="AMQueueImplP" alt="" coords="86,120,225,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Send.html" title="Send[uint8_t]" alt="" coords="158,54 158,106 153,106 153,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Send.html" title="Send[uint8_t]" alt="" coords="156,78,244,95">
+<area shape="rect" id="node3" href="../chtml/tos.platforms.telosa.ActiveMessageC.html" title="ActiveMessageC" alt="" coords="77,235,234,293">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.AMSend.html" title="AMSend[am_id_t]" alt="" coords="87,162 41,176 24,185 14,194 9,203 8,211 17,225 37,237 65,246 63,251 35,242 14,229 3,212 4,201 10,190 21,180 39,171 85,157">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.AMSend.html" title="AMSend[am_id_t]" alt="" coords="12,193,126,210">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.AMPacket.html" title="AMPacket" alt="" coords="158,168 158,221 153,221 153,168">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.AMPacket.html" title="AMPacket" alt="" coords="156,193,218,210">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.Packet.html" title="Packet" alt="" coords="202,167 222,191 225,209 217,225 212,223 219,208 217,193 198,170">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.Packet.html" title="Packet" alt="" coords="222,193,265,210">

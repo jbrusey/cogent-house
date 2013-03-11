@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.system.ArbitratedReadStreamC</title>
+  </head>
+  <body>
+    <h2>Component: tos.system.ArbitratedReadStreamC
+    </h2>
+    <b>generic module ArbitratedReadStreamC(uint8_t nClients, typedef val_t)</b>
+    <p>
+ Implement arbitrated access to a Read interface, based on an
+ underlying arbitrated Resource interface.
+
+ Note that this code does not deal with unexpected events: it assumes
+ that all events it receives are in response to commands that it
+ made. See tos/chips/atm128/adc for an example of using
+ ArbitratedReadStreamC in a safe way.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>width_t</code> -  Width of the underlying ReadStream interface.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        David Gay
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.ReadStream.html">ReadStream</a>&lt;val_t&gt;[uint8_t]</div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Resource.html">Resource</a>[uint8_t]</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.ReadStream.html">ReadStream</a>&lt;val_t&gt; as <b>Service</b>[uint8_t]</div>
+  </body>
+</html>

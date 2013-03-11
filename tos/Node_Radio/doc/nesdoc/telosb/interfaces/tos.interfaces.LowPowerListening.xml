@@ -1,0 +1,138 @@
+<?xml version="1.0" ?><interfacedef loc="41:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" nicename="tos.interfaces.LowPowerListening" qname="LowPowerListening">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc">
+        <short>
+ Low Power Listening interface
+
+ </short>
+        <long>
+ Low Power Listening interface
+
+ @author Jonathan Hui
+ @author David Moss
+</long>
+      </documentation>
+      <function command="" loc="65:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="setRemoteWakeupInterval" provided="0" ref="0x2b0917159608">
+        <documentation loc="59:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc">
+          <short>
+ Configure this outgoing message so it can be transmitted to a neighbor mote
+ with the specified wakeup interval.</short>
+          <long>
+ Configure this outgoing message so it can be transmitted to a neighbor mote
+ with the specified wakeup interval.
+ @param 'message_t* ONE msg' Pointer to the message that will be sent
+ @param intervalMs The receiving node's wakeup interval, in [ms]
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.LowPowerListening" qname="LowPowerListening"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="65:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="msg" ref="0x2b0917159020">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="65:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="intervalMs" ref="0x2b0917159388">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="71:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="getRemoteWakeupInterval" provided="0" ref="0x2b0917158758">
+        <documentation loc="67:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc">
+          <short>
+ </short>
+          <long>
+ @param 'message_t* ONE msg'
+ @return the destination node's wakeup interval configured in this message
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.LowPowerListening" qname="LowPowerListening"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="71:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="msg" ref="0x2b09171584e8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="57:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="getLocalWakeupInterval" provided="0" ref="0x2b091715b7b0">
+        <documentation loc="54:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc">
+          <short>
+ </short>
+          <long>
+ @return the local node's wakeup interval, in [ms]
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.LowPowerListening" qname="LowPowerListening"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="52:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="setLocalWakeupInterval" provided="0" ref="0x2b0917148d88">
+        <documentation loc="42:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc">
+          <short>
+ Set this this node's radio wakeup interval, in milliseconds.</short>
+          <long>
+ Set this this node's radio wakeup interval, in milliseconds. After
+ each interval, the node will wakeup and check for radio activity.
+
+ Note: The wakeup interval can be set to 0 to indicate that the radio
+ should stay on all the time but in order to get a startDone this
+ should only be done when the duty-cycling is off (after a stopDone).
+
+ @param intervalMs the length of this node's Rx check interval, in [ms]
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.LowPowerListening" qname="LowPowerListening"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="52:/opt/tinyos-main-read-only/tos/interfaces/LowPowerListening.nc" name="intervalMs" ref="0x2b0917148b18">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

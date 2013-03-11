@@ -1,0 +1,7 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.usart.Msp430Spi0C.html" title="Msp430Spi0C\n(SpiC)" alt="" coords="135,120,273,181">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.SpiPacket.html" title="SpiPacket" alt="" coords="91,50 138,94 155,109 152,113 134,98 87,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.SpiPacket.html" title="SpiPacket" alt="" coords="136,78,199,95">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.SpiByte.html" title="SpiByte" alt="" coords="207,54 207,106 201,106 201,54">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.SpiByte.html" title="SpiByte" alt="" coords="204,78,253,95">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="318,54 251,113 248,109 314,50">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="284,78,343,95">

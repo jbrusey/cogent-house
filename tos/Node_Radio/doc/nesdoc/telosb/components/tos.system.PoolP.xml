@@ -1,0 +1,62 @@
+<?xml version="1.0" ?><component abstract="" loc="53:/opt/tinyos-main-read-only/tos/system/PoolP.nc" nicename="tos.system.PoolP" qname="PoolP">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/system/PoolP.nc">
+        <short>
+  Implementation of a general dynamic memory pool component.</short>
+        <long>
+  Implementation of a general dynamic memory pool component.
+  Note that the allocation/deallocation policies are 
+  different than traditional dynamic allocators such as
+  malloc or slab allocators. When initialized, the Pool
+  contains &lt;code&gt;size&lt;/code&gt; items of type &lt;code&gt;pool_t&lt;/code&gt;.
+  These elements can be removed from the pool for use with 
+  &lt;code&gt;Pool.get&lt;/code&gt;, and new elements can be placed in
+  the pool with &lt;code&gt;Pool.put&lt;/code&gt;. The pool allows 
+  components to &lt;code&gt;put&lt;/code&gt; elements besides those which
+  were obtained with &lt;code&gt;get&lt;/code&gt;. The pool can never have
+  more than &lt;code&gt;size&lt;/code&gt; elements in it.
+
+  @author Philip Levis
+  @author Kyle Jamieson
+  @author Geoffrey Mainland
+  @date   $Date: 2010-01-20 19:59:07 $
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="53:/opt/tinyos-main-read-only/tos/system/PoolP.nc" name="pool_t" ref="0x2b09184e79e0">
+          <component-ref nicename="tos.system.PoolP" qname="PoolP"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="pool_t" ref="0x2b09184e79e0" scoped=""/></type-var>
+        </typedef>
+        <constant loc="53:/opt/tinyos-main-read-only/tos/system/PoolP.nc" name="size" ref="0x2b09184e7d00">
+          <component-ref nicename="tos.system.PoolP" qname="PoolP"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <module/>
+    <specification><interface loc="56:/opt/tinyos-main-read-only/tos/system/PoolP.nc" name="Pool" provided="1" ref="0x2b09184e38c0">
+      <component-ref nicename="tos.system.PoolP" qname="PoolP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Pool" ref="0x2b09184e38c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Pool" qname="Pool"/>
+        <arguments>
+          <type-var alignment="U:" size="U:"><typedef-ref name="pool_t" ref="0x2b09184e79e0" scoped=""/></type-var>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="get" ref="0x2b09184e1868" scoped=""/>
+        <function-ref name="maxSize" ref="0x2b09184e2cf8" scoped=""/>
+        <function-ref name="empty" ref="0x2b09184e2458" scoped=""/>
+        <function-ref name="put" ref="0x2b09184e11c0" scoped=""/>
+        <function-ref name="size" ref="0x2b09184e28a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="55:/opt/tinyos-main-read-only/tos/system/PoolP.nc" name="Init" provided="1" ref="0x2b09184e31b0">
+      <component-ref nicename="tos.system.PoolP" qname="PoolP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b09184e31b0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b09184e3500" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

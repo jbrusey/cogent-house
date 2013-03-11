@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ResourceConfigure</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ResourceConfigure</h2>
+    <b>interface ResourceConfigure</b><p>
+ Please refer to TEP 108 for more information about this interface and its
+ intended use.<br><br>
+ 
+ This interface is provided by a Resource arbiter in order to allow
+ users of a shared resource to configure that resource just before being
+ granted access to it.  It will always be parameterized along side 
+ a parameterized Resource interface, with the ids from one mapping directly
+ onto the ids of the other.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues (klueska@cs.wustl.edu)
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#configure">configure</a>()
+      </span><menu>
+ Used to configure a resource just before being granted access to it.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#unconfigure">unconfigure</a>()
+      </span><menu>
+ Used to unconfigure a resource just before releasing it.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="configure"></a>
+    <h4>configure
+    </h4>
+    <span id=funcnameshort>command void <b>configure</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Used to configure a resource just before being granted access to it.
+ Must always be used in conjuntion with the Resource interface.
+
+    </menu>
+    <hr>
+    <a name="unconfigure"></a>
+    <h4>unconfigure
+    </h4>
+    <span id=funcnameshort>command void <b>unconfigure</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Used to unconfigure a resource just before releasing it.
+ Must always be used in conjuntion with the Resource interface.
+
+    </menu>
+  </body>
+</html>

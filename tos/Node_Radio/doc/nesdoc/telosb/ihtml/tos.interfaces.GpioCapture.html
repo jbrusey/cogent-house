@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.GpioCapture</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.GpioCapture</h2>
+    <b>interface GpioCapture</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Phil Levis
+ 
+      </dd>
+      <dd>
+        David Gay
+ Revision:  $Revision: 1.12 $
+
+ Defines global error codes for error_t in TinyOS.
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#captureFallingEdge">captureFallingEdge</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#captureRisingEdge">captureRisingEdge</a>()
+      </span><menu> 
+ Enable an edge based timer capture event.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#disable">disable</a>()
+      </span><menu>
+ Disable further captures.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#captured">captured</a>(uint16_t time)
+      </span><menu>
+ Fired when an edge interrupt occurs.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="captureFallingEdge"></a>
+    <h4>captureFallingEdge
+    </h4>
+    <span id=funcnameshort>command error_t <b>captureFallingEdge</b>()
+    </span><hr>
+    <a name="captureRisingEdge"></a>
+    <h4>captureRisingEdge
+    </h4>
+    <span id=funcnameshort>command error_t <b>captureRisingEdge</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Enable an edge based timer capture event.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Whether the timer capture has been enabled.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="disable"></a>
+    <h4>disable
+    </h4>
+    <span id=funcnameshort>command void <b>disable</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Disable further captures.
+
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="captured"></a>
+    <h4>captured
+    </h4>
+    <span id=funcnameshort>event void <b>captured</b>(uint16_t time)
+    </span>
+    <p>
+    <menu>
+      
+ Fired when an edge interrupt occurs.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>val</code> -  The value of the 32kHz timer.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

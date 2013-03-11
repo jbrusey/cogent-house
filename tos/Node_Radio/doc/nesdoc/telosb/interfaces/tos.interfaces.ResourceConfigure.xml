@@ -1,0 +1,59 @@
+<?xml version="1.0" ?><interfacedef loc="54:/opt/tinyos-main-read-only/tos/interfaces/ResourceConfigure.nc" nicename="tos.interfaces.ResourceConfigure" qname="ResourceConfigure">
+      <documentation loc="41:/opt/tinyos-main-read-only/tos/interfaces/ResourceConfigure.nc">
+        <short>
+ Please refer to TEP 108 for more information about this interface and its
+ intended use.&lt;br&gt;&lt;br&gt;
+ 
+ This interface is provided by a Resource arbiter in order to allow
+ users of a shared resource to configure that resource just before being
+ granted access to it.</short>
+        <long>
+ Please refer to TEP 108 for more information about this interface and its
+ intended use.&lt;br&gt;&lt;br&gt;
+ 
+ This interface is provided by a Resource arbiter in order to allow
+ users of a shared resource to configure that resource just before being
+ granted access to it.  It will always be parameterized along side 
+ a parameterized Resource interface, with the ids from one mapping directly
+ onto the ids of the other.
+
+ @author Kevin Klues (klueska@cs.wustl.edu)
+</long>
+      </documentation>
+      <function command="" loc="65:/opt/tinyos-main-read-only/tos/interfaces/ResourceConfigure.nc" name="unconfigure" provided="0" ref="0x2b0917ad8888">
+        <documentation loc="61:/opt/tinyos-main-read-only/tos/interfaces/ResourceConfigure.nc">
+          <short>
+ Used to unconfigure a resource just before releasing it.</short>
+          <long>
+ Used to unconfigure a resource just before releasing it.
+ Must always be used in conjuntion with the Resource interface.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ResourceConfigure" qname="ResourceConfigure"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="59:/opt/tinyos-main-read-only/tos/interfaces/ResourceConfigure.nc" name="configure" provided="0" ref="0x2b0917ad80d8">
+        <documentation loc="55:/opt/tinyos-main-read-only/tos/interfaces/ResourceConfigure.nc">
+          <short>
+ Used to configure a resource just before being granted access to it.</short>
+          <long>
+ Used to configure a resource just before being granted access to it.
+ Must always be used in conjuntion with the Resource interface.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ResourceConfigure" qname="ResourceConfigure"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

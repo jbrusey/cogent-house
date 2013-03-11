@@ -1,0 +1,111 @@
+PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/OptiSmart  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
+
+COMPONENT=CogentHouseC
+
+PYTHON_TARGET_DIR=../../cogent/node
+PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
+BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
+CLEAN_EXTRA += $(PYTHON_TGTS)
+
+#Configuration
+CFLAGS += -DCLUSTER_HEAD=0
+
+CFLAGS += -DSIP
+#CFLAGS += -DBN
+
+# turn on leds for debugging?
+CFLAGS += -DBLINKY
+CFLAGS += -DDEBUG
+
+PFLAGS +=-DTOSH_DATA_LENGTH=175
+#PFLAGS += -DCC2420_DEF_RFPOWER=3
+#CFLAGS += -DCC2420_DEF_CHANNEL=15
+
+CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP #51 days BN
+CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
+
+# default sensing period 307200 = 5 mins
+CFLAGS += -DDEF_FIRST_PERIOD=10240
+CFLAGS += -DDEF_SENSE_PERIOD=30720L
+CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=30720L
+#CFLAGS += -DLEAF_TIMEOUT_TIME=61440L
+CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
+
+CFLAGS += -DLOW_POWER_LISTENING
+CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=0
+CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024 #the radio should be on
+#CFLAGS += -DDELAY_AFTER_RECEIVE=20
+#CFLAGS += -DLPL_SLEEP=61440L #max value = max(unit16_t)
+#CFLAGS += -DLPL_SEND=0
+
+
+CFLAGS += -DDEWMA #-DKALMAN
+CFLAGS += -DSIP_TEMP_MASK=1
+CFLAGS += -DSIP_TEMP_THRESH=0
+CFLAGS += -DSIP_TEMP_INIT=0
+CFLAGS += -DSIP_TEMP_X=0
+CFLAGS += -DSIP_TEMP_DX=0
+CFLAGS += -DSIP_TEMP_ALPHA=0.2
+CFLAGS += -DSIP_TEMP_BETA=0.2
+
+CFLAGS += -DSIP_HUM_MASK=1
+CFLAGS += -DSIP_HUM_THRESH=2.
+CFLAGS += -DSIP_HUM_INIT=0
+CFLAGS += -DSIP_HUM_X=0
+CFLAGS += -DSIP_HUM_DX=0
+CFLAGS += -DSIP_HUM_ALPHA=0.1
+CFLAGS += -DSIP_HUM_BETA=0.1
+
+CFLAGS += -DSIP_BATTERY_MASK=1
+CFLAGS += -DSIP_BATTERY_THRESH=0.1
+CFLAGS += -DSIP_BATTERY_INIT=0
+CFLAGS += -DSIP_BATTERY_X=0
+CFLAGS += -DSIP_BATTERY_DX=0
+CFLAGS += -DSIP_BATTERY_ALPHA=0.001
+CFLAGS += -DSIP_BATTERY_BETA=0.01
+
+CFLAGS += -DSIP_CO2_MASK=1
+CFLAGS += -DSIP_CO2_THRESH=100.
+CFLAGS += -DSIP_CO2_INIT=0
+CFLAGS += -DSIP_CO2_X=0
+CFLAGS += -DSIP_CO2_DX=0
+CFLAGS += -DSIP_CO2_ALPHA=0.2
+CFLAGS += -DSIP_CO2_BETA=0.2
+
+CFLAGS += -DSIP_AQ_MASK=1
+CFLAGS += -DSIP_AQ_THRESH=0.1
+CFLAGS += -DSIP_AQ_INIT=0
+CFLAGS += -DSIP_AQ_X=0
+CFLAGS += -DSIP_AQ_DX=0
+CFLAGS += -DSIP_AQ_ALPHA=0.05
+CFLAGS += -DSIP_AQ_BETA=0.05
+
+CFLAGS += -DSIP_VOC_MASK=1
+CFLAGS += -DSIP_VOC_THRESH=100.
+CFLAGS += -DSIP_VOC_INIT=0
+CFLAGS += -DSIP_VOC_X=0
+CFLAGS += -DSIP_VOC_DX=0
+CFLAGS += -DSIP_VOC_ALPHA=0.05
+CFLAGS += -DSIP_VOC_BETA=0.05
+
+CFLAGS += -DBN_GAMMA=0.9999868213
+CFLAGS += -DBN_TEMP_BAND_THRESH=5.
+CFLAGS += -DBN_HUM_BAND_THRESH=5.
+CFLAGS += -DBN_CO2_BAND_THRESH=5.
+CFLAGS += -DBN_VOC_BAND_THRESH=5.
+CFLAGS += -DBN_AQ_BAND_THRESH=5.
+
+include $(MAKERULES)
+
+$(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+
+$(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
+
+$(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
+
+$(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
+	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
+

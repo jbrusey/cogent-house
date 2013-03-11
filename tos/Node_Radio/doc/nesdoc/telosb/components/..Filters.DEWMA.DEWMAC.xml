@@ -1,0 +1,18 @@
+<?xml version="1.0" ?><component loc="2:./Filters/DEWMA/DEWMAC.nc" nicename="..Filters.DEWMA.DEWMAC" qname="DEWMAC" safe="">
+      <module/>
+    <specification><interface loc="4:./Filters/DEWMA/DEWMAC.nc" name="Filter" provided="1" ref="0x2b0919041c68">
+      <component-ref nicename="..Filters.DEWMA.DEWMAC" qname="DEWMAC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Filter" ref="0x2b0919041c68" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..Filters.Filter" qname="Filter"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="filter" ref="0x2b0919122020" scoped=""/>
+        <function-ref name="init" ref="0x2b09191221a8" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

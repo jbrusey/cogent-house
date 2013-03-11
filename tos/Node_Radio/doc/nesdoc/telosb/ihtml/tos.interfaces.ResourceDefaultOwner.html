@@ -1,0 +1,152 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ResourceDefaultOwner</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ResourceDefaultOwner</h2>
+    <b>interface ResourceDefaultOwner</b><p>
+ Please refer to TEP 108 for more information about this interface and its
+ intended use.<br><br>
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues (klues@tkn.tu-berlin.edu)
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $ $
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+        $Date: 2007-02-04 20:06:42 $ 
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command bool <a href="#isOwner">isOwner</a>()
+      </span><menu>
+  Check if the user of this interface is the current
+  owner of the Resource
+ 
+  
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#release">release</a>()
+      </span><menu>
+ Release control of the resource
+
+ 
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#granted">granted</a>()
+      </span><menu>
+ Event sent to the resource controller giving it control whenever a resource
+ goes idle.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#immediateRequested">immediateRequested</a>()
+      </span><menu>
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.immediateRequest() command.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#requested">requested</a>()
+      </span><menu>
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.request() command.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="isOwner"></a>
+    <h4>isOwner
+    </h4>
+    <span id=funcnameshort>command bool <b>isOwner</b>()
+    </span>
+    <p>
+    <menu>
+      
+  Check if the user of this interface is the current
+  owner of the Resource
+ 
+  
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE  It is the owner <br>
+          FALSE It is not the owner
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="release"></a>
+    <h4>release
+    </h4>
+    <span id=funcnameshort>command error_t <b>release</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Release control of the resource
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS The resource has been released and pending requests
+                 can resume. <br>
+             FAIL You tried to release but you are not the
+                  owner of the resource
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="granted"></a>
+    <h4>granted
+    </h4>
+    <span id=funcnameshort>event void <b>granted</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Event sent to the resource controller giving it control whenever a resource
+ goes idle. That is to say, whenever no one currently owns the resource,
+ and there are no more pending requests
+
+    </menu>
+    <hr>
+    <a name="immediateRequested"></a>
+    <h4>immediateRequested
+    </h4>
+    <span id=funcnameshort>event void <b>immediateRequested</b>()
+    </span>
+    <p>
+    <menu>
+      
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.immediateRequest() command. You may
+ want to consider releasing a resource based on this event
+
+    </menu>
+    <hr>
+    <a name="requested"></a>
+    <h4>requested
+    </h4>
+    <span id=funcnameshort>event void <b>requested</b>()
+    </span>
+    <p>
+    <menu>
+      
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.request() command. You may want to
+ consider releasing a resource based on this event
+
+    </menu>
+  </body>
+</html>

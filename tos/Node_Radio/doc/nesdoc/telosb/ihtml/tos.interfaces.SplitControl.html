@@ -1,0 +1,156 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.SplitControl</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.SplitControl</h2>
+    <b>interface SplitControl</b><p>
+ Please refer to TEP 115 for more information about this interface and its
+ intended use.<br><br>
+
+ This is the split-phase counterpart to the StdContol interface.  It
+ should be used for switching between the on and off power states of
+ the component providing it.  For each <code>start()</code> or
+ <code>stop()</code> command, if the command returns SUCCESS, then a
+ corresponding  <code>startDone()</code> or <code>stopDone()</code> event
+ must be signalled.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Joe Polastre
+ 
+      </dd>
+      <dd>
+        Kevin Klues (klueska@cs.wustl.edu)
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#start">start</a>()
+      </span><menu>
+ Start this component and all of its subcomponents.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#stop">stop</a>()
+      </span><menu>
+ Start this component and all of its subcomponents.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#startDone">startDone</a>(error_t error)
+      </span><menu> 
+ Notify caller that the component has been started and is ready to
+ receive other commands.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#stopDone">stopDone</a>(error_t error)
+      </span><menu>
+ Notify caller that the component has been stopped.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="start"></a>
+    <h4>start
+    </h4>
+    <span id=funcnameshort>command error_t <b>start</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Start this component and all of its subcomponents.  Return
+ values of SUCCESS will always result in a <code>startDone()</code>
+ event being signalled.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the device is already in the process of 
+         starting or the device was off and the device is now ready to turn 
+         on.  After receiving this return value, you should expect a 
+         <code>startDone</code> event in the near future.<br>
+         EBUSY if the component is in the middle of powering down
+               i.e. a <code>stop()</code> command has been called,
+               and a <code>stopDone()</code> event is pending<br>
+         EALREADY if the device is already on <br>
+         FAIL Otherwise
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="stop"></a>
+    <h4>stop
+    </h4>
+    <span id=funcnameshort>command error_t <b>stop</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Start this component and all of its subcomponents.  Return
+ values of SUCCESS will always result in a <code>startDone()</code>
+ event being signalled.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the device is already in the process of 
+         stopping or the device was on and the device is now ready to turn 
+         off.  After receiving this return value, you should expect a 
+         <code>stopDone</code> event in the near future.<br>
+         EBUSY if the component is in the middle of powering up
+               i.e. a <code>start()</code> command has been called,
+               and a <code>startDone()</code> event is pending<br>
+         EALREADY if the device is already off <br>
+         FAIL Otherwise
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="startDone"></a>
+    <h4>startDone
+    </h4>
+    <span id=funcnameshort>event void <b>startDone</b>(error_t error)
+    </span>
+    <p>
+    <menu>
+       
+ Notify caller that the component has been started and is ready to
+ receive other commands.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <b>error</b> -- SUCCESS if the component was successfully
+                        turned on, FAIL otherwise
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="stopDone"></a>
+    <h4>stopDone
+    </h4>
+    <span id=funcnameshort>event void <b>stopDone</b>(error_t error)
+    </span>
+    <p>
+    <menu>
+      
+ Notify caller that the component has been stopped.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <b>error</b> -- SUCCESS if the component was successfully
+                        turned off, FAIL otherwise
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.adc12.Msp430RefVoltArbiterImplP.html" title="Msp430RefVoltArbiterImplP" alt="" coords="325,120,560,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="445,54 445,106 440,106 440,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="443,78,556,95">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="325,152 202,166 151,178 116,194 105,207 97,222 93,220 101,204 113,190 149,173 201,161 325,147">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="115,193,228,210">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;[uint8_t]" alt="" coords="326,162 274,176 254,184 242,194 236,207 234,222 229,221 231,205 238,190 252,180 272,170 324,157">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;[uint8_t]" alt="" coords="240,193,617,210">
+<area shape="rect" id="node5" href="../chtml/tos.chips.msp430.adc12.Msp430RefVoltGeneratorP.html" title="Msp430RefVoltGeneratorP" alt="" coords="585,235,812,283">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="558,166 619,190 666,223 663,228 616,194 556,171">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="645,193,720,210">
+<area shape="poly" id="edge10" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="560,154 665,170 704,180 725,190 731,206 727,223 722,222 725,207 721,194 702,185 664,176 560,160">
+<area shape="rect" id="edge10" href="../ihtml/tos.interfaces.SplitControl.html" title="SplitControl" alt="" coords="727,193,801,210">
+<area shape="rect" id="node6" href="../chtml/tos.system.TimerMilliC.html" title="TimerMilliC\n(SwitchOnDelayTimer)" alt="" coords="256,349,459,411">
+<area shape="poly" id="edge12" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="613,285 538,309 442,347 440,342 536,304 611,280">
+<area shape="rect" id="edge12" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="537,307,627,325">
+<area shape="rect" id="node7" href="../chtml/tos.system.TimerMilliC.html" title="TimerMilliC\n(SwitchOffDelayTimer)" alt="" coords="483,349,685,411">
+<area shape="poly" id="edge14" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="675,285 651,309 622,341 618,337 647,305 671,281">
+<area shape="rect" id="edge14" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="649,307,739,325">
+<area shape="rect" id="node8" href="../chtml/tos.system.TimerMilliC.html" title="TimerMilliC\n(SwitchOffSettleTimer)" alt="" coords="709,349,915,411">
+<area shape="poly" id="edge16" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="724,281 776,337 772,341 720,285">
+<area shape="rect" id="edge16" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="759,307,848,325">
+<area shape="rect" id="node9" href="../chtml/tos.chips.msp430.adc12.HplAdc12P.html" title="HplAdc12P" alt="" coords="939,356,1045,404">
+<area shape="poly" id="edge18" href="../ihtml/tos.chips.msp430.adc12.HplAdc12.html" title="HplAdc12" alt="" coords="787,280 854,304 941,347 938,352 852,309 785,285">
+<area shape="rect" id="edge18" href="../ihtml/tos.chips.msp430.adc12.HplAdc12.html" title="HplAdc12" alt="" coords="892,307,953,325">

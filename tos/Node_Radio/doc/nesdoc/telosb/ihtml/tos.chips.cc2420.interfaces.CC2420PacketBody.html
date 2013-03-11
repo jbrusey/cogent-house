@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420PacketBody</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420PacketBody</h2>
+    <b>interface CC2420PacketBody</b><p>
+ Internal interface for the CC2420 to get portions of a packet.
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command cc2420_header_t *<a href="#getHeader">getHeader</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command cc2420_metadata_t *<a href="#getMetadata">getMetadata</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t *<a href="#getPayload">getPayload</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getHeader"></a>
+    <h4>getHeader
+    </h4>
+    <span id=funcnameshort>command cc2420_header_t *<b>getHeader</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          pointer to the cc2420_header_t of the given message
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getMetadata"></a>
+    <h4>getMetadata
+    </h4>
+    <span id=funcnameshort>command cc2420_metadata_t *<b>getMetadata</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          pointer to the cc2420_metadata_t of the given message
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getPayload"></a>
+    <h4>getPayload
+    </h4>
+    <span id=funcnameshort>command uint8_t *<b>getPayload</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          pointer to the payload region of the message, after any headers
+    works with extended addressing mode
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.sht11.SensirionSht11LogicP.html" title="SensirionSht11LogicP" alt="" coords="129,120,319,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.chips.sht11.SensirionSht11.html" title="SensirionSht11[uint8_t]" alt="" coords="227,54 227,106 221,106 221,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.chips.sht11.SensirionSht11.html" title="SensirionSht11[uint8_t]" alt="" coords="224,78,376,95">
+<area shape="rect" id="node4" href="../chtml/tos.platforms.telosa.chips.sht11.HplSensirionSht11C.html" title="HplSensirionSht11C" alt="" coords="140,235,324,293">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="227,168 228,211 229,220 224,221 223,211 221,168">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="225,193,289,210">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="271,166 292,191 294,209 287,225 282,223 289,208 287,193 267,170">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="292,193,356,210">
+<area shape="poly" id="edge10" href="../ihtml/tos.interfaces.GpioInterrupt.html" title="GpioInterrupt" alt="" coords="157,170 135,188 132,198 136,209 148,224 143,227 131,212 127,198 131,185 153,166">
+<area shape="rect" id="edge10" href="../ihtml/tos.interfaces.GpioInterrupt.html" title="GpioInterrupt" alt="" coords="133,193,219,210">
+<area shape="rect" id="node5" href="../chtml/tos.system.TimerMilliC.html" title="TimerMilliC" alt="" coords="357,235,469,293">
+<area shape="poly" id="edge12" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="319,166 363,190 392,221 388,225 360,194 316,170">
+<area shape="rect" id="edge12" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="380,193,469,210">
+<area shape="rect" id="node6" href="../chtml/tos.system.LedsC.html" title="LedsC" alt="" coords="5,235,88,293">
+<area shape="poly" id="edge14" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="136,170 95,194 69,225 65,221 92,190 133,166">
+<area shape="rect" id="edge14" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="93,193,124,210">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="521,169 502,193 476,213 442,227 413,231 383,232 346,237 338,239 337,234 345,232 382,227 412,226 440,222 473,208 498,189 517,166">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="497,193,611,210">

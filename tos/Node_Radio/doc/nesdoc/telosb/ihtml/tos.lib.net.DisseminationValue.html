@@ -1,0 +1,95 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.net.DisseminationValue</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.net.DisseminationValue</h2>
+    <b>interface DisseminationValue&lt;typedef t&gt;</b><p>
+ Read a network shared (disseminated) variable and be notified
+ of updates.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dd>
+        Gilman Tolle
+
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          Jan 7 2006
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command const t *<a href="#get">get</a>()
+      </span><menu>
+ Obtain a pointer to the variable.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#set">set</a>(const t *)
+      </span><menu>
+ Set the variable to a new value.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#changed">changed</a>()
+      </span><menu>
+ Signalled whenever variable may have changed.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="get"></a>
+    <h4>get
+    </h4>
+    <span id=funcnameshort>command const t *<b>get</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Obtain a pointer to the variable. The provider of this
+ interface only will change the memory the pointer references
+ in tasks. Therefore the memory region does not change during
+ the execution of any other task. A user of this interface
+ must not in any circumstance write to this memory location.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          A const pointer to the variable.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="set"></a>
+    <h4>set
+    </h4>
+    <span id=funcnameshort>command void <b>set</b>(const t *)
+    </span>
+    <p>
+    <menu>
+      
+ Set the variable to a new value. The provider of this interface
+ will copy the value from the pointer. NOTE: This command does
+ not cause the new value to begin disseminating. It is intended to
+ be used for setting default values.
+
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="changed"></a>
+    <h4>changed
+    </h4>
+    <span id=funcnameshort>event void <b>changed</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signalled whenever variable may have changed.
+
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.PowerCycle</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.PowerCycle</h2>
+    <b>interface PowerCycle</b><p>
+ Manage the CC2420's duty cycle and power management
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getSleepInterval">getSleepInterval</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setSleepInterval">setSleepInterval</a>(uint16_t sleepIntervalMs)
+      </span><menu>
+ Set the sleep interval, in binary milliseconds
+ 
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#detected">detected</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getSleepInterval"></a>
+    <h4>getSleepInterval
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getSleepInterval</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          the sleep interval in [ms]
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setSleepInterval"></a>
+    <h4>setSleepInterval
+    </h4>
+    <span id=funcnameshort>command void <b>setSleepInterval</b>(uint16_t sleepIntervalMs)
+    </span>
+    <p>
+    <menu>
+      
+ Set the sleep interval, in binary milliseconds
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>sleepIntervalMs</code> -  the sleep interval in [ms]
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="detected"></a>
+    <h4>detected
+    </h4>
+    <span id=funcnameshort>event void <b>detected</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Deprecated:</b>
+        <dd>
+          Should be removed in the future when the PowerCycle
+     component does packet-level detects and is in full control of radio
+     power.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

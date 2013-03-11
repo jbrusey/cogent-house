@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.net.DisseminationUpdate</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.net.DisseminationUpdate</h2>
+    <b>interface DisseminationUpdate&lt;typedef t&gt;</b><p>
+ Update a network shared (disseminated) value. Updates are assured
+ to be eventually consistent across a connected network. If multiple
+ nodes update a value simultaneously, then nodes within the network
+ will see a series of one or more updates, the last update will
+ be the same for all nodes. Components that need to use the
+ variable should use the DisseminationValue interface.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dd>
+        Gilman Tolle
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          January 7 2006
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#change">change</a>(t *newVal)
+      </span><menu>
+ Update the variable to a new value.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="change"></a>
+    <h4>change
+    </h4>
+    <span id=funcnameshort>command void <b>change</b>(t *newVal)
+    </span>
+    <p>
+    <menu>
+      
+ Update the variable to a new value. This changes the local copy
+ and begins to disseminate the new value throughout the network.
+ As other nodes may have also changed the variable, it is possible
+ that an update may not 'stick,' but will instead be overwritten by
+ a separate update.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>newVal</code> -  A pointer to the new value. The memory pointed to
+ by newVal is copied out, so newVal can be reclaimed when
+ <tt>change</tt> returns.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

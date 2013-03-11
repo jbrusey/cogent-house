@@ -1,0 +1,398 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.AMPacket</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.AMPacket</h2>
+    <b>interface AMPacket</b><p>
+ The Active Message accessors, which provide the AM local address and
+ functionality for querying packets. Active Messages are a single-hop
+ communication protocol. Therefore, fields such as source and destination
+ represent the single-hop source and destination. Multihop sources and
+ destinations are defined by the corresponding multihop protocol (if any).
+ Also see the Packet interface.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis 
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          January 18 2005
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+           Packet
+ 
+      </dd>
+      <dd>
+           AMSend
+ 
+      </dd>
+      <dd>
+           TEP 116: Packet Protocols
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command am_addr_t <a href="#address">address</a>()
+      </span><menu>
+ Return the node's active message address associated with this AM stack.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command am_addr_t <a href="#destination">destination</a>(message_t *amsg)
+      </span><menu>
+ Return the AM address of the destination of the AM packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command am_group_t <a href="#group">group</a>(message_t *amsg)
+      </span><menu>
+ Get the AM group of the AM packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isForMe">isForMe</a>(message_t *amsg)
+      </span><menu>
+ Return whether <tt>amsg</tt> is destined for this mote.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command am_group_t <a href="#localGroup">localGroup</a>()
+      </span><menu>
+ Provides the current AM group of this communication interface.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setDestination">setDestination</a>(message_t *amsg, am_addr_t addr)
+      </span><menu>
+ Set the AM address of the destination field of the AM packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setGroup">setGroup</a>(message_t *amsg, am_group_t grp)
+      </span><menu>
+ Set the AM group field of a packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setSource">setSource</a>(message_t *amsg, am_addr_t addr)
+      </span><menu>
+ Set the AM address of the source field of the AM packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setType">setType</a>(message_t *amsg, am_id_t t)
+      </span><menu>
+ Set the AM type of the AM packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command am_addr_t <a href="#source">source</a>(message_t *amsg)
+      </span><menu>
+ Return the AM address of the source of the AM packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command am_id_t <a href="#type">type</a>(message_t *amsg)
+      </span><menu>
+ Return the AM type of the AM packet.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="address"></a>
+    <h4>address
+    </h4>
+    <span id=funcnameshort>command am_addr_t <b>address</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Return the node's active message address associated with this AM stack.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          The address
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="destination"></a>
+    <h4>destination
+    </h4>
+    <span id=funcnameshort>command am_addr_t <b>destination</b>(message_t *amsg)
+    </span>
+    <p>
+    <menu>
+      
+ Return the AM address of the destination of the AM packet.
+ If <tt>amsg</tt> is not an AM packet, the results of this command
+ are undefined.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE amsg'    the packet
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+                 the destination address of the packet.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="group"></a>
+    <h4>group
+    </h4>
+    <span id=funcnameshort>command am_group_t <b>group</b>(message_t *amsg)
+    </span>
+    <p>
+    <menu>
+      
+ Get the AM group of the AM packet. The AM group is a logical
+ identifier that distinguishes sets of nodes which may share
+ a physical communication medium but wish to not communicate.
+ The AM group logically separates the sets of nodes. When
+ a node sends a packet, it fills in its AM group, and typically
+ nodes only receive packets whose AM group field matches their
+ own.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE amsg' the packet
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          the AM group of this packet
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isForMe"></a>
+    <h4>isForMe
+    </h4>
+    <span id=funcnameshort>command bool <b>isForMe</b>(message_t *amsg)
+    </span>
+    <p>
+    <menu>
+      
+ Return whether <tt>amsg</tt> is destined for this mote. This is
+ partially a shortcut for testing whether the return value of
+ <tt>destination</tt> and <tt>address</tt> are the same. It
+ may, however, include additional logic. For example, there
+ may be an AM broadcast address: <tt>destination</tt> will return
+ the broadcast address, but <tt>address</tt> will still be
+ the mote's local address. If <tt>amsg</tt> is not an AM packet,
+ the results of this command are undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE amsg'   the packet
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+                 whether the packet is addressed to this AM stack
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="localGroup"></a>
+    <h4>localGroup
+    </h4>
+    <span id=funcnameshort>command am_group_t <b>localGroup</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Provides the current AM group of this communication interface.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          The AM group.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setDestination"></a>
+    <h4>setDestination
+    </h4>
+    <span id=funcnameshort>command void <b>setDestination</b>(message_t *amsg, am_addr_t addr)
+    </span>
+    <p>
+    <menu>
+      
+ Set the AM address of the destination field of the AM packet.  As
+ the AM address is set as part of sending with the AMSend
+ interface, this command is not used for sending packets.  Rather,
+ it is used when a component, such as a queue, needs to buffer a
+ request to send. The component can save the destination address
+ and then recover it when actually sending. If <tt>amsg</tt> is
+ not an AM packet, the results of this command are undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE amsg'   the packet
+ 
+        </dd>
+        <dd>
+          <code>addr</code> -    the address
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setGroup"></a>
+    <h4>setGroup
+    </h4>
+    <span id=funcnameshort>command void <b>setGroup</b>(message_t *amsg, am_group_t grp)
+    </span>
+    <p>
+    <menu>
+      
+ Set the AM group field of a packet. Note that most data link
+ stacks will set this field automatically on a send request, which
+ may overwrite changes made with this command.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE amsg' the packet
+ 
+        </dd>
+        <dd>
+          <code>group</code> -  the packet's new AM group value
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setSource"></a>
+    <h4>setSource
+    </h4>
+    <span id=funcnameshort>command void <b>setSource</b>(message_t *amsg, am_addr_t addr)
+    </span>
+    <p>
+    <menu>
+      
+ Set the AM address of the source field of the AM packet.  As
+ the AM address is set as part of sending with the AMSend
+ interface, this command is not used for sending packets.  Rather,
+ it is used when a component, such as a queue, needs to buffer a
+ request to send. The component can save the source address
+ and then recover it when actually sending. As an AM layer generally
+ sets the source address to be the local address, this interface
+ is not commonly used except when a system is bypassing the AM
+ layer (e.g., a protocol bridge). If <tt>amsg</tt> is
+ not an AM packet, the results of this command are undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE amsg'   the packet
+ 
+        </dd>
+        <dd>
+          <code>addr</code> -    the address
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setType"></a>
+    <h4>setType
+    </h4>
+    <span id=funcnameshort>command void <b>setType</b>(message_t *amsg, am_id_t t)
+    </span>
+    <p>
+    <menu>
+      
+ Set the AM type of the AM packet.  As the AM type is set as part
+ of sending with the AMSend interface, this command is not used
+ for sending packets. Instead, it is used when a component, such
+ as a queue, needs to buffer a request to send. The component can
+ save the AM type in the packet then recover it when actually
+ sending. If <tt>amsg</tt> is not an AM packet, the results of
+ this command are undefined.
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE amsg'    the packet
+ 
+        </dd>
+        <dd>
+          <code>t</code> -        the AM type
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="source"></a>
+    <h4>source
+    </h4>
+    <span id=funcnameshort>command am_addr_t <b>source</b>(message_t *amsg)
+    </span>
+    <p>
+    <menu>
+      
+ Return the AM address of the source of the AM packet.
+ If <tt>amsg</tt> is not an AM packet, the results of this command
+ are undefined.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE amsg'  the packet
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+               the source address of the packet.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="type"></a>
+    <h4>type
+    </h4>
+    <span id=funcnameshort>command am_id_t <b>type</b>(message_t *amsg)
+    </span>
+    <p>
+    <menu>
+      
+ Return the AM type of the AM packet.
+ If <tt>amsg</tt> is not an AM packet, the results of this command
+ are undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE amsg'   the packet
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+                 the AM type
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

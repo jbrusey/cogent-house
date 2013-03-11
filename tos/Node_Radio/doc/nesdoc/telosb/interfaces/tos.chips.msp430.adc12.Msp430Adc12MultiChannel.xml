@@ -1,0 +1,194 @@
+<?xml version="1.0" ?><interfacedef loc="51:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" nicename="tos.chips.msp430.adc12.Msp430Adc12MultiChannel" qname="Msp430Adc12MultiChannel">
+      <documentation loc="36:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc">
+        <short> 
+ This interface provides access to the ADC12 on the level of HAL.</short>
+        <long> 
+ This interface provides access to the ADC12 on the level of HAL. It can be
+ used to sample up to 16 (different) ADC channels. It separates between
+ configuration and data collection: every time a client has been granted
+ access to the ADC subsystem (via the Resource interface), it first has to
+ configure the ADC.  Afterwards the client may call getData() more than once
+ without reconfiguring the ADC in between (if the client has not released the
+ ADC via the Resource interface), i.e.&lt;p&gt;
+ 
+    configure() -&gt; ( getData() -&gt; dataReady() )*
+
+ @author Jan Hauer 
+</long>
+      </documentation>
+      <function command="" loc="97:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="getData" provided="0" ref="0x2b0918aa7110">
+        <documentation loc="90:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc">
+          <short> 
+ Starts sampling the adc channels using the configuration as specified by
+ the last call to &lt;code&gt;configure()&lt;/code&gt;.</short>
+          <long> 
+ Starts sampling the adc channels using the configuration as specified by
+ the last call to &lt;code&gt;configure()&lt;/code&gt;.
+
+ @return SUCCESS means that the conversion was started successfully and an
+ event dataReady() will be signalled. Otherwise no event will be signalled.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12MultiChannel" qname="Msp430Adc12MultiChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="86:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="configure" provided="0" ref="0x2b0918aa94a0">
+        <documentation loc="54:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc">
+          <short> 
+ Configures the ADC to perform conversion(s) on multiple channels.</short>
+          <long> 
+ Configures the ADC to perform conversion(s) on multiple channels.  Any
+ previous configuration will be overwritten.  If SUCCESS is returned
+ calling &lt;code&gt;getData()&lt;/code&gt; will start the conversion immediately and a
+ &lt;code&gt;dataReady()&lt;/code&gt; event will be signalled with the conversion
+ result when the conversion has finished.
+
+ @param config Main ADC12 configuration and configuration of the first
+ channel 
+
+ @param memctl List of additional channels and respective reference
+ voltages
+
+ @param numMemctl Number of entries in the list
+ 
+ @param buffer Buffer to store the conversion results, it must have
+ numSamples entries. Results will be stored in the order the channels where
+ specified.
+
+ @param numSamples Total number of samples. Note: numSamples %
+ (numMemctl+1) must be zero. For example, to sample every channel twice use
+ numSamples = (numMemctl+1) * 2
+
+ @param jiffies Sampling period in terms of clock ticks of &quot;sampcon_ssel&quot;
+ and input divider &quot;sampcon_id&quot;. Samples are taken equally-spaced in
+ time iterating round-robin over the channels (different channels are  
+ not sampled simultaneously but one after another).
+
+ @return SUCCESS means that the ADC was configured successfully and
+ &lt;code&gt;getData()&lt;/code&gt; can be called to start the conversion.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12MultiChannel" qname="Msp430Adc12MultiChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:1"><struct-ref ref="0x2b0918a12100"/>
+                <typename><typedef-ref name="adc12memctl_t" ref="0x2b0918a125b8"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="86:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="config" ref="0x2b0918aaa020">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+          </variable>
+          <variable loc="87:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="memctl" ref="0x2b0918aaa3e8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:1"><struct-ref ref="0x2b0918a12100"/>
+                <typename><typedef-ref name="adc12memctl_t" ref="0x2b0918a125b8"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="87:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="numMemctl" ref="0x2b0918aaa738">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="87:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="buffer" ref="0x2b0918aaaab0">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="88:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="numSamples" ref="0x2b0918aaae38">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="88:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="jiffies" ref="0x2b0918aa91e0">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="107:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="dataReady" provided="0" ref="0x2b0918aa6020">
+        <documentation loc="99:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc">
+          <short> 
+ Conversion results are ready.</short>
+          <long> 
+ Conversion results are ready. Results are stored in the buffer in the
+ order the channels where specified in the &lt;code&gt;configure()&lt;/code&gt;
+ command, i.e. every (numMemctl+1)-th entry maps to the same channel. 
+ 
+ @param buffer Conversion results (lower 12 bit are valid, respectively).
+ @param numSamples Number of results stored in &lt;code&gt;buffer&lt;/code&gt; 
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12MultiChannel" qname="Msp430Adc12MultiChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="107:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="buffer" ref="0x2b0918aa79a8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="107:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12MultiChannel.nc" name="numSamples" ref="0x2b0918aa7d10">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

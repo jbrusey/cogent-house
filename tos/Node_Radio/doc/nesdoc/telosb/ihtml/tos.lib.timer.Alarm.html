@@ -1,0 +1,215 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.timer.Alarm</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.timer.Alarm</h2>
+    <b>interface Alarm&lt;typedef precision_tag, typedef size_type&gt;</b><p>
+ An Alarm is a low-level interface intended for precise timing.
+
+ <p>An Alarm is parameterised by its "precision" (milliseconds,
+ microseconds, etc), identified by a type. This prevents, e.g.,
+ unintentionally mixing components expecting milliseconds with those
+ expecting microseconds as those interfaces have a different type.
+
+ <p>An Alarm's second parameter is its "width", i.e., the number of
+ bits used to represent time values. Width is indicated by including
+ the appropriate size integer type as an Alarm parameter.
+
+ <p>See TEP102 for more details.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>precision_tag</code> -  A type indicating the precision of this Alarm.
+ 
+      </dd>
+      <dd>
+        <code>size_type</code> -  An integer type representing time values for this Alarm.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command size_type <a href="#getAlarm">getAlarm</a>()
+      </span><menu>
+ Return the time the currently running alarm will fire or the time that
+ the previously running alarm was set to fire.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command size_type <a href="#getNow">getNow</a>()
+      </span><menu>
+ Return the current time.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isRunning">isRunning</a>()
+      </span><menu>
+ Check if alarm is running.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#start">start</a>(size_type dt)
+      </span><menu>
+ Set a single-short alarm to some time units in the future.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#startAt">startAt</a>(size_type t0, size_type dt)
+      </span><menu>
+ Set a single-short alarm to time t0+dt.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#stop">stop</a>()
+      </span><menu>
+ Cancel an alarm.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#fired">fired</a>()
+      </span><menu>
+ Signaled when the alarm expires.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getAlarm"></a>
+    <h4>getAlarm
+    </h4>
+    <span id=funcnameshort>command size_type <b>getAlarm</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Return the time the currently running alarm will fire or the time that
+ the previously running alarm was set to fire.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Alarm time.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getNow"></a>
+    <h4>getNow
+    </h4>
+    <span id=funcnameshort>command size_type <b>getNow</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Return the current time.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Current time.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isRunning"></a>
+    <h4>isRunning
+    </h4>
+    <span id=funcnameshort>command bool <b>isRunning</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Check if alarm is running. Note that a FALSE return does not indicate
+ that the <code>fired</code> event will not be signaled (it may have
+ already started executing, but not reached your code yet).
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if the alarm is still running.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="start"></a>
+    <h4>start
+    </h4>
+    <span id=funcnameshort>command void <b>start</b>(size_type dt)
+    </span>
+    <p>
+    <menu>
+      
+ Set a single-short alarm to some time units in the future. Replaces
+ any current alarm time. Equivalent to start(getNow(), dt). The
+ <code>fired</code> will be signaled when the alarm expires.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>dt</code> -  Time until the alarm fires.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startAt"></a>
+    <h4>startAt
+    </h4>
+    <span id=funcnameshort>command void <b>startAt</b>(size_type t0, size_type dt)
+    </span>
+    <p>
+    <menu>
+      
+ Set a single-short alarm to time t0+dt. Replaces any current alarm
+ time. The <code>fired</code> will be signaled when the alarm expires.
+ Alarms set in the past will fire "soon".
+ 
+ <p>Because the current time may wrap around, it is possible to use
+ values of t0 greater than the <code>getNow</code>'s result. These
+ values represent times in the past, i.e., the time at which getNow()
+ would last of returned that value.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>t0</code> -  Base time for alarm.
+ 
+        </dd>
+        <dd>
+          <code>dt</code> -  Alarm time as offset from t0.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="stop"></a>
+    <h4>stop
+    </h4>
+    <span id=funcnameshort>command void <b>stop</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Cancel an alarm. Note that the <code>fired</code> event may have
+ already been signaled (even if your code has not yet started
+ executing).
+
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="fired"></a>
+    <h4>fired
+    </h4>
+    <span id=funcnameshort>event void <b>fired</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signaled when the alarm expires.
+
+    </menu>
+  </body>
+</html>

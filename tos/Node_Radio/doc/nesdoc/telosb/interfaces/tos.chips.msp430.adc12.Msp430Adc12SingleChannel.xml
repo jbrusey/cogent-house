@@ -1,0 +1,444 @@
+<?xml version="1.0" ?><interfacedef loc="69:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel">
+      <documentation loc="36:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+        <short> 
+ 
+ This interface provides access to the ADC12 on the level of HAL.</short>
+        <long> 
+ 
+ This interface provides access to the ADC12 on the level of HAL. It can be
+ used to sample a single adc channel once or repeatedly (one event is
+ signalled per conversion result) or perform multiple conversions for a
+ single channel once or repeatedly (one event is signalled per multiple
+ conversion results). It cannot be used to sample different adc channels with
+ a single command (use the Msp430Adc12MultiChannel interface instead).
+ Sampling a channel requires calling a sequence of two commands, configureX()
+ and getData(), where X is either 'Single', 'SingleRepeat', 'Multiple' or
+ 'MultipleRepeat'. Conversion results will be signalled by the
+ dataReadySingle() or dataReadyMultiple() event, depending on the previous
+ configuration, i.e. there are four possible sequences:
+ 
+ &lt;p&gt; configureSingle()          -&gt; ( getData() -&gt; singleDataReady() )*
+ &lt;p&gt; configureSingleRepeat()    -&gt; ( getData() -&gt; singleDataReady() )*
+ &lt;p&gt; configureMultiple()        -&gt; ( getData() -&gt; multipleDataReady() )*
+ &lt;p&gt; configureMultipleRepeat()  -&gt; getData() -&gt; multipleDataReady()
+
+ &lt;p&gt; where configureX() and getData() are commands called by the client and
+ singleDataReady() and multipleDataReady() are events signalled back to the
+ client by the adc subsystem. Note that a configuration is valid until the
+ client reconfigures or releases the ADC (using the Resource interface),
+ except for configureMultipleRepeat(), which is only valid for a single call
+ to getData(). This means that after a successful configuration with, for
+ example, configureSingle() the client may call getData() more than once
+ without reconfiguring the ADC in between (if the client has not released the
+ ADC via the Resource interface).
+
+ @author Jan Hauer 
+</long>
+      </documentation>
+      <function command="" loc="189:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="getData" provided="0" ref="0x2b0918a6b328">
+        <documentation loc="180:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+          <short> 
+ Starts sampling an adc channel using the configuration as specified by
+ the last call to any of the four available configuration commands.</short>
+          <long> 
+ Starts sampling an adc channel using the configuration as specified by
+ the last call to any of the four available configuration commands.
+
+ @return SUCCESS means that the conversion was started successfully and an
+ event singleDataReady() or multipleDataReady() will be signalled
+ (depending on the previous configuration). Otherwise no such event will be
+ signalled.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="84:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="configureSingle" provided="0" ref="0x2b0918a74598">
+        <documentation loc="72:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+          <short> 
+ Configures the ADC to perform a single conversion.</short>
+          <long> 
+ Configures the ADC to perform a single conversion. Any previous
+ configuration will be overwritten.  If SUCCESS is returned calling
+ &lt;code&gt;getData()&lt;/code&gt; will start the conversion immediately and a
+ &lt;code&gt;singleDataReady()&lt;/code&gt; event will be signalled with the conversion
+ result when the conversion has finished.
+
+ @param config ADC12 configuration data.  
+
+ @return SUCCESS means that the ADC was configured successfully and
+ &lt;code&gt;getData()&lt;/code&gt; can be called to start the conversion.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="84:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="config" ref="0x2b0918a74328">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="106:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="configureSingleRepeat" provided="0" ref="0x2b0918a739c0">
+        <documentation loc="86:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+          <short> 
+ Configures the ADC for repeated single channel conversion mode.</short>
+          <long> 
+ Configures the ADC for repeated single channel conversion mode. Any
+ previous configuration will be overwritten. If SUCCESS is returned calling
+ &lt;code&gt;getData()&lt;/code&gt; will start sampling the adc channel periodically
+ (the first conversion is started immediately).  The sampling period is
+ specified by the &lt;code&gt;jiffies&lt;/code&gt; parameter, which defines the time
+ between successive conversions in terms of clock ticks of clock source
+ &quot;sampcon_ssel&quot; and clock input divider &quot;sampcon_id&quot; as specified in the
+ &lt;code&gt;config&lt;/code&gt; parameter. If jiffies is zero successive conversions
+ are performed as quickly as possible.  Conversion result are signalled
+ until the client returns &lt;code&gt;FAIL&lt;/code&gt; in the
+ &lt;code&gt;singleDataReady()&lt;/code&gt; event handler.
+ 
+ @param config ADC12 configuration data.  
+ @param jiffies Sampling period in terms of clock ticks of &quot;sampcon_ssel&quot; and
+ input divider &quot;sampcon_id&quot;.
+
+ @return SUCCESS means that the ADC was configured successfully and
+ &lt;code&gt;getData()&lt;/code&gt; can be called to start with the first conversion.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="106:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="config" ref="0x2b0918a733f8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+          </variable>
+          <variable loc="106:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="jiffies" ref="0x2b0918a73740">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="177:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="configureMultipleRepeat" provided="0" ref="0x2b0918a6d368">
+        <documentation loc="140:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+          <short> 
+
+ Configures the ADC for sampling a channel multiple times repeatedly.</short>
+          <long> 
+
+ Configures the ADC for sampling a channel multiple times repeatedly.  Any
+ previous configuration will be overwritten. In contrast to the
+ &lt;code&gt;configureSingleRepeat()&lt;/code&gt; command this configuration means that
+ an event with &lt;code&gt;numSamples&lt;/code&gt; conversion results will be
+ signalled, where 0 &lt; &lt;code&gt;numSamples&lt;/code&gt; &lt;= 16. In contrast to the
+ &lt;code&gt;configureMultiple()&lt;/code&gt; command, this configuration means that
+ &lt;code&gt;numSamples&lt;/code&gt; conversion results will be signalled repeatedly
+ until the client returns &lt;code&gt;FAIL&lt;/code&gt; in the
+ &lt;code&gt;multipleDataReady()&lt;/code&gt; event handler. 
+
+ If &lt;code&gt;configureMultipleRepeat()&lt;/code&gt; returns SUCCESS calling
+ &lt;code&gt;getData()&lt;/code&gt; will start the the first conversion immediately.
+ The sampling period is specified by the &lt;code&gt;jiffies&lt;/code&gt; parameter,
+ which defines the time between successive conversions in terms of clock
+ ticks of clock source &quot;sampcon_ssel&quot; and clock input divider &quot;sampcon_id&quot;
+ as specified in the &lt;code&gt;config&lt;/code&gt; parameter. If jiffies is zero
+ successive conversions are performed as quickly as possible. After
+ &lt;code&gt;numSamples&lt;/code&gt; conversions an event
+ &lt;code&gt;multipleDataReady()&lt;/code&gt; is signalled with &lt;code&gt;numSamples&lt;/code&gt;
+ conversion results. If the client returns &lt;code&gt;SUCCESS&lt;/code&gt; in the
+ &lt;code&gt;multipleDataReady()&lt;/code&gt; event handler, &lt;code&gt;numSamples&lt;/code&gt;
+ new conversions will be performed, otherwise not.
+
+ @param config ADC12 configuration data.  
+ @param jiffies Sampling period in terms of clock ticks of &quot;sampcon_ssel&quot;
+ and input divider &quot;sampcon_id&quot;.
+ @param buffer The user-allocated buffer in which the conversion results
+ will be stored. It must have at least &lt;code&gt;numSamples&lt;/code&gt; entries,
+ i.e. it must have a size of at least &lt;code&gt;numSamples&lt;/code&gt; * 2 byte.
+ @param numSamples Number of adc samples to take, 0 &lt;
+ &lt;code&gt;numSamples&lt;/code&gt; &lt;= 16
+
+ @return SUCCESS means that the ADC was configured successfully and
+ &lt;code&gt;getData()&lt;/code&gt; can be called to start with the first conversion.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="177:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="config" ref="0x2b0918a6e180">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+          </variable>
+          <variable loc="177:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="buffer" ref="0x2b0918a6e9a8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="177:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="numSamples" ref="0x2b0918a6ed00">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="177:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="jiffies" ref="0x2b0918a6d0c8">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="227:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="multipleDataReady" provided="0" ref="0x2b0918a69b38">
+        <documentation loc="208:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+          <short> 
+ Multiple ADC conversion results are ready.</short>
+          <long> 
+ Multiple ADC conversion results are ready.  If the ADC was configured
+ with the &lt;code&gt;configureMultiple()&lt;/code&gt; command, then the return value
+ is ignored. If the ADC was configured with the
+ &lt;code&gt;configureMultipleRepeat()&lt;/code&gt; command then the returned pointer
+ defines where to store the next &lt;code&gt;numSamples&lt;/code&gt;
+ conversion results (the client must make sure that the buffer is big
+ enough!).  Returning a null pointer means that the repeated conversion
+ mode will be stopped.
+ 
+ @param buffer Conversion results (lower 12 bit are valid, respectively).
+ @param numSamples Number of samples stored in &lt;code&gt;buffer&lt;/code&gt; 
+
+ @return
+ A null pointer stops a repeated conversion mode. Any non-zero value is
+ interpreted as the next buffer, which must have at least
+ &lt;code&gt;numSamples&lt;/code&gt; entries. The return value is ignored if the ADC
+ was configured with &lt;code&gt;configureMultiple()&lt;/code&gt;.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-pointer alignment="I:2" size="I:2">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </type-pointer>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="227:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="buffer" ref="0x2b0918a694d8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="227:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="numSamples" ref="0x2b0918a69840">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="138:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="configureMultiple" provided="0" ref="0x2b0918a70c10">
+        <documentation loc="109:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+          <short> 
+ Configures the ADC for sampling a channel &lt;code&gt;numSamples&lt;/code&gt; times
+ with a given sampling period.</short>
+          <long> 
+ Configures the ADC for sampling a channel &lt;code&gt;numSamples&lt;/code&gt; times
+ with a given sampling period. Any previous configuration will be
+ overwritten.  In contrast to the &lt;code&gt;configureSingleRepeat()&lt;/code&gt;
+ command, this configuration means that only one event will be signalled
+ after all samples have been taken (which is useful for high-frequency
+ sampling). If SUCCESS is returned calling &lt;code&gt;getData()&lt;/code&gt; will
+ start sampling the adc channel &lt;code&gt;numSamples&lt;/code&gt; times and the first
+ conversion is started immediately. Conversion results are stored in a
+ buffer allocated by the client (the &lt;code&gt;buffer&lt;/code&gt;
+ parameter). The sampling period is specified by the &lt;code&gt;jiffies&lt;/code&gt;
+ parameter, which defines the time between successive conversions in terms
+ of clock ticks of clock source &quot;sampcon_ssel&quot; and clock input divider
+ &quot;sampcon_id&quot; as specified in the &lt;code&gt;config&lt;/code&gt; parameter. If jiffies
+ is zero successive conversions are performed as quickly as possible. After
+ &lt;code&gt;numSamples&lt;/code&gt; conversions an event
+ &lt;code&gt;multipleDataReady()&lt;/code&gt; is signalled with the conversion results.
+
+ @param config ADC12 configuration data.  
+ @param jiffies Sampling period in terms of clock ticks of &quot;sampcon_ssel&quot;
+ and input divider &quot;sampcon_id&quot;.
+ @param buffer The user-allocated buffer in which the conversion results
+ will be stored. It must have at least &lt;code&gt;numSamples&lt;/code&gt; entries,
+ i.e. it must have a size of at least &lt;code&gt;numSamples&lt;/code&gt; * 2 byte.
+ @param numSamples Number of adc samples
+
+ @return SUCCESS means that the ADC was configured successfully and
+ &lt;code&gt;getData()&lt;/code&gt; can be called to start with the first conversion.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="138:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="config" ref="0x2b0918a71a18">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                  <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+                <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+              </type-qualified>
+            </type-pointer>
+          </variable>
+          <variable loc="138:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="buffer" ref="0x2b0918a702c0">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+                <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="138:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="numSamples" ref="0x2b0918a70628">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="138:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="jiffies" ref="0x2b0918a70970">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="206:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="singleDataReady" provided="0" ref="0x2b0918a6a020">
+        <documentation loc="191:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc">
+          <short> 
+ A single ADC conversion result is ready.</short>
+          <long> 
+ A single ADC conversion result is ready. If the ADC was configured with
+ the &lt;code&gt;configureSingle()&lt;/code&gt; command, then the return value is
+ ignored. If the ADC was configured with the
+ &lt;code&gt;configureSingleRepeat()&lt;/code&gt; command then the return value tells
+ whether another conversion should be performed (&lt;code&gt;SUCCESS()&lt;/code&gt;) or
+ not (&lt;code&gt;FAIL&lt;/code&gt;).
+ 
+ @param data Conversion result (lower 12 bit).  
+
+ @return If this event is signalled as response to a call to
+ &lt;code&gt;configureSingleRepeat()&lt;/code&gt; then &lt;code&gt;SUCCESS&lt;/code&gt; results in
+ another sampling and &lt;code&gt;FAIL&lt;/code&gt; stops the repeated sampling.
+ Otherwise the return value is ignored.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.Msp430Adc12SingleChannel" qname="Msp430Adc12SingleChannel"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="206:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/Msp430Adc12SingleChannel.nc" name="data" ref="0x2b0918a6bc70">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

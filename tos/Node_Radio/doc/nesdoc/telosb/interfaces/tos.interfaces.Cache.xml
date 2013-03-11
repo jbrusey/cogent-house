@@ -1,0 +1,89 @@
+<?xml version="1.0" ?><interfacedef loc="44:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc" nicename="tos.interfaces.Cache" qname="Cache">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc">
+        <short>
+ A data item cache.</short>
+        <long>
+ A data item cache. The cache does not own the items it caches:
+ there is no allocation/deallocation policy, or notification of
+ eviction. Correspondingly, using references (pointers) as data
+ items can be difficult.
+ 
+ @author Rodrigo Fonseca
+ @author Philip Levis 
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="44:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc" name="t" ref="0x2b09183d0278">
+          <interfacedef-ref nicename="tos.interfaces.Cache" qname="Cache"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b09183d0278" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <function command="" loc="51:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc" name="insert" provided="0" ref="0x2b09183d0c90">
+        <documentation loc="45:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc">
+          <short>
+ Inserts an item in the cache, evicting if necessary.</short>
+          <long>
+ Inserts an item in the cache, evicting if necessary.
+ An atomic lookup after insert should return true.
+
+ @param item - the data item to insert.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.Cache" qname="Cache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b09183d0278" scoped=""/></type-var>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc" name="item" ref="0x2b09183d0a20">
+            <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b09183d0278" scoped=""/></type-var>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="65:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc" name="flush" provided="0" ref="0x2b09183cfd98">
+        <documentation loc="61:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc">
+          <short>
+ Flush the cache of all entries.</short>
+          <long>
+ Flush the cache of all entries.
+
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.Cache" qname="Cache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="59:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc" name="lookup" provided="0" ref="0x2b09183cf670">
+        <documentation loc="53:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc">
+          <short>
+ Return whether the data item is in the cache.</short>
+          <long>
+ Return whether the data item is in the cache.
+
+ @param item - the data item to query
+ @return Whether the item is in the cache.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.Cache" qname="Cache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b09183d0278" scoped=""/></type-var>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="59:/opt/tinyos-main-read-only/tos/interfaces/Cache.nc" name="item" ref="0x2b09183cf400">
+            <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b09183d0278" scoped=""/></type-var>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

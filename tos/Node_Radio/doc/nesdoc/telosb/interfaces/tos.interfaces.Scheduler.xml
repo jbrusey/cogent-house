@@ -1,0 +1,72 @@
+<?xml version="1.0" ?><interfacedef loc="52:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc" nicename="tos.interfaces.Scheduler" qname="Scheduler">
+      <documentation loc="42:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc">
+        <short> 
+ The interface to a TinyOS task scheduler.</short>
+        <long> 
+ The interface to a TinyOS task scheduler.
+
+ @author Philip Levis
+ @date   January 19 2005
+ @see TEP 106: Tasks and Schedulers
+ @see TEP 107: Boot Sequence
+</long>
+      </documentation>
+      <function command="" loc="57:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc" name="init" provided="0" ref="0x2b09169b6970">
+        <documentation loc="54:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc">
+          <short> 
+ Initialize the scheduler.</short>
+          <long> 
+ Initialize the scheduler.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.Scheduler" qname="Scheduler"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="72:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc" name="taskLoop" provided="0" ref="0x2b0916a51878">
+        <documentation loc="67:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc">
+          <short>
+ Enter an infinite task-running loop.</short>
+          <long>
+ Enter an infinite task-running loop. Put the MCU into a low power
+ state when the processor is idle (task queue empty, waiting for
+ interrupts). This call never returns.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.Scheduler" qname="Scheduler"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="65:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc" name="runNextTask" provided="0" ref="0x2b0916a510d8">
+        <documentation loc="59:/opt/tinyos-main-read-only/tos/interfaces/Scheduler.nc">
+          <short> 
+ Run the next task if one is waiting, otherwise return immediately.</short>
+          <long> 
+ Run the next task if one is waiting, otherwise return immediately. 
+
+ @return        whether a task was run -- TRUE indicates a task
+                ran, FALSE indicates there was no task to run.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.Scheduler" qname="Scheduler"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

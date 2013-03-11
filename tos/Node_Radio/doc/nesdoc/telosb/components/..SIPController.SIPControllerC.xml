@@ -1,0 +1,82 @@
+<?xml version="1.0" ?><component loc="4:./SIPController/SIPControllerC.nc" nicename="..SIPController.SIPControllerC" qname="SIPControllerC" safe="">
+      <documentation loc="102:CogentHouseC.nc">
+        <short>*********** SIP CONFIG ***********</short>
+      </documentation>
+      <module/>
+    <specification><interface loc="13:./SIPController/SIPControllerC.nc" name="SinkStatePredict" provided="0" ref="0x2b0919070020">
+      <component-ref nicename="..SIPController.SIPControllerC" qname="SIPControllerC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SinkStatePredict" ref="0x2b0919070020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..Predict.Predict" qname="Predict"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="predictState" ref="0x2b0919070370" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="8:./SIPController/SIPControllerC.nc" name="SIPController" provided="1" ref="0x2b0919074720">
+      <component-ref nicename="..SIPController.SIPControllerC" qname="SIPControllerC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SIPController" ref="0x2b0919074720" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.SIPController" qname="SIPController"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0919073370" scoped=""/>
+        <function-ref name="read" ref="0x2b0919071020" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0919071470" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="14:./SIPController/SIPControllerC.nc" name="EstimateCurrentState" provided="0" ref="0x2b091906a020">
+      <component-ref nicename="..SIPController.SIPControllerC" qname="SIPControllerC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="EstimateCurrentState" ref="0x2b091906a020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..FilterWrapper.FilterWrapper" qname="FilterWrapper"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091906ab68" scoped=""/>
+        <function-ref name="read" ref="0x2b09190664f8" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0919066948" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="7:./SIPController/SIPControllerC.nc" name="TransmissionControl" provided="1" ref="0x2b091907f860">
+      <component-ref nicename="..SIPController.SIPControllerC" qname="SIPControllerC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="TransmissionControl" ref="0x2b091907f860" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.TransmissionControl" qname="TransmissionControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="transmissionDone" ref="0x2b091907fbb0" scoped=""/>
+        <function-ref name="hasEvent" ref="0x2b091907fd38" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="12:./SIPController/SIPControllerC.nc" name="Heartbeat" provided="0" ref="0x2b091906d390">
+      <component-ref nicename="..SIPController.SIPControllerC" qname="SIPControllerC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Heartbeat" ref="0x2b091906d390" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..Heartbeat.Heartbeat" qname="Heartbeat"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091906d6e0" scoped=""/>
+        <function-ref name="triggered" ref="0x2b091906d868" scoped=""/>
+        <function-ref name="reset" ref="0x2b091906d9f0" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

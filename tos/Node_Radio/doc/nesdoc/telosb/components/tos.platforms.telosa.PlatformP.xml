@@ -1,0 +1,39 @@
+<?xml version="1.0" ?><component loc="3:/opt/tinyos-main-read-only/tos/platforms/telosa/PlatformP.nc" nicename="tos.platforms.telosa.PlatformP" qname="PlatformP" safe="">
+      <module/>
+    <specification><interface loc="6:/opt/tinyos-main-read-only/tos/platforms/telosa/PlatformP.nc" name="MoteInit" provided="0" ref="0x2b0916ef9020">
+      <component-ref nicename="tos.platforms.telosa.PlatformP" qname="PlatformP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="MoteInit" ref="0x2b0916ef9020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0916ef9370" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="4:/opt/tinyos-main-read-only/tos/platforms/telosa/PlatformP.nc" name="Init" provided="1" ref="0x2b0916efa198">
+      <component-ref nicename="tos.platforms.telosa.PlatformP" qname="PlatformP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b0916efa198" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0916efa4e8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="5:/opt/tinyos-main-read-only/tos/platforms/telosa/PlatformP.nc" name="MoteClockInit" provided="0" ref="0x2b0916efa868">
+      <component-ref nicename="tos.platforms.telosa.PlatformP" qname="PlatformP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="MoteClockInit" ref="0x2b0916efa868" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0916efabb8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="7:/opt/tinyos-main-read-only/tos/platforms/telosa/PlatformP.nc" name="LedsInit" provided="0" ref="0x2b0916ef96c0">
+      <component-ref nicename="tos.platforms.telosa.PlatformP" qname="PlatformP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="LedsInit" ref="0x2b0916ef96c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0916ef9a10" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

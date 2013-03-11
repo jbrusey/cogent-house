@@ -1,0 +1,17 @@
+digraph "tos.platforms.epic.chips.ds2411.Ds2411C" {
+  n0x2b0917e76998 [shape=ellipse, style=filled, label="ReadId48", fontsize=12];
+  "Ds2411P" [fontsize=12, shape=box, URL="../chtml/tos.platforms.epic.chips.ds2411.Ds2411P.html"];
+  "Ds2411C.Gpio" [fontsize=12, shape=box, style=dashed, label="Msp430GpioC\n(Gpio)", URL="../chtml/tos.chips.msp430.pins.Msp430GpioC.html"];
+  "HplMsp430GeneralIOC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.pins.HplMsp430GeneralIOC.html"];
+  "Ds2411P" [fontsize=12, shape=box, URL="../chtml/tos.platforms.epic.chips.ds2411.Ds2411P.html"];
+  "OneWireMasterC" [fontsize=12, shape=box, URL="../chtml/tos.platforms.epic.chips.ds2411.OneWireMasterC.html"];
+  "OneWireMasterC" [fontsize=12, shape=box, URL="../chtml/tos.platforms.epic.chips.ds2411.OneWireMasterC.html"];
+  "Ds2411C.Gpio" [fontsize=12, shape=box, style=dashed, label="Msp430GpioC\n(Gpio)", URL="../chtml/tos.chips.msp430.pins.Msp430GpioC.html"];
+  "OneWireMasterC" [fontsize=12, shape=box, URL="../chtml/tos.platforms.epic.chips.ds2411.OneWireMasterC.html"];
+  "BusyWaitMicroC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.BusyWaitMicroC.html"];
+  "n0x2b0917e76998" -> "Ds2411P" [label="ReadId48", URL="../ihtml/tos.platforms.epic.chips.ds2411.ReadId48.html", fontsize=10];
+  "Ds2411C.Gpio" -> "HplMsp430GeneralIOC" [label="HplMsp430GeneralIO", URL="../ihtml/tos.chips.msp430.pins.HplMsp430GeneralIO.html", fontsize=10];
+  "Ds2411P" -> "OneWireMasterC" [label="OneWireStream", URL="../ihtml/tos.platforms.epic.chips.ds2411.OneWireStream.html", fontsize=10];
+  "OneWireMasterC" -> "Ds2411C.Gpio" [label="GeneralIO", URL="../ihtml/tos.interfaces.GeneralIO.html", fontsize=10];
+  "OneWireMasterC" -> "BusyWaitMicroC" [label="BusyWait<TMicro, uint16_t>", URL="../ihtml/tos.lib.timer.BusyWait.html", fontsize=10];
+}

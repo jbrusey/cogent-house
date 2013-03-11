@@ -1,0 +1,30 @@
+<?xml version="1.0" ?><interfacedef loc="74:/opt/tinyos-main-read-only/tos/interfaces/McuSleep.nc" nicename="tos.interfaces.McuSleep" qname="McuSleep">
+      <documentation loc="63:/opt/tinyos-main-read-only/tos/interfaces/McuSleep.nc">
+        <short>
+ Interface to instruct the MCU to enter a low power state.</short>
+        <long>
+ Interface to instruct the MCU to enter a low power state. TEP112
+ describes how an MCU computes this state and how the Scheduler uses
+ this interface to manage system power draw.
+ 
+ @author Philip Levis
+ @author Martin Turon &lt;mturon@xbow.com&gt;
+ @date   Oct 26, 2005
+
+</long>
+      </documentation>
+      <function command="" loc="76:/opt/tinyos-main-read-only/tos/interfaces/McuSleep.nc" name="sleep" provided="0" ref="0x2b0916e91a28">
+        <documentation loc="75:/opt/tinyos-main-read-only/tos/interfaces/McuSleep.nc">
+          <short> Called by the scheduler to put the MCU to sleep.</short>
+          <long> Called by the scheduler to put the MCU to sleep. *</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.McuSleep" qname="McuSleep"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

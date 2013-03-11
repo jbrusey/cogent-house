@@ -1,0 +1,132 @@
+<?xml version="1.0" ?><interfacedef loc="40:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc">
+        <short>
+ </short>
+        <long>
+ @author Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+ @author Joe Polastre
+</long>
+      </documentation>
+      <function command="" loc="55:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="setControlAsCapture" provided="0" ref="0x2b0916f7cae0">
+        <documentation loc="49:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc">
+          <short> 
+ Sets the timer in capture mode.</short>
+          <long> 
+ Sets the timer in capture mode.
+ @param cm configures the capture to occur on none, rising, falling or rising_and_falling edges
+ Msp430Timer.h has convenience definitions:
+ MSP430TIMER_CM_NONE, MSP430TIMER_CM_RISING, MSP430TIMER_CM_FALLING, MSP430TIMER_CM_BOTH
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="55:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="cm" ref="0x2b0916f7c870">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="42:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="getControl" provided="0" ref="0x2b0916f5e178">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-tag alignment="I:1" size="I:2"><struct-ref ref="0x2b0916f26dd8"/>
+            <typename><typedef-ref name="msp430_compare_control_t" ref="0x2b0916f25858"/></typename>
+          </type-tag>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="57:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="enableEvents" provided="0" ref="0x2b0916f7b328">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="59:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="areEventsEnabled" provided="0" ref="0x2b0916f79178">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="47:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="setControlAsCompare" provided="0" ref="0x2b0916f7c178">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="58:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="disableEvents" provided="0" ref="0x2b0916f7ba00">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="43:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="isInterruptPending" provided="0" ref="0x2b0916f5e8b0">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="44:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="clearPendingInterrupt" provided="0" ref="0x2b0916f5d020">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="46:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="setControl" provided="0" ref="0x2b0916f5d9f0">
+        <interfacedef-ref nicename="tos.chips.msp430.timer.Msp430TimerControl" qname="Msp430TimerControl"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-tag alignment="I:1" size="I:2"><struct-ref ref="0x2b0916f26dd8"/>
+              <typename><typedef-ref name="msp430_compare_control_t" ref="0x2b0916f25858"/></typename>
+            </type-tag>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="46:/opt/tinyos-main-read-only/tos/chips/msp430/timer/Msp430TimerControl.nc" name="control" ref="0x2b0916f5d780">
+            <type-tag alignment="I:1" size="I:2"><struct-ref ref="0x2b0916f26dd8"/>
+              <typename><typedef-ref name="msp430_compare_control_t" ref="0x2b0916f25858"/></typename>
+            </type-tag>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

@@ -1,0 +1,100 @@
+<?xml version="1.0" ?><interfacedef loc="42:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc" nicename="tos.chips.cc2420.interfaces.CC2420Receive" qname="CC2420Receive">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc">
+        <short>
+ Low-level abstraction of the receive path implementation for the
+ ChipCon CC2420 radio.</short>
+        <long>
+ Low-level abstraction of the receive path implementation for the
+ ChipCon CC2420 radio.
+
+ @author Jonathan Hui &lt;jhui@archrock.com&gt;
+ @version $Revision: 1.4 $ $Date: 2008-06-17 07:28:24 $
+</long>
+      </documentation>
+      <function event="" loc="63:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc" name="receive" provided="0" ref="0x2b0917f36400">
+        <documentation loc="57:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc">
+          <short>
+ Signals that a message has been received.</short>
+          <long>
+ Signals that a message has been received.
+
+ @param type of the message received.
+ @param message pointer to message received.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Receive" qname="CC2420Receive"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="63:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc" name="type" ref="0x2b0917f37a68">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="63:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc" name="message" ref="0x2b0917f36180">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="55:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc" name="sfd_dropped" provided="0" ref="0x2b0917f37328">
+        <documentation loc="51:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc">
+          <short>
+ Notification that the packet has been dropped by the radio
+ (e.g.</short>
+          <long>
+ Notification that the packet has been dropped by the radio
+ (e.g. due to address rejection).
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Receive" qname="CC2420Receive"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="49:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc" name="sfd" provided="0" ref="0x2b0917eddb38">
+        <documentation loc="44:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc">
+          <short>
+ Notification that an SFD capture has occured.</short>
+          <long>
+ Notification that an SFD capture has occured.
+
+ @param time at which the capture happened.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Receive" qname="CC2420Receive"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="49:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Receive.nc" name="time" ref="0x2b0917edd8c8">
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

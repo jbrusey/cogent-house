@@ -1,0 +1,201 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Fifo</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Fifo</h2>
+    <b>interface CC2420Fifo</b><p>
+ HAL abstraction for accessing the FIFO registers of a ChipCon
+ CC2420 radio.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jhui@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.2 $ $Date: 2008-06-03 04:43:03 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command cc2420_status_t <a href="#beginRead">beginRead</a>(uint8_t *data, uint8_t length)
+      </span><menu>
+ Start reading from the FIFO.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#continueRead">continueRead</a>(uint8_t *data, uint8_t length)
+      </span><menu>
+ Continue reading from the FIFO without having to send the address
+ byte again.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command cc2420_status_t <a href="#write">write</a>(uint8_t *data, uint8_t length)
+      </span><menu>
+ Start writing the FIFO.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#readDone">readDone</a>(uint8_t *data, uint8_t length, error_t error)
+      </span><menu>
+ Signals the completion of a read operation.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#writeDone">writeDone</a>(uint8_t *data, uint8_t length, error_t error)
+      </span><menu>
+ Signals the completion of a write operation.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="beginRead"></a>
+    <h4>beginRead
+    </h4>
+    <span id=funcnameshort>command cc2420_status_t <b>beginRead</b>(uint8_t *data, uint8_t length)
+    </span>
+    <p>
+    <menu>
+      
+ Start reading from the FIFO. The <code>readDone</code> event will
+ be signalled upon completion.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>data</code> -  a pointer to the receive buffer.
+ 
+        </dd>
+        <dd>
+          <code>length</code> -  number of bytes to read.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          status byte returned when sending the last address byte
+ of the SPI transaction.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="continueRead"></a>
+    <h4>continueRead
+    </h4>
+    <span id=funcnameshort>command error_t <b>continueRead</b>(uint8_t *data, uint8_t length)
+    </span>
+    <p>
+    <menu>
+      
+ Continue reading from the FIFO without having to send the address
+ byte again. The <code>readDone</code> event will be signalled
+ upon completion.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>data</code> -  a pointer to the receive buffer.
+ 
+        </dd>
+        <dd>
+          <code>length</code> -  number of bytes to read.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS always.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="write"></a>
+    <h4>write
+    </h4>
+    <span id=funcnameshort>command cc2420_status_t <b>write</b>(uint8_t *data, uint8_t length)
+    </span>
+    <p>
+    <menu>
+      
+ Start writing the FIFO. The <code>writeDone</code> event will be
+ signalled upon completion.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>data</code> -  a pointer to the send buffer.
+ 
+        </dd>
+        <dd>
+          <code>length</code> -  number of bytes to write.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          status byte returned when sending the last address byte
+ of the SPI transaction.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="readDone"></a>
+    <h4>readDone
+    </h4>
+    <span id=funcnameshort>event void <b>readDone</b>(uint8_t *data, uint8_t length, error_t error)
+    </span>
+    <p>
+    <menu>
+      
+ Signals the completion of a read operation.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>data</code> -  a pointer to the receive buffer.
+ 
+        </dd>
+        <dd>
+          <code>length</code> -  number of bytes read.
+ 
+        </dd>
+        <dd>
+          <code>error</code> -  notification of how the operation went
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="writeDone"></a>
+    <h4>writeDone
+    </h4>
+    <span id=funcnameshort>event void <b>writeDone</b>(uint8_t *data, uint8_t length, error_t error)
+    </span>
+    <p>
+    <menu>
+      
+ Signals the completion of a write operation.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>data</code> -  a pointer to the send buffer.
+ 
+        </dd>
+        <dd>
+          <code>length</code> -  number of bytes written.
+ 
+        </dd>
+        <dd>
+          <code>error</code> -  notification of how the operation went
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

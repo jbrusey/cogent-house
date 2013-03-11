@@ -1,0 +1,8 @@
+digraph "tos.chips.msp430.timer.Msp430Counter32khzC" {
+  n0x2b09174f2ba0 [shape=ellipse, style=filled, label="Msp430Counter32khz", fontsize=12];
+  "Msp430Counter32khzC.Counter" [fontsize=12, shape=box, style=dashed, label="Msp430CounterC\n(Counter)", URL="../chtml/tos.chips.msp430.timer.Msp430CounterC.html"];
+  "Msp430Counter32khzC.Counter" [fontsize=12, shape=box, style=dashed, label="Msp430CounterC\n(Counter)", URL="../chtml/tos.chips.msp430.timer.Msp430CounterC.html"];
+  "Msp430TimerC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.Msp430TimerC.html"];
+  "n0x2b09174f2ba0" -> "Msp430Counter32khzC.Counter" [label="Counter<T32khz, uint16_t>", URL="../ihtml/tos.lib.timer.Counter.html", fontsize=10];
+  "Msp430Counter32khzC.Counter" -> "Msp430TimerC" [label="Msp430Timer", URL="../ihtml/tos.chips.msp430.timer.Msp430Timer.html", fontsize=10];
+}

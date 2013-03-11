@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.system.ArbiterP</title>
+  </head>
+  <body>
+    <h2>Component: tos.system.ArbiterP
+    </h2>
+    <b>generic module ArbiterP(uint8_t default_owner_id)</b>
+    <p>
+ Please refer to TEP 108 for more information about this component and its
+ intended use.<br><br>
+
+ This component provides the Resource, ResourceRequested, ArbiterInfo, 
+ and ResourceDefaultOwner interfaces and uses the ResourceConfigure interface as
+ described in TEP 108.  It provides arbitration to a shared resource.
+ A Queue is used to keep track of which users have put
+ in requests for the resource.  Upon the release of the resource by one
+ of these users, the queue is checked and the next user
+ that has a pending request will ge granted control of the resource.  If
+ there are no pending requests, then the user of the ResourceDefaultOwner
+ interface gains access to the resource, and holds onto it until
+ another user makes a request.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <b>default_owner_id</b> -- The id of the default owner of this 
+        resource
+ 
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues (klues@tkn.tu-berlin.de)
+ 
+      </dd>
+      <dd>
+        Philip Levis
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.ArbiterInfo.html">ArbiterInfo</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Resource.html">Resource</a>[uint8_t]</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.ResourceDefaultOwner.html">ResourceDefaultOwner</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.ResourceRequested.html">ResourceRequested</a>[uint8_t]</div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.TaskBasic.html">TaskBasic</a> as <b>grantedTask</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Leds.html">Leds</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.ResourceQueue.html">ResourceQueue</a> as <b>Queue</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.ResourceConfigure.html">ResourceConfigure</a>[uint8_t]</div>
+  </body>
+</html>

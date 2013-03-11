@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.usart.HplMsp430UsartInterrupts</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.usart.HplMsp430UsartInterrupts</h2>
+    <b>interface HplMsp430UsartInterrupts</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Vlado Handziski &lt;handzisk@tkn.tu-berlin.de&gt;
+ 
+      </dd>
+      <dd>
+        Philipp Huppertz &lt;huppertz@tkn.tu-berlin.de&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#rxDone">rxDone</a>(uint8_t data)
+      </span><menu>
+ A byte of data has been received.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#txDone">txDone</a>()
+      </span><menu>
+ A byte of data is about to be transmitted, ie.
+      </menu>
+    </div><p><div id=heading>Events - Details</div>
+    <a name="rxDone"></a>
+    <h4>rxDone
+    </h4>
+    <span id=funcnameshort>event void <b>rxDone</b>(uint8_t data)
+    </span>
+    <p>
+    <menu>
+      
+ A byte of data has been received.
+
+    </menu>
+    <hr>
+    <a name="txDone"></a>
+    <h4>txDone
+    </h4>
+    <span id=funcnameshort>event void <b>txDone</b>()
+    </span>
+    <p>
+    <menu>
+      
+ A byte of data is about to be transmitted, ie. the TXBuffer is
+ empty and ready to accept next byte.
+
+    </menu>
+  </body>
+</html>

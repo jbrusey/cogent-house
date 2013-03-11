@@ -1,0 +1,157 @@
+<?xml version="1.0" ?><component abstract="" loc="53:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP">
+      <documentation loc="35:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc">
+        <short>
+ SensirionSht11LogicP contains the actual driver logic needed to
+ read from the Sensirion SHT11 temperature/humidity sensor.</short>
+        <long>
+ SensirionSht11LogicP contains the actual driver logic needed to
+ read from the Sensirion SHT11 temperature/humidity sensor. It
+ depends on 2 underlying GeneralIO interfaces, one for the data pin
+ and one for the clock pin, and one underlying GpioInterrupt.  It
+ provides the HAL-level SensirionSht11 interface. It's generic, so
+ you can instantiate it multiple times if you have more than one
+ Sensirion SHT11 attached to a node. 
+ 
+ &lt;p&gt;
+ This code assumes that the MCU clock is less than 10 MHz.  If you
+ ever run this on a faster MCU, you'll need to insert a lot of
+ waits to keep the Sensirion happy.
+
+ @author Gilman Tolle &lt;gtolle@archrock.com&gt;
+ @version $Revision: 1.4 $ $Date: 2006-12-12 18:23:12 $
+</long>
+      </documentation>
+      <parameters>
+      </parameters>
+      <module/>
+    <specification><interface loc="58:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="InterruptDATA" provided="0" ref="0x2b0918916d38">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="InterruptDATA" ref="0x2b0918916d38" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.GpioInterrupt" qname="GpioInterrupt"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="fired" ref="0x2b09189150d8" scoped=""/>
+        <function-ref name="disable" ref="0x2b0918915260" scoped=""/>
+        <function-ref name="enableFallingEdge" ref="0x2b09189153e8" scoped=""/>
+        <function-ref name="enableRisingEdge" ref="0x2b0918915570" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="102:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="readSensor" provided="0" ref="0x2b0918901110">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="readSensor" ref="0x2b0918901110" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b0918901460" scoped=""/>
+        <function-ref name="runTask" ref="0x2b09189015e8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="103:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="signalStatusDone" provided="0" ref="0x2b0918900020">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="signalStatusDone" ref="0x2b0918900020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b0918900370" scoped=""/>
+        <function-ref name="runTask" ref="0x2b09189004f8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="57:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="CLOCK" provided="0" ref="0x2b0918917b28">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CLOCK" ref="0x2b0918917b28" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.GeneralIO" qname="GeneralIO"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="makeInput" ref="0x2b0918917e78" scoped=""/>
+        <function-ref name="isInput" ref="0x2b0918916030" scoped=""/>
+        <function-ref name="toggle" ref="0x2b09189161b8" scoped=""/>
+        <function-ref name="isOutput" ref="0x2b0918916340" scoped=""/>
+        <function-ref name="get" ref="0x2b09189164c8" scoped=""/>
+        <function-ref name="makeOutput" ref="0x2b0918916650" scoped=""/>
+        <function-ref name="set" ref="0x2b09189167d8" scoped=""/>
+        <function-ref name="clr" ref="0x2b0918916960" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="54:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="SensirionSht11" provided="1" ref="0x2b09189194c0">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SensirionSht11" ref="0x2b09189194c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.sht11.SensirionSht11" qname="SensirionSht11"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="measureHumidityDone" ref="0x2b0918919810" scoped=""/>
+        <function-ref name="readStatusReg" ref="0x2b0918919998" scoped=""/>
+        <function-ref name="measureHumidity" ref="0x2b0918919b20" scoped=""/>
+        <function-ref name="measureTemperature" ref="0x2b0918919ca8" scoped=""/>
+        <function-ref name="writeStatusReg" ref="0x2b0918919e30" scoped=""/>
+        <function-ref name="reset" ref="0x2b0918918020" scoped=""/>
+        <function-ref name="writeStatusRegDone" ref="0x2b09189181a8" scoped=""/>
+        <function-ref name="readStatusRegDone" ref="0x2b0918918330" scoped=""/>
+        <function-ref name="resetDone" ref="0x2b09189184b8" scoped=""/>
+        <function-ref name="measureTemperatureDone" ref="0x2b0918918640" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="56:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="DATA" provided="0" ref="0x2b0918918998">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="DATA" ref="0x2b0918918998" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.GeneralIO" qname="GeneralIO"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="makeInput" ref="0x2b0918918ce8" scoped=""/>
+        <function-ref name="isInput" ref="0x2b0918918e70" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0918917020" scoped=""/>
+        <function-ref name="isOutput" ref="0x2b09189171a8" scoped=""/>
+        <function-ref name="get" ref="0x2b0918917330" scoped=""/>
+        <function-ref name="makeOutput" ref="0x2b09189174b8" scoped=""/>
+        <function-ref name="set" ref="0x2b0918917640" scoped=""/>
+        <function-ref name="clr" ref="0x2b09189177c8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="62:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="Leds" provided="0" ref="0x2b0918910920">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Leds" ref="0x2b0918910920" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Leds" qname="Leds"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="led0Off" ref="0x2b0918910c70" scoped=""/>
+        <function-ref name="led0Toggle" ref="0x2b0918910df8" scoped=""/>
+        <function-ref name="led1On" ref="0x2b091890e020" scoped=""/>
+        <function-ref name="led1Toggle" ref="0x2b091890e1a8" scoped=""/>
+        <function-ref name="led2Toggle" ref="0x2b091890e330" scoped=""/>
+        <function-ref name="get" ref="0x2b091890e4b8" scoped=""/>
+        <function-ref name="led1Off" ref="0x2b091890e640" scoped=""/>
+        <function-ref name="led2Off" ref="0x2b091890ec60" scoped=""/>
+        <function-ref name="set" ref="0x2b091890e7c8" scoped=""/>
+        <function-ref name="led0On" ref="0x2b091890e950" scoped=""/>
+        <function-ref name="led2On" ref="0x2b091890ead8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="60:/opt/tinyos-main-read-only/tos/chips/sht11/SensirionSht11LogicP.nc" name="Timer" provided="0" ref="0x2b0918915978">
+      <component-ref nicename="tos.chips.sht11.SensirionSht11LogicP" qname="SensirionSht11LogicP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Timer" ref="0x2b0918915978" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b0918911bc0" scoped=""/>
+        <function-ref name="fired" ref="0x2b09189122e8" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b0918911020" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b0918912b88" scoped=""/>
+        <function-ref name="getdt" ref="0x2b09189104d8" scoped=""/>
+        <function-ref name="gett0" ref="0x2b0918910088" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b0918912738" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b0918913528" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b09189115f0" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b09189139c8" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918913e68" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

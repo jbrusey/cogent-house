@@ -1,0 +1,97 @@
+<?xml version="1.0" ?><interfacedef loc="57:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc" nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer">
+      <function event="" loc="90:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc" name="fired" provided="0" ref="0x2b0918f34e78">
+        <documentation loc="87:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc">
+          <short>
+ The trickle timer has fired.</short>
+          <long>
+ The trickle timer has fired. Signaled if C &amp;gt; K.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="85:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc" name="incrementCounter" provided="0" ref="0x2b0918f347a0">
+        <documentation loc="82:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc">
+          <short>
+ Increment the counter C.</short>
+          <long>
+ Increment the counter C. When an interval ends, C is set to 0.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="80:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc" name="reset" provided="0" ref="0x2b0918f34020">
+        <documentation loc="76:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc">
+          <short>
+ Reset the timer period to L.</short>
+          <long>
+ Reset the timer period to L. If called while the timer is running,
+ then a new interval (of length L) begins immediately.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="68:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc" name="start" provided="0" ref="0x2b0918f36070">
+        <documentation loc="59:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc">
+          <short>
+ Start the trickle timer.</short>
+          <long>
+ Start the trickle timer. At boot, the timer period is its maximum
+ value (H). If a protocol requires starting at the minimum value
+ (e.g., fast start), then it should call &lt;tt&gt;reset&lt;/tt&gt; before
+ &lt;tt&gt;start&lt;/tt&gt;.
+
+ @return error_t SUCCESS if the timer was started, EBUSY if it is already
+ running, and FAIL otherwise.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="74:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc" name="stop" provided="0" ref="0x2b0918f36838">
+        <documentation loc="70:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimer.nc">
+          <short>
+ Stop the trickle timer.</short>
+          <long>
+ Stop the trickle timer. This call sets the timer period to H and
+ C to 0.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

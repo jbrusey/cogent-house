@@ -1,0 +1,8 @@
+digraph "tos.system.StateImplC" {
+  n0x2b0917a6e858 [shape=ellipse, style=filled, label="State", fontsize=12];
+  "StateImplP" [fontsize=12, shape=box, URL="../chtml/tos.system.StateImplP.html"];
+  "MainC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.MainC.html"];
+  "StateImplP" [fontsize=12, shape=box, URL="../chtml/tos.system.StateImplP.html"];
+  "n0x2b0917a6e858" -> "StateImplP" [label="State[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.State.html", fontsize=10];
+  "MainC" -> "StateImplP" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
+}

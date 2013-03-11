@@ -1,0 +1,104 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.GpioInterrupt</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.GpioInterrupt</h2>
+    <b>interface GpioInterrupt</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui
+ 
+      </dd>
+      <dd>
+        Joe Polastre
+ Revision:  $Revision: 1.5 $
+
+ Provides a microcontroller-independent presentation of interrupts
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#disable">disable</a>()
+      </span><menu>  
+ Diables an edge interrupt or capture interrupt
+ 
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#enableFallingEdge">enableFallingEdge</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command error_t <a href="#enableRisingEdge">enableRisingEdge</a>()
+      </span><menu> 
+ Enable an edge based interrupt.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#fired">fired</a>()
+      </span><menu>
+ Fired when an edge interrupt occurs.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="disable"></a>
+    <h4>disable
+    </h4>
+    <span id=funcnameshort>command error_t <b>disable</b>()
+    </span>
+    <p>
+    <menu>
+        
+ Diables an edge interrupt or capture interrupt
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the interrupt has been disabled
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="enableFallingEdge"></a>
+    <h4>enableFallingEdge
+    </h4>
+    <span id=funcnameshort>command error_t <b>enableFallingEdge</b>()
+    </span><hr>
+    <a name="enableRisingEdge"></a>
+    <h4>enableRisingEdge
+    </h4>
+    <span id=funcnameshort>command error_t <b>enableRisingEdge</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Enable an edge based interrupt. Calls to these functions are
+ not cumulative: only the transition type of the last called function
+ will be monitored for.
+
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the interrupt has been enabled
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="fired"></a>
+    <h4>fired
+    </h4>
+    <span id=funcnameshort>event void <b>fired</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Fired when an edge interrupt occurs.
+
+ NOTE: Interrupts keep running until "disable()" is called
+
+    </menu>
+  </body>
+</html>

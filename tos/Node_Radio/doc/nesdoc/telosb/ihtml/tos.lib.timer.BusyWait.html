@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.timer.BusyWait</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.timer.BusyWait</h2>
+    <b>interface BusyWait&lt;typedef precision_tag, typedef size_type&gt;</b><p>
+ BusyWait is a low-level interface intended for busy waiting for short
+ durations.
+
+ <p>BusyWait is parameterised by its "precision" (milliseconds,
+ microseconds, etc), identified by a type. This prevents, e.g.,
+ unintentionally mixing components expecting milliseconds with those
+ expecting microseconds as those interfaces have a different type.
+
+ <p>BusyWait's second parameter is its "width", i.e., the number of bits
+ used to represent time values. Width is indicated by including the
+ appropriate size integer type as a BusyWait parameter.
+
+ <p>See TEP102 for more details.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>precision_tag</code> -  A type indicating the precision of this BusyWait
+   interface.
+ 
+      </dd>
+      <dd>
+        <code>size_type</code> -  An integer type representing time values for this 
+   BusyWait interface.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#wait">wait</a>(size_type dt)
+      </span><menu>
+ Busy wait for (at least) dt time units.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="wait"></a>
+    <h4>wait
+    </h4>
+    <span id=funcnameshort>command void <b>wait</b>(size_type dt)
+    </span>
+    <p>
+    <menu>
+      
+ Busy wait for (at least) dt time units. Use sparingly, when the
+ cost of using an Alarm or Timer would be too high.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>dt</code> -  Time to busy wait for.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

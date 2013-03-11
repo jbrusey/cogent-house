@@ -1,0 +1,43 @@
+<?xml version="1.0" ?><component abstract="" loc="42:/opt/tinyos-main-read-only/tos/system/RoundRobinResourceQueueC.nc" nicename="tos.system.RoundRobinResourceQueueC" qname="RoundRobinResourceQueueC" safe="">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/system/RoundRobinResourceQueueC.nc">
+        <short>
+
+ </short>
+        <long>
+
+ @author Kevin Klues (klueska@cs.wustl.edu)
+ @version $Revision: 1.7 $
+ @date $Date: 2010-06-29 22:07:56 $
+</long>
+      </documentation>
+      <parameters>
+        <constant loc="42:/opt/tinyos-main-read-only/tos/system/RoundRobinResourceQueueC.nc" name="size" ref="0x2b0918bb5b08">
+          <component-ref nicename="tos.system.RoundRobinResourceQueueC" qname="RoundRobinResourceQueueC"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <module/>
+    <specification><interface loc="44:/opt/tinyos-main-read-only/tos/system/RoundRobinResourceQueueC.nc" name="Init" provided="1" ref="0x2b0918c43368">
+      <component-ref nicename="tos.system.RoundRobinResourceQueueC" qname="RoundRobinResourceQueueC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b0918c43368" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0918c436b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="45:/opt/tinyos-main-read-only/tos/system/RoundRobinResourceQueueC.nc" name="RoundRobinQueue" provided="1" ref="0x2b0918c43a60">
+      <component-ref nicename="tos.system.RoundRobinResourceQueueC" qname="RoundRobinResourceQueueC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="RoundRobinQueue" ref="0x2b0918c43a60" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ResourceQueue" qname="ResourceQueue"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="enqueue" ref="0x2b0918c43db0" scoped=""/>
+        <function-ref name="isEmpty" ref="0x2b0918c42020" scoped=""/>
+        <function-ref name="isEnqueued" ref="0x2b0918c421a8" scoped=""/>
+        <function-ref name="dequeue" ref="0x2b0918c42330" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>
