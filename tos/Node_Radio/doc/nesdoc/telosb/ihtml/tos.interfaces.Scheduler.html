@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Scheduler</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Scheduler</h2>
+    <b>interface Scheduler</b><p> 
+ The interface to a TinyOS task scheduler.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          January 19 2005
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+        TEP 106: Tasks and Schedulers
+ 
+      </dd>
+      <dd>
+        TEP 107: Boot Sequence
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#init">init</a>()
+      </span><menu> 
+ Initialize the scheduler.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#runNextTask">runNextTask</a>()
+      </span><menu> 
+ Run the next task if one is waiting, otherwise return immediately.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#taskLoop">taskLoop</a>()
+      </span><menu>
+ Enter an infinite task-running loop.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="init"></a>
+    <h4>init
+    </h4>
+    <span id=funcnameshort>command void <b>init</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Initialize the scheduler.
+
+    </menu>
+    <hr>
+    <a name="runNextTask"></a>
+    <h4>runNextTask
+    </h4>
+    <span id=funcnameshort>command bool <b>runNextTask</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Run the next task if one is waiting, otherwise return immediately. 
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+                 whether a task was run -- TRUE indicates a task
+                ran, FALSE indicates there was no task to run.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="taskLoop"></a>
+    <h4>taskLoop
+    </h4>
+    <span id=funcnameshort>command void <b>taskLoop</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Enter an infinite task-running loop. Put the MCU into a low power
+ state when the processor is idle (task queue empty, waiting for
+ interrupts). This call never returns.
+
+    </menu>
+  </body>
+</html>

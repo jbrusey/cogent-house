@@ -1,0 +1,20 @@
+<?xml version="1.0" ?><component loc="34:/opt/tinyos-main-read-only/tos/chips/msp430/sensors/Msp430InternalVoltageP.nc" nicename="tos.chips.msp430.sensors.Msp430InternalVoltageP" qname="Msp430InternalVoltageP">
+      <module/>
+    <specification><interface loc="35:/opt/tinyos-main-read-only/tos/chips/msp430/sensors/Msp430InternalVoltageP.nc" name="AdcConfigure" provided="1" ref="0x2b0918dcabb0">
+      <component-ref nicename="tos.chips.msp430.sensors.Msp430InternalVoltageP" qname="Msp430InternalVoltageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AdcConfigure" ref="0x2b0918dcabb0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AdcConfigure" qname="AdcConfigure"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-qualified const="">
+                <typename><typedef-ref name="msp430adc12_channel_config_t" ref="0x2b0918a134d8"/></typename>
+              <type-tag alignment="I:2" size="I:4"><struct-ref ref="0x2b0918a14bc0"/></type-tag>
+            </type-qualified>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getConfiguration" ref="0x2b0918dc6760" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

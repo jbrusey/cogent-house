@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.SendNotifier</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.SendNotifier</h2>
+    <b>interface SendNotifier</b><p> 
+ The radio stack notifies the entire system that it is about to send
+ a packet.  Other modules in the system can call back within this event
+ to modify the packet's metadata. For example, we can setup a module
+ in the system to make every CTP data packet send with low power listening
+ enabled:
+
+   event void SendNotifier.aboutToSend[AM_COLLECTION_DATA](uint8_t dest,
+       message_t *msg) {
+     call LowPowerListening.setRxSleepInterval(msg, 512);
+   }
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#aboutToSend">aboutToSend</a>(am_addr_t dest, message_t *msg)
+      </span><menu>
+ The system is about to send this message.
+      </menu>
+    </div><p><div id=heading>Events - Details</div>
+    <a name="aboutToSend"></a>
+    <h4>aboutToSend
+    </h4>
+    <span id=funcnameshort>event void <b>aboutToSend</b>(am_addr_t dest, message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ The system is about to send this message. Fill in any last modifications
+ and the message will be sent.
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>dest</code> -  The destination address of the messsage
+ 
+        </dd>
+        <dd>
+          'message_t* ONE msg' The message about to be transmitted
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

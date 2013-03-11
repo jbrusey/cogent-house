@@ -1,0 +1,38 @@
+<?xml version="1.0" ?><interfacedef loc="51:/opt/tinyos-main-read-only/tos/interfaces/Init.nc" nicename="tos.interfaces.Init" qname="Init">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/types/TinyError.h">
+        <short>
+ </short>
+        <long>
+ @author Phil Levis
+ @author David Gay
+ Revision:  $Revision: 1.12 $
+
+ Defines global error codes for error_t in TinyOS.
+</long>
+      </documentation>
+      <function command="" loc="62:/opt/tinyos-main-read-only/tos/interfaces/Init.nc" name="init" provided="0" ref="0x2b0916ee4bf8">
+        <documentation loc="53:/opt/tinyos-main-read-only/tos/interfaces/Init.nc">
+          <short>
+ Initialize this component.</short>
+          <long>
+ Initialize this component. Initialization should not assume that
+ any component is running: init() cannot call any commands besides
+ those that initialize other components.  
+ 
+ @return SUCCESS if initialized properly, FAIL otherwise.
+ @see TEP 107: Boot Sequence
+
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

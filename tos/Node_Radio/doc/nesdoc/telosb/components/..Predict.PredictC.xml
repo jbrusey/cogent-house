@@ -1,0 +1,12 @@
+<?xml version="1.0" ?><component loc="7:./Predict/PredictC.nc" nicename="..Predict.PredictC" qname="PredictC">
+      <module/>
+    <specification><interface loc="9:./Predict/PredictC.nc" name="Predict" provided="1" ref="0x2b0919076538">
+      <component-ref nicename="..Predict.PredictC" qname="PredictC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Predict" ref="0x2b0919076538" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..Predict.Predict" qname="Predict"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="predictState" ref="0x2b0919076888" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

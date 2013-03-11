@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Receive</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Receive</h2>
+    <b>interface Receive</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Phil Levis
+ 
+      </dd>
+      <dd>
+        David Gay
+ Revision:  $Revision: 1.12 $
+
+ Defines global error codes for error_t in TinyOS.
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event message_t *<a href="#receive">receive</a>(message_t *msg, void *payload, uint8_t len)
+      </span><menu>
+ Receive a packet buffer, returning a buffer for the signaling
+ component to use for the next reception.
+      </menu>
+    </div><p><div id=heading>Events - Details</div>
+    <a name="receive"></a>
+    <h4>receive
+    </h4>
+    <span id=funcnameshort>event message_t *<b>receive</b>(message_t *msg, void *payload, uint8_t len)
+    </span>
+    <p>
+    <menu>
+      
+ Receive a packet buffer, returning a buffer for the signaling
+ component to use for the next reception. The return value
+ can be the same as <tt>msg</tt>, as long as the handling
+ component copies out the data it needs.
+
+ <b>Note</b> that misuse of this interface is one of the most
+ common bugs in TinyOS code. For example, if a component both calls a
+ send on the passed message and returns it, then it is possible
+ the buffer will be reused before the send occurs, overwriting
+ the component's data. This would cause the mote to possibly
+ instead send a packet it most recently received.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE msg'        the receied packet
+ 
+        </dd>
+        <dd>
+           'void* COUNT(len) payload'  a pointer to the packet's payload
+ 
+        </dd>
+        <dd>
+          <code>len</code> -       the length of the data region pointed to by payload
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          'message_t* ONE'              a packet buffer for the stack to use for the next
+                  received packet.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

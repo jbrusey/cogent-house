@@ -1,0 +1,377 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.usart.HplMsp430I2C</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.usart.HplMsp430I2C</h2>
+    <b>interface HplMsp430I2C</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Vlado Handziski &lt;handzisk@tkn.tu-berlin.de&gt;
+ 
+      </dd>
+      <dd>
+        Philipp Huppertz &lt;huppertz@tkn.tu-berlin.de&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clearModeI2C">clearModeI2C</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableAccessReady">disableAccessReady</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableArbitrationLost">disableArbitrationLost</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableGeneralCall">disableGeneralCall</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableI2C">disableI2C</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableNoAck">disableNoAck</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableOwnAddress">disableOwnAddress</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableReceiveReady">disableReceiveReady</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableStartDetect">disableStartDetect</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#disableTransmitReady">disableTransmitReady</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableAccessReady">enableAccessReady</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableArbitrationLost">enableArbitrationLost</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableGeneralCall">enableGeneralCall</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableI2C">enableI2C</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableNoAck">enableNoAck</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableOwnAddress">enableOwnAddress</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableReceiveReady">enableReceiveReady</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableStartDetect">enableStartDetect</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#enableTransmitReady">enableTransmitReady</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getClockPrescaler">getClockPrescaler</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getClockSource">getClockSource</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getData">getData</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getIV">getIV</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getOwnAddress">getOwnAddress</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#getRepeatMode">getRepeatMode</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getShiftClock">getShiftClock</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getSlaveAddress">getSlaveAddress</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#getStartBit">getStartBit</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#getStartByte">getStartByte</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#getStopBit">getStopBit</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getTransferByteCount">getTransferByteCount</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#getTransmitReceiveMode">getTransmitReceiveMode</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#getWordMode">getWordMode</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isAccessReadyPending">isAccessReadyPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isArbitrationLostPending">isArbitrationLostPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isGeneralCallPending">isGeneralCallPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isI2C">isI2C</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isNoAckPending">isNoAckPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isOwnAddressPending">isOwnAddressPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isReceiveReadyPending">isReceiveReadyPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isStartDetectPending">isStartDetectPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command bool <a href="#isTransmitReadyPending">isTransmitReadyPending</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setClockPrescaler">setClockPrescaler</a>(uint8_t scaler)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setClockSource">setClockSource</a>(uint8_t src)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setData">setData</a>(uint8_t data)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setMasterMode">setMasterMode</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setModeI2C">setModeI2C</a>(msp430_i2c_union_config_t *config)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setOwnAddress">setOwnAddress</a>(uint16_t addr)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setReceiveMode">setReceiveMode</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setRepeatMode">setRepeatMode</a>(bool mode)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setShiftClock">setShiftClock</a>(uint16_t shift)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setSlaveAddress">setSlaveAddress</a>(uint16_t addr)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setSlaveMode">setSlaveMode</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setStartBit">setStartBit</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setStartByte">setStartByte</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setStopBit">setStopBit</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setTransferByteCount">setTransferByteCount</a>(uint8_t count)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setTransmitMode">setTransmitMode</a>()
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setWordMode">setWordMode</a>(bool mode)
+      </span></div><p><div id=heading>Commands - Details</div>
+    <a name="clearModeI2C"></a>
+    <h4>clearModeI2C
+    </h4>
+    <span id=funcnameshort>command void <b>clearModeI2C</b>()
+    </span><hr>
+    <a name="disableAccessReady"></a>
+    <h4>disableAccessReady
+    </h4>
+    <span id=funcnameshort>command void <b>disableAccessReady</b>()
+    </span><hr>
+    <a name="disableArbitrationLost"></a>
+    <h4>disableArbitrationLost
+    </h4>
+    <span id=funcnameshort>command void <b>disableArbitrationLost</b>()
+    </span><hr>
+    <a name="disableGeneralCall"></a>
+    <h4>disableGeneralCall
+    </h4>
+    <span id=funcnameshort>command void <b>disableGeneralCall</b>()
+    </span><hr>
+    <a name="disableI2C"></a>
+    <h4>disableI2C
+    </h4>
+    <span id=funcnameshort>command void <b>disableI2C</b>()
+    </span><hr>
+    <a name="disableNoAck"></a>
+    <h4>disableNoAck
+    </h4>
+    <span id=funcnameshort>command void <b>disableNoAck</b>()
+    </span><hr>
+    <a name="disableOwnAddress"></a>
+    <h4>disableOwnAddress
+    </h4>
+    <span id=funcnameshort>command void <b>disableOwnAddress</b>()
+    </span><hr>
+    <a name="disableReceiveReady"></a>
+    <h4>disableReceiveReady
+    </h4>
+    <span id=funcnameshort>command void <b>disableReceiveReady</b>()
+    </span><hr>
+    <a name="disableStartDetect"></a>
+    <h4>disableStartDetect
+    </h4>
+    <span id=funcnameshort>command void <b>disableStartDetect</b>()
+    </span><hr>
+    <a name="disableTransmitReady"></a>
+    <h4>disableTransmitReady
+    </h4>
+    <span id=funcnameshort>command void <b>disableTransmitReady</b>()
+    </span><hr>
+    <a name="enableAccessReady"></a>
+    <h4>enableAccessReady
+    </h4>
+    <span id=funcnameshort>command void <b>enableAccessReady</b>()
+    </span><hr>
+    <a name="enableArbitrationLost"></a>
+    <h4>enableArbitrationLost
+    </h4>
+    <span id=funcnameshort>command void <b>enableArbitrationLost</b>()
+    </span><hr>
+    <a name="enableGeneralCall"></a>
+    <h4>enableGeneralCall
+    </h4>
+    <span id=funcnameshort>command void <b>enableGeneralCall</b>()
+    </span><hr>
+    <a name="enableI2C"></a>
+    <h4>enableI2C
+    </h4>
+    <span id=funcnameshort>command void <b>enableI2C</b>()
+    </span><hr>
+    <a name="enableNoAck"></a>
+    <h4>enableNoAck
+    </h4>
+    <span id=funcnameshort>command void <b>enableNoAck</b>()
+    </span><hr>
+    <a name="enableOwnAddress"></a>
+    <h4>enableOwnAddress
+    </h4>
+    <span id=funcnameshort>command void <b>enableOwnAddress</b>()
+    </span><hr>
+    <a name="enableReceiveReady"></a>
+    <h4>enableReceiveReady
+    </h4>
+    <span id=funcnameshort>command void <b>enableReceiveReady</b>()
+    </span><hr>
+    <a name="enableStartDetect"></a>
+    <h4>enableStartDetect
+    </h4>
+    <span id=funcnameshort>command void <b>enableStartDetect</b>()
+    </span><hr>
+    <a name="enableTransmitReady"></a>
+    <h4>enableTransmitReady
+    </h4>
+    <span id=funcnameshort>command void <b>enableTransmitReady</b>()
+    </span><hr>
+    <a name="getClockPrescaler"></a>
+    <h4>getClockPrescaler
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getClockPrescaler</b>()
+    </span><hr>
+    <a name="getClockSource"></a>
+    <h4>getClockSource
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getClockSource</b>()
+    </span><hr>
+    <a name="getData"></a>
+    <h4>getData
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getData</b>()
+    </span><hr>
+    <a name="getIV"></a>
+    <h4>getIV
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getIV</b>()
+    </span><hr>
+    <a name="getOwnAddress"></a>
+    <h4>getOwnAddress
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getOwnAddress</b>()
+    </span><hr>
+    <a name="getRepeatMode"></a>
+    <h4>getRepeatMode
+    </h4>
+    <span id=funcnameshort>command bool <b>getRepeatMode</b>()
+    </span><hr>
+    <a name="getShiftClock"></a>
+    <h4>getShiftClock
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getShiftClock</b>()
+    </span><hr>
+    <a name="getSlaveAddress"></a>
+    <h4>getSlaveAddress
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getSlaveAddress</b>()
+    </span><hr>
+    <a name="getStartBit"></a>
+    <h4>getStartBit
+    </h4>
+    <span id=funcnameshort>command bool <b>getStartBit</b>()
+    </span><hr>
+    <a name="getStartByte"></a>
+    <h4>getStartByte
+    </h4>
+    <span id=funcnameshort>command bool <b>getStartByte</b>()
+    </span><hr>
+    <a name="getStopBit"></a>
+    <h4>getStopBit
+    </h4>
+    <span id=funcnameshort>command bool <b>getStopBit</b>()
+    </span><hr>
+    <a name="getTransferByteCount"></a>
+    <h4>getTransferByteCount
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getTransferByteCount</b>()
+    </span><hr>
+    <a name="getTransmitReceiveMode"></a>
+    <h4>getTransmitReceiveMode
+    </h4>
+    <span id=funcnameshort>command bool <b>getTransmitReceiveMode</b>()
+    </span><hr>
+    <a name="getWordMode"></a>
+    <h4>getWordMode
+    </h4>
+    <span id=funcnameshort>command bool <b>getWordMode</b>()
+    </span><hr>
+    <a name="isAccessReadyPending"></a>
+    <h4>isAccessReadyPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isAccessReadyPending</b>()
+    </span><hr>
+    <a name="isArbitrationLostPending"></a>
+    <h4>isArbitrationLostPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isArbitrationLostPending</b>()
+    </span><hr>
+    <a name="isGeneralCallPending"></a>
+    <h4>isGeneralCallPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isGeneralCallPending</b>()
+    </span><hr>
+    <a name="isI2C"></a>
+    <h4>isI2C
+    </h4>
+    <span id=funcnameshort>command bool <b>isI2C</b>()
+    </span><hr>
+    <a name="isNoAckPending"></a>
+    <h4>isNoAckPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isNoAckPending</b>()
+    </span><hr>
+    <a name="isOwnAddressPending"></a>
+    <h4>isOwnAddressPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isOwnAddressPending</b>()
+    </span><hr>
+    <a name="isReceiveReadyPending"></a>
+    <h4>isReceiveReadyPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isReceiveReadyPending</b>()
+    </span><hr>
+    <a name="isStartDetectPending"></a>
+    <h4>isStartDetectPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isStartDetectPending</b>()
+    </span><hr>
+    <a name="isTransmitReadyPending"></a>
+    <h4>isTransmitReadyPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isTransmitReadyPending</b>()
+    </span><hr>
+    <a name="setClockPrescaler"></a>
+    <h4>setClockPrescaler
+    </h4>
+    <span id=funcnameshort>command void <b>setClockPrescaler</b>(uint8_t scaler)
+    </span><hr>
+    <a name="setClockSource"></a>
+    <h4>setClockSource
+    </h4>
+    <span id=funcnameshort>command void <b>setClockSource</b>(uint8_t src)
+    </span><hr>
+    <a name="setData"></a>
+    <h4>setData
+    </h4>
+    <span id=funcnameshort>command void <b>setData</b>(uint8_t data)
+    </span><hr>
+    <a name="setMasterMode"></a>
+    <h4>setMasterMode
+    </h4>
+    <span id=funcnameshort>command void <b>setMasterMode</b>()
+    </span><hr>
+    <a name="setModeI2C"></a>
+    <h4>setModeI2C
+    </h4>
+    <span id=funcnameshort>command void <b>setModeI2C</b>(msp430_i2c_union_config_t *config)
+    </span><hr>
+    <a name="setOwnAddress"></a>
+    <h4>setOwnAddress
+    </h4>
+    <span id=funcnameshort>command void <b>setOwnAddress</b>(uint16_t addr)
+    </span><hr>
+    <a name="setReceiveMode"></a>
+    <h4>setReceiveMode
+    </h4>
+    <span id=funcnameshort>command void <b>setReceiveMode</b>()
+    </span><hr>
+    <a name="setRepeatMode"></a>
+    <h4>setRepeatMode
+    </h4>
+    <span id=funcnameshort>command void <b>setRepeatMode</b>(bool mode)
+    </span><hr>
+    <a name="setShiftClock"></a>
+    <h4>setShiftClock
+    </h4>
+    <span id=funcnameshort>command void <b>setShiftClock</b>(uint16_t shift)
+    </span><hr>
+    <a name="setSlaveAddress"></a>
+    <h4>setSlaveAddress
+    </h4>
+    <span id=funcnameshort>command void <b>setSlaveAddress</b>(uint16_t addr)
+    </span><hr>
+    <a name="setSlaveMode"></a>
+    <h4>setSlaveMode
+    </h4>
+    <span id=funcnameshort>command void <b>setSlaveMode</b>()
+    </span><hr>
+    <a name="setStartBit"></a>
+    <h4>setStartBit
+    </h4>
+    <span id=funcnameshort>command void <b>setStartBit</b>()
+    </span><hr>
+    <a name="setStartByte"></a>
+    <h4>setStartByte
+    </h4>
+    <span id=funcnameshort>command void <b>setStartByte</b>()
+    </span><hr>
+    <a name="setStopBit"></a>
+    <h4>setStopBit
+    </h4>
+    <span id=funcnameshort>command void <b>setStopBit</b>()
+    </span><hr>
+    <a name="setTransferByteCount"></a>
+    <h4>setTransferByteCount
+    </h4>
+    <span id=funcnameshort>command void <b>setTransferByteCount</b>(uint8_t count)
+    </span><hr>
+    <a name="setTransmitMode"></a>
+    <h4>setTransmitMode
+    </h4>
+    <span id=funcnameshort>command void <b>setTransmitMode</b>()
+    </span><hr>
+    <a name="setWordMode"></a>
+    <h4>setWordMode
+    </h4>
+    <span id=funcnameshort>command void <b>setWordMode</b>(bool mode)
+    </span>
+  </body>
+</html>

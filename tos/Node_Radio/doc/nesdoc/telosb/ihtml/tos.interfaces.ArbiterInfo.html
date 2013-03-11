@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ArbiterInfo</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ArbiterInfo</h2>
+    <b>interface ArbiterInfo</b><p>
+ Please refer to TEP 108 for more information about this interface and its
+ intended use.<br><br>
+
+ The ArbiterInfo interface allows a component to query the current 
+ status of an arbiter.  It must be provided by ALL arbiter implementations,
+ and can be used for a variety of different purposes.  Normally it will be
+ used in conjunction with the Resource interface for performing run time
+ checks on access rights to a particular shared resource.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues (klueska@cs.wustl.edu)
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command bool <a href="#inUse">inUse</a>()
+      </span><menu>
+ Check whether a resource is currently allocated.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#userId">userId</a>()
+      </span><menu>
+ Get the id of the client currently using a resource.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="inUse"></a>
+    <h4>inUse
+    </h4>
+    <span id=funcnameshort>command bool <b>inUse</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Check whether a resource is currently allocated.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE If the resource being arbitrated is currently allocated
+              to any of its users<br>
+         FALSE Otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="userId"></a>
+    <h4>userId
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>userId</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get the id of the client currently using a resource.
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Id of the current owner of the resource<br>
+         0xFF if no one currently owns the resource
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

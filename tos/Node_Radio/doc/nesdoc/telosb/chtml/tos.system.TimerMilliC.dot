@@ -1,0 +1,5 @@
+digraph "tos.system.TimerMilliC" {
+  n0x2b09175dd878 [shape=ellipse, style=filled, label="Timer", fontsize=12];
+  "TimerMilliP" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.TimerMilliP.html"];
+  "n0x2b09175dd878" -> "TimerMilliP" [label="Timer<TMilli>", URL="../ihtml/tos.lib.timer.Timer.html", fontsize=10];
+}

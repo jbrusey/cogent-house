@@ -1,0 +1,5 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.timer.Alarm32khz32C.html" title="Alarm32khz32C" alt="" coords="36,120,193,179">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="57,51 92,106 87,109 53,53">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="81,78,101,95">
+<area shape="poly" id="edge4" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;T32khz, uint32_t&gt;" alt="" coords="176,54 142,109 138,107 171,52">
+<area shape="rect" id="edge4" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;T32khz, uint32_t&gt;" alt="" coords="157,78,323,95">

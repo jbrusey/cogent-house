@@ -1,0 +1,52 @@
+<?xml version="1.0" ?><component abstract="" loc="3:./Heartbeat/HeartbeatC.nc" nicename="..Heartbeat.HeartbeatC" qname="HeartbeatC" safe="">
+      <parameters>
+        <constant loc="3:./Heartbeat/HeartbeatC.nc" name="mult" ref="0x2b0919108548">
+          <component-ref nicename="..Heartbeat.HeartbeatC" qname="HeartbeatC"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+        <constant loc="3:./Heartbeat/HeartbeatC.nc" name="p" ref="0x2b0919108858">
+          <component-ref nicename="..Heartbeat.HeartbeatC" qname="HeartbeatC"/>
+          <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+            <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <module/>
+    <specification><interface loc="6:./Heartbeat/HeartbeatC.nc" name="HeartbeatTimer" provided="0" ref="0x2b0919105c58">
+      <component-ref nicename="..Heartbeat.HeartbeatC" qname="HeartbeatC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="HeartbeatTimer" ref="0x2b0919105c58" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b0919101e78" scoped=""/>
+        <function-ref name="fired" ref="0x2b09191035a8" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b09191012d8" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b0919103e48" scoped=""/>
+        <function-ref name="getdt" ref="0x2b0919100748" scoped=""/>
+        <function-ref name="gett0" ref="0x2b09191002f8" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b09191039f8" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b09191047e8" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b09191018a8" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b0919104c88" scoped=""/>
+        <function-ref name="stop" ref="0x2b0919103158" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="5:./Heartbeat/HeartbeatC.nc" name="Heartbeat" provided="1" ref="0x2b0919105120">
+      <component-ref nicename="..Heartbeat.HeartbeatC" qname="HeartbeatC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Heartbeat" ref="0x2b0919105120" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..Heartbeat.Heartbeat" qname="Heartbeat"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0919105470" scoped=""/>
+        <function-ref name="triggered" ref="0x2b09191055f8" scoped=""/>
+        <function-ref name="reset" ref="0x2b0919105780" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

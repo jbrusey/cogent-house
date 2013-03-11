@@ -1,0 +1,157 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.adc12.Msp430Adc12MultiChannel</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.adc12.Msp430Adc12MultiChannel</h2>
+    <b>interface Msp430Adc12MultiChannel</b><p> 
+ This interface provides access to the ADC12 on the level of HAL. It can be
+ used to sample up to 16 (different) ADC channels. It separates between
+ configuration and data collection: every time a client has been granted
+ access to the ADC subsystem (via the Resource interface), it first has to
+ configure the ADC.  Afterwards the client may call getData() more than once
+ without reconfiguring the ADC in between (if the client has not released the
+ ADC via the Resource interface), i.e.<p>
+ 
+    configure() -> ( getData() -> dataReady() )*
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jan Hauer 
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#configure">configure</a>(msp430adc12_channel_config_t *config, adc12memctl_t *memctl, uint8_t numMemctl, uint16_t *buffer, uint16_t numSamples, uint16_t jiffies)
+      </span><menu> 
+ Configures the ADC to perform conversion(s) on multiple channels.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#getData">getData</a>()
+      </span><menu> 
+ Starts sampling the adc channels using the configuration as specified by
+ the last call to <code>configure()</code>.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#dataReady">dataReady</a>(uint16_t *buffer, uint16_t numSamples)
+      </span><menu> 
+ Conversion results are ready.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="configure"></a>
+    <h4>configure
+    </h4>
+    <span id=funcnameshort>command error_t <b>configure</b>(msp430adc12_channel_config_t *config, adc12memctl_t *memctl, uint8_t numMemctl, uint16_t *buffer, uint16_t numSamples, uint16_t jiffies)
+    </span>
+    <p>
+    <menu>
+       
+ Configures the ADC to perform conversion(s) on multiple channels.  Any
+ previous configuration will be overwritten.  If SUCCESS is returned
+ calling <code>getData()</code> will start the conversion immediately and a
+ <code>dataReady()</code> event will be signalled with the conversion
+ result when the conversion has finished.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>config</code> -  Main ADC12 configuration and configuration of the first
+ channel 
+
+ 
+        </dd>
+        <dd>
+          <code>memctl</code> -  List of additional channels and respective reference
+ voltages
+
+ 
+        </dd>
+        <dd>
+          <code>numMemctl</code> -  Number of entries in the list
+ 
+ 
+        </dd>
+        <dd>
+          <code>buffer</code> -  Buffer to store the conversion results, it must have
+ numSamples entries. Results will be stored in the order the channels where
+ specified.
+
+ 
+        </dd>
+        <dd>
+          <code>numSamples</code> -  Total number of samples. Note: numSamples %
+ (numMemctl+1) must be zero. For example, to sample every channel twice use
+ numSamples = (numMemctl+1) * 2
+
+ 
+        </dd>
+        <dd>
+          <code>jiffies</code> -  Sampling period in terms of clock ticks of "sampcon_ssel"
+ and input divider "sampcon_id". Samples are taken equally-spaced in
+ time iterating round-robin over the channels (different channels are  
+ not sampled simultaneously but one after another).
+
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS means that the ADC was configured successfully and
+ <code>getData()</code> can be called to start the conversion.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getData"></a>
+    <h4>getData
+    </h4>
+    <span id=funcnameshort>command error_t <b>getData</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Starts sampling the adc channels using the configuration as specified by
+ the last call to <code>configure()</code>.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS means that the conversion was started successfully and an
+ event dataReady() will be signalled. Otherwise no event will be signalled.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="dataReady"></a>
+    <h4>dataReady
+    </h4>
+    <span id=funcnameshort>event void <b>dataReady</b>(uint16_t *buffer, uint16_t numSamples)
+    </span>
+    <p>
+    <menu>
+       
+ Conversion results are ready. Results are stored in the buffer in the
+ order the channels where specified in the <code>configure()</code>
+ command, i.e. every (numMemctl+1)-th entry maps to the same channel. 
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>buffer</code> -  Conversion results (lower 12 bit are valid, respectively).
+ 
+        </dd>
+        <dd>
+          <code>numSamples</code> -  Number of results stored in <code>buffer</code> 
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

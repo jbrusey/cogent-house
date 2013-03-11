@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.system.TinySchedulerC</title>
+  </head>
+  <body>
+    <h2>Component: tos.system.TinySchedulerC
+    </h2>
+    <b>configuration TinySchedulerC</b>
+    <p>
+ The TinyOS scheduler. It provides two interfaces: Scheduler,
+ for TinyOS to initialize and run tasks, and TaskBasic, the simplext
+ class of TinyOS tasks (reserved always at-most-once posting,
+ FIFO, parameter-free). For details and information on how to
+ replace the scheduler, refer to TEP 106.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+         Phil Levis
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+           August 7 2005
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+            TEP 106: Tasks and Schedulers
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Scheduler.html">Scheduler</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.TaskBasic.html">TaskBasic</a>[uint8_t]</div><p><div id=heading>Wiring</div><p>
+    <map name="comp">
+      <area shape="rect" id="node2" href="../chtml/tos.system.SchedulerBasicP.html" title="SchedulerBasicP" alt="" coords="68,120,217,168">
+
+      <area shape="poly" id="edge2" href="../ihtml/tos.interfaces.TaskBasic.html" title="TaskBasic[uint8_t]" alt="" coords="68,53 69,75 76,95 87,110 83,113 71,97 64,76 62,54">
+
+      <area shape="rect" id="edge2" href="../ihtml/tos.interfaces.TaskBasic.html" title="TaskBasic[uint8_t]" alt="" coords="73,78,189,95">
+
+      <area shape="rect" id="node4" href="../chtml/tos.chips.msp430.McuSleepC.html" title="McuSleepC" alt="" coords="89,235,196,283">
+
+      <area shape="poly" id="edge6" href="../ihtml/tos.interfaces.McuSleep.html" title="McuSleep" alt="" coords="145,168 145,221 140,221 140,168">
+
+      <area shape="rect" id="edge6" href="../ihtml/tos.interfaces.McuSleep.html" title="McuSleep" alt="" coords="143,193,205,210">
+
+      <area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Scheduler.html" title="Scheduler" alt="" coords="213,54 192,97 181,111 177,108 187,95 208,52">
+
+      <area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Scheduler.html" title="Scheduler" alt="" coords="199,78,264,95">
+
+    </map>
+    <img src="tos.system.TinySchedulerC.png" usemap="#comp" id=imgwiring>
+  </body>
+</html>

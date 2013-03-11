@@ -1,0 +1,17 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.adc12.Msp430Adc12P.html" title="Msp430Adc12P" alt="" coords="555,245,709,304">
+<area shape="poly" id="edge2" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12MultiChannel.html" title="Msp430Adc12MultiChannel" alt="" coords="215,169 289,194 370,219 458,240 542,256 541,262 457,245 369,224 287,199 213,174">
+<area shape="rect" id="edge2" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12MultiChannel.html" title="Msp430Adc12MultiChannel" alt="" coords="369,203,543,221">
+<area shape="poly" id="edge4" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12SingleChannel.html" title="Msp430Adc12SingleChannel" alt="" coords="514,171 588,234 585,238 510,175">
+<area shape="rect" id="edge4" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12SingleChannel.html" title="Msp430Adc12SingleChannel" alt="" coords="567,203,748,221">
+<area shape="poly" id="edge6" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12Overflow.html" title="Msp430Adc12Overflow" alt="" coords="788,175 774,200 754,223 723,244 720,240 750,219 770,197 784,172">
+<area shape="rect" id="edge6" href="../ihtml/tos.chips.msp430.adc12.Msp430Adc12Overflow.html" title="Msp430Adc12Overflow" alt="" coords="767,203,912,221">
+<area shape="rect" id="node6" href="../chtml/tos.chips.msp430.adc12.Msp430RefVoltArbiterP.html" title="Msp430RefVoltArbiterP" alt="" coords="981,120,1192,179">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="1089,54 1089,106 1084,106 1084,54">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="1087,78,1145,95">
+<area shape="poly" id="edge10" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="1027,181 975,204 918,224 818,249 723,265 722,260 817,243 917,219 973,199 1025,176">
+<area shape="rect" id="edge10" href="../ihtml/tos.interfaces.Resource.html" title="Resource[uint8_t]" alt="" coords="969,203,1083,221">
+<area shape="rect" id="node7" href="../chtml/tos.chips.msp430.adc12.Msp430Adc12ConfAlertC.html" title="Msp430Adc12ConfAlertC" alt="" coords="992,251,1211,299">
+<area shape="poly" id="edge14" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;[uint8_t]" alt="" coords="1093,179 1100,237 1094,238 1087,179">
+<area shape="rect" id="edge14" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;[uint8_t]" alt="" coords="1095,203,1472,221">
+<area shape="poly" id="edge12" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;" alt="" coords="1104,299 1104,357 1099,357 1099,299">
+<area shape="rect" id="edge12" href="../ihtml/tos.interfaces.AdcConfigure.html" title="AdcConfigure&lt;msp430adc12_channel_config_t *&gt;" alt="" coords="1101,329,1425,346">

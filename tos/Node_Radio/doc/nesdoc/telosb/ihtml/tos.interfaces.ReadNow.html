@@ -1,0 +1,95 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ReadNow</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ReadNow</h2>
+    <b>interface ReadNow&lt;typedef val_t&gt;</b><p>
+ The ReadNow interface is intended for split-phase low-latency
+ reading of small values. The type of the value is given as a
+ template argument. Because this interface is split-phase, these
+ values may be backed by hardware. Providers of this interface
+ should also provide a Resource interface, and this interface should
+ only be used after the resource has been acquired. Otherwise, the
+ low-latency requirement may be impossible to meet.
+
+ <p>
+ This interface has the same calling semantics as the Read interface
+ described in TEP 114, except that it is async.
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>val_t</code> -  the type of the object that will be returned
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Gilman Tolle &lt;gtolle@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.5 $ $Date: 2008-06-16 18:58:51 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#read">read</a>()
+      </span><menu>
+ Initiates a read of the value.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#readDone">readDone</a>(error_t result, val_t val)
+      </span><menu>
+ Signals the completion of the read().
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="read"></a>
+    <h4>read
+    </h4>
+    <span id=funcnameshort>command error_t <b>read</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Initiates a read of the value.
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if a readDone() event will eventually come back.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="readDone"></a>
+    <h4>readDone
+    </h4>
+    <span id=funcnameshort>event void <b>readDone</b>(error_t result, val_t val)
+    </span>
+    <p>
+    <menu>
+      
+ Signals the completion of the read().
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>result</code> -  SUCCESS if the read() was successful
+ 
+        </dd>
+        <dd>
+          <code>val</code> -  the value that has been read
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.lib.timer.VirtualizeTimerC</title>
+  </head>
+  <body>
+    <h2>Component: tos.lib.timer.VirtualizeTimerC
+    </h2>
+    <b>generic module VirtualizeTimerC(typedef precision_tag, int max_timers)</b>
+    <p>
+ VirtualizeTimerC uses a single Timer to create up to 255 virtual timers.
+
+ <p>See TEP102 for more details.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>precision_tag</code> -  A type indicating the precision of the Timer being 
+   virtualized.
+ 
+      </dd>
+      <dd>
+        <code>max_timers</code> -  Number of virtual timers to create.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Timer.html">Timer</a>&lt;precision_tag&gt;[uint8_t]</div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Timer.html">Timer</a>&lt;precision_tag&gt; as <b>TimerFrom</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.TaskBasic.html">TaskBasic</a> as <b>updateFromTimer</b></div>
+  </body>
+</html>

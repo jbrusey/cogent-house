@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Crc</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Crc</h2>
+    <b>interface Crc</b><p>
+ Compute the CRC-16 value of a byte array.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jwhui@cs.berkeley.edu&gt;
+ 
+      </dd>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#crc16">crc16</a>(void *buf, uint8_t len)
+      </span><menu>
+ Compute the CRC-16 value of a byte array.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#seededCrc16">seededCrc16</a>(uint16_t startCrc, void *buf, uint8_t len)
+      </span><menu>
+ Compute a generic CRC-16 using a given seed.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="crc16"></a>
+    <h4>crc16
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>crc16</b>(void *buf, uint8_t len)
+    </span>
+    <p>
+    <menu>
+      
+ Compute the CRC-16 value of a byte array.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+            'void* COUNT(len) buf' A pointer to the buffer over which to compute CRC.
+ 
+        </dd>
+        <dd>
+          <code>len</code> -  The length of the buffer over which to compute CRC.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+           The CRC-16 value.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="seededCrc16"></a>
+    <h4>seededCrc16
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>seededCrc16</b>(uint16_t startCrc, void *buf, uint8_t len)
+    </span>
+    <p>
+    <menu>
+      
+ Compute a generic CRC-16 using a given seed.  Used to compute CRC's
+ of discontinuous data.
+ 
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>startCrc</code> -  An initial CRC value to begin with
+ 
+        </dd>
+        <dd>
+          'void* COUNT(len) buf' A pointer to a buffer of data
+ 
+        </dd>
+        <dd>
+          <code>len</code> -  The length of the buffer
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          The CRC-16 value.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

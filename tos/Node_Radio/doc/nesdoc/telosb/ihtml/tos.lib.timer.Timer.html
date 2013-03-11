@@ -1,0 +1,321 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.timer.Timer</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.timer.Timer</h2>
+    <b>interface Timer&lt;typedef precision_tag&gt;</b><p>
+ A Timer is TinyOS's general purpose timing interface. For more precise
+ timing, you may wish to use a (platform-specific) component offering
+ an Alarm interface.
+
+ <p>A Timer is parameterised by its "precision" (milliseconds,
+ microseconds, etc), identified by a type. This prevents, e.g.,
+ unintentionally mixing components expecting milliseconds with those
+ expecting microseconds as those interfaces have a different type.
+
+ <p>See TEP102 for more details.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>precision_tag</code> -  A type indicating the precision of this Alarm.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint32_t <a href="#getdt">getdt</a>()
+      </span><menu>
+ Return the delay or period for the previously started timer.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint32_t <a href="#getNow">getNow</a>()
+      </span><menu>
+ Return the current time.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint32_t <a href="#gett0">gett0</a>()
+      </span><menu>
+ Return the time anchor for the previously started timer or the time of
+ the previous event for periodic timers.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isOneShot">isOneShot</a>()
+      </span><menu>
+ Check if this is a one-shot timer.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isRunning">isRunning</a>()
+      </span><menu>
+ Check if timer is running.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#startOneShot">startOneShot</a>(uint32_t dt)
+      </span><menu>
+ Set a single-short timer to some time units in the future.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#startOneShotAt">startOneShotAt</a>(uint32_t t0, uint32_t dt)
+      </span><menu>
+ Set a single-short timer to time t0+dt.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#startPeriodic">startPeriodic</a>(uint32_t dt)
+      </span><menu>
+ Set a periodic timer to repeat every dt time units.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#startPeriodicAt">startPeriodicAt</a>(uint32_t t0, uint32_t dt)
+      </span><menu>
+ Set a periodic timer to repeat every dt time units.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#stop">stop</a>()
+      </span><menu>
+ Cancel a timer.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#fired">fired</a>()
+      </span><menu>
+ Signaled when the timer expires (one-shot) or repeats (periodic).
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getdt"></a>
+    <h4>getdt
+    </h4>
+    <span id=funcnameshort>command uint32_t <b>getdt</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Return the delay or period for the previously started timer. The next
+ fired event will occur at gett0() + getdt().
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Timer's interval.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getNow"></a>
+    <h4>getNow
+    </h4>
+    <span id=funcnameshort>command uint32_t <b>getNow</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Return the current time.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Current time.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="gett0"></a>
+    <h4>gett0
+    </h4>
+    <span id=funcnameshort>command uint32_t <b>gett0</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Return the time anchor for the previously started timer or the time of
+ the previous event for periodic timers. The next fired event will occur
+ at gett0() + getdt().
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Timer's base time.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isOneShot"></a>
+    <h4>isOneShot
+    </h4>
+    <span id=funcnameshort>command bool <b>isOneShot</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Check if this is a one-shot timer.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE for one-shot timers, FALSE for periodic timers.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isRunning"></a>
+    <h4>isRunning
+    </h4>
+    <span id=funcnameshort>command bool <b>isRunning</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Check if timer is running. Periodic timers run until stopped or
+ replaced, one-shot timers run until their deadline expires.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if the timer is still running.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startOneShot"></a>
+    <h4>startOneShot
+    </h4>
+    <span id=funcnameshort>command void <b>startOneShot</b>(uint32_t dt)
+    </span>
+    <p>
+    <menu>
+      
+ Set a single-short timer to some time units in the future. Replaces
+ any current timer settings. Equivalent to startOneShotAt(getNow(),
+ dt). The <code>fired</code> will be signaled when the timer expires.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>dt</code> -  Time until the timer fires.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startOneShotAt"></a>
+    <h4>startOneShotAt
+    </h4>
+    <span id=funcnameshort>command void <b>startOneShotAt</b>(uint32_t t0, uint32_t dt)
+    </span>
+    <p>
+    <menu>
+      
+ Set a single-short timer to time t0+dt. Replaces any current timer
+ settings. The <code>fired</code> will be signaled when the timer
+ expires. Timers set in the past will fire "soon".
+
+ <p>Because the current time may wrap around, it is possible to use
+ values of t0 greater than the <code>getNow</code>'s result. These
+ values represent times in the past, i.e., the time at which getNow()
+ would last of returned that value.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>t0</code> -  Base time for timer.
+ 
+        </dd>
+        <dd>
+          <code>dt</code> -  Time until the timer fires.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startPeriodic"></a>
+    <h4>startPeriodic
+    </h4>
+    <span id=funcnameshort>command void <b>startPeriodic</b>(uint32_t dt)
+    </span>
+    <p>
+    <menu>
+      
+ Set a periodic timer to repeat every dt time units. Replaces any
+ current timer settings. Equivalent to startPeriodicAt(getNow(),
+ dt). The <code>fired</code> will be signaled every dt units (first
+ event in dt units).
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>dt</code> -  Time until the timer fires.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startPeriodicAt"></a>
+    <h4>startPeriodicAt
+    </h4>
+    <span id=funcnameshort>command void <b>startPeriodicAt</b>(uint32_t t0, uint32_t dt)
+    </span>
+    <p>
+    <menu>
+      
+ Set a periodic timer to repeat every dt time units. Replaces any
+ current timer settings. The <code>fired</code> will be signaled every
+ dt units (first event at t0+dt units). Periodic timers set in the past
+ will get a bunch of events in succession, until the timer "catches up".
+
+ <p>Because the current time may wrap around, it is possible to use
+ values of t0 greater than the <code>getNow</code>'s result. These
+ values represent times in the past, i.e., the time at which getNow()
+ would last of returned that value.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>t0</code> -  Base time for timer.
+ 
+        </dd>
+        <dd>
+          <code>dt</code> -  Time until the timer fires.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="stop"></a>
+    <h4>stop
+    </h4>
+    <span id=funcnameshort>command void <b>stop</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Cancel a timer.
+
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="fired"></a>
+    <h4>fired
+    </h4>
+    <span id=funcnameshort>event void <b>fired</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signaled when the timer expires (one-shot) or repeats (periodic).
+
+    </menu>
+  </body>
+</html>

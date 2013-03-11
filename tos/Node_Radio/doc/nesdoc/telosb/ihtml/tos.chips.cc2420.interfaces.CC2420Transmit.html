@@ -1,0 +1,187 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Transmit</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Transmit</h2>
+    <b>interface CC2420Transmit</b><p>
+ Low-level abstraction for the transmit path implementaiton of the
+ ChipCon CC2420 radio.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jhui@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.2 $ $Date: 2008-06-03 04:43:03 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#cancel">cancel</a>()
+      </span><menu>
+ Cancel sending of the message.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#modify">modify</a>(uint8_t offset, uint8_t *buf, uint8_t len)
+      </span><menu>
+ Modify the contents of a packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#resend">resend</a>(bool useCca)
+      </span><menu>
+ Send the previous message again
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#send">send</a>(message_t *p_msg, bool useCca)
+      </span><menu>
+ Send a message
+
+ 
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#sendDone">sendDone</a>(message_t *p_msg, error_t error)
+      </span><menu>
+ Signal that a message has been sent
+
+ 
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="cancel"></a>
+    <h4>cancel
+    </h4>
+    <span id=funcnameshort>command error_t <b>cancel</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Cancel sending of the message.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="modify"></a>
+    <h4>modify
+    </h4>
+    <span id=funcnameshort>command error_t <b>modify</b>(uint8_t offset, uint8_t *buf, uint8_t len)
+    </span>
+    <p>
+    <menu>
+      
+ Modify the contents of a packet. This command can only be used
+ when an SFD capture event for the sending packet is signalled.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>offset</code> -  in the message to start modifying.
+ 
+        </dd>
+        <dd>
+          <code>buf</code> -  to data to write
+ 
+        </dd>
+        <dd>
+          <code>len</code> -  of bytes to write
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="resend"></a>
+    <h4>resend
+    </h4>
+    <span id=funcnameshort>command error_t <b>resend</b>(bool useCca)
+    </span>
+    <p>
+    <menu>
+      
+ Send the previous message again
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>useCca</code> -  TRUE if this re-Tx should use clear channel assessments
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="send"></a>
+    <h4>send
+    </h4>
+    <span id=funcnameshort>command error_t <b>send</b>(message_t *p_msg, bool useCca)
+    </span>
+    <p>
+    <menu>
+      
+ Send a message
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>p_msg</code> -  message to send.
+ 
+        </dd>
+        <dd>
+          <code>useCca</code> -  TRUE if this Tx should use clear channel assessments
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="sendDone"></a>
+    <h4>sendDone
+    </h4>
+    <span id=funcnameshort>event void <b>sendDone</b>(message_t *p_msg, error_t error)
+    </span>
+    <p>
+    <menu>
+      
+ Signal that a message has been sent
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>p_msg</code> -  message to send.
+ 
+        </dd>
+        <dd>
+          <code>error</code> -  notifaction of how the operation went.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

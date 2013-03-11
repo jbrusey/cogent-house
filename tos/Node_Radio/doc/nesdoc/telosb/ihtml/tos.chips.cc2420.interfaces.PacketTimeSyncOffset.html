@@ -1,0 +1,109 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.PacketTimeSyncOffset</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.PacketTimeSyncOffset</h2>
+    <b>interface PacketTimeSyncOffset</b><p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#cancel">cancel</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#get">get</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isSet">isSet</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#set">set</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="cancel"></a>
+    <h4>cancel
+    </h4>
+    <span id=funcnameshort>command void <b>cancel</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' message to modify.
+
+ Cancels any pending requests to timestamp the message in MAC.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="get"></a>
+    <h4>get
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>get</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' message to examine.
+
+ Returns the offset of where the timesync timestamp is sotred in a
+ CC2420 packet
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isSet"></a>
+    <h4>isSet
+    </h4>
+    <span id=funcnameshort>command bool <b>isSet</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' message to examine.
+
+ Returns TRUE if the current message should be timestamped.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="set"></a>
+    <h4>set
+    </h4>
+    <span id=funcnameshort>command void <b>set</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' message to modify.
+
+  Sets the current message to be timestamped in the MAC layer.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

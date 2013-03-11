@@ -1,0 +1,11 @@
+digraph "tos.lib.net.ctp.LruCtpMsgCacheC" {
+  n0x2b0918514458 [shape=ellipse, style=filled, label="Cache", fontsize=12];
+  "LruCtpMsgCacheC.CacheP" [fontsize=12, shape=box, style=dashed, label="LruCtpMsgCacheP\n(CacheP)", URL="../chtml/tos.lib.net.ctp.LruCtpMsgCacheP.html"];
+  "LruCtpMsgCacheC.CacheP" [fontsize=12, shape=box, style=dashed, label="LruCtpMsgCacheP\n(CacheP)", URL="../chtml/tos.lib.net.ctp.LruCtpMsgCacheP.html"];
+  "CtpP" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.lib.net.ctp.CtpP.html"];
+  "MainC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.MainC.html"];
+  "LruCtpMsgCacheC.CacheP" [fontsize=12, shape=box, style=dashed, label="LruCtpMsgCacheP\n(CacheP)", URL="../chtml/tos.lib.net.ctp.LruCtpMsgCacheP.html"];
+  "n0x2b0918514458" -> "LruCtpMsgCacheC.CacheP" [label="Cache<message_t *>", URL="../ihtml/tos.interfaces.Cache.html", fontsize=10];
+  "LruCtpMsgCacheC.CacheP" -> "CtpP" [label="CtpPacket", URL="../ihtml/tos.lib.net.ctp.CtpPacket.html", fontsize=10];
+  "MainC" -> "LruCtpMsgCacheC.CacheP" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
+}

@@ -1,0 +1,212 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Power</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Power</h2>
+    <b>interface CC2420Power</b><p>
+ An HAL abstraction of the ChipCon CC2420 radio. This abstraction
+ deals specifically with radio power operations (e.g. voltage
+ regulator, oscillator, etc). However, it does not include
+ transmission power, see the CC2420Config interface.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jhui@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.1 $ $Date: 2007-07-04 00:37:14 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#rfOff">rfOff</a>()
+      </span><menu>
+ Disable RX.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#rxOn">rxOn</a>()
+      </span><menu>
+ Enable RX.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#startOscillator">startOscillator</a>()
+      </span><menu>
+ Start the oscillator.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#startVReg">startVReg</a>()
+      </span><menu>
+ Start the voltage regulator on the CC2420.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#stopOscillator">stopOscillator</a>()
+      </span><menu>
+ Stop the oscillator.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#stopVReg">stopVReg</a>()
+      </span><menu>
+ Stop the voltage regulator immediately.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#startOscillatorDone">startOscillatorDone</a>()
+      </span><menu>
+ Signals that the oscillator has been started.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#startVRegDone">startVRegDone</a>()
+      </span><menu>
+ Signals that the voltage regulator has been started.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="rfOff"></a>
+    <h4>rfOff
+    </h4>
+    <span id=funcnameshort>command error_t <b>rfOff</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Disable RX.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if receive mode has been disabled, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="rxOn"></a>
+    <h4>rxOn
+    </h4>
+    <span id=funcnameshort>command error_t <b>rxOn</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Enable RX.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if receive mode has been enabled, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startOscillator"></a>
+    <h4>startOscillator
+    </h4>
+    <span id=funcnameshort>command error_t <b>startOscillator</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Start the oscillator. On SUCCESS, <code>startOscillator</code>
+ will be signalled when the oscillator has been started.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startVReg"></a>
+    <h4>startVReg
+    </h4>
+    <span id=funcnameshort>command error_t <b>startVReg</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Start the voltage regulator on the CC2420. On SUCCESS,
+ <code>startVReg()</code> will be signalled when the voltage
+ regulator is fully on.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the request was accepted, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="stopOscillator"></a>
+    <h4>stopOscillator
+    </h4>
+    <span id=funcnameshort>command error_t <b>stopOscillator</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Stop the oscillator.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the oscillator was stopped, FAIL otherwise.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="stopVReg"></a>
+    <h4>stopVReg
+    </h4>
+    <span id=funcnameshort>command error_t <b>stopVReg</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Stop the voltage regulator immediately.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS always
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="startOscillatorDone"></a>
+    <h4>startOscillatorDone
+    </h4>
+    <span id=funcnameshort>event void <b>startOscillatorDone</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signals that the oscillator has been started.
+
+    </menu>
+    <hr>
+    <a name="startVRegDone"></a>
+    <h4>startVRegDone
+    </h4>
+    <span id=funcnameshort>event void <b>startVRegDone</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signals that the voltage regulator has been started.
+    </menu>
+  </body>
+</html>

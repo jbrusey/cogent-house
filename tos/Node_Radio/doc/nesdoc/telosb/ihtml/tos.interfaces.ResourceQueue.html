@@ -1,0 +1,141 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ResourceQueue</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ResourceQueue</h2>
+    <b>interface ResourceQueue</b><p>
+  A queue interface for managing client ids when performing resource 
+  arbitration. A single slot in the queue is guaranteed to each resource
+  client, with the actual queing policy determined by the implementation
+  of the interface.
+
+  
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues &lt;klueska@cs.wustl.edu&gt;
+  
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          $Date: 2010-06-29 22:07:46 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command resource_client_id_t <a href="#dequeue">dequeue</a>()
+      </span><menu>
+ Retreive the client id of the next resource in the queue.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#enqueue">enqueue</a>(resource_client_id_t id)
+      </span><menu>
+ Enqueue a client id
+
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isEmpty">isEmpty</a>()
+      </span><menu>
+ Check to see if the queue is empty.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isEnqueued">isEnqueued</a>(resource_client_id_t id)
+      </span><menu>
+ Check to see if a given client id has already been enqueued
+ and is waiting to be processed.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="dequeue"></a>
+    <h4>dequeue
+    </h4>
+    <span id=funcnameshort>command resource_client_id_t <b>dequeue</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Retreive the client id of the next resource in the queue. 
+ If the queue is empty, the return value is undefined.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          The client id at the head of the queue.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="enqueue"></a>
+    <h4>enqueue
+    </h4>
+    <span id=funcnameshort>command error_t <b>enqueue</b>(resource_client_id_t id)
+    </span>
+    <p>
+    <menu>
+      
+ Enqueue a client id
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>clientId</code> -  - the client id to enqueue
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the client id was enqueued successfully <br>
+         EBUSY   if it has already been enqueued.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isEmpty"></a>
+    <h4>isEmpty
+    </h4>
+    <span id=funcnameshort>command bool <b>isEmpty</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Check to see if the queue is empty.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE  if the queue is empty. <br>
+         FALSE if there is at least one entry in the queue
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isEnqueued"></a>
+    <h4>isEnqueued
+    </h4>
+    <span id=funcnameshort>command bool <b>isEnqueued</b>(resource_client_id_t id)
+    </span>
+    <p>
+    <menu>
+      
+ Check to see if a given client id has already been enqueued
+ and is waiting to be processed.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE  if the client id is in the queue. <br>
+         FALSE if it does not
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

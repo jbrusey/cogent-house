@@ -1,0 +1,25 @@
+<?xml version="1.0" ?><component loc="45:/opt/tinyos-main-read-only/tos/system/CrcC.nc" nicename="tos.system.CrcC" qname="CrcC">
+      <documentation loc="35:/opt/tinyos-main-read-only/tos/system/CrcC.nc">
+        <short>
+ Wrapper around the CRC-16 primitive to allow computing the CRC
+ value of a byte array.</short>
+        <long>
+ Wrapper around the CRC-16 primitive to allow computing the CRC
+ value of a byte array.
+
+ @author Jonathan Hui &lt;jwhui@cs.berkeley.edu&gt;
+ @author David Moss
+</long>
+      </documentation>
+      <module/>
+    <specification><interface loc="46:/opt/tinyos-main-read-only/tos/system/CrcC.nc" name="Crc" provided="1" ref="0x2b091907e1a0">
+      <component-ref nicename="tos.system.CrcC" qname="CrcC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Crc" ref="0x2b091907e1a0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Crc" qname="Crc"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="seededCrc16" ref="0x2b091907e4f0" scoped=""/>
+        <function-ref name="crc16" ref="0x2b091907e678" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

@@ -1,0 +1,18 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.sht11.SensirionSht11ReaderP.html" title="SensirionSht11ReaderP" alt="" coords="297,120,500,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.DeviceMetadata.html" title="DeviceMetadata" alt="" coords="146,50 186,72 230,94 287,114 285,119 228,98 184,77 144,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.DeviceMetadata.html" title="DeviceMetadata" alt="" coords="229,78,335,95">
+<area shape="rect" id="node6" href="../chtml/tos.platforms.telosa.chips.sht11.HalSensirionSht11C.html" title="HalSensirionSht11C" alt="" coords="307,235,491,293">
+<area shape="poly" id="edge10" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="298,169 267,181 249,194 243,210 250,224 269,236 294,245 293,250 266,240 246,228 238,211 245,190 265,176 296,164">
+<area shape="rect" id="edge10" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="247,193,305,210">
+<area shape="poly" id="edge12" href="../ihtml/tos.chips.sht11.SensirionSht11.html" title="SensirionSht11" alt="" coords="358,170 338,193 336,208 344,223 339,225 331,209 334,191 353,167">
+<area shape="rect" id="edge12" href="../ihtml/tos.chips.sht11.SensirionSht11.html" title="SensirionSht11" alt="" coords="336,193,433,210">
+<area shape="poly" id="edge14" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="423,167 436,191 437,208 433,223 428,222 432,207 431,193 418,170">
+<area shape="rect" id="edge14" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="435,193,493,210">
+<area shape="poly" id="edge16" href="../ihtml/tos.chips.sht11.SensirionSht11.html" title="SensirionSht11" alt="" coords="476,166 490,177 501,191 505,201 505,211 494,228 490,225 500,210 500,202 496,193 486,181 472,170">
+<area shape="rect" id="edge16" href="../ihtml/tos.chips.sht11.SensirionSht11.html" title="SensirionSht11" alt="" coords="503,193,600,210">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Read.html" title="Read&lt;uint16_t&gt;" alt="" coords="318,50 370,108 366,111 314,54">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Read.html" title="Read&lt;uint16_t&gt;" alt="" coords="353,78,459,95">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.DeviceMetadata.html" title="DeviceMetadata" alt="" coords="494,55 466,98 450,113 446,110 462,94 489,52">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.DeviceMetadata.html" title="DeviceMetadata" alt="" coords="477,78,583,95">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.Read.html" title="Read&lt;uint16_t&gt;" alt="" coords="690,53 642,76 589,99 515,121 513,116 587,93 640,71 688,48">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.Read.html" title="Read&lt;uint16_t&gt;" alt="" coords="631,78,736,95">

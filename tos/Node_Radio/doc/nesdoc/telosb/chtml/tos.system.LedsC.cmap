@@ -1,0 +1,12 @@
+<area shape="rect" id="node2" href="../chtml/tos.system.LedsP.html" title="LedsP" alt="" coords="116,120,188,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="154,54 154,106 149,106 149,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="152,78,182,95">
+<area shape="rect" id="node3" href="../chtml/tos.platforms.telosa.PlatformLedsC.html" title="PlatformLedsC" alt="" coords="78,235,225,293">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="116,154 55,171 29,182 14,194 9,203 8,211 18,225 38,237 66,247 64,252 36,242 14,229 3,212 4,201 9,190 26,177 53,166 115,149">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="12,193,76,210">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="123,170 110,189 107,199 109,210 115,222 110,224 104,211 102,199 105,187 118,167">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="106,193,170,210">
+<area shape="poly" id="edge10" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="166,168 173,192 172,221 166,221 168,192 160,169">
+<area shape="rect" id="edge10" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="170,193,234,210">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="224,243 245,233 260,221 267,208 263,193 250,180 235,169 200,155 202,150 238,164 254,176 267,191 272,209 264,225 248,237 226,247">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="269,193,289,210">

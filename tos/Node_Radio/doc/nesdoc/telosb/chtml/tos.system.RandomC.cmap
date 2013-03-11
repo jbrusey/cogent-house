@@ -1,0 +1,10 @@
+<area shape="rect" id="node2" href="../chtml/tos.system.RandomMlcgC.html" title="RandomMlcgC" alt="" coords="225,131,359,179">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Random.html" title="Random" alt="" coords="80,56 103,82 132,104 171,124 213,137 211,142 169,128 129,109 100,85 76,60">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Random.html" title="Random" alt="" coords="131,89,184,106">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.ParameterInit.html" title="ParameterInit&lt;uint16_t&gt;" alt="" coords="193,59 192,83 200,105 216,123 212,126 195,108 187,83 188,59">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.ParameterInit.html" title="ParameterInit&lt;uint16_t&gt;" alt="" coords="197,89,359,106">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="384,59 375,84 361,108 346,124 342,120 357,105 370,82 379,58">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="369,89,389,106">
+<area shape="rect" id="node5" href="../chtml/tos.system.MainC.html" title="MainC" alt="" coords="448,5,531,64">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="456,66 396,109 363,127 360,122 393,104 453,62">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="421,89,441,106">

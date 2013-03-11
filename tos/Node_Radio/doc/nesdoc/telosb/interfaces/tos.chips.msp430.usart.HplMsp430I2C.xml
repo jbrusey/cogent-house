@@ -1,0 +1,730 @@
+<?xml version="1.0" ?><interfacedef loc="4:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C">
+      <documentation loc="31:/opt/tinyos-main-read-only/tos/chips/msp430/usart/msp430usart.h">
+        <short>
+ </short>
+        <long>
+ @author Vlado Handziski &lt;handzisk@tkn.tu-berlin.de&gt;
+ @author Philipp Huppertz &lt;huppertz@tkn.tu-berlin.de&gt;
+</long>
+      </documentation>
+      <function command="" loc="80:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableOwnAddress" provided="0" ref="0x2b0917bae558">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="31:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getStartByte" provided="0" ref="0x2b0917bc0a28">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="62:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setSlaveAddress" provided="0" ref="0x2b0917bb55c0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="62:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="addr" ref="0x2b0917bb5350">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="11:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setMasterMode" provided="0" ref="0x2b0917b78510">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="71:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableTransmitReady" provided="0" ref="0x2b0917bb2a48">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="49:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getClockPrescaler" provided="0" ref="0x2b0917bba9f8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="28:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setTransmitMode" provided="0" ref="0x2b0917bc1ba8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="34:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getStopBit" provided="0" ref="0x2b0917bbf860">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="25:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setClockSource" provided="0" ref="0x2b0917b73b78">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="25:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="src" ref="0x2b0917b73908">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="21:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getRepeatMode" provided="0" ref="0x2b0917b741d8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="41:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getData" provided="0" ref="0x2b0917bbc518">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="66:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableStartDetect" provided="0" ref="0x2b0917bb3490">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="78:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableAccessReady" provided="0" ref="0x2b0917bafe28">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="61:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getSlaveAddress" provided="0" ref="0x2b0917bb6c50">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="91:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isGeneralCallPending" provided="0" ref="0x2b0917baac00">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="100:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getIV" provided="0" ref="0x2b0917ba5020">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="14:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableI2C" provided="0" ref="0x2b0917b77328">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="38:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setStartBit" provided="0" ref="0x2b0917bbedd0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="45:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getTransferByteCount" provided="0" ref="0x2b0917bbb5c0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="27:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getTransmitReceiveMode" provided="0" ref="0x2b0917bc14c0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="7:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="clearModeI2C" provided="0" ref="0x2b0917b793e0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="58:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setOwnAddress" provided="0" ref="0x2b0917bb64f0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="58:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="addr" ref="0x2b0917bb6280">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="6:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isI2C" provided="0" ref="0x2b0917b7ccd8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="69:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableGeneralCall" provided="0" ref="0x2b0917bb2328">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="81:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableOwnAddress" provided="0" ref="0x2b0917baec50">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="94:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isAccessReadyPending" provided="0" ref="0x2b0917ba8290">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="97:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isArbitrationLostPending" provided="0" ref="0x2b0917ba7888">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="74:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableReceiveReady" provided="0" ref="0x2b0917bb18e8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="83:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableNoAck" provided="0" ref="0x2b0917bad360">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="65:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableStartDetect" provided="0" ref="0x2b0917bb5ce8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="87:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableArbitrationLost" provided="0" ref="0x2b0917bacca0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="15:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableI2C" provided="0" ref="0x2b0917b779e0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="53:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getShiftClock" provided="0" ref="0x2b0917bb9ac8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="86:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableArbitrationLost" provided="0" ref="0x2b0917bac178">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="77:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableAccessReady" provided="0" ref="0x2b0917baf728">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="46:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setTransferByteCount" provided="0" ref="0x2b0917bba290">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="46:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="count" ref="0x2b0917bba020">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="95:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isOwnAddressPending" provided="0" ref="0x2b0917ba89d0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="57:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getOwnAddress" provided="0" ref="0x2b0917bb7b90">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="72:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableTransmitReady" provided="0" ref="0x2b0917bb11d8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="8:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setModeI2C" provided="0" ref="0x2b0917b79de8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:2" size="I:8"><union-ref ref="0x2b0917af4500"/>
+                <typename><typedef-ref name="msp430_i2c_union_config_t" ref="0x2b0917af4908"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="8:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="config" ref="0x2b0917b79b78">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:2" size="I:8"><union-ref ref="0x2b0917af4500"/>
+                <typename><typedef-ref name="msp430_i2c_union_config_t" ref="0x2b0917af4908"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="37:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getStartBit" provided="0" ref="0x2b0917bbe710">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="19:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setWordMode" provided="0" ref="0x2b0917b75a70">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="19:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="mode" ref="0x2b0917b75800">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="42:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setData" provided="0" ref="0x2b0917bbce00">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="42:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="data" ref="0x2b0917bbcb90">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="90:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isStartDetectPending" provided="0" ref="0x2b0917baa4b0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="24:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getClockSource" provided="0" ref="0x2b0917b73258">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="18:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="getWordMode" provided="0" ref="0x2b0917b75178">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="54:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setShiftClock" provided="0" ref="0x2b0917bb7440">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="54:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="shift" ref="0x2b0917bb71d0">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="12:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setSlaveMode" provided="0" ref="0x2b0917b78be0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="84:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableNoAck" provided="0" ref="0x2b0917bada20">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="75:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="enableReceiveReady" provided="0" ref="0x2b0917baf020">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="68:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="disableGeneralCall" provided="0" ref="0x2b0917bb3b98">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="50:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setClockPrescaler" provided="0" ref="0x2b0917bb9378">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="50:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="scaler" ref="0x2b0917bb9108">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="35:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setStopBit" provided="0" ref="0x2b0917bbe020">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="29:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setReceiveMode" provided="0" ref="0x2b0917bc0328">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="96:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isNoAckPending" provided="0" ref="0x2b0917ba7110">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="22:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setRepeatMode" provided="0" ref="0x2b0917b74ae8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="22:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="mode" ref="0x2b0917b74878">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="92:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isTransmitReadyPending" provided="0" ref="0x2b0917ba93a0">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="32:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="setStartByte" provided="0" ref="0x2b0917bbf178">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="93:/opt/tinyos-main-read-only/tos/chips/msp430/usart/HplMsp430I2C.nc" name="isReceiveReadyPending" provided="0" ref="0x2b0917ba9af8">
+        <interfacedef-ref nicename="tos.chips.msp430.usart.HplMsp430I2C" qname="HplMsp430I2C"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

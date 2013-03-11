@@ -1,0 +1,364 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.adc12.HplAdc12</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.adc12.HplAdc12</h2>
+    <b>interface HplAdc12</b><p>
+ The HplAdc12 interface exports low-level access to the ADC12 registers
+ of the MSP430 MCU.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jan Hauer
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+         Please refer to TEP 101 for more information about this component and its
+          intended use.
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#enableConversion">enableConversion</a>()
+      </span><menu>
+ Enables conversion (sets the ENC bit).
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command adc12ctl0_t <a href="#getCtl0">getCtl0</a>()
+      </span><menu> 
+ Returns the ADC12 control register ADC12CTL0.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command adc12ctl1_t <a href="#getCtl1">getCtl1</a>()
+      </span><menu> Returns the ADC12 control register ADC12CTL1.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getIEFlags">getIEFlags</a>()
+      </span><menu> 
+ Returns the ADC12 interrupt enable register, ADC12IE.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command adc12memctl_t <a href="#getMCtl">getMCtl</a>(uint8_t idx)
+      </span><menu> 
+ Returns the ADC12 conversion memory control register ADC12MCTLx.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getMem">getMem</a>(uint8_t idx)
+      </span><menu> 
+ Returns the ADC12 conversion memory register ADC12MEMx.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isBusy">isBusy</a>()
+      </span><menu> 
+ Returns the ADC12 BUSY flag.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#resetIFGs">resetIFGs</a>()
+      </span><menu> 
+ Resets the ADC12 interrupt flag register, ADC12IFG.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setCtl0">setCtl0</a>(adc12ctl0_t control0)
+      </span><menu> 
+ Sets the ADC12 control register ADC12CTL0.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setCtl1">setCtl1</a>(adc12ctl1_t control1)
+      </span><menu> 
+ Sets the ADC12 control register ADC12CTL1.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setIEFlags">setIEFlags</a>(uint16_t mask)
+      </span><menu> 
+ Sets the ADC12 interrupt enable register, ADC12IE.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setMCtl">setMCtl</a>(uint8_t idx, adc12memctl_t memControl)
+      </span><menu> 
+ Sets the ADC12 conversion memory control register ADC12MCTLx.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#startConversion">startConversion</a>()
+      </span><menu>
+ Starts a conversion.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#stopConversion">stopConversion</a>()
+      </span><menu>
+ Stops a conversion.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#conversionDone">conversionDone</a>(uint16_t iv)
+      </span><menu> 
+ Signals a conversion result.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="enableConversion"></a>
+    <h4>enableConversion
+    </h4>
+    <span id=funcnameshort>command void <b>enableConversion</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Enables conversion (sets the ENC bit).
+
+    </menu>
+    <hr>
+    <a name="getCtl0"></a>
+    <h4>getCtl0
+    </h4>
+    <span id=funcnameshort>command adc12ctl0_t <b>getCtl0</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Returns the ADC12 control register ADC12CTL0.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          ADC12CTL0
+*
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getCtl1"></a>
+    <h4>getCtl1
+    </h4>
+    <span id=funcnameshort>command adc12ctl1_t <b>getCtl1</b>()
+    </span>
+    <p>
+    <menu>
+       Returns the ADC12 control register ADC12CTL1. 
+  
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          ADC12CTL1
+*
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getIEFlags"></a>
+    <h4>getIEFlags
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getIEFlags</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Returns the ADC12 interrupt enable register, ADC12IE.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          ADC12IE
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getMCtl"></a>
+    <h4>getMCtl
+    </h4>
+    <span id=funcnameshort>command adc12memctl_t <b>getMCtl</b>(uint8_t idx)
+    </span>
+    <p>
+    <menu>
+       
+ Returns the ADC12 conversion memory control register ADC12MCTLx.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>idx</code> -  The register index (the 'x' in ADC12MCTLx) [0..15] 
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          memControl ADC12MCTLx register data.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getMem"></a>
+    <h4>getMem
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getMem</b>(uint8_t idx)
+    </span>
+    <p>
+    <menu>
+       
+ Returns the ADC12 conversion memory register ADC12MEMx.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>idx</code> -  The register index (the 'x' in ADC12MEMx) [0..15] 
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          ADC12MEMx 
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isBusy"></a>
+    <h4>isBusy
+    </h4>
+    <span id=funcnameshort>command bool <b>isBusy</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Returns the ADC12 BUSY flag.
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          ADC12BUSY 
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="resetIFGs"></a>
+    <h4>resetIFGs
+    </h4>
+    <span id=funcnameshort>command void <b>resetIFGs</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Resets the ADC12 interrupt flag register, ADC12IFG.
+    </menu>
+    <hr>
+    <a name="setCtl0"></a>
+    <h4>setCtl0
+    </h4>
+    <span id=funcnameshort>command void <b>setCtl0</b>(adc12ctl0_t control0)
+    </span>
+    <p>
+    <menu>
+       
+ Sets the ADC12 control register ADC12CTL0.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>control0</code> -  ADC12CTL0 register data.
+*
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setCtl1"></a>
+    <h4>setCtl1
+    </h4>
+    <span id=funcnameshort>command void <b>setCtl1</b>(adc12ctl1_t control1)
+    </span>
+    <p>
+    <menu>
+       
+ Sets the ADC12 control register ADC12CTL1. 
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>control1</code> -  ADC12CTL1 register data.
+*
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setIEFlags"></a>
+    <h4>setIEFlags
+    </h4>
+    <span id=funcnameshort>command void <b>setIEFlags</b>(uint16_t mask)
+    </span>
+    <p>
+    <menu>
+       
+ Sets the ADC12 interrupt enable register, ADC12IE.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>mask</code> -  Bitmask (0 means interrupt disabled, 1 menas interrupt enabled) 
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setMCtl"></a>
+    <h4>setMCtl
+    </h4>
+    <span id=funcnameshort>command void <b>setMCtl</b>(uint8_t idx, adc12memctl_t memControl)
+    </span>
+    <p>
+    <menu>
+       
+ Sets the ADC12 conversion memory control register ADC12MCTLx.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>idx</code> -  The register index (the 'x' in ADC12MCTLx) [0..15] 
+ 
+        </dd>
+        <dd>
+          <code>memControl</code> -  ADC12MCTLx register data.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="startConversion"></a>
+    <h4>startConversion
+    </h4>
+    <span id=funcnameshort>command void <b>startConversion</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Starts a conversion.
+    </menu>
+    <hr>
+    <a name="stopConversion"></a>
+    <h4>stopConversion
+    </h4>
+    <span id=funcnameshort>command void <b>stopConversion</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Stops a conversion.
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="conversionDone"></a>
+    <h4>conversionDone
+    </h4>
+    <span id=funcnameshort>event void <b>conversionDone</b>(uint16_t iv)
+    </span>
+    <p>
+    <menu>
+       
+ Signals a conversion result. 
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>iv</code> -  ADC12 interrupt vector value 0x6, 0x8, ... , 0x24
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

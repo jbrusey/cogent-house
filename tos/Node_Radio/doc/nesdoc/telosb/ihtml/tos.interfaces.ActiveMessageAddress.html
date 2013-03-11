@@ -1,0 +1,113 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ActiveMessageAddress</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ActiveMessageAddress</h2>
+    <b>interface ActiveMessageAddress</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Phil Levis
+ 
+      </dd>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command am_addr_t <a href="#amAddress">amAddress</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command am_group_t <a href="#amGroup">amGroup</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setAddress">setAddress</a>(am_group_t group, am_addr_t addr)
+      </span><menu>
+ Set the active message address of this node
+ 
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#changed">changed</a>()
+      </span><menu>
+ Notification that the address or group settings changed.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="amAddress"></a>
+    <h4>amAddress
+    </h4>
+    <span id=funcnameshort>command am_addr_t <b>amAddress</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          the active message address of this node
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="amGroup"></a>
+    <h4>amGroup
+    </h4>
+    <span id=funcnameshort>command am_group_t <b>amGroup</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          the group address of this node
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setAddress"></a>
+    <h4>setAddress
+    </h4>
+    <span id=funcnameshort>command void <b>setAddress</b>(am_group_t group, am_addr_t addr)
+    </span>
+    <p>
+    <menu>
+      
+ Set the active message address of this node
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>group</code> -  The node's group ID
+ 
+        </dd>
+        <dd>
+          <code>addr</code> -  The node's active message address
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="changed"></a>
+    <h4>changed
+    </h4>
+    <span id=funcnameshort>event void <b>changed</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Notification that the address or group settings changed.
+
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.McuPowerOverride</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.McuPowerOverride</h2>
+    <b>interface McuPowerOverride</b><p>
+ Interface to allow high-level components to set a lower bound for a
+ microcontroller's low power state. This is sometimes necessary,
+ e.g., if a very low power state has a long wakeup latency that will
+ violate application timing requirements. TEP 112 describes how
+ TinyOS incorporates this information when the Scheduler tells
+ the MCU to enter a low power state.
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          Oct 26, 2005
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+           TEP 112: Microconroller Power Management
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command mcu_power_t <a href="#lowestState">lowestState</a>()
+      </span><menu>
+ Called when computing the low power state, in order to allow
+ a high-level component to institute a lower bound.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="lowestState"></a>
+    <h4>lowestState
+    </h4>
+    <span id=funcnameshort>command mcu_power_t <b>lowestState</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Called when computing the low power state, in order to allow
+ a high-level component to institute a lower bound. Because
+ this command originates deep within the basic TinyOS scheduling
+ mechanisms, it should be used very sparingly. Refer to TEP 112 for
+ details.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+             the lowest power state the system can enter to meet the 
+            requirements of this component
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

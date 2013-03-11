@@ -1,0 +1,483 @@
+<?xml version="1.0" ?><component abstract="" loc="51:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" nicename="tos.lib.net.TrickleTimerMilliC" qname="TrickleTimerMilliC">
+      <parameters>
+        <constant loc="51:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" name="low" ref="0x2b0918fb6c98">
+          <component-ref nicename="tos.lib.net.TrickleTimerMilliC" qname="TrickleTimerMilliC"/>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </constant>
+        <constant loc="52:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" name="high" ref="0x2b0918fb3020">
+          <component-ref nicename="tos.lib.net.TrickleTimerMilliC" qname="TrickleTimerMilliC"/>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </constant>
+        <constant loc="53:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" name="k" ref="0x2b0918fb3340">
+          <component-ref nicename="tos.lib.net.TrickleTimerMilliC" qname="TrickleTimerMilliC"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+        <constant loc="54:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" name="count" ref="0x2b0918fb3688">
+          <component-ref nicename="tos.lib.net.TrickleTimerMilliC" qname="TrickleTimerMilliC"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <configuration/>
+      <wiring>
+        <wire loc="63:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="TrickleTimer" ref="0x2b0918fb2020" scoped=""/></from>
+          <to><interface-ref name="TrickleTimer" ref="0x2b0919006d10" scoped=""/></to>
+        </wire>
+        <wire loc="65:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Timer" ref="0x2b0919005aa8" scoped=""/></from>
+          <to><interface-ref name="Timer" ref="0x2b0918ff8cf0" scoped=""/></to>
+        </wire>
+        <wire loc="66:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Random" ref="0x2b0918ffdd20" scoped=""/></from>
+          <to><interface-ref name="Random" ref="0x2b0918125b98" scoped=""/></to>
+        </wire>
+        <wire loc="67:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Changed" ref="0x2b0918ffebd8" scoped=""/></from>
+          <to><interface-ref name="BitVector" ref="0x2b0918feeb78" scoped=""/></to>
+        </wire>
+        <wire loc="68:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Pending" ref="0x2b0919000a60" scoped=""/></from>
+          <to><interface-ref name="BitVector" ref="0x2b0918ff1b78" scoped=""/></to>
+        </wire>
+        <wire loc="70:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Leds" ref="0x2b0918ffc470" scoped=""/></from>
+          <to><interface-ref name="Leds" ref="0x2b091720da38" scoped=""/></to>
+        </wire>
+        <wire loc="71:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b0919006658" scoped=""/></to>
+        </wire>
+      </wiring>
+    <specification><interface loc="55:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" name="TrickleTimer" provided="1" ref="0x2b0918fb2020">
+      <component-ref nicename="tos.lib.net.TrickleTimerMilliC" qname="TrickleTimerMilliC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="TrickleTimer" ref="0x2b0918fb2020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="fired" ref="0x2b0918fb2370" scoped=""/>
+        <function-ref name="incrementCounter" ref="0x2b0918fb24f8" scoped=""/>
+        <function-ref name="reset" ref="0x2b0918fb2680" scoped=""/>
+        <function-ref name="start" ref="0x2b0918fb2808" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918fb2990" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced><interface loc="47:/opt/tinyos-main-read-only/tos/system/BitVectorC.nc" name="BitVector" provided="1" ref="0x2b0918ff1b78">
+      <component-ref nicename="tos.system.BitVectorC" qname="TrickleTimerMilliC.PendingVector"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="BitVector" ref="0x2b0918ff1b78" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.BitVector" qname="BitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b0918ff0020" scoped=""/>
+        <function-ref name="clear" ref="0x2b0918ff01a8" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0918ff0330" scoped=""/>
+        <function-ref name="get" ref="0x2b0918ff04b8" scoped=""/>
+        <function-ref name="assign" ref="0x2b0918ff0640" scoped=""/>
+        <function-ref name="setAll" ref="0x2b0918ff07c8" scoped=""/>
+        <function-ref name="set" ref="0x2b0918ff0950" scoped=""/>
+        <function-ref name="size" ref="0x2b0918ff0ad8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:/opt/tinyos-main-read-only/tos/system/LedsC.nc" name="Leds" provided="1" ref="0x2b091720da38">
+      <component-ref nicename="tos.system.LedsC" qname="LedsC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Leds" ref="0x2b091720da38" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Leds" qname="Leds"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="led0Off" ref="0x2b091720dd88" scoped=""/>
+        <function-ref name="led0Toggle" ref="0x2b091720a020" scoped=""/>
+        <function-ref name="led1On" ref="0x2b091720a1a8" scoped=""/>
+        <function-ref name="led1Toggle" ref="0x2b091720a330" scoped=""/>
+        <function-ref name="led2Toggle" ref="0x2b091720a4b8" scoped=""/>
+        <function-ref name="get" ref="0x2b091720a640" scoped=""/>
+        <function-ref name="led1Off" ref="0x2b091720a7c8" scoped=""/>
+        <function-ref name="led2Off" ref="0x2b091720ade8" scoped=""/>
+        <function-ref name="set" ref="0x2b091720a950" scoped=""/>
+        <function-ref name="led0On" ref="0x2b091720aad8" scoped=""/>
+        <function-ref name="led2On" ref="0x2b091720ac60" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="65:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" name="Leds" provided="0" ref="0x2b0918ffc470">
+      <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Leds" ref="0x2b0918ffc470" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Leds" qname="Leds"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="led0Off" ref="0x2b0918ffc7c0" scoped=""/>
+        <function-ref name="led0Toggle" ref="0x2b0918ffc948" scoped=""/>
+        <function-ref name="led1On" ref="0x2b0918ffcad0" scoped=""/>
+        <function-ref name="led1Toggle" ref="0x2b0918ffcc58" scoped=""/>
+        <function-ref name="led2Toggle" ref="0x2b0918ffcde0" scoped=""/>
+        <function-ref name="get" ref="0x2b0918ffb020" scoped=""/>
+        <function-ref name="led1Off" ref="0x2b0918ffb1a8" scoped=""/>
+        <function-ref name="led2On" ref="0x2b0918ffb7c8" scoped=""/>
+        <function-ref name="set" ref="0x2b0918ffb4b8" scoped=""/>
+        <function-ref name="led2Off" ref="0x2b0918ffb330" scoped=""/>
+        <function-ref name="led0On" ref="0x2b0918ffb640" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:/opt/tinyos-main-read-only/tos/system/RandomC.nc" name="Random" provided="1" ref="0x2b0918125b98">
+      <component-ref nicename="tos.system.RandomC" qname="RandomC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Random" ref="0x2b0918125b98" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Random" qname="Random"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="rand16" ref="0x2b0918124020" scoped=""/>
+        <function-ref name="rand32" ref="0x2b09181241a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="64:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" name="Random" provided="0" ref="0x2b0918ffdd20">
+      <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Random" ref="0x2b0918ffdd20" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Random" qname="Random"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="rand16" ref="0x2b0918ffc0a0" scoped=""/>
+        <function-ref name="rand32" ref="0x2b0918ffc228" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="47:/opt/tinyos-main-read-only/tos/system/BitVectorC.nc" name="BitVector" provided="1" ref="0x2b0918feeb78">
+      <component-ref nicename="tos.system.BitVectorC" qname="TrickleTimerMilliC.ChangeVector"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="BitVector" ref="0x2b0918feeb78" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.BitVector" qname="BitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b0918fed020" scoped=""/>
+        <function-ref name="clear" ref="0x2b0918fed1a8" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0918fed330" scoped=""/>
+        <function-ref name="get" ref="0x2b0918fed4b8" scoped=""/>
+        <function-ref name="assign" ref="0x2b0918fed640" scoped=""/>
+        <function-ref name="setAll" ref="0x2b0918fed7c8" scoped=""/>
+        <function-ref name="set" ref="0x2b0918fed950" scoped=""/>
+        <function-ref name="size" ref="0x2b0918fedad8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="58:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" name="TrickleTimer" provided="1" ref="0x2b0919006d10">
+      <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="TrickleTimer" ref="0x2b0919006d10" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="fired" ref="0x2b09190050d8" scoped=""/>
+        <function-ref name="incrementCounter" ref="0x2b0919005260" scoped=""/>
+        <function-ref name="reset" ref="0x2b09190053e8" scoped=""/>
+        <function-ref name="start" ref="0x2b0919005570" scoped=""/>
+        <function-ref name="stop" ref="0x2b09190056f8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="57:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" name="Init" provided="1" ref="0x2b0919006658">
+      <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b0919006658" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b09190069a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="61:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" name="Timer" provided="0" ref="0x2b0919005aa8">
+      <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Timer" ref="0x2b0919005aa8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b0919001d60" scoped=""/>
+        <function-ref name="fired" ref="0x2b0919002470" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b09190011c0" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b0919002d10" scoped=""/>
+        <function-ref name="getdt" ref="0x2b0919000648" scoped=""/>
+        <function-ref name="gett0" ref="0x2b09190001f8" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b09190028c0" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b0919004620" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b0919001790" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b0919004ac0" scoped=""/>
+        <function-ref name="stop" ref="0x2b0919002020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="63:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" name="Changed" provided="0" ref="0x2b0918ffebd8">
+      <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Changed" ref="0x2b0918ffebd8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.BitVector" qname="BitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b0918ffd020" scoped=""/>
+        <function-ref name="clear" ref="0x2b0918ffd1a8" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0918ffd330" scoped=""/>
+        <function-ref name="get" ref="0x2b0918ffd4b8" scoped=""/>
+        <function-ref name="assign" ref="0x2b0918ffd640" scoped=""/>
+        <function-ref name="setAll" ref="0x2b0918ffd7c8" scoped=""/>
+        <function-ref name="set" ref="0x2b0918ffd950" scoped=""/>
+        <function-ref name="size" ref="0x2b0918ffdad8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="58:/opt/tinyos-main-read-only/tos/system/MainC.nc" name="SoftwareInit" provided="0" ref="0x2b0916ee30e0">
+      <component-ref nicename="tos.system.MainC" qname="MainC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0916ee3430" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="45:/opt/tinyos-main-read-only/tos/system/TimerMilliC.nc" name="Timer" provided="1" ref="0x2b0918ff8cf0">
+      <component-ref nicename="tos.system.TimerMilliC" qname="TrickleTimerMilliC.TimerMilliC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Timer" ref="0x2b0918ff8cf0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b0918ff3088" scoped=""/>
+        <function-ref name="fired" ref="0x2b0918ff6688" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b0918ff4470" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b0918ff4020" scoped=""/>
+        <function-ref name="getdt" ref="0x2b0918ff3928" scoped=""/>
+        <function-ref name="gett0" ref="0x2b0918ff34d8" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b0918ff6ad8" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b0918ff78b8" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b0918ff4a40" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b0918ff7d58" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918ff6238" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="62:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" name="Pending" provided="0" ref="0x2b0919000a60">
+      <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Pending" ref="0x2b0919000a60" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.BitVector" qname="BitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b0919000db0" scoped=""/>
+        <function-ref name="clear" ref="0x2b0918ffe020" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0918ffe1a8" scoped=""/>
+        <function-ref name="get" ref="0x2b0918ffe330" scoped=""/>
+        <function-ref name="assign" ref="0x2b0918ffe4b8" scoped=""/>
+        <function-ref name="setAll" ref="0x2b0918ffe640" scoped=""/>
+        <function-ref name="set" ref="0x2b0918ffe7c8" scoped=""/>
+        <function-ref name="size" ref="0x2b0918ffe950" scoped=""/>
+      </interface-functions>
+    </interface><component loc="56:/opt/tinyos-main-read-only/tos/system/MainC.nc" nicename="tos.system.MainC" qname="MainC">
+      <documentation loc="45:/opt/tinyos-main-read-only/tos/system/MainC.nc">
+        <short>
+ MainC is the system interface the TinyOS boot sequence.</short>
+        <long>
+ MainC is the system interface the TinyOS boot sequence. It wires the
+ boot sequence implementation to the scheduler and hardware resources.
+
+ @author Philip Levis
+ @date   August 6 2005
+ @see    TEP 107: Boot Sequence
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="72:/opt/tinyos-main-read-only/tos/system/MainC.nc">
+          <from><interface-ref name="Boot" ref="0x2b0916ee5c80" scoped=""/></from>
+          <to><interface-ref name="Boot" ref="0x2b0916effc40" scoped=""/></to>
+        </wire>
+        <wire loc="67:/opt/tinyos-main-read-only/tos/system/MainC.nc">
+          <from><interface-ref name="Scheduler" ref="0x2b0917093308" scoped=""/></from>
+          <to><interface-ref name="Scheduler" ref="0x2b0916a51be8" scoped=""/></to>
+        </wire>
+        <wire loc="68:/opt/tinyos-main-read-only/tos/system/MainC.nc">
+          <from><interface-ref name="PlatformInit" ref="0x2b0917093ce0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b0916efd020" scoped=""/></to>
+        </wire>
+        <wire loc="71:/opt/tinyos-main-read-only/tos/system/MainC.nc">
+          <from><interface-ref name="SoftwareInit" ref="0x2b09170ae418" scoped=""/></from>
+          <to><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component><component abstract="" loc="44(TrickleTimerMilliC.PendingVector):/opt/tinyos-main-read-only/tos/system/BitVectorC.nc" nicename="tos.system.BitVectorC" qname="TrickleTimerMilliC.PendingVector">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/system/BitVectorC.nc">
+        <short>
+ Generic bit vector implementation.</short>
+        <long>
+ Generic bit vector implementation. Note that if you use this bit vector
+ from interrupt code, you must use appropriate &lt;code&gt;atomic&lt;/code&gt;
+ statements to ensure atomicity.
+
+ @param max_bits Bit vector length.
+
+ @author Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+</long>
+      </documentation>
+      <instance>
+        <component-ref nicename="tos.system.BitVectorC" qname="BitVectorC"/>
+        <arguments>
+          <value cst="U:">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </value>
+        </arguments>
+      </instance>
+      <module/>
+    </component><component loc="43:/opt/tinyos-main-read-only/tos/system/RandomC.nc" nicename="tos.system.RandomC" qname="RandomC">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/system/RandomC.nc">
+        <short>
+ The standard TinyOS random number generator.</short>
+        <long>
+ The standard TinyOS random number generator. If your system requires a 
+ specific random number generator, it should wire to that component
+ directly. 
+
+ @author  Barbara Hohlt 
+ @author  Phil Levis 
+ @date    March 1 2005
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="56:/opt/tinyos-main-read-only/tos/system/RandomC.nc">
+          <from><interface-ref name="Random" ref="0x2b0918125b98" scoped=""/></from>
+          <to><interface-ref name="Random" ref="0x2b091811ea08" scoped=""/></to>
+        </wire>
+        <wire loc="55:/opt/tinyos-main-read-only/tos/system/RandomC.nc">
+          <from><interface-ref name="SeedInit" ref="0x2b0918123b10" scoped=""/></from>
+          <to><interface-ref name="SeedInit" ref="0x2b091811f9f0" scoped=""/></to>
+        </wire>
+        <wire loc="54:/opt/tinyos-main-read-only/tos/system/RandomC.nc">
+          <from><interface-ref name="Init" ref="0x2b09180bfdc0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b091811f198" scoped=""/></to>
+        </wire>
+        <wire loc="52:/opt/tinyos-main-read-only/tos/system/RandomC.nc">
+          <from><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b091811f198" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component><component abstract="" loc="44(TrickleTimerMilliC.TimerMilliC):/opt/tinyos-main-read-only/tos/system/TimerMilliC.nc" nicename="tos.system.TimerMilliC" qname="TrickleTimerMilliC.TimerMilliC">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/system/TimerMilliC.nc">
+        <short>
+ The virtualized millisecond timer abstraction.</short>
+        <long>
+ The virtualized millisecond timer abstraction. Instantiating this 
+ component gives an independent millisecond granularity timer.
+
+ @author Philip Levis
+ @date   January 16 2006
+ @see    TEP 102: Timers
+</long>
+      </documentation>
+      <instance>
+        <component-ref nicename="tos.system.TimerMilliC" qname="TimerMilliC"/>
+      </instance>
+      <configuration/>
+    </component><component loc="45:/opt/tinyos-main-read-only/tos/system/LedsC.nc" nicename="tos.system.LedsC" qname="LedsC">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/system/LedsC.nc">
+        <short>
+
+ The basic TinyOS LEDs abstraction.</short>
+        <long>
+
+ The basic TinyOS LEDs abstraction.
+
+ @author Phil Buonadonna
+ @author David Gay
+ @author Philip Levis
+ @author Joe Polastre
+</long>
+      </documentation>
+      <configuration/>
+      <wiring>
+        <wire loc="51:/opt/tinyos-main-read-only/tos/system/LedsC.nc">
+          <from><interface-ref name="Leds" ref="0x2b091720da38" scoped=""/></from>
+          <to><interface-ref name="Leds" ref="0x2b0917206298" scoped=""/></to>
+        </wire>
+        <wire loc="53:/opt/tinyos-main-read-only/tos/system/LedsC.nc">
+          <from><interface-ref name="Init" ref="0x2b09172332d8" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b0917209ca8" scoped=""/></to>
+        </wire>
+        <wire loc="54:/opt/tinyos-main-read-only/tos/system/LedsC.nc">
+          <from><interface-ref name="Led0" ref="0x2b0917228580" scoped=""/></from>
+          <to><interface-ref name="Led0" ref="0x2b0917207d08" scoped=""/></to>
+        </wire>
+        <wire loc="55:/opt/tinyos-main-read-only/tos/system/LedsC.nc">
+          <from><interface-ref name="Led1" ref="0x2b09172047d0" scoped=""/></from>
+          <to><interface-ref name="Led1" ref="0x2b0917235020" scoped=""/></to>
+        </wire>
+        <wire loc="56:/opt/tinyos-main-read-only/tos/system/LedsC.nc">
+          <from><interface-ref name="Led2" ref="0x2b0917227958" scoped=""/></from>
+          <to><interface-ref name="Led2" ref="0x2b09172341b0" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component><component abstract="" loc="44(TrickleTimerMilliC.ChangeVector):/opt/tinyos-main-read-only/tos/system/BitVectorC.nc" nicename="tos.system.BitVectorC" qname="TrickleTimerMilliC.ChangeVector">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/system/BitVectorC.nc">
+        <short>
+ Generic bit vector implementation.</short>
+        <long>
+ Generic bit vector implementation. Note that if you use this bit vector
+ from interrupt code, you must use appropriate &lt;code&gt;atomic&lt;/code&gt;
+ statements to ensure atomicity.
+
+ @param max_bits Bit vector length.
+
+ @author Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+</long>
+      </documentation>
+      <instance>
+        <component-ref nicename="tos.system.BitVectorC" qname="BitVectorC"/>
+        <arguments>
+          <value cst="U:">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </value>
+        </arguments>
+      </instance>
+      <module/>
+    </component><component abstract="" loc="51(TrickleTimerMilliC.TrickleTimerImplP):/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerImplP.nc" nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerMilliC.TrickleTimerImplP">
+      <instance>
+        <component-ref nicename="tos.lib.net.TrickleTimerImplP" qname="TrickleTimerImplP"/>
+        <arguments>
+          <value cst="U:">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </value>
+          <value cst="U:">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </value>
+          <value cst="U:">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </value>
+          <value cst="U:">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </value>
+          <value cst="I:10">
+            <type-int alignment="I:2" cname="int" size="I:2"/>
+          </value>
+        </arguments>
+      </instance>
+      <module/>
+    </component></referenced></component>

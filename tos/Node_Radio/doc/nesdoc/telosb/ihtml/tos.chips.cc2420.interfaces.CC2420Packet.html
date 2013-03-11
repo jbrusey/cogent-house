@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Packet</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Packet</h2>
+    <b>interface CC2420Packet</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jhui@archrock.com&gt;
+ 
+      </dd>
+      <dd>
+        David Moss
+ 
+      </dd>
+      <dd>
+        Chad Metcalf
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getLqi">getLqi</a>(message_t *p_msg)
+      </span><menu>
+ Get lqi value for a given packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getNetwork">getNetwork</a>(message_t *p_msg)
+      </span></div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#getPower">getPower</a>(message_t *p_msg)
+      </span><menu>
+ Get transmission power setting for current packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command int8_t <a href="#getRssi">getRssi</a>(message_t *p_msg)
+      </span><menu>
+ Get rssi value for a given packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setNetwork">setNetwork</a>(message_t *p_msg, uint8_t networkId)
+      </span></div><div id=funcsig><span id=funcnameshort>command void <a href="#setPower">setPower</a>(message_t *p_msg, uint8_t power)
+      </span><menu>
+ Set transmission power for a given packet.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getLqi"></a>
+    <h4>getLqi
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getLqi</b>(message_t *p_msg)
+    </span>
+    <p>
+    <menu>
+      
+ Get lqi value for a given packet. For received packets, it is the
+ link quality indicator value when receiving that packet. For sent
+ packets, it is the link quality indicator value of the ack if an
+ ack was received.
+
+    </menu>
+    <hr>
+    <a name="getNetwork"></a>
+    <h4>getNetwork
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getNetwork</b>(message_t *p_msg)
+    </span><hr>
+    <a name="getPower"></a>
+    <h4>getPower
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>getPower</b>(message_t *p_msg)
+    </span>
+    <p>
+    <menu>
+      
+ Get transmission power setting for current packet.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>the</code> -  message
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getRssi"></a>
+    <h4>getRssi
+    </h4>
+    <span id=funcnameshort>command int8_t <b>getRssi</b>(message_t *p_msg)
+    </span>
+    <p>
+    <menu>
+      
+ Get rssi value for a given packet. For received packets, it is
+ the received signal strength when receiving that packet. For sent
+ packets, it is the received signal strength of the ack if an ack
+ was received.
+
+    </menu>
+    <hr>
+    <a name="setNetwork"></a>
+    <h4>setNetwork
+    </h4>
+    <span id=funcnameshort>command void <b>setNetwork</b>(message_t *p_msg, uint8_t networkId)
+    </span><hr>
+    <a name="setPower"></a>
+    <h4>setPower
+    </h4>
+    <span id=funcnameshort>command void <b>setPower</b>(message_t *p_msg, uint8_t power)
+    </span>
+    <p>
+    <menu>
+      
+ Set transmission power for a given packet. Valid ranges are
+ between 0 and 31.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>p_msg</code> -  the message.
+ 
+        </dd>
+        <dd>
+          <code>power</code> -  transmission power.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

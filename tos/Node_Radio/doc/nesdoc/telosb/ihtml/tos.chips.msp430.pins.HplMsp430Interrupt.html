@@ -1,0 +1,133 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.pins.HplMsp430Interrupt</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.pins.HplMsp430Interrupt</h2>
+    <b>interface HplMsp430Interrupt</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Joe Polastre
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clear">clear</a>()
+      </span><menu> 
+ Clears the MSP430 Interrupt Pending Flag for a particular port.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#disable">disable</a>()
+      </span><menu> 
+ Disables MSP430 hardware interrupt on a particular port.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#edge">edge</a>(bool low_to_high)
+      </span><menu> 
+ Sets whether the edge should be high to low or low to high.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#enable">enable</a>()
+      </span><menu> 
+ Enables MSP430 hardware interrupt on a particular port.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#getValue">getValue</a>()
+      </span><menu> 
+ Gets the current value of the input voltage of a port.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#fired">fired</a>()
+      </span><menu>
+ Signalled when an interrupt occurs on a port.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="clear"></a>
+    <h4>clear
+    </h4>
+    <span id=funcnameshort>command void <b>clear</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Clears the MSP430 Interrupt Pending Flag for a particular port.
+
+    </menu>
+    <hr>
+    <a name="disable"></a>
+    <h4>disable
+    </h4>
+    <span id=funcnameshort>command void <b>disable</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Disables MSP430 hardware interrupt on a particular port.
+
+    </menu>
+    <hr>
+    <a name="edge"></a>
+    <h4>edge
+    </h4>
+    <span id=funcnameshort>command void <b>edge</b>(bool low_to_high)
+    </span>
+    <p>
+    <menu>
+       
+ Sets whether the edge should be high to low or low to high.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>TRUE</code> -  if the interrupt should be triggered on a low to high
+        edge transition, false for interrupts on a high to low transition.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="enable"></a>
+    <h4>enable
+    </h4>
+    <span id=funcnameshort>command void <b>enable</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Enables MSP430 hardware interrupt on a particular port.
+
+    </menu>
+    <hr>
+    <a name="getValue"></a>
+    <h4>getValue
+    </h4>
+    <span id=funcnameshort>command bool <b>getValue</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Gets the current value of the input voltage of a port.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if the pin is set high, FALSE if it is set low.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="fired"></a>
+    <h4>fired
+    </h4>
+    <span id=funcnameshort>event void <b>fired</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Signalled when an interrupt occurs on a port.
+
+    </menu>
+  </body>
+</html>

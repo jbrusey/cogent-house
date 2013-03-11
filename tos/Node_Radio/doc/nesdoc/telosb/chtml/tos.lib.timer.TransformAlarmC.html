@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.lib.timer.TransformAlarmC</title>
+  </head>
+  <body>
+    <h2>Component: tos.lib.timer.TransformAlarmC
+    </h2>
+    <b>generic module TransformAlarmC(typedef to_precision_tag, typedef to_size_type, typedef from_precision_tag, typedef from_size_type, uint8_t bit_shift_right)</b>
+    <p>
+ TransformAlarmC decreases precision and/or widens an Alarm.  An already
+ widened Counter component is used to help.
+
+ <p>See TEP102 for more details.
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>to_precision_tag</code> -  A type indicating the precision of the transformed
+   Alarm.
+ 
+      </dd>
+      <dd>
+        <code>to_size_type</code> -  The type for the width of the transformed Alarm.
+ 
+      </dd>
+      <dd>
+        <code>from_precision_tag</code> -  A type indicating the precision of the original
+   Alarm.
+ 
+      </dd>
+      <dd>
+        <code>from_size_type</code> -  The type for the width of the original Alarm.
+ 
+      </dd>
+      <dd>
+        <code>bit_shift_right</code> -  Original time units will be 2 to the power 
+   <code>bit_shift_right</code> larger than transformed time units.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Alarm.html">Alarm</a>&lt;to_precision_tag, to_size_type&gt;</div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Alarm.html">Alarm</a>&lt;from_precision_tag, from_size_type&gt; as <b>AlarmFrom</b></div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Counter.html">Counter</a>&lt;to_precision_tag, to_size_type&gt;</div>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+<area shape="rect" id="node2" href="../chtml/tos.lib.timer.BusyWaitCounterC.html" title="BusyWaitCounterC" alt="" coords="27,120,195,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.lib.timer.BusyWait.html" title="BusyWait&lt;TMicro, uint16_t&gt;" alt="" coords="113,54 113,106 108,106 108,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.lib.timer.BusyWait.html" title="BusyWait&lt;TMicro, uint16_t&gt;" alt="" coords="111,78,292,95">
+<area shape="rect" id="node3" href="../chtml/tos.chips.msp430.timer.Msp430CounterMicroC.html" title="Msp430CounterMicroC" alt="" coords="5,235,216,293">
+<area shape="poly" id="edge4" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;TMicro, uint16_t&gt;" alt="" coords="113,168 113,221 108,221 108,168">
+<area shape="rect" id="edge4" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;TMicro, uint16_t&gt;" alt="" coords="111,193,285,210">

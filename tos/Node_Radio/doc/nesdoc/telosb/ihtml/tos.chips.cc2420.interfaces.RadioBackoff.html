@@ -1,0 +1,189 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.RadioBackoff</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.RadioBackoff</h2>
+    <b>interface RadioBackoff</b><p>
+ Interface to request and specify backoff periods for messages
+ 
+ We use a call back method for setting the backoff as opposed to 
+ events that return backoff values.  
+ 
+ This is because of fan-out issues with multiple components wanting to
+ affect backoffs for whatever they're interested in:
+ If you signal out an *event* to request an initial backoff and
+ several components happen to be listening, then those components
+ would be required to return a backoff value.  We don't want that
+ behavior.
+ With this strategy, components can listen for the requests and then
+ decide if they want to affect the behavior.  If the component wants to
+ affect the behavior, it calls back using the setXYZBackoff(..) command.
+ If several components call back, then the last component to get its 
+ word in has the final say. 
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#setCca">setCca</a>(bool ccaOn)
+      </span><menu>
+ Enable CCA for the outbound packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setCongestionBackoff">setCongestionBackoff</a>(uint16_t backoffTime)
+      </span><menu>
+ Must be called within a requestCongestionBackoff event
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setInitialBackoff">setInitialBackoff</a>(uint16_t backoffTime)
+      </span><menu>
+ Must be called within a requestInitialBackoff event
+ 
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#requestCca">requestCca</a>(message_t *msg)
+      </span><menu>
+ Request for input on whether or not to use CCA on the outbound packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#requestCongestionBackoff">requestCongestionBackoff</a>(message_t *msg)
+      </span><menu>
+ Request for input on the congestion backoff
+ Reply using setCongestionBackoff(..)
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#requestInitialBackoff">requestInitialBackoff</a>(message_t *msg)
+      </span><menu>  
+ Request for input on the initial backoff
+ Reply using setInitialBackoff(..)
+ 
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="setCca"></a>
+    <h4>setCca
+    </h4>
+    <span id=funcnameshort>command void <b>setCca</b>(bool ccaOn)
+    </span>
+    <p>
+    <menu>
+      
+ Enable CCA for the outbound packet.  Must be called within a requestCca
+ event
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>ccaOn</code> -  TRUE to enable CCA, which is the default.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setCongestionBackoff"></a>
+    <h4>setCongestionBackoff
+    </h4>
+    <span id=funcnameshort>command void <b>setCongestionBackoff</b>(uint16_t backoffTime)
+    </span>
+    <p>
+    <menu>
+      
+ Must be called within a requestCongestionBackoff event
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>backoffTime</code> -  the amount of time in some unspecified units to backoff
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setInitialBackoff"></a>
+    <h4>setInitialBackoff
+    </h4>
+    <span id=funcnameshort>command void <b>setInitialBackoff</b>(uint16_t backoffTime)
+    </span>
+    <p>
+    <menu>
+      
+ Must be called within a requestInitialBackoff event
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>backoffTime</code> -  the amount of time in some unspecified units to backoff
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="requestCca"></a>
+    <h4>requestCca
+    </h4>
+    <span id=funcnameshort>event void <b>requestCca</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Request for input on whether or not to use CCA on the outbound packet.
+ Replies should come in the form of setCca(..)
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>msg</code> -  pointer to the message being sent
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="requestCongestionBackoff"></a>
+    <h4>requestCongestionBackoff
+    </h4>
+    <span id=funcnameshort>event void <b>requestCongestionBackoff</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Request for input on the congestion backoff
+ Reply using setCongestionBackoff(..)
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>msg</code> -  pointer to the message being sent
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="requestInitialBackoff"></a>
+    <h4>requestInitialBackoff
+    </h4>
+    <span id=funcnameshort>event void <b>requestInitialBackoff</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+        
+ Request for input on the initial backoff
+ Reply using setInitialBackoff(..)
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>msg</code> -  pointer to the message being sent
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

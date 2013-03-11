@@ -1,0 +1,8 @@
+<area shape="rect" id="node2" href="../chtml/tos.system.SchedulerBasicP.html" title="SchedulerBasicP" alt="" coords="68,120,217,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.TaskBasic.html" title="TaskBasic[uint8_t]" alt="" coords="68,53 69,75 76,95 87,110 83,113 71,97 64,76 62,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.TaskBasic.html" title="TaskBasic[uint8_t]" alt="" coords="73,78,189,95">
+<area shape="rect" id="node4" href="../chtml/tos.chips.msp430.McuSleepC.html" title="McuSleepC" alt="" coords="89,235,196,283">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.McuSleep.html" title="McuSleep" alt="" coords="145,168 145,221 140,221 140,168">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.McuSleep.html" title="McuSleep" alt="" coords="143,193,205,210">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Scheduler.html" title="Scheduler" alt="" coords="213,54 192,97 181,111 177,108 187,95 208,52">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Scheduler.html" title="Scheduler" alt="" coords="199,78,264,95">

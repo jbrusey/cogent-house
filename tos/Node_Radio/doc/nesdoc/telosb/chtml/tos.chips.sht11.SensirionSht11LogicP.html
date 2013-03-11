@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.chips.sht11.SensirionSht11LogicP</title>
+  </head>
+  <body>
+    <h2>Component: tos.chips.sht11.SensirionSht11LogicP
+    </h2>
+    <b>generic module SensirionSht11LogicP()</b>
+    <p>
+ SensirionSht11LogicP contains the actual driver logic needed to
+ read from the Sensirion SHT11 temperature/humidity sensor. It
+ depends on 2 underlying GeneralIO interfaces, one for the data pin
+ and one for the clock pin, and one underlying GpioInterrupt.  It
+ provides the HAL-level SensirionSht11 interface. It's generic, so
+ you can instantiate it multiple times if you have more than one
+ Sensirion SHT11 attached to a node. 
+ 
+ <p>
+ This code assumes that the MCU clock is less than 10 MHz.  If you
+ ever run this on a faster MCU, you'll need to insert a lot of
+ waits to keep the Sensirion happy.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Gilman Tolle &lt;gtolle@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.4 $ $Date: 2006-12-12 18:23:12 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.chips.sht11.SensirionSht11.html">SensirionSht11</a>[uint8_t]</div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.GeneralIO.html">GeneralIO</a> as <b>CLOCK</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.GeneralIO.html">GeneralIO</a> as <b>DATA</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.GpioInterrupt.html">GpioInterrupt</a> as <b>InterruptDATA</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Leds.html">Leds</a></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.TaskBasic.html">TaskBasic</a> as <b>readSensor</b></div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.TaskBasic.html">TaskBasic</a> as <b>signalStatusDone</b></div><div id=funcsig>interface <a href="../ihtml/tos.lib.timer.Timer.html">Timer</a>&lt;TMilli&gt;</div>
+  </body>
+</html>

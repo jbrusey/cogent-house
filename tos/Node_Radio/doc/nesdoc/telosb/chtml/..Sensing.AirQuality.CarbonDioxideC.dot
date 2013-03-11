@@ -1,0 +1,13 @@
+digraph "..Sensing.AirQuality.CarbonDioxideC" {
+  n0x2b0918e39508 [shape=ellipse, style=filled, label="Read", fontsize=12];
+  "CarbonDioxideC.AdcReadClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadClientC.html"];
+  n0x2b0918e38c38 [shape=ellipse, style=filled, label="ReadStream", fontsize=12];
+  "CarbonDioxideC.AdcReadStreamClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadStreamClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadStreamClientC.html"];
+  "CarbonDioxideC.AdcReadClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadClientC.html"];
+  "CarbonDioxideP" [fontsize=12, shape=box, URL="../chtml/..Sensing.AirQuality.CarbonDioxideP.html"];
+  "CarbonDioxideC.AdcReadStreamClientC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AdcReadStreamClientC", URL="../chtml/tos.chips.msp430.adc12.AdcReadStreamClientC.html"];
+  "n0x2b0918e39508" -> "CarbonDioxideC.AdcReadClientC" [label="Read<uint16_t>", URL="../ihtml/tos.interfaces.Read.html", fontsize=10];
+  "n0x2b0918e38c38" -> "CarbonDioxideC.AdcReadStreamClientC" [label="ReadStream<uint16_t>", URL="../ihtml/tos.interfaces.ReadStream.html", fontsize=10];
+  "CarbonDioxideC.AdcReadClientC" -> "CarbonDioxideP" [label="AdcConfigure<msp430adc12_channel_config_t *>", URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "CarbonDioxideC.AdcReadStreamClientC" -> "CarbonDioxideP" [label="AdcConfigure<msp430adc12_channel_config_t *>", URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+}

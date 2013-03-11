@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.LinkPacketMetadata</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.LinkPacketMetadata</h2>
+    <b>interface LinkPacketMetadata</b><p>
+ This interface provides metadata associated with a link layer packet.
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command bool <a href="#highChannelQuality">highChannelQuality</a>(message_t *msg)
+      </span><menu>
+ Return true if the channel during this packet had high quality (few bit errors).
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="highChannelQuality"></a>
+    <h4>highChannelQuality
+    </h4>
+    <span id=funcnameshort>command bool <b>highChannelQuality</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Return true if the channel during this packet had high quality (few bit errors).
+ A good rule of thumb for "high quality" is that the channel quality
+ would enable MTU packets to have a reception rate of 90% or greater.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg' A received packet during which the channel was measured.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          Whether the channel had high quality.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+<area shape="rect" id="node2" href="../chtml/tos.lib.timer.VirtualizeTimerC.html" title="VirtualizeTimerC" alt="" coords="5,120,152,168">
+<area shape="poly" id="edge2" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;[uint8_t]" alt="" coords="81,54 81,106 76,106 76,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;[uint8_t]" alt="" coords="79,78,221,95">
+<area shape="rect" id="node7" href="../chtml/tos.lib.timer.AlarmToTimerC.html" title="AlarmToTimerC" alt="" coords="11,240,147,288">
+<area shape="poly" id="edge8" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="81,168 81,226 76,226 76,168">
+<area shape="rect" id="edge8" href="../ihtml/tos.lib.timer.Timer.html" title="Timer&lt;TMilli&gt;" alt="" coords="79,193,168,210">
+<area shape="rect" id="node4" href="../chtml/tos.lib.timer.CounterToLocalTimeC.html" title="CounterToLocalTimeC" alt="" coords="303,120,489,168">
+<area shape="poly" id="edge4" href="../ihtml/tos.lib.timer.LocalTime.html" title="LocalTime&lt;TMilli&gt;" alt="" coords="399,54 399,106 393,106 393,54">
+<area shape="rect" id="edge4" href="../ihtml/tos.lib.timer.LocalTime.html" title="LocalTime&lt;TMilli&gt;" alt="" coords="396,78,513,95">
+<area shape="rect" id="node8" href="../chtml/tos.chips.msp430.timer.CounterMilli32C.html" title="CounterMilli32C" alt="" coords="320,235,472,293">
+<area shape="poly" id="edge12" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;TMilli, uint32_t&gt;" alt="" coords="399,168 399,221 393,221 393,168">
+<area shape="rect" id="edge12" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;TMilli, uint32_t&gt;" alt="" coords="396,193,560,210">
+<area shape="rect" id="node6" href="../chtml/tos.chips.msp430.timer.AlarmMilli32C.html" title="AlarmMilli32C" alt="" coords="103,360,236,419">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="256,289 246,313 233,338 221,352 217,348 228,334 242,311 251,287">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="243,318,263,335">
+<area shape="poly" id="edge10" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;TMilli, uint32_t&gt;" alt="" coords="74,289 71,312 77,335 94,354 90,357 72,337 66,313 68,288">
+<area shape="rect" id="edge10" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;TMilli, uint32_t&gt;" alt="" coords="75,318,225,335">

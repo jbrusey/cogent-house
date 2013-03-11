@@ -1,0 +1,349 @@
+<?xml version="1.0" ?><interfacedef loc="45:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12">
+      <documentation loc="36:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+        <short>
+ The HplAdc12 interface exports low-level access to the ADC12 registers
+ of the MSP430 MCU.</short>
+        <long>
+ The HplAdc12 interface exports low-level access to the ADC12 registers
+ of the MSP430 MCU.
+
+ @author Jan Hauer
+ @see  Please refer to TEP 101 for more information about this component and its
+          intended use.
+</long>
+      </documentation>
+      <function command="" loc="63:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="getCtl0" provided="0" ref="0x2b0918b17020">
+        <documentation loc="59:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Returns the ADC12 control register ADC12CTL0.</short>
+          <long> 
+ Returns the ADC12 control register ADC12CTL0.
+ @return ADC12CTL0
+*</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b0918a8e858"/>
+            <typename><typedef-ref name="adc12ctl0_t" ref="0x2b0918a8d2c8"/></typename>
+          </type-tag>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="82:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="getMCtl" provided="0" ref="0x2b0918b15108">
+        <documentation loc="77:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Returns the ADC12 conversion memory control register ADC12MCTLx.</short>
+          <long> 
+ Returns the ADC12 conversion memory control register ADC12MCTLx.
+ @param idx The register index (the 'x' in ADC12MCTLx) [0..15] 
+ @return memControl ADC12MCTLx register data.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-tag alignment="I:1" size="I:1"><struct-ref ref="0x2b0918a12100"/>
+            <typename><typedef-ref name="adc12memctl_t" ref="0x2b0918a125b8"/></typename>
+          </type-tag>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="82:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="idx" ref="0x2b0918b16e40">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="106:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="resetIFGs" provided="0" ref="0x2b0918b12508">
+        <documentation loc="103:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Resets the ADC12 interrupt flag register, ADC12IFG.</short>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="118:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="isBusy" provided="0" ref="0x2b0918b11780">
+        <documentation loc="114:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Returns the ADC12 BUSY flag.</short>
+          <long> 
+ Returns the ADC12 BUSY flag.
+ @return ADC12BUSY 
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function event="" loc="112:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="conversionDone" provided="0" ref="0x2b0918b11020">
+        <documentation loc="108:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Signals a conversion result.</short>
+          <long> 
+ Signals a conversion result. 
+ @param iv ADC12 interrupt vector value 0x6, 0x8, ... , 0x24
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="112:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="iv" ref="0x2b0918b12c18">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="68:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="getCtl1" provided="0" ref="0x2b0918b177c8">
+        <documentation loc="65:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> Returns the ADC12 control register ADC12CTL1.</short>
+          <long> Returns the ADC12 control register ADC12CTL1. 
+  @return ADC12CTL1
+*</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b0918a8c878"/>
+            <typename><typedef-ref name="adc12ctl1_t" ref="0x2b0918a8a168"/></typename>
+          </type-tag>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="75:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="setMCtl" provided="0" ref="0x2b0918b16638">
+        <documentation loc="70:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Sets the ADC12 conversion memory control register ADC12MCTLx.</short>
+          <long> 
+ Sets the ADC12 conversion memory control register ADC12MCTLx.
+ @param idx The register index (the 'x' in ADC12MCTLx) [0..15] 
+ @param memControl ADC12MCTLx register data.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+            <type-tag alignment="I:1" size="I:1"><struct-ref ref="0x2b0918a12100"/>
+              <typename><typedef-ref name="adc12memctl_t" ref="0x2b0918a125b8"/></typename>
+            </type-tag>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="75:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="idx" ref="0x2b0918b16020">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="75:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="memControl" ref="0x2b0918b163b8">
+            <type-tag alignment="I:1" size="I:1"><struct-ref ref="0x2b0918a12100"/>
+              <typename><typedef-ref name="adc12memctl_t" ref="0x2b0918a125b8"/></typename>
+            </type-tag>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="128:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="startConversion" provided="0" ref="0x2b0918b10840">
+        <documentation loc="125:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short>
+ Starts a conversion.</short>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="51:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="setCtl0" provided="0" ref="0x2b0918b1cd30">
+        <documentation loc="47:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Sets the ADC12 control register ADC12CTL0.</short>
+          <long> 
+ Sets the ADC12 control register ADC12CTL0.
+ @param control0 ADC12CTL0 register data.
+*</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b0918a8e858"/>
+              <typename><typedef-ref name="adc12ctl0_t" ref="0x2b0918a8d2c8"/></typename>
+            </type-tag>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="control0" ref="0x2b0918b1cac0">
+            <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b0918a8e858"/>
+              <typename><typedef-ref name="adc12ctl0_t" ref="0x2b0918a8d2c8"/></typename>
+            </type-tag>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="89:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="getMem" provided="0" ref="0x2b0918b15b50">
+        <documentation loc="84:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Returns the ADC12 conversion memory register ADC12MEMx.</short>
+          <long> 
+ Returns the ADC12 conversion memory register ADC12MEMx.
+ @param idx The register index (the 'x' in ADC12MEMx) [0..15] 
+ @return ADC12MEMx 
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="89:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="idx" ref="0x2b0918b158e0">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="95:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="setIEFlags" provided="0" ref="0x2b0918b14588">
+        <documentation loc="91:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Sets the ADC12 interrupt enable register, ADC12IE.</short>
+          <long> 
+ Sets the ADC12 interrupt enable register, ADC12IE.
+ @param mask Bitmask (0 means interrupt disabled, 1 menas interrupt enabled) 
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="95:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="mask" ref="0x2b0918b14318">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="101:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="getIEFlags" provided="0" ref="0x2b0918b14d78">
+        <documentation loc="97:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Returns the ADC12 interrupt enable register, ADC12IE.</short>
+          <long> 
+ Returns the ADC12 interrupt enable register, ADC12IE.
+ @return ADC12IE
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="123:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="stopConversion" provided="0" ref="0x2b0918b10020">
+        <documentation loc="120:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short>
+ Stops a conversion.</short>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="133:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="enableConversion" provided="0" ref="0x2b0918b0f020">
+        <documentation loc="130:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short>
+ Enables conversion (sets the ENC bit).</short>
+          <long>
+ Enables conversion (sets the ENC bit).
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="57:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="setCtl1" provided="0" ref="0x2b0918b19770">
+        <documentation loc="53:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc">
+          <short> 
+ Sets the ADC12 control register ADC12CTL1.</short>
+          <long> 
+ Sets the ADC12 control register ADC12CTL1. 
+ @param control1 ADC12CTL1 register data.
+*</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.msp430.adc12.HplAdc12" qname="HplAdc12"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b0918a8c878"/>
+              <typename><typedef-ref name="adc12ctl1_t" ref="0x2b0918a8a168"/></typename>
+            </type-tag>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="57:/opt/tinyos-main-read-only/tos/chips/msp430/adc12/HplAdc12.nc" name="control1" ref="0x2b0918b19500">
+            <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b0918a8c878"/>
+              <typename><typedef-ref name="adc12ctl1_t" ref="0x2b0918a8a168"/></typename>
+            </type-tag>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

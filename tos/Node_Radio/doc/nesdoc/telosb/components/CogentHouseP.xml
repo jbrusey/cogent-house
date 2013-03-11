@@ -1,0 +1,444 @@
+<?xml version="1.0" ?><component loc="3:CogentHouseP.nc" nicename="CogentHouseP" qname="CogentHouseP">
+      <module/>
+    <specification><interface loc="13:CogentHouseP.nc" name="BlinkTimer" provided="0" ref="0x2b09170cd7c0">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="BlinkTimer" ref="0x2b09170cd7c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b09170caa18" scoped=""/>
+        <function-ref name="fired" ref="0x2b09170cb158" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b09170cbe48" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b09170cb9f8" scoped=""/>
+        <function-ref name="getdt" ref="0x2b09170c82e8" scoped=""/>
+        <function-ref name="gett0" ref="0x2b09170cae68" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b09170cb5a8" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b09170cc370" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b09170ca448" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b09170cc810" scoped=""/>
+        <function-ref name="stop" ref="0x2b09170cccb0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="33:CogentHouseP.nc" name="ReadVolt" provided="0" ref="0x2b091716c020">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadVolt" ref="0x2b091716c020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.SIPController" qname="SIPController"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091716cb68" scoped=""/>
+        <function-ref name="read" ref="0x2b091716a7a0" scoped=""/>
+        <function-ref name="readDone" ref="0x2b091716abf0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="14:CogentHouseP.nc" name="SendTimeOutTimer" provided="0" ref="0x2b09170c8928">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SendTimeOutTimer" ref="0x2b09170c8928" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b09170ebbc0" scoped=""/>
+        <function-ref name="fired" ref="0x2b09170ec278" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b09170eb020" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b09170ecb18" scoped=""/>
+        <function-ref name="getdt" ref="0x2b09170e94d8" scoped=""/>
+        <function-ref name="gett0" ref="0x2b09170e9088" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b09170ec6c8" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b09170ed4a8" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b09170eb5f0" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b09170ed948" scoped=""/>
+        <function-ref name="stop" ref="0x2b09170edde8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="7:CogentHouseP.nc" name="Boot" provided="0" ref="0x2b0916ee6620">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Boot" ref="0x2b0916ee6620" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Boot" qname="Boot"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="booted" ref="0x2b0916ee6970" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="18:CogentHouseP.nc" name="StateSender" provided="0" ref="0x2b091714a628">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StateSender" ref="0x2b091714a628" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Send" qname="Send"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b091714a978" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b091714ab00" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b091714ac88" scoped=""/>
+        <function-ref name="cancel" ref="0x2b091714ae10" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b09170e3020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="40:CogentHouseP.nc" name="ReadOpti" provided="0" ref="0x2b09171827a8">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadOpti" ref="0x2b09171827a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-float alignment="I:2" cname="float" size="I:4"/>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b0917187370" scoped=""/>
+        <function-ref name="readDone" ref="0x2b09171877c0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="221:CogentHouseP.nc" name="checkDataGathered" provided="0" ref="0x2b09171c0198">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="checkDataGathered" ref="0x2b09171c0198" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b09171c04e8" scoped=""/>
+        <function-ref name="runTask" ref="0x2b09171c0670" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="9:CogentHouseP.nc" name="LocalTime" provided="0" ref="0x2b09170b7d68">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="LocalTime" ref="0x2b09170b7d68" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.LocalTime" qname="LocalTime"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="get" ref="0x2b09170c6928" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="21:CogentHouseP.nc" name="Packet" provided="0" ref="0x2b091715c4c0">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Packet" ref="0x2b091715c4c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b091715c810" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b091715c998" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b091715cb20" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b091715cca8" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b091715ce30" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="26:CogentHouseP.nc" name="DisseminationControl" provided="0" ref="0x2b091715d568">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="DisseminationControl" ref="0x2b091715d568" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b091715d8b8" scoped=""/>
+        <function-ref name="stop" ref="0x2b091715da40" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="17:CogentHouseP.nc" name="RadioControl" provided="0" ref="0x2b09170e4af0">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="RadioControl" ref="0x2b09170e4af0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.SplitControl" qname="SplitControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="startDone" ref="0x2b09170e4e40" scoped=""/>
+        <function-ref name="stopDone" ref="0x2b09170e8020" scoped=""/>
+        <function-ref name="start" ref="0x2b09170e81a8" scoped=""/>
+        <function-ref name="stop" ref="0x2b09170e8330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="36:CogentHouseP.nc" name="ReadAQ" provided="0" ref="0x2b0917164ce8">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadAQ" ref="0x2b0917164ce8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.SIPController" qname="SIPController"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b09171638b8" scoped=""/>
+        <function-ref name="read" ref="0x2b09171624b8" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0917162908" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="22:CogentHouseP.nc" name="LowPowerListening" provided="0" ref="0x2b091713e020">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="LowPowerListening" ref="0x2b091713e020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.LowPowerListening" qname="LowPowerListening"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setRemoteWakeupInterval" ref="0x2b091713e370" scoped=""/>
+        <function-ref name="getRemoteWakeupInterval" ref="0x2b091713e4f8" scoped=""/>
+        <function-ref name="getLocalWakeupInterval" ref="0x2b091713e680" scoped=""/>
+        <function-ref name="setLocalWakeupInterval" ref="0x2b091713e808" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="19:CogentHouseP.nc" name="CollectionControl" provided="0" ref="0x2b0917149b28">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CollectionControl" ref="0x2b0917149b28" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b0917149e78" scoped=""/>
+        <function-ref name="stop" ref="0x2b09170e2030" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="20:CogentHouseP.nc" name="CtpInfo" provided="0" ref="0x2b091713f0d0">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CtpInfo" ref="0x2b091713f0d0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.ctp.CtpInfo" qname="CtpInfo"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNeighborLinkQuality" ref="0x2b091713f420" scoped=""/>
+        <function-ref name="recomputeRoutes" ref="0x2b091713f5a8" scoped=""/>
+        <function-ref name="numNeighbors" ref="0x2b091713f730" scoped=""/>
+        <function-ref name="triggerRouteUpdate" ref="0x2b091713f8b8" scoped=""/>
+        <function-ref name="getEtx" ref="0x2b091713fa40" scoped=""/>
+        <function-ref name="triggerImmediateRouteUpdate" ref="0x2b091713fbc8" scoped=""/>
+        <function-ref name="setNeighborCongested" ref="0x2b091713fd50" scoped=""/>
+        <function-ref name="getNeighborAddr" ref="0x2b091714b020" scoped=""/>
+        <function-ref name="getParent" ref="0x2b091714b1a8" scoped=""/>
+        <function-ref name="getNeighborRouteQuality" ref="0x2b091714b330" scoped=""/>
+        <function-ref name="isNeighborCongested" ref="0x2b091714b4b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="12:CogentHouseP.nc" name="SenseTimer" provided="0" ref="0x2b09170d05a0">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SenseTimer" ref="0x2b09170d05a0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.Timer" qname="Timer"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="getNow" ref="0x2b09170cf8f0" scoped=""/>
+        <function-ref name="fired" ref="0x2b09170da020" scoped=""/>
+        <function-ref name="startPeriodicAt" ref="0x2b09170dad10" scoped=""/>
+        <function-ref name="isOneShot" ref="0x2b09170da8c0" scoped=""/>
+        <function-ref name="getdt" ref="0x2b09170cd1c0" scoped=""/>
+        <function-ref name="gett0" ref="0x2b09170cfd40" scoped=""/>
+        <function-ref name="isRunning" ref="0x2b09170da470" scoped=""/>
+        <function-ref name="startPeriodic" ref="0x2b09170ba118" scoped=""/>
+        <function-ref name="startOneShotAt" ref="0x2b09170cf320" scoped=""/>
+        <function-ref name="startOneShot" ref="0x2b09170ba5b8" scoped=""/>
+        <function-ref name="stop" ref="0x2b09170baa58" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="54:CogentHouseP.nc" name="Configured" provided="0" ref="0x2b0917178be8">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Configured" ref="0x2b0917178be8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b0917181170" scoped=""/>
+        <function-ref name="setArrayElement" ref="0x2b09171812f8" scoped=""/>
+        <function-ref name="getArray" ref="0x2b0917181480" scoped=""/>
+        <function-ref name="clear" ref="0x2b0917181608" scoped=""/>
+        <function-ref name="get" ref="0x2b0917181790" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0917181918" scoped=""/>
+        <function-ref name="assign" ref="0x2b0917181aa0" scoped=""/>
+        <function-ref name="getArrayLength" ref="0x2b0917181c28" scoped=""/>
+        <function-ref name="setAll" ref="0x2b0917181db0" scoped=""/>
+        <function-ref name="set" ref="0x2b0917180020" scoped=""/>
+        <function-ref name="size" ref="0x2b09171801a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="55:CogentHouseP.nc" name="ExpectReadDone" provided="0" ref="0x2b09171974c0">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ExpectReadDone" ref="0x2b09171974c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.BitVector" qname="BitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b0917197810" scoped=""/>
+        <function-ref name="clear" ref="0x2b0917197998" scoped=""/>
+        <function-ref name="toggle" ref="0x2b0917197b20" scoped=""/>
+        <function-ref name="get" ref="0x2b0917197ca8" scoped=""/>
+        <function-ref name="assign" ref="0x2b0917197e30" scoped=""/>
+        <function-ref name="setAll" ref="0x2b0917177020" scoped=""/>
+        <function-ref name="set" ref="0x2b09171771a8" scoped=""/>
+        <function-ref name="size" ref="0x2b0917177330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="216:CogentHouseP.nc" name="phaseTwoSensing" provided="0" ref="0x2b09171c1100">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="phaseTwoSensing" ref="0x2b09171c1100" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b09171c1450" scoped=""/>
+        <function-ref name="runTask" ref="0x2b09171c15d8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="34:CogentHouseP.nc" name="ReadCO2" provided="0" ref="0x2b0917169448">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadCO2" ref="0x2b0917169448" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.SIPController" qname="SIPController"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0917168020" scoped=""/>
+        <function-ref name="read" ref="0x2b0917168be0" scoped=""/>
+        <function-ref name="readDone" ref="0x2b0917167088" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="37:CogentHouseP.nc" name="TransmissionControl" provided="0" ref="0x2b0917185308">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="TransmissionControl" ref="0x2b0917185308" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.TransmissionControl" qname="TransmissionControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="transmissionDone" ref="0x2b0917185658" scoped=""/>
+        <function-ref name="hasEvent" ref="0x2b09171857e0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="8:CogentHouseP.nc" name="Leds" provided="0" ref="0x2b09170bb330">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Leds" ref="0x2b09170bb330" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Leds" qname="Leds"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="led0Off" ref="0x2b09170bb680" scoped=""/>
+        <function-ref name="led0Toggle" ref="0x2b09170bb808" scoped=""/>
+        <function-ref name="led1On" ref="0x2b09170bb990" scoped=""/>
+        <function-ref name="led1Toggle" ref="0x2b09170bbb18" scoped=""/>
+        <function-ref name="led2Toggle" ref="0x2b09170bbca0" scoped=""/>
+        <function-ref name="get" ref="0x2b09170bbe28" scoped=""/>
+        <function-ref name="led1Off" ref="0x2b09170c7020" scoped=""/>
+        <function-ref name="led2Off" ref="0x2b09170c7640" scoped=""/>
+        <function-ref name="set" ref="0x2b09170c71a8" scoped=""/>
+        <function-ref name="led0On" ref="0x2b09170c7330" scoped=""/>
+        <function-ref name="led2On" ref="0x2b09170c74b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="32:CogentHouseP.nc" name="ReadHum" provided="0" ref="0x2b091716fa50">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadHum" ref="0x2b091716fa50" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.SIPController" qname="SIPController"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091716e620" scoped=""/>
+        <function-ref name="read" ref="0x2b091716d238" scoped=""/>
+        <function-ref name="readDone" ref="0x2b091716d688" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="27:CogentHouseP.nc" name="AckValue" provided="0" ref="0x2b0917157220">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AckValue" ref="0x2b0917157220" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.DisseminationValue" qname="DisseminationValue"/>
+        <arguments>
+          <type-tag alignment="I:1" size="I:5"><nx_struct-ref name="AckMsg" ref="0x2b0916edce60"/>
+            <typename><typedef-ref name="AckMsg" ref="0x2b0916edb948"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="changed" ref="0x2b0917152748" scoped=""/>
+        <function-ref name="get" ref="0x2b0917157da0" scoped=""/>
+        <function-ref name="set" ref="0x2b0917152278" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="56:CogentHouseP.nc" name="PackState" provided="0" ref="0x2b09171913a8">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="PackState" ref="0x2b09171913a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..PackState.PackState" qname="PackState"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b09171916f8" scoped=""/>
+        <function-ref name="unpack" ref="0x2b0917191880" scoped=""/>
+        <function-ref name="get" ref="0x2b0917191a08" scoped=""/>
+        <function-ref name="haskey" ref="0x2b0917191b90" scoped=""/>
+        <function-ref name="pack" ref="0x2b0917191d18" scoped=""/>
+        <function-ref name="add" ref="0x2b0917176020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="25:CogentHouseP.nc" name="CRCCalc" provided="0" ref="0x2b0917154b50">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CRCCalc" ref="0x2b0917154b50" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Crc" qname="Crc"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="seededCrc16" ref="0x2b091715d020" scoped=""/>
+        <function-ref name="crc16" ref="0x2b091715d1a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="35:CogentHouseP.nc" name="ReadVOC" provided="0" ref="0x2b09171678a0">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadVOC" ref="0x2b09171678a0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.SIPController" qname="SIPController"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0917166458" scoped=""/>
+        <function-ref name="read" ref="0x2b0917164088" scoped=""/>
+        <function-ref name="readDone" ref="0x2b09171644d8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="31:CogentHouseP.nc" name="ReadTemp" provided="0" ref="0x2b0917170668">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ReadTemp" ref="0x2b0917170668" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..SIPController.SIPController" qname="SIPController"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b09171741e8" scoped=""/>
+        <function-ref name="read" ref="0x2b0917174da8" scoped=""/>
+        <function-ref name="readDone" ref="0x2b091716f238" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="39:CogentHouseP.nc" name="OptiControl" provided="0" ref="0x2b0917185b58">
+      <component-ref nicename="CogentHouseP" qname="CogentHouseP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="OptiControl" ref="0x2b0917185b58" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.SplitControl" qname="SplitControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="startDone" ref="0x2b0917188020" scoped=""/>
+        <function-ref name="stopDone" ref="0x2b09171881a8" scoped=""/>
+        <function-ref name="start" ref="0x2b0917188330" scoped=""/>
+        <function-ref name="stop" ref="0x2b09171884b8" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

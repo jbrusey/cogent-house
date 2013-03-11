@@ -1,0 +1,44 @@
+<?xml version="1.0" ?><component abstract="" loc="42:/opt/tinyos-main-read-only/tos/system/QueueC.nc" nicename="tos.system.QueueC" qname="QueueC">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/system/QueueC.nc">
+        <short>
+  A general FIFO queue component, whose queue has a bounded size.</short>
+        <long>
+  A general FIFO queue component, whose queue has a bounded size.
+
+  @author Philip Levis
+  @author Geoffrey Mainland
+  @date   $Date: 2009-06-25 18:37:24 $
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="42:/opt/tinyos-main-read-only/tos/system/QueueC.nc" name="queue_t" ref="0x2b0918533198">
+          <component-ref nicename="tos.system.QueueC" qname="QueueC"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="queue_t" ref="0x2b0918533198" scoped=""/></type-var>
+        </typedef>
+        <constant loc="42:/opt/tinyos-main-read-only/tos/system/QueueC.nc" name="QUEUE_SIZE" ref="0x2b09185334f0">
+          <component-ref nicename="tos.system.QueueC" qname="QueueC"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <module/>
+    <specification><interface loc="43:/opt/tinyos-main-read-only/tos/system/QueueC.nc" name="Queue" provided="1" ref="0x2b0918533a88">
+      <component-ref nicename="tos.system.QueueC" qname="QueueC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Queue" ref="0x2b0918533a88" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Queue" qname="Queue"/>
+        <arguments>
+          <type-var alignment="U:" size="U:"><typedef-ref name="queue_t" ref="0x2b0918533198" scoped=""/></type-var>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="head" ref="0x2b0918530470" scoped=""/>
+        <function-ref name="enqueue" ref="0x2b091852f158" scoped=""/>
+        <function-ref name="element" ref="0x2b091852f788" scoped=""/>
+        <function-ref name="maxSize" ref="0x2b0918530020" scoped=""/>
+        <function-ref name="dequeue" ref="0x2b0918530ad0" scoped=""/>
+        <function-ref name="empty" ref="0x2b0918532620" scoped=""/>
+        <function-ref name="size" ref="0x2b0918532a70" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

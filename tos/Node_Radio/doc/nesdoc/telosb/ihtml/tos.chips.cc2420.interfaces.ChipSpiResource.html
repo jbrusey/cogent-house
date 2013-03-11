@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.ChipSpiResource</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.ChipSpiResource</h2>
+    <b>interface ChipSpiResource</b><p>
+ Interface for the SPI resource for an entire chip.  The chip accesses
+ the platform SPI resource one time, but can have multiple clients 
+ using the SPI bus on top.  When all of the clients are released, the
+ chip will normally try to release itself from the platforms SPI bus.
+ In some cases, this isn't desirable - so even though upper components
+ aren't actively using the SPI bus, they can tell the chip to hold onto
+ it so they can have immediate access when they need. 
+
+ Any component that aborts a release MUST attempt the release at a later
+ time if they don't acquire and release the SPI bus naturally after the
+ abort.
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#abortRelease">abortRelease</a>()
+      </span><menu>
+ Abort the release of the SPI bus.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#attemptRelease">attemptRelease</a>()
+      </span><menu>
+ Release the SPI bus if there are no objections
+ 
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#releasing">releasing</a>()
+      </span><menu>
+ The SPI bus is about to be automatically released.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="abortRelease"></a>
+    <h4>abortRelease
+    </h4>
+    <span id=funcnameshort>command void <b>abortRelease</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Abort the release of the SPI bus.  This must be called only with the
+ releasing() event
+
+    </menu>
+    <hr>
+    <a name="attemptRelease"></a>
+    <h4>attemptRelease
+    </h4>
+    <span id=funcnameshort>command error_t <b>attemptRelease</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Release the SPI bus if there are no objections
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the SPI bus is released from the chip.
+      FAIL if the SPI bus is already in use.
+      EBUSY if some component aborted the release.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="releasing"></a>
+    <h4>releasing
+    </h4>
+    <span id=funcnameshort>event void <b>releasing</b>()
+    </span>
+    <p>
+    <menu>
+      
+ The SPI bus is about to be automatically released.  Modules that aren't
+ using the SPI bus but still want the SPI bus to stick around must call
+ abortRelease() within the event.
+
+    </menu>
+  </body>
+</html>

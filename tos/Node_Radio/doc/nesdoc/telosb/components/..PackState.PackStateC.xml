@@ -1,0 +1,68 @@
+<?xml version="1.0" ?><component abstract="" loc="6:./PackState/PackStateC.nc" nicename="..PackState.PackStateC" qname="PackStateC" safe="">
+      <documentation loc="1:./PackState/packstate.h">
+        <short>***********************************************************
+
+ packstate.h
+
+ &lt;insert gpl header&gt;
+
+ pack or unpack a series of floating point variables x1, x2, x3 with
+ associated integer keys k1, k2, k3 \in [0,N) into a packed form
+ consisting of a bitvector of length N, and a array of floats.</short>
+        <long>***********************************************************
+
+ packstate.h
+
+ &lt;insert gpl header&gt;
+
+ pack or unpack a series of floating point variables x1, x2, x3 with
+ associated integer keys k1, k2, k3 \in [0,N) into a packed form
+ consisting of a bitvector of length N, and a array of floats.
+
+ 
+************************************************************
+</long>
+      </documentation>
+      <parameters>
+        <constant loc="6:./PackState/PackStateC.nc" name="max_keys" ref="0x2b0918884dc8">
+          <component-ref nicename="..PackState.PackStateC" qname="PackStateC"/>
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+        </constant>
+      </parameters>
+      <module/>
+    <specification><interface loc="9:./PackState/PackStateC.nc" name="Mask" provided="0" ref="0x2b0918880560">
+      <component-ref nicename="..PackState.PackStateC" qname="PackStateC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Mask" ref="0x2b0918880560" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..AccessibleBitVector.AccessibleBitVector" qname="AccessibleBitVector"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clearAll" ref="0x2b09188808b0" scoped=""/>
+        <function-ref name="setArrayElement" ref="0x2b0918880a38" scoped=""/>
+        <function-ref name="getArray" ref="0x2b0918880bc0" scoped=""/>
+        <function-ref name="clear" ref="0x2b0918880d48" scoped=""/>
+        <function-ref name="get" ref="0x2b091887f020" scoped=""/>
+        <function-ref name="toggle" ref="0x2b091887f1a8" scoped=""/>
+        <function-ref name="assign" ref="0x2b091887f330" scoped=""/>
+        <function-ref name="getArrayLength" ref="0x2b091887f4b8" scoped=""/>
+        <function-ref name="setAll" ref="0x2b091887f640" scoped=""/>
+        <function-ref name="set" ref="0x2b091887f7c8" scoped=""/>
+        <function-ref name="size" ref="0x2b091887f950" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="8:./PackState/PackStateC.nc" name="PackState" provided="1" ref="0x2b0918881670">
+      <component-ref nicename="..PackState.PackStateC" qname="PackStateC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="PackState" ref="0x2b0918881670" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..PackState.PackState" qname="PackState"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b09188819c0" scoped=""/>
+        <function-ref name="unpack" ref="0x2b0918881b48" scoped=""/>
+        <function-ref name="get" ref="0x2b0918881cd0" scoped=""/>
+        <function-ref name="haskey" ref="0x2b0918881e58" scoped=""/>
+        <function-ref name="pack" ref="0x2b0918880020" scoped=""/>
+        <function-ref name="add" ref="0x2b09188801a8" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

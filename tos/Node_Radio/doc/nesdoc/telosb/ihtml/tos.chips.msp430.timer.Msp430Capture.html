@@ -1,0 +1,163 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.msp430.timer.Msp430Capture</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.msp430.timer.Msp430Capture</h2>
+    <b>interface Msp430Capture</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Joe Polastre
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clearOverflow">clearOverflow</a>()
+      </span><menu>
+ Clear the capture overflow flag for when multiple captures occur
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getEvent">getEvent</a>()
+      </span><menu>
+ Reads the value of the last capture event in TxCCRx
+
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isOverflowPending">isOverflowPending</a>()
+      </span><menu>
+ Determine if a capture overflow is pending.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setEdge">setEdge</a>(uint8_t cm)
+      </span><menu>
+ Set the edge that the capture should occur
+
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setSynchronous">setSynchronous</a>(bool synchronous)
+      </span><menu>
+ Set whether the capture should occur synchronously or asynchronously.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#captured">captured</a>(uint16_t time)
+      </span><menu>
+ Signalled when an event is captured.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="clearOverflow"></a>
+    <h4>clearOverflow
+    </h4>
+    <span id=funcnameshort>command void <b>clearOverflow</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Clear the capture overflow flag for when multiple captures occur
+
+    </menu>
+    <hr>
+    <a name="getEvent"></a>
+    <h4>getEvent
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getEvent</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Reads the value of the last capture event in TxCCRx
+
+    </menu>
+    <hr>
+    <a name="isOverflowPending"></a>
+    <h4>isOverflowPending
+    </h4>
+    <span id=funcnameshort>command bool <b>isOverflowPending</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Determine if a capture overflow is pending.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if the capture register has overflowed
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setEdge"></a>
+    <h4>setEdge
+    </h4>
+    <span id=funcnameshort>command void <b>setEdge</b>(uint8_t cm)
+    </span>
+    <p>
+    <menu>
+      
+ Set the edge that the capture should occur
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>cm</code> -  Capture Mode for edge capture.
+ enums exist for:
+   MSP430TIMER_CM_NONE is no capture.
+   MSP430TIMER_CM_RISING is rising edge capture.
+   MSP430TIMER_CM_FALLING is a falling edge capture.
+   MSP430TIMER_CM_BOTH captures on both rising and falling edges.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setSynchronous"></a>
+    <h4>setSynchronous
+    </h4>
+    <span id=funcnameshort>command void <b>setSynchronous</b>(bool synchronous)
+    </span>
+    <p>
+    <menu>
+      
+ Set whether the capture should occur synchronously or asynchronously.
+ TinyOS default is synchronous captures.
+ WARNING: if the capture signal is asynchronous to the timer clock,
+          it could case a race condition (see Timer documentation
+          in MSP430F1xx user guide)
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>synchronous</code> -  TRUE to synchronize the timer capture with the
+        next timer clock instead of occurring asynchronously.
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="captured"></a>
+    <h4>captured
+    </h4>
+    <span id=funcnameshort>event void <b>captured</b>(uint16_t time)
+    </span>
+    <p>
+    <menu>
+      
+ Signalled when an event is captured.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>time</code> -  The time of the capture event
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.PacketLink</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.PacketLink</h2>
+    <b>interface PacketLink</b><p>
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        David Moss
+ 
+      </dd>
+      <dd>
+        Jon Wyant
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getRetries">getRetries</a>(message_t *msg)
+      </span><menu> 
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getRetryDelay">getRetryDelay</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setRetries">setRetries</a>(message_t *msg, uint16_t maxRetries)
+      </span><menu>
+ Set the maximum number of times attempt message delivery
+ Default is 0
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setRetryDelay">setRetryDelay</a>(message_t *msg, uint16_t retryDelay)
+      </span><menu>
+ Set a delay between each retry attempt
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#wasDelivered">wasDelivered</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getRetries"></a>
+    <h4>getRetries
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getRetries</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+       
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg'
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          the maximum number of retry attempts for this message
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getRetryDelay"></a>
+    <h4>getRetryDelay
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getRetryDelay</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg'
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          the delay between retry attempts in ms for this message
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setRetries"></a>
+    <h4>setRetries
+    </h4>
+    <span id=funcnameshort>command void <b>setRetries</b>(message_t *msg, uint16_t maxRetries)
+    </span>
+    <p>
+    <menu>
+      
+ Set the maximum number of times attempt message delivery
+ Default is 0
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg'
+ 
+        </dd>
+        <dd>
+          <code>maxRetries</code> -  the maximum number of attempts to deliver
+     the message
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setRetryDelay"></a>
+    <h4>setRetryDelay
+    </h4>
+    <span id=funcnameshort>command void <b>setRetryDelay</b>(message_t *msg, uint16_t retryDelay)
+    </span>
+    <p>
+    <menu>
+      
+ Set a delay between each retry attempt
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>msg</code> - 
+ 
+        </dd>
+        <dd>
+          <code>retryDelay</code> -  the delay betweeen retry attempts, in milliseconds
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="wasDelivered"></a>
+    <h4>wasDelivered
+    </h4>
+    <span id=funcnameshort>command bool <b>wasDelivered</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg'
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE if the message was delivered.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

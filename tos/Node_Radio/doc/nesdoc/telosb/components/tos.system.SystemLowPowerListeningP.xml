@@ -1,0 +1,15 @@
+<?xml version="1.0" ?><component loc="3:/opt/tinyos-main-read-only/tos/system/SystemLowPowerListeningP.nc" nicename="tos.system.SystemLowPowerListeningP" qname="SystemLowPowerListeningP">
+      <module/>
+    <specification><interface loc="5:/opt/tinyos-main-read-only/tos/system/SystemLowPowerListeningP.nc" name="SystemLowPowerListening" provided="1" ref="0x2b09182ac020">
+      <component-ref nicename="tos.system.SystemLowPowerListeningP" qname="SystemLowPowerListeningP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SystemLowPowerListening" ref="0x2b09182ac020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.SystemLowPowerListening" qname="SystemLowPowerListening"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setDefaultRemoteWakeupInterval" ref="0x2b09182ac370" scoped=""/>
+        <function-ref name="getDefaultRemoteWakeupInterval" ref="0x2b09182ac4f8" scoped=""/>
+        <function-ref name="getDelayAfterReceive" ref="0x2b09182ac680" scoped=""/>
+        <function-ref name="setDelayAfterReceive" ref="0x2b09182ac808" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

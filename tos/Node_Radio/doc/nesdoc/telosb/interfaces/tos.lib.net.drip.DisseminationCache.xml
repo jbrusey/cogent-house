@@ -1,0 +1,120 @@
+<?xml version="1.0" ?><interfacedef loc="44:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc">
+        <short>
+ The DisseminationCache interface connects each DisseminatorC
+ component to the DisseminationEngineC component.</short>
+        <long>
+ The DisseminationCache interface connects each DisseminatorC
+ component to the DisseminationEngineC component.
+
+ See TEP118 - Dissemination for details.
+ 
+ @author Gilman Tolle &lt;gtolle@archrock.com&gt;
+ @version $Revision: 1.2 $ $Date: 2008-06-04 04:31:08 $
+</long>
+      </documentation>
+      <function command="" loc="47:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="requestData" provided="0" ref="0x2b0918f3b020">
+        <interfacedef-ref nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-pointer alignment="I:2" size="I:2">
+            <type-void alignment="I:1" size="I:1"/>
+          </type-pointer>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="47:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="size" ref="0x2b0918f3cd50">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="48:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="storeData" provided="0" ref="0x2b0918f39408">
+        <interfacedef-ref nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-void alignment="I:1" size="I:1"/>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="48:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="data" ref="0x2b0918f3bae0">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-void alignment="I:1" size="I:1"/>
+            </type-pointer>
+          </variable>
+          <variable loc="48:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="size" ref="0x2b0918f3be00">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="48:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="seqno" ref="0x2b0918f39178">
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="50:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="newData" provided="0" ref="0x2b0918f381d8">
+        <interfacedef-ref nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function event="" loc="45:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="start" provided="0" ref="0x2b0918f3c020">
+        <interfacedef-ref nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="49:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="requestSeqno" provided="0" ref="0x2b0918f39af8">
+        <interfacedef-ref nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+            <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function event="" loc="46:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationCache.nc" name="stop" provided="0" ref="0x2b0918f3c6b0">
+        <interfacedef-ref nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

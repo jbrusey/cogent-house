@@ -1,0 +1,98 @@
+<?xml version="1.0" ?><interfacedef loc="44:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc" nicename="tos.lib.net.DisseminationValue" qname="DisseminationValue">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc">
+        <short>
+ Read a network shared (disseminated) variable and be notified
+ of updates.</short>
+        <long>
+ Read a network shared (disseminated) variable and be notified
+ of updates.
+
+ @author Philip Levis
+ @author Gilman Tolle
+
+ @date   Jan 7 2006
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="44:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc" name="t" ref="0x2b0917151290">
+          <interfacedef-ref nicename="tos.lib.net.DisseminationValue" qname="DisseminationValue"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0917151290" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <function event="" loc="69:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc" name="changed" provided="0" ref="0x2b091714fcd8">
+        <documentation loc="66:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc">
+          <short>
+ Signalled whenever variable may have changed.</short>
+          <long>
+ Signalled whenever variable may have changed.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.DisseminationValue" qname="DisseminationValue"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="55:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc" name="get" provided="0" ref="0x2b0917151af0">
+        <documentation loc="46:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc">
+          <short>
+ Obtain a pointer to the variable.</short>
+          <long>
+ Obtain a pointer to the variable. The provider of this
+ interface only will change the memory the pointer references
+ in tasks. Therefore the memory region does not change during
+ the execution of any other task. A user of this interface
+ must not in any circumstance write to this memory location.
+
+ @return A const pointer to the variable.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.DisseminationValue" qname="DisseminationValue"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-pointer alignment="I:2" size="I:2">
+            <type-qualified const="">
+              <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0917151290" scoped=""/></type-var>
+            </type-qualified>
+          </type-pointer>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="64:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc" name="set" provided="0" ref="0x2b091714f540">
+        <documentation loc="57:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc">
+          <short>
+ Set the variable to a new value.</short>
+          <long>
+ Set the variable to a new value. The provider of this interface
+ will copy the value from the pointer. NOTE: This command does
+ not cause the new value to begin disseminating. It is intended to
+ be used for setting default values.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.net.DisseminationValue" qname="DisseminationValue"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0917151290" scoped=""/></type-var>
+              </type-qualified>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="64:/opt/tinyos-main-read-only/tos/lib/net/DisseminationValue.nc" ref="0x2b091714f2d0">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-qualified const="">
+                <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0917151290" scoped=""/></type-var>
+              </type-qualified>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

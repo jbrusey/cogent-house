@@ -1,0 +1,135 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.LowPowerListening</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.LowPowerListening</h2>
+    <b>interface LowPowerListening</b><p>
+ Low Power Listening interface
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui
+ 
+      </dd>
+      <dd>
+        David Moss
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getLocalWakeupInterval">getLocalWakeupInterval</a>()
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint16_t <a href="#getRemoteWakeupInterval">getRemoteWakeupInterval</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setLocalWakeupInterval">setLocalWakeupInterval</a>(uint16_t intervalMs)
+      </span><menu>
+ Set this this node's radio wakeup interval, in milliseconds.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setRemoteWakeupInterval">setRemoteWakeupInterval</a>(message_t *msg, uint16_t intervalMs)
+      </span><menu>
+ Configure this outgoing message so it can be transmitted to a neighbor mote
+ with the specified wakeup interval.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="getLocalWakeupInterval"></a>
+    <h4>getLocalWakeupInterval
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getLocalWakeupInterval</b>()
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          the local node's wakeup interval, in [ms]
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getRemoteWakeupInterval"></a>
+    <h4>getRemoteWakeupInterval
+    </h4>
+    <span id=funcnameshort>command uint16_t <b>getRemoteWakeupInterval</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg'
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          the destination node's wakeup interval configured in this message
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setLocalWakeupInterval"></a>
+    <h4>setLocalWakeupInterval
+    </h4>
+    <span id=funcnameshort>command void <b>setLocalWakeupInterval</b>(uint16_t intervalMs)
+    </span>
+    <p>
+    <menu>
+      
+ Set this this node's radio wakeup interval, in milliseconds. After
+ each interval, the node will wakeup and check for radio activity.
+
+ Note: The wakeup interval can be set to 0 to indicate that the radio
+ should stay on all the time but in order to get a startDone this
+ should only be done when the duty-cycling is off (after a stopDone).
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>intervalMs</code> -  the length of this node's Rx check interval, in [ms]
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setRemoteWakeupInterval"></a>
+    <h4>setRemoteWakeupInterval
+    </h4>
+    <span id=funcnameshort>command void <b>setRemoteWakeupInterval</b>(message_t *msg, uint16_t intervalMs)
+    </span>
+    <p>
+    <menu>
+      
+ Configure this outgoing message so it can be transmitted to a neighbor mote
+ with the specified wakeup interval.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg' Pointer to the message that will be sent
+ 
+        </dd>
+        <dd>
+          <code>intervalMs</code> -  The receiving node's wakeup interval, in [ms]
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

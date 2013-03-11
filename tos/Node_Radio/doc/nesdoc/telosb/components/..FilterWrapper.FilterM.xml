@@ -1,0 +1,73 @@
+<?xml version="1.0" ?><component loc="5:./FilterWrapper/FilterM.nc" nicename="..FilterWrapper.FilterM" qname="FilterM">
+      <module/>
+    <specification><interface loc="7:./FilterWrapper/FilterM.nc" name="EstimateCurrentState" provided="1" ref="0x2b09190a21c8">
+      <component-ref nicename="..FilterWrapper.FilterM" qname="FilterM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="EstimateCurrentState" ref="0x2b09190a21c8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..FilterWrapper.FilterWrapper" qname="FilterWrapper"/>
+        <arguments>
+          <type-pointer alignment="I:2" size="I:2">
+            <type-tag alignment="I:2" size="I:16"><struct-ref ref="0x2b0916eef4e0"/>
+              <typename><typedef-ref name="FilterState" ref="0x2b0916eefa48"/></typename>
+            </type-tag>
+          </type-pointer>
+        </arguments>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b09190a2d10" scoped=""/>
+        <function-ref name="read" ref="0x2b09190a16b8" scoped=""/>
+        <function-ref name="readDone" ref="0x2b09190a1b08" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="12:./FilterWrapper/FilterM.nc" name="LocalTime" provided="0" ref="0x2b091909d410">
+      <component-ref nicename="..FilterWrapper.FilterM" qname="FilterM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="LocalTime" ref="0x2b091909d410" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.timer.LocalTime" qname="LocalTime"/>
+        <arguments>
+          <type-tag alignment="I:2" size="I:2"><struct-ref ref="0x2b09170b9608"/>
+            <typename><typedef-ref name="TMilli" ref="0x2b09170b9960"/></typename>
+          </type-tag>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="get" ref="0x2b0919098020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="10:./FilterWrapper/FilterM.nc" name="GetSensorValue" provided="0" ref="0x2b09190a0838">
+      <component-ref nicename="..FilterWrapper.FilterM" qname="FilterM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="GetSensorValue" ref="0x2b09190a0838" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Read" qname="Read"/>
+        <arguments>
+          <type-float alignment="I:2" cname="float" size="I:4"/>
+        </arguments>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="read" ref="0x2b091909f3d8" scoped=""/>
+        <function-ref name="readDone" ref="0x2b091909f828" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="11:./FilterWrapper/FilterM.nc" name="Filter" provided="0" ref="0x2b0919099ab8">
+      <component-ref nicename="..FilterWrapper.FilterM" qname="FilterM"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Filter" ref="0x2b0919099ab8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="..Filters.Filter" qname="Filter"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="filter" ref="0x2b0919099e08" scoped=""/>
+        <function-ref name="init" ref="0x2b091909d020" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

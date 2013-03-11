@@ -1,0 +1,29 @@
+digraph "tos.chips.msp430.adc12.Msp430RefVoltArbiterP" {
+  n0x2b0918c6e270 [shape=ellipse, style=filled, label="ClientResource", fontsize=12];
+  "Msp430RefVoltArbiterImplP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltArbiterImplP.html"];
+  "Msp430RefVoltArbiterImplP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltArbiterImplP.html"];
+  n0x2b0918c6d4f8 [shape=ellipse, style=filled, label="AdcResource", fontsize=12];
+  "Msp430RefVoltArbiterImplP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltArbiterImplP.html"];
+  n0x2b0918c6c990 [shape=ellipse, style=filled, label="Config", fontsize=12];
+  "Msp430RefVoltArbiterImplP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltArbiterImplP.html"];
+  "Msp430RefVoltGeneratorP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltGeneratorP.html"];
+  "Msp430RefVoltArbiterImplP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltArbiterImplP.html"];
+  "Msp430RefVoltGeneratorP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltGeneratorP.html"];
+  "Msp430RefVoltGeneratorP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltGeneratorP.html"];
+  "Msp430RefVoltArbiterP.SwitchOnDelayTimer" [fontsize=12, shape=box,peripheries=2, style=dashed, label="TimerMilliC\n(SwitchOnDelayTimer)", URL="../chtml/tos.system.TimerMilliC.html"];
+  "Msp430RefVoltGeneratorP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltGeneratorP.html"];
+  "Msp430RefVoltArbiterP.SwitchOffDelayTimer" [fontsize=12, shape=box,peripheries=2, style=dashed, label="TimerMilliC\n(SwitchOffDelayTimer)", URL="../chtml/tos.system.TimerMilliC.html"];
+  "Msp430RefVoltGeneratorP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltGeneratorP.html"];
+  "Msp430RefVoltArbiterP.SwitchOffSettleTimer" [fontsize=12, shape=box,peripheries=2, style=dashed, label="TimerMilliC\n(SwitchOffSettleTimer)", URL="../chtml/tos.system.TimerMilliC.html"];
+  "Msp430RefVoltGeneratorP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.Msp430RefVoltGeneratorP.html"];
+  "HplAdc12P" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.HplAdc12P.html"];
+  "n0x2b0918c6e270" -> "Msp430RefVoltArbiterImplP" [label="Resource[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.Resource.html", fontsize=10];
+  "Msp430RefVoltArbiterImplP" -> "n0x2b0918c6d4f8" [label="Resource[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.Resource.html", fontsize=10];
+  "Msp430RefVoltArbiterImplP" -> "n0x2b0918c6c990" [label="AdcConfigure<msp430adc12_channel_config_t *>[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "Msp430RefVoltArbiterImplP" -> "Msp430RefVoltGeneratorP" [label="SplitControl", URL="../ihtml/tos.interfaces.SplitControl.html", fontsize=10];
+  "Msp430RefVoltArbiterImplP" -> "Msp430RefVoltGeneratorP" [label="SplitControl", URL="../ihtml/tos.interfaces.SplitControl.html", fontsize=10];
+  "Msp430RefVoltGeneratorP" -> "Msp430RefVoltArbiterP.SwitchOnDelayTimer" [label="Timer<TMilli>", URL="../ihtml/tos.lib.timer.Timer.html", fontsize=10];
+  "Msp430RefVoltGeneratorP" -> "Msp430RefVoltArbiterP.SwitchOffDelayTimer" [label="Timer<TMilli>", URL="../ihtml/tos.lib.timer.Timer.html", fontsize=10];
+  "Msp430RefVoltGeneratorP" -> "Msp430RefVoltArbiterP.SwitchOffSettleTimer" [label="Timer<TMilli>", URL="../ihtml/tos.lib.timer.Timer.html", fontsize=10];
+  "Msp430RefVoltGeneratorP" -> "HplAdc12P" [label="HplAdc12", URL="../ihtml/tos.chips.msp430.adc12.HplAdc12.html", fontsize=10];
+}

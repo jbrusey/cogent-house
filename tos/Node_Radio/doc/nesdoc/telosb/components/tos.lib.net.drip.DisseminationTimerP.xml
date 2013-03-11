@@ -1,0 +1,94 @@
+<?xml version="1.0" ?><component loc="44:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationTimerP.nc" nicename="tos.lib.net.drip.DisseminationTimerP" qname="DisseminationTimerP">
+      <configuration/>
+      <wiring>
+        <wire loc="50:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationTimerP.nc">
+          <from><interface-ref name="TrickleTimer" ref="0x2b0918fbae50" scoped=""/></from>
+          <to><interface-ref name="TrickleTimer" ref="0x2b0918fe6478" scoped=""/></to>
+        </wire>
+      </wiring>
+    <specification><interface loc="45:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminationTimerP.nc" name="TrickleTimer" provided="1" ref="0x2b0918fbae50">
+      <component-ref nicename="tos.lib.net.drip.DisseminationTimerP" qname="DisseminationTimerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="TrickleTimer" ref="0x2b0918fbae50" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="fired" ref="0x2b0918fb71e8" scoped=""/>
+        <function-ref name="incrementCounter" ref="0x2b0918fb7370" scoped=""/>
+        <function-ref name="reset" ref="0x2b0918fb74f8" scoped=""/>
+        <function-ref name="start" ref="0x2b0918fb7680" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918fb7808" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced><interface loc="55:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" name="TrickleTimer" provided="1" ref="0x2b0918fe6478">
+      <component-ref nicename="tos.lib.net.TrickleTimerMilliC" qname="DisseminationTimerP.TrickleTimerMilliC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="TrickleTimer" ref="0x2b0918fe6478" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.TrickleTimer" qname="TrickleTimer"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="fired" ref="0x2b0918fe67e8" scoped=""/>
+        <function-ref name="incrementCounter" ref="0x2b0918fe6970" scoped=""/>
+        <function-ref name="reset" ref="0x2b0918fe6af8" scoped=""/>
+        <function-ref name="start" ref="0x2b0918fe6c80" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918fe6e08" scoped=""/>
+      </interface-functions>
+    </interface><component loc="51(DisseminationTimerP.TrickleTimerMilliC):/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc" nicename="tos.lib.net.TrickleTimerMilliC" qname="DisseminationTimerP.TrickleTimerMilliC">
+      <instance number="0">
+        <component-ref nicename="tos.lib.net.TrickleTimerMilliC" qname="TrickleTimerMilliC"/>
+        <arguments>
+          <value cst="I:1">
+            <type-int alignment="I:2" cname="int" size="I:2"/>
+          </value>
+          <value cst="I:1024">
+            <type-int alignment="I:2" cname="int" size="I:2"/>
+          </value>
+          <value cst="I:1">
+            <type-int alignment="I:2" cname="int" size="I:2"/>
+          </value>
+          <value cst="I:1">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned=""/>
+          </value>
+        </arguments>
+      </instance>
+      <configuration/>
+      <wiring>
+        <wire loc="63:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="TrickleTimer" ref="0x2b0918fe6478" scoped=""/></from>
+          <to><interface-ref name="TrickleTimer" ref="0x2b0919ffdd38" scoped=""/></to>
+        </wire>
+        <wire loc="65:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Timer" ref="0x2b0919ffcaa8" scoped=""/></from>
+          <to><interface-ref name="Timer" ref="0x2b0919fef9e8" scoped=""/></to>
+        </wire>
+        <wire loc="66:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Random" ref="0x2b0919ff5d20" scoped=""/></from>
+          <to><interface-ref name="Random" ref="0x2b0918125b98" scoped=""/></to>
+        </wire>
+        <wire loc="67:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Changed" ref="0x2b0919ff6bd8" scoped=""/></from>
+          <to><interface-ref name="BitVector" ref="0x2b0919fe50c0" scoped=""/></to>
+        </wire>
+        <wire loc="68:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Pending" ref="0x2b0919ff7a60" scoped=""/></from>
+          <to><interface-ref name="BitVector" ref="0x2b0919fe8430" scoped=""/></to>
+        </wire>
+        <wire loc="70:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="Leds" ref="0x2b0919ff4470" scoped=""/></from>
+          <to><interface-ref name="Leds" ref="0x2b091720da38" scoped=""/></to>
+        </wire>
+        <wire loc="71:/opt/tinyos-main-read-only/tos/lib/net/TrickleTimerMilliC.nc">
+          <from><interface-ref name="SoftwareInit" ref="0x2b0916ee30e0" scoped=""/></from>
+          <to><interface-ref name="Init" ref="0x2b0919ffd680" scoped=""/></to>
+        </wire>
+      </wiring>
+    </component></referenced></component>

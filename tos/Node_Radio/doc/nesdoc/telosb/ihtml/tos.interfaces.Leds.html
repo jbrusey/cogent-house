@@ -1,0 +1,240 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Leds</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Leds</h2>
+    <b>interface Leds</b><p>
+ Constants for manipulating LEDs.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          March 21, 2005
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#get">get</a>()
+      </span><menu>
+ Get the current LED settings as a bitmask.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led0Off">led0Off</a>()
+      </span><menu>
+ Turn off LED 0.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led0On">led0On</a>()
+      </span><menu>
+ Turn on LED 0.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led0Toggle">led0Toggle</a>()
+      </span><menu>
+ Toggle LED 0; if it was off, turn it on, if was on, turn it off.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led1Off">led1Off</a>()
+      </span><menu>
+ Turn off LED 1.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led1On">led1On</a>()
+      </span><menu>
+ Turn on LED 1.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led1Toggle">led1Toggle</a>()
+      </span><menu>
+ Toggle LED 1; if it was off, turn it on, if was on, turn it off.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led2Off">led2Off</a>()
+      </span><menu>
+ Turn off LED 2.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led2On">led2On</a>()
+      </span><menu>
+ Turn on LED 2.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#led2Toggle">led2Toggle</a>()
+      </span><menu>
+ Toggle LED 2; if it was off, turn it on, if was on, turn it off.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#set">set</a>(uint8_t val)
+      </span><menu>
+ Set the current LED configuration using a bitmask.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="get"></a>
+    <h4>get
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>get</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Get the current LED settings as a bitmask. Each bit corresponds to
+ whether an LED is on; bit 0 is LED 0, bit 1 is LED 1, etc. You can
+ also use the enums LEDS_LED0, LEDS_LED1. For example, this expression
+ will determine whether LED 2 is on:
+
+ <pre> (call Leds.get() & LEDS_LED2) </pre>
+
+ This command supports up to 8 LEDs; if a platform has fewer, then
+ those LEDs should always be off (their bit is zero). Also see
+ <tt>set()</tt>.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          a bitmask describing which LEDs are on and which are off
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="led0Off"></a>
+    <h4>led0Off
+    </h4>
+    <span id=funcnameshort>command void <b>led0Off</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Turn off LED 0. The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led0On"></a>
+    <h4>led0On
+    </h4>
+    <span id=funcnameshort>command void <b>led0On</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Turn on LED 0. The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led0Toggle"></a>
+    <h4>led0Toggle
+    </h4>
+    <span id=funcnameshort>command void <b>led0Toggle</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Toggle LED 0; if it was off, turn it on, if was on, turn it off.
+ The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led1Off"></a>
+    <h4>led1Off
+    </h4>
+    <span id=funcnameshort>command void <b>led1Off</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Turn off LED 1. The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led1On"></a>
+    <h4>led1On
+    </h4>
+    <span id=funcnameshort>command void <b>led1On</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Turn on LED 1. The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led1Toggle"></a>
+    <h4>led1Toggle
+    </h4>
+    <span id=funcnameshort>command void <b>led1Toggle</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Toggle LED 1; if it was off, turn it on, if was on, turn it off.
+ The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led2Off"></a>
+    <h4>led2Off
+    </h4>
+    <span id=funcnameshort>command void <b>led2Off</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Turn off LED 2. The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led2On"></a>
+    <h4>led2On
+    </h4>
+    <span id=funcnameshort>command void <b>led2On</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Turn on LED 2. The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="led2Toggle"></a>
+    <h4>led2Toggle
+    </h4>
+    <span id=funcnameshort>command void <b>led2Toggle</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Toggle LED 2; if it was off, turn it on, if was on, turn it off.
+ The color of this LED depends on the platform.
+
+    </menu>
+    <hr>
+    <a name="set"></a>
+    <h4>set
+    </h4>
+    <span id=funcnameshort>command void <b>set</b>(uint8_t val)
+    </span>
+    <p>
+    <menu>
+      
+ Set the current LED configuration using a bitmask.  Each bit
+ corresponds to whether an LED is on; bit 0 is LED 0, bit 1 is LED
+ 1, etc. You can also use the enums LEDS_LED0, LEDS_LED1. For example,
+ this statement will configure the LEDs so LED 0 and LED 2 are on:
+
+ <pre> call Leds.set(LEDS_LED0 | LEDS_LED2); </pre>
+
+ This statement will turn LED 1 on if it was not already:
+
+ <pre>call Leds.set(call Leds.get() | LEDS_LED1);</pre>
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>val</code> -    a bitmask describing the on/off settings of the LEDs
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

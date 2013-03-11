@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.ResourceRequested</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.ResourceRequested</h2>
+    <b>interface ResourceRequested</b><p>
+ Please refer to TEP 108 for more information about this interface and its
+ intended use.<br><br>
+
+ The ResourceRequested interface can be used in conjunction with the 
+ Resource interface in order to receive events based on other users
+ requests.
+ 
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues (klueska@cs.wustl.edu)
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.5 $
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+        $Date: 2010-06-29 22:07:46 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#immediateRequested">immediateRequested</a>()
+      </span><menu>
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.immediateRequest() command.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>event void <a href="#requested">requested</a>()
+      </span><menu>
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.request() command.
+      </menu>
+    </div><p><div id=heading>Events - Details</div>
+    <a name="immediateRequested"></a>
+    <h4>immediateRequested
+    </h4>
+    <span id=funcnameshort>event void <b>immediateRequested</b>()
+    </span>
+    <p>
+    <menu>
+      
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.immediateRequest() command. You may
+ want to consider releasing a resource based on this event
+
+    </menu>
+    <hr>
+    <a name="requested"></a>
+    <h4>requested
+    </h4>
+    <span id=funcnameshort>event void <b>requested</b>()
+    </span>
+    <p>
+    <menu>
+      
+ This event is signalled whenever the user of this interface
+ currently has control of the resource, and another user requests
+ it through the Resource.request() command. You may want to
+ consider releasing a resource based on this event
+
+    </menu>
+  </body>
+</html>

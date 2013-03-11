@@ -1,0 +1,29 @@
+digraph "tos.lib.net.drip.DisseminationEngineP" {
+  n0x2b0918f42b38 [shape=ellipse, style=filled, label="StdControl", fontsize=12];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  n0x2b0918f38998 [shape=ellipse, style=filled, label="DisseminationCache", fontsize=12];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  n0x2b0918f336c0 [shape=ellipse, style=filled, label="TrickleTimer", fontsize=12];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  n0x2b0918f3da58 [shape=ellipse, style=filled, label="DisseminatorControl", fontsize=12];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  "DisseminationEngineP.DisseminationSendC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AMSenderC\n(DisseminationSendC)", URL="../chtml/tos.system.AMSenderC.html"];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  "DisseminationEngineP.DisseminationReceiveC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AMReceiverC\n(DisseminationReceiveC)", URL="../chtml/tos.system.AMReceiverC.html"];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  "DisseminationEngineP.DisseminationProbeSendC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AMSenderC\n(DisseminationProbeSendC)", URL="../chtml/tos.system.AMSenderC.html"];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  "DisseminationEngineP.DisseminationProbeReceiveC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AMReceiverC\n(DisseminationProbeReceiveC)", URL="../chtml/tos.system.AMReceiverC.html"];
+  "DisseminationEngineImplP" [fontsize=12, shape=box, URL="../chtml/tos.lib.net.drip.DisseminationEngineImplP.html"];
+  "NoLedsC" [fontsize=12, shape=box, URL="../chtml/tos.system.NoLedsC.html"];
+  "n0x2b0918f42b38" -> "DisseminationEngineImplP" [label="StdControl", URL="../ihtml/tos.interfaces.StdControl.html", fontsize=10];
+  "DisseminationEngineImplP" -> "n0x2b0918f38998" [label="DisseminationCache[uint16_t]", style=bold, URL="../ihtml/tos.lib.net.drip.DisseminationCache.html", fontsize=10];
+  "DisseminationEngineImplP" -> "n0x2b0918f336c0" [label="TrickleTimer[uint16_t]", style=bold, URL="../ihtml/tos.lib.net.TrickleTimer.html", fontsize=10];
+  "DisseminationEngineImplP" -> "n0x2b0918f3da58" [label="StdControl[uint16_t]", style=bold, URL="../ihtml/tos.interfaces.StdControl.html", fontsize=10];
+  "DisseminationEngineImplP" -> "DisseminationEngineP.DisseminationSendC" [label="AMSend", URL="../ihtml/tos.interfaces.AMSend.html", fontsize=10];
+  "DisseminationEngineImplP" -> "DisseminationEngineP.DisseminationReceiveC" [label="Receive", URL="../ihtml/tos.interfaces.Receive.html", fontsize=10];
+  "DisseminationEngineImplP" -> "DisseminationEngineP.DisseminationProbeSendC" [label="AMSend", URL="../ihtml/tos.interfaces.AMSend.html", fontsize=10];
+  "DisseminationEngineImplP" -> "DisseminationEngineP.DisseminationProbeReceiveC" [label="Receive", URL="../ihtml/tos.interfaces.Receive.html", fontsize=10];
+  "DisseminationEngineImplP" -> "NoLedsC" [label="Leds", URL="../ihtml/tos.interfaces.Leds.html", fontsize=10];
+}

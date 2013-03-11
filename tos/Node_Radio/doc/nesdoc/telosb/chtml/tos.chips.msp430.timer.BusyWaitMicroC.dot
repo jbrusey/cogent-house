@@ -1,0 +1,8 @@
+digraph "tos.chips.msp430.timer.BusyWaitMicroC" {
+  n0x2b0917e588a8 [shape=ellipse, style=filled, label="BusyWait", fontsize=12];
+  "BusyWaitMicroC.BusyWaitCounterC" [fontsize=12, shape=box, style=dashed, label="BusyWaitCounterC", URL="../chtml/tos.lib.timer.BusyWaitCounterC.html"];
+  "BusyWaitMicroC.BusyWaitCounterC" [fontsize=12, shape=box, style=dashed, label="BusyWaitCounterC", URL="../chtml/tos.lib.timer.BusyWaitCounterC.html"];
+  "Msp430CounterMicroC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.Msp430CounterMicroC.html"];
+  "n0x2b0917e588a8" -> "BusyWaitMicroC.BusyWaitCounterC" [label="BusyWait<TMicro, uint16_t>", URL="../ihtml/tos.lib.timer.BusyWait.html", fontsize=10];
+  "BusyWaitMicroC.BusyWaitCounterC" -> "Msp430CounterMicroC" [label="Counter<TMicro, uint16_t>", URL="../ihtml/tos.lib.timer.Counter.html", fontsize=10];
+}

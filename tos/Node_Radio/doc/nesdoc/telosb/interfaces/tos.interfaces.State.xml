@@ -1,0 +1,146 @@
+<?xml version="1.0" ?><interfacedef loc="38:/opt/tinyos-main-read-only/tos/interfaces/State.nc" nicename="tos.interfaces.State" qname="State">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/interfaces/State.nc">
+        <short>
+ State machine interface
+ </short>
+        <long>
+ State machine interface
+ @author David Moss - dmm@rincon.com
+</long>
+      </documentation>
+      <function command="" loc="71:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="getState" provided="0" ref="0x2b091770d178">
+        <documentation loc="68:/opt/tinyos-main-read-only/tos/interfaces/State.nc">
+          <short>
+ Get the current state
+</short>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.State" qname="State"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="56:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="toIdle" provided="0" ref="0x2b091770f798">
+        <documentation loc="53:/opt/tinyos-main-read-only/tos/interfaces/State.nc">
+          <short>
+ Set the current state back to S_IDLE
+</short>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.State" qname="State"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="66:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="isState" provided="0" ref="0x2b091770e9b0">
+        <documentation loc="63:/opt/tinyos-main-read-only/tos/interfaces/State.nc">
+          <short>
+ </short>
+          <long>
+ @return TRUE if the state machine is in the given state
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.State" qname="State"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="66:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="myState" ref="0x2b091770e740">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="61:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="isIdle" provided="0" ref="0x2b091770e020">
+        <documentation loc="58:/opt/tinyos-main-read-only/tos/interfaces/State.nc">
+          <short>
+ </short>
+          <long>
+ @return TRUE if the state machine is in S_IDLE
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.State" qname="State"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="45:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="requestState" provided="0" ref="0x2b0917711508">
+        <documentation loc="40:/opt/tinyos-main-read-only/tos/interfaces/State.nc">
+          <short>
+ This will allow a state change so long as the current
+ state is S_IDLE.</short>
+          <long>
+ This will allow a state change so long as the current
+ state is S_IDLE.
+ @return SUCCESS if the state is change, FAIL if it isn't
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.State" qname="State"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="45:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="reqState" ref="0x2b0917711298">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="51:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="forceState" provided="0" ref="0x2b091770f020">
+        <documentation loc="47:/opt/tinyos-main-read-only/tos/interfaces/State.nc">
+          <short>
+ Force the state machine to go into a certain state,
+ regardless of the current state it's in.</short>
+          <long>
+ Force the state machine to go into a certain state,
+ regardless of the current state it's in.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.State" qname="State"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/interfaces/State.nc" name="reqState" ref="0x2b0917711cc0">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

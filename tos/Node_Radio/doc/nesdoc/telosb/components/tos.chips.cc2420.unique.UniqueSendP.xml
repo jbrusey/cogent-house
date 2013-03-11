@@ -1,0 +1,83 @@
+<?xml version="1.0" ?><component loc="38:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc" nicename="tos.chips.cc2420.unique.UniqueSendP" qname="UniqueSendP" safe="">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc">
+        <short>
+ This layer is responsible for supplying a unique data sequence number (dsn)
+ to each outgoing message.</short>
+        <long>
+ This layer is responsible for supplying a unique data sequence number (dsn)
+ to each outgoing message.
+ @author David Moss
+</long>
+      </documentation>
+      <module/>
+    <specification><interface loc="45:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc" name="SubSend" provided="0" ref="0x2b0918103750">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueSendP" qname="UniqueSendP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubSend" ref="0x2b0918103750" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Send" qname="Send"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b0918103aa0" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b0918103c28" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b0918103db0" scoped=""/>
+        <function-ref name="cancel" ref="0x2b0918102020" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b09181021a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="40:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc" name="Send" provided="1" ref="0x2b0918104438">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueSendP" qname="UniqueSendP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Send" ref="0x2b0918104438" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Send" qname="Send"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b0918104788" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b0918104910" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b0918104a98" scoped=""/>
+        <function-ref name="cancel" ref="0x2b0918104c20" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b0918104da8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="47:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc" name="Random" provided="0" ref="0x2b09181012a8">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueSendP" qname="UniqueSendP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Random" ref="0x2b09181012a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Random" qname="Random"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="rand16" ref="0x2b09181015f8" scoped=""/>
+        <function-ref name="rand32" ref="0x2b0918101780" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="41:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc" name="Init" provided="1" ref="0x2b0918103080">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueSendP" qname="UniqueSendP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b0918103080" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b09181033d0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="48:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc" name="CC2420PacketBody" provided="0" ref="0x2b0918101a70">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueSendP" qname="UniqueSendP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CC2420PacketBody" ref="0x2b0918101a70" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420PacketBody" qname="CC2420PacketBody"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getPayload" ref="0x2b0918101dc0" scoped=""/>
+        <function-ref name="getHeader" ref="0x2b0918100020" scoped=""/>
+        <function-ref name="getMetadata" ref="0x2b09181001a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueSendP.nc" name="State" provided="0" ref="0x2b0918102428">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueSendP" qname="UniqueSendP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="State" ref="0x2b0918102428" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.State" qname="State"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getState" ref="0x2b0918102778" scoped=""/>
+        <function-ref name="toIdle" ref="0x2b0918102900" scoped=""/>
+        <function-ref name="isState" ref="0x2b0918102a88" scoped=""/>
+        <function-ref name="isIdle" ref="0x2b0918102c10" scoped=""/>
+        <function-ref name="requestState" ref="0x2b0918102d98" scoped=""/>
+        <function-ref name="forceState" ref="0x2b0918101020" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

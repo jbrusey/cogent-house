@@ -1,0 +1,203 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Packet</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Packet</h2>
+    <b>interface Packet</b><p> 
+ The basic message data type accessors. Protocols may use
+ additional packet interfaces for their protocol specific
+ data/metadata.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          January 5 2005
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+           TEP 116: Packet Protocols
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clear">clear</a>(message_t *msg)
+      </span><menu>
+ Clear out this packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void *<a href="#getPayload">getPayload</a>(message_t *msg, uint8_t len)
+      </span><menu>
+ Return a pointer to a protocol's payload region in a packet.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#maxPayloadLength">maxPayloadLength</a>()
+      </span><menu>
+ Return the maximum payload length that this communication layer
+ can provide.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#payloadLength">payloadLength</a>(message_t *msg)
+      </span><menu>
+ Return the length of the payload of msg.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#setPayloadLength">setPayloadLength</a>(message_t *msg, uint8_t len)
+      </span><menu>
+ Set the length field of the packet.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="clear"></a>
+    <h4>clear
+    </h4>
+    <span id=funcnameshort>command void <b>clear</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Clear out this packet.  Note that this is a deep operation and
+ total operation: calling clear() on any layer will completely
+ clear the packet for reuse.
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE msg'    the packet to clear
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="getPayload"></a>
+    <h4>getPayload
+    </h4>
+    <span id=funcnameshort>command void *<b>getPayload</b>(message_t *msg, uint8_t len)
+    </span>
+    <p>
+    <menu>
+      
+ Return a pointer to a protocol's payload region in a packet.
+ If the caller intends to write to the payload region then
+ the <tt>len</tt> parameter must reflect the maximum required
+ length. If the caller (only) wants to read from the payload
+ region, then <tt>len</tt> may be set to the value of
+ payloadLength(). If the payload region is smaller than 
+ <tt>len</tt> this command returns NULL. The offset where
+ the payload region starts within a packet is fixed, i.e. for
+ a given <tt>msg</tt> this command will always return the same
+ pointer or NULL.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg'   the packet 
+ 
+        </dd>
+        <dd>
+          <code>len</code> -    the length of payload required
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          'void* COUNT_NOK(len)'     a pointer to the packet's data payload for this layer
+              or NULL if <tt>len</tt> is too big
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="maxPayloadLength"></a>
+    <h4>maxPayloadLength
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>maxPayloadLength</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Return the maximum payload length that this communication layer
+ can provide. Note that, depending on protocol fields, a given
+ request to send a packet may not be able to send the maximum
+ payload length (e.g., if there are variable length
+ fields). Protocols may provide specialized interfaces for these
+ circumstances.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+            the maximum size payload allowed by this layer
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="payloadLength"></a>
+    <h4>payloadLength
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>payloadLength</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Return the length of the payload of msg. This value may be less
+ than what maxPayloadLength() returns, if the packet is smaller than
+ the MTU. If a communication component does not support variably
+ sized data regions, then payloadLength() will always return
+ the same value as maxPayloadLength(). 
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+           'message_t* ONE msg'    the packet to examine
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+                 the length of its current payload
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="setPayloadLength"></a>
+    <h4>setPayloadLength
+    </h4>
+    <span id=funcnameshort>command void <b>setPayloadLength</b>(message_t *msg, uint8_t len)
+    </span>
+    <p>
+    <menu>
+      
+ Set the length field of the packet. This value is not checked
+ for validity (e.g., if it is larger than the maximum payload
+ size). This command is not used when sending packets, as calls
+ to send include a length parameter. Rather, it is used by
+ components, such as queues, that need to buffer requests to
+ send.  This command allows the component to store the length
+ specified in the request and later recover it when actually
+ sending.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg'   the packet
+ 
+        </dd>
+        <dd>
+          <code>len</code> -    the value to set its length field to
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Component: tos.system.MainC</title>
+  </head>
+  <body>
+    <h2>Component: tos.system.MainC
+    </h2>
+    <b>configuration MainC</b>
+    <p>
+ MainC is the system interface the TinyOS boot sequence. It wires the
+ boot sequence implementation to the scheduler and hardware resources.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          August 6 2005
+ 
+      </dd>
+      <dt><b>See:</b>
+      <dd>
+           TEP 107: Boot Sequence
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Provides</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Boot.html">Boot</a></div><p><div id=heading>Uses</div><div id=funcsig>interface <a href="../ihtml/tos.interfaces.Init.html">Init</a> as <b>SoftwareInit</b></div><p><div id=heading>Wiring</div><p>
+    <map name="comp">
+      <area shape="rect" id="node2" href="../chtml/tos.system.RealMainP.html" title="RealMainP" alt="" coords="187,120,285,168">
+
+      <area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Boot.html" title="Boot" alt="" coords="239,54 239,106 233,106 233,54">
+
+      <area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Boot.html" title="Boot" alt="" coords="236,78,267,95">
+
+      <area shape="rect" id="node3" href="../chtml/tos.system.TinySchedulerC.html" title="TinySchedulerC" alt="" coords="5,235,157,293">
+
+      <area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Scheduler.html" title="Scheduler" alt="" coords="200,170 167,194 126,227 123,223 164,190 197,166">
+
+      <area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Scheduler.html" title="Scheduler" alt="" coords="165,193,231,210">
+
+      <area shape="rect" id="node4" href="../chtml/tos.platforms.telosa.PlatformC.html" title="PlatformC" alt="" coords="181,235,291,293">
+
+      <area shape="poly" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="239,168 239,221 233,221 233,168">
+
+      <area shape="rect" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="236,193,256,210">
+
+      <area shape="poly" id="edge8" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="269,166 352,231 349,236 265,170">
+
+      <area shape="rect" id="edge8" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="316,193,336,210">
+
+    </map>
+    <img src="tos.system.MainC.png" usemap="#comp" id=imgwiring>
+  </body>
+</html>

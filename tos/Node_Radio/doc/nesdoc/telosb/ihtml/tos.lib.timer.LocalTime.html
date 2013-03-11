@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.lib.timer.LocalTime</title>
+  </head>
+  <body>
+    <h2>Interface: tos.lib.timer.LocalTime</h2>
+    <b>interface LocalTime&lt;typedef precision_tag&gt;</b><p>
+ A LocalTime interface counts time in some units. If you need to detect
+ time overflow, you should use a component offering the Counter
+ interface.
+
+ <p>The LocalTime interface is parameterised by its "precision"
+ (milliseconds, microseconds, etc), identified by a type. This prevents,
+ e.g., unintentionally mixing components expecting milliseconds with
+ those expecting microseconds as those interfaces have a different type.
+
+ <p>See TEP102 for more details.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Parameters:</b>
+      <dd>
+        <code>precision_tag</code> -  A type indicating the precision of this Counter.
+
+ 
+      </dd>
+      <dt><b>Author:</b>
+      <dd>
+        Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command uint32_t <a href="#get">get</a>()
+      </span><menu> 
+ Return current time.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="get"></a>
+    <h4>get
+    </h4>
+    <span id=funcnameshort>command uint32_t <b>get</b>()
+    </span>
+    <p>
+    <menu>
+       
+ Return current time. Time starts counting at boot - some time sources
+ may stop counting while the processor is in low-power mode.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Current time.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

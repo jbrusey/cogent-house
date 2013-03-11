@@ -1,0 +1,22 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.timer.GpioCaptureC.html" title="GpioCaptureC\n(CaptureSFDC)" alt="" coords="128,120,267,171">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.GpioCapture.html" title="GpioCapture" alt="" coords="200,53 200,106 195,106 195,53">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.GpioCapture.html" title="GpioCapture" alt="" coords="197,78,279,95">
+<area shape="rect" id="node7" href="../chtml/tos.chips.msp430.timer.Msp430TimerC.html" title="Msp430TimerC" alt="" coords="5,237,155,296">
+<area shape="poly" id="edge8" href="../ihtml/tos.chips.msp430.timer.Msp430TimerControl.html" title="Msp430TimerControl" alt="" coords="129,160 72,176 50,186 37,196 33,210 39,226 34,227 28,211 32,193 47,181 70,171 127,155">
+<area shape="rect" id="edge8" href="../ihtml/tos.chips.msp430.timer.Msp430TimerControl.html" title="Msp430TimerControl" alt="" coords="35,195,168,213">
+<area shape="poly" id="edge10" href="../ihtml/tos.chips.msp430.timer.Msp430Capture.html" title="Msp430Capture" alt="" coords="193,172 184,194 170,215 153,231 150,227 166,212 179,191 188,170">
+<area shape="rect" id="edge10" href="../ihtml/tos.chips.msp430.timer.Msp430Capture.html" title="Msp430Capture" alt="" coords="181,195,283,213">
+<area shape="rect" id="node8" href="../chtml/tos.chips.msp430.pins.HplMsp430GeneralIOC.html" title="HplMsp430GeneralIOC" alt="" coords="225,237,433,296">
+<area shape="poly" id="edge12" href="../ihtml/tos.chips.msp430.pins.HplMsp430GeneralIO.html" title="HplMsp430GeneralIO" alt="" coords="257,169 290,193 313,224 309,227 286,197 254,173">
+<area shape="rect" id="edge12" href="../ihtml/tos.chips.msp430.pins.HplMsp430GeneralIO.html" title="HplMsp430GeneralIO" alt="" coords="303,195,437,213">
+<area shape="rect" id="node4" href="../chtml/tos.chips.msp430.pins.Msp430InterruptC.html" title="Msp430InterruptC\n(InterruptCCAC)" alt="" coords="435,120,600,171">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.GpioInterrupt.html" title="GpioInterrupt" alt="" coords="519,53 520,106 514,106 514,53">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.GpioInterrupt.html" title="GpioInterrupt" alt="" coords="516,78,601,95">
+<area shape="rect" id="node9" href="../chtml/tos.chips.msp430.pins.HplMsp430InterruptC.html" title="HplMsp430InterruptC" alt="" coords="457,237,657,296">
+<area shape="poly" id="edge14" href="../ihtml/tos.chips.msp430.pins.HplMsp430Interrupt.html" title="HplMsp430Interrupt" alt="" coords="526,170 539,213 542,224 537,225 533,214 521,171">
+<area shape="rect" id="edge14" href="../ihtml/tos.chips.msp430.pins.HplMsp430Interrupt.html" title="HplMsp430Interrupt" alt="" coords="536,195,663,213">
+<area shape="rect" id="node6" href="../chtml/tos.chips.msp430.pins.Msp430InterruptC.html" title="Msp430InterruptC\n(InterruptFIFOPC)" alt="" coords="627,120,792,171">
+<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.GpioInterrupt.html" title="GpioInterrupt" alt="" coords="713,53 712,106 707,106 708,53">
+<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.GpioInterrupt.html" title="GpioInterrupt" alt="" coords="709,78,795,95">
+<area shape="poly" id="edge16" href="../ihtml/tos.chips.msp430.pins.HplMsp430Interrupt.html" title="HplMsp430Interrupt" alt="" coords="698,172 683,195 664,215 641,232 638,228 661,211 679,191 694,169">
+<area shape="rect" id="edge16" href="../ihtml/tos.chips.msp430.pins.HplMsp430Interrupt.html" title="HplMsp430Interrupt" alt="" coords="679,195,805,213">

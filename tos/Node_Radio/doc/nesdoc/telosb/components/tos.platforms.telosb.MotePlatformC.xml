@@ -1,0 +1,12 @@
+<?xml version="1.0" ?><component loc="1:/opt/tinyos-main-read-only/tos/platforms/telosb/MotePlatformC.nc" nicename="tos.platforms.telosb.MotePlatformC" qname="MotePlatformC" safe="">
+      <module/>
+    <specification><interface loc="2:/opt/tinyos-main-read-only/tos/platforms/telosb/MotePlatformC.nc" name="Init" provided="1" ref="0x2b0916ef3080">
+      <component-ref nicename="tos.platforms.telosb.MotePlatformC" qname="MotePlatformC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b0916ef3080" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b0916ef33d0" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

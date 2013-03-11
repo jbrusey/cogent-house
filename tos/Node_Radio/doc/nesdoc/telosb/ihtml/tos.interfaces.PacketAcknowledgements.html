@@ -1,0 +1,140 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.PacketAcknowledgements</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.PacketAcknowledgements</h2>
+    <b>interface PacketAcknowledgements</b><p>
+ This interface allows a component to enable or disable acknowledgments
+ on a per-packet basis.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui
+ 
+      </dd>
+      <dd>
+        Philip Levis
+ 
+      </dd>
+      <dd>
+        Joe Polastre
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          June 21 2006
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#noAck">noAck</a>(message_t *msg)
+      </span><menu>
+ Tell a protocol that when it sends this packet, it should not use
+ synchronous acknowledgments.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#requestAck">requestAck</a>(message_t *msg)
+      </span><menu>
+ Tell a protocol that when it sends this packet, it should use synchronous
+ acknowledgments.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#wasAcked">wasAcked</a>(message_t *msg)
+      </span><menu>
+ Tell a caller whether or not a transmitted packet was acknowledged.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="noAck"></a>
+    <h4>noAck
+    </h4>
+    <span id=funcnameshort>command error_t <b>noAck</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Tell a protocol that when it sends this packet, it should not use
+ synchronous acknowledgments.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg' - A message which should not be acknowledged when transmitted.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if acknowledgements are disabled, EBUSY
+ if the communication layer cannot disable them at this time, FAIL
+ if it cannot support unacknowledged communication.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="requestAck"></a>
+    <h4>requestAck
+    </h4>
+    <span id=funcnameshort>command error_t <b>requestAck</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Tell a protocol that when it sends this packet, it should use synchronous
+ acknowledgments.
+ The acknowledgment is synchronous as the caller can check whether the
+ ack was received through the wasAcked() command as soon as a send operation
+ completes.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg' - A message which should be acknowledged when transmitted.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if acknowledgements are enabled, EBUSY
+ if the communication layer cannot enable them at this time, FAIL
+ if it does not support them.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="wasAcked"></a>
+    <h4>wasAcked
+    </h4>
+    <span id=funcnameshort>command bool <b>wasAcked</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ Tell a caller whether or not a transmitted packet was acknowledged.
+ If acknowledgments on the packet had been disabled through noAck(),
+ then the return value is undefined. If a packet
+ layer does not support acknowledgements, this command must return always
+ return FALSE.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t* ONE msg' - A transmitted message.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          Whether the packet was acknowledged.
+
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

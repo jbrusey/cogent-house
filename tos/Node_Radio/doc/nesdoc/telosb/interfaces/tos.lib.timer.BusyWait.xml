@@ -1,0 +1,62 @@
+<?xml version="1.0" ?><interfacedef loc="59:/opt/tinyos-main-read-only/tos/lib/timer/BusyWait.nc" nicename="tos.lib.timer.BusyWait" qname="BusyWait">
+      <documentation loc="36:/opt/tinyos-main-read-only/tos/lib/timer/BusyWait.nc">
+        <short>
+ BusyWait is a low-level interface intended for busy waiting for short
+ durations.</short>
+        <long>
+ BusyWait is a low-level interface intended for busy waiting for short
+ durations.
+
+ &lt;p&gt;BusyWait is parameterised by its &quot;precision&quot; (milliseconds,
+ microseconds, etc), identified by a type. This prevents, e.g.,
+ unintentionally mixing components expecting milliseconds with those
+ expecting microseconds as those interfaces have a different type.
+
+ &lt;p&gt;BusyWait's second parameter is its &quot;width&quot;, i.e., the number of bits
+ used to represent time values. Width is indicated by including the
+ appropriate size integer type as a BusyWait parameter.
+
+ &lt;p&gt;See TEP102 for more details.
+
+ @param precision_tag A type indicating the precision of this BusyWait
+   interface.
+ @param size_type An integer type representing time values for this 
+   BusyWait interface.
+
+ @author Cory Sharp &lt;cssharp@eecs.berkeley.edu&gt;
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="59:/opt/tinyos-main-read-only/tos/lib/timer/BusyWait.nc" name="precision_tag" ref="0x2b0917e52420">
+          <interfacedef-ref nicename="tos.lib.timer.BusyWait" qname="BusyWait"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="precision_tag" ref="0x2b0917e52420" scoped=""/></type-var>
+        </typedef>
+        <typedef loc="59:/opt/tinyos-main-read-only/tos/lib/timer/BusyWait.nc" name="size_type" ref="0x2b0917e52650">
+          <interfacedef-ref nicename="tos.lib.timer.BusyWait" qname="BusyWait"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="size_type" ref="0x2b0917e52650" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <function command="" loc="66:/opt/tinyos-main-read-only/tos/lib/timer/BusyWait.nc" name="wait" provided="0" ref="0x2b0917e51118">
+        <documentation loc="61:/opt/tinyos-main-read-only/tos/lib/timer/BusyWait.nc">
+          <short>
+ Busy wait for (at least) dt time units.</short>
+          <long>
+ Busy wait for (at least) dt time units. Use sparingly, when the
+ cost of using an Alarm or Timer would be too high.
+ @param dt Time to busy wait for.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.lib.timer.BusyWait" qname="BusyWait"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-var alignment="U:" size="U:"><typedef-ref name="size_type" ref="0x2b0917e52650" scoped=""/></type-var>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="66:/opt/tinyos-main-read-only/tos/lib/timer/BusyWait.nc" name="dt" ref="0x2b0917e52e78">
+            <type-var alignment="U:" size="U:"><typedef-ref name="size_type" ref="0x2b0917e52650" scoped=""/></type-var>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

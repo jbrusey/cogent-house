@@ -1,0 +1,5 @@
+digraph "tos.lib.net.drip.DisseminationTimerP" {
+  n0x2b0918fbae50 [shape=ellipse, style=filled, label="TrickleTimer", fontsize=12];
+  "DisseminationTimerP.TrickleTimerMilliC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="TrickleTimerMilliC", URL="../chtml/tos.lib.net.TrickleTimerMilliC.html"];
+  "n0x2b0918fbae50" -> "DisseminationTimerP.TrickleTimerMilliC" [label="TrickleTimer[uint8_t]", style=bold, URL="../ihtml/tos.lib.net.TrickleTimer.html", fontsize=10];
+}

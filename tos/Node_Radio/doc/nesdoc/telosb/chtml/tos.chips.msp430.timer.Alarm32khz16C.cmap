@@ -1,0 +1,12 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.msp430.timer.Msp430AlarmC.html" title="Msp430AlarmC\n(Msp430Alarm)" alt="" coords="75,120,216,171">
+<area shape="poly" id="edge2" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;T32khz, uint16_t&gt;" alt="" coords="45,53 45,75 52,95 66,111 62,114 47,97 40,75 40,53">
+<area shape="rect" id="edge2" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;T32khz, uint16_t&gt;" alt="" coords="49,78,215,95">
+<area shape="rect" id="node4" href="../chtml/tos.chips.msp430.timer.Msp430Timer32khzC.html" title="Msp430Timer32khzC\n(Msp430Timer)" alt="" coords="47,237,244,299">
+<area shape="poly" id="edge6" href="../ihtml/tos.chips.msp430.timer.Msp430Timer.html" title="Msp430Timer" alt="" coords="75,163 51,177 32,196 28,205 27,213 37,228 33,230 22,214 22,204 27,193 47,172 73,158">
+<area shape="rect" id="edge6" href="../ihtml/tos.chips.msp430.timer.Msp430Timer.html" title="Msp430Timer" alt="" coords="29,195,116,213">
+<area shape="poly" id="edge8" href="../ihtml/tos.chips.msp430.timer.Msp430TimerControl.html" title="Msp430TimerControl" alt="" coords="148,171 148,223 143,223 143,171">
+<area shape="rect" id="edge8" href="../ihtml/tos.chips.msp430.timer.Msp430TimerControl.html" title="Msp430TimerControl" alt="" coords="145,195,279,213">
+<area shape="poly" id="edge10" href="../ihtml/tos.chips.msp430.timer.Msp430Compare.html" title="Msp430Compare" alt="" coords="217,161 257,176 282,193 288,209 285,223 274,234 259,243 256,239 271,230 280,220 283,209 278,196 254,180 215,166">
+<area shape="rect" id="edge10" href="../ihtml/tos.chips.msp430.timer.Msp430Compare.html" title="Msp430Compare" alt="" coords="285,195,395,213">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="239,54 230,76 217,98 201,113 198,109 213,94 226,74 235,52">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="225,78,245,95">

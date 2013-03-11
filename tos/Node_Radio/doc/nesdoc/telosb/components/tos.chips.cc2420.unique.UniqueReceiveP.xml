@@ -1,0 +1,62 @@
+<?xml version="1.0" ?><component loc="41:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueReceiveP.nc" nicename="tos.chips.cc2420.unique.UniqueReceiveP" qname="UniqueReceiveP" safe="">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueReceiveP.nc">
+        <short> 
+ This layer keeps a history of the past RECEIVE_HISTORY_SIZE received messages
+ If the source address and dsn number of a newly received message matches
+ our recent history, we drop the message because we've already seen it.</short>
+        <long> 
+ This layer keeps a history of the past RECEIVE_HISTORY_SIZE received messages
+ If the source address and dsn number of a newly received message matches
+ our recent history, we drop the message because we've already seen it.
+ @author David Moss
+</long>
+      </documentation>
+      <module/>
+    <specification><interface loc="49:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueReceiveP.nc" name="SubReceive" provided="0" ref="0x2b091814cd30">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueReceiveP" qname="UniqueReceiveP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubReceive" ref="0x2b091814cd30" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b091814b0d8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="45:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueReceiveP.nc" name="Init" provided="1" ref="0x2b091814c628">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueReceiveP" qname="UniqueReceiveP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b091814c628" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091814c978" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="43:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueReceiveP.nc" name="Receive" provided="1" ref="0x2b091814f960">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueReceiveP" qname="UniqueReceiveP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Receive" ref="0x2b091814f960" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b091814fcb0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="50:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueReceiveP.nc" name="CC2420PacketBody" provided="0" ref="0x2b091814b3c8">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueReceiveP" qname="UniqueReceiveP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CC2420PacketBody" ref="0x2b091814b3c8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420PacketBody" qname="CC2420PacketBody"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getPayload" ref="0x2b091814b718" scoped=""/>
+        <function-ref name="getHeader" ref="0x2b091814b8a0" scoped=""/>
+        <function-ref name="getMetadata" ref="0x2b091814ba28" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="44:/opt/tinyos-main-read-only/tos/chips/cc2420/unique/UniqueReceiveP.nc" name="DuplicateReceive" provided="1" ref="0x2b091814c060">
+      <component-ref nicename="tos.chips.cc2420.unique.UniqueReceiveP" qname="UniqueReceiveP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="DuplicateReceive" ref="0x2b091814c060" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b091814c3b0" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

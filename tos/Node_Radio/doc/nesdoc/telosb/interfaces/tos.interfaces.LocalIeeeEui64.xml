@@ -1,0 +1,30 @@
+<?xml version="1.0" ?><interfacedef loc="43:/opt/tinyos-main-read-only/tos/interfaces/LocalIeeeEui64.nc" nicename="tos.interfaces.LocalIeeeEui64" qname="LocalIeeeEui64">
+      <documentation loc="39:/opt/tinyos-main-read-only/tos/interfaces/LocalIeeeEui64.nc">
+        <short>
+ Interface to read the 64-bit IEEE EUI.</short>
+        <long>
+ Interface to read the 64-bit IEEE EUI.
+
+</long>
+      </documentation>
+      <function command="" loc="48:/opt/tinyos-main-read-only/tos/interfaces/LocalIeeeEui64.nc" name="getId" provided="0" ref="0x2b09177614d0">
+        <documentation loc="44:/opt/tinyos-main-read-only/tos/interfaces/LocalIeeeEui64.nc">
+          <short>
+ Get the 64-bit IEEE EUI.</short>
+          <long>
+ Get the 64-bit IEEE EUI.
+ @returns the 64-bit IEEE EUI type, defined in tos/types/IeeeEui64.h
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.LocalIeeeEui64" qname="LocalIeeeEui64"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-tag alignment="I:1" size="I:8"><struct-ref name="ieee_eui64" ref="0x2b09176bf340"/>
+            <typename><typedef-ref name="ieee_eui64_t" ref="0x2b09176bfa68"/></typename>
+          </type-tag>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

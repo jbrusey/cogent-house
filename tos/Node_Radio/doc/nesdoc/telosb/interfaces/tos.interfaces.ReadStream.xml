@@ -1,0 +1,201 @@
+<?xml version="1.0" ?><interfacedef loc="57:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" nicename="tos.interfaces.ReadStream" qname="ReadStream">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc">
+        <short>
+ The ReadStream interface is intended for buffered high data rate
+ reading, usually from sensor devices.</short>
+        <long>
+ The ReadStream interface is intended for buffered high data rate
+ reading, usually from sensor devices. The type of the values being
+ read is given as a template argument. 
+
+ &lt;p&gt; To use this interface, allocate one or more buffers in your own
+ space. Then, call postBuffer to pass these buffers into the
+ device. Call read() to begin the sampling process. The buffers will
+ be filled in the order originally posted, and a bufferDone() event
+ will be signaled once each buffer has been filled with data. At any
+ time while the read() is running, you may post new buffers to be
+ filled. If the lower layer finishes signaling readDone() and then
+ finds that no more buffers have been posted, it will consider the
+ read to be finished, and signal readDone(). 
+
+ &lt;p&gt;
+ See TEP114 - SIDs: Source and Sink Independent Drivers for details.
+ 
+ @param val_t the type of the object that will be returned
+
+ @author Gilman Tolle &lt;gtolle@archrock.com&gt;
+ @version $Revision: 1.5 $ $Date: 2008-06-04 03:00:31 $
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="57:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="val_t" ref="0x2b0918a27e60">
+          <interfacedef-ref nicename="tos.interfaces.ReadStream" qname="ReadStream"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a27e60" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <function event="" loc="89:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="bufferDone" provided="0" ref="0x2b0918a20020">
+        <documentation loc="80:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc">
+          <short>
+ Signalled when a previously posted buffer has been filled by the
+ device.</short>
+          <long>
+ Signalled when a previously posted buffer has been filled by the
+ device. In the event of a read error, result will not equal
+ SUCCESS, and the buffer will be filled with zeroes.
+
+ @param result SUCCESS if the buffer was filled without errors
+ @param 'val_t* COUNT(count) buf' a pointer to the buffer that has been filled
+ @param count the number of values actually read
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ReadStream" qname="ReadStream"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a27e60" scoped=""/></type-var>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="89:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="result" ref="0x2b0918a215f0">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="90:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="buf" ref="0x2b0918a21948">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a27e60" scoped=""/></type-var>
+            </type-pointer>
+          </variable>
+          <variable loc="90:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="count" ref="0x2b0918a21c80">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="68:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="postBuffer" provided="0" ref="0x2b0918a24cb8">
+        <documentation loc="58:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc">
+          <short>
+ Passes a buffer to the device, and indicates how many values
+ should be placed into the buffer.</short>
+          <long>
+ Passes a buffer to the device, and indicates how many values
+ should be placed into the buffer. Make sure your count doesn't
+ overrun the buffer.
+
+ @param 'val_t* COUNT(count) buf' a pointer to the buffer
+ @param count the number of values the buffer should hold
+
+ @return SUCCESS if the post was successful
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ReadStream" qname="ReadStream"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a27e60" scoped=""/></type-var>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="68:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="buf" ref="0x2b0918a24700">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-var alignment="U:" size="U:"><typedef-ref name="val_t" ref="0x2b0918a27e60" scoped=""/></type-var>
+            </type-pointer>
+          </variable>
+          <variable loc="68:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="count" ref="0x2b0918a24a38">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="78:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="read" provided="0" ref="0x2b0918a22e20">
+        <documentation loc="70:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc">
+          <short>
+ Directs the device to start filling buffers by sampling with the
+ specified period.</short>
+          <long>
+ Directs the device to start filling buffers by sampling with the
+ specified period. 
+ 
+ @param usPeriod the between-sample period in microseconds
+ 
+ @return SUCCESS if the reading process began
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ReadStream" qname="ReadStream"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="78:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="usPeriod" ref="0x2b0918a22bb0">
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="102:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="readDone" provided="0" ref="0x2b0918a1f630">
+        <documentation loc="92:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc">
+          <short>
+ Signalled when a buffer has been filled but no more buffers have
+ been posted.</short>
+          <long>
+ Signalled when a buffer has been filled but no more buffers have
+ been posted. In the event of a read error, all previously posted
+ buffers will have their bufferDone() event signalled, and then
+ this event will be signalled with a non-SUCCESS argument.
+
+ @param result SUCCESS if all buffers were filled without errors
+ @param usActualPeriod Actual sampling period used - may be different
+   from period requested at read time. Undefined if result != SUCCESS.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.ReadStream" qname="ReadStream"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="102:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="result" ref="0x2b0918a1f020">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="102:/opt/tinyos-main-read-only/tos/interfaces/ReadStream.nc" name="usActualPeriod" ref="0x2b0918a1f3b0">
+            <type-int alignment="I:2" cname="unsigned long" size="I:4" unsigned="">
+              <typename><typedef-ref name="uint32_t" ref="0x2b091611b020"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

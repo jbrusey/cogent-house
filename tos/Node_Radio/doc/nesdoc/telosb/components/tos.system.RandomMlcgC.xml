@@ -1,0 +1,52 @@
+<?xml version="1.0" ?><component loc="45:/opt/tinyos-main-read-only/tos/system/RandomMlcgC.nc" nicename="tos.system.RandomMlcgC" qname="RandomMlcgC" safe="">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/system/RandomMlcgC.nc">
+        <short> This code is a fast implementation of the Park-Miller Minimal Standard 
+  Generator for pseudo-random numbers.</short>
+        <long> This code is a fast implementation of the Park-Miller Minimal Standard 
+  Generator for pseudo-random numbers.  It uses the 32 bit multiplicative 
+  linear congruential generator, 
+
+		S' = (A x S) mod (2^31 - 1) 
+
+  for A = 16807.
+
+
+ @author Barbara Hohlt 
+ @date   March 1 2005
+</long>
+      </documentation>
+      <module/>
+    <specification><interface loc="48:/opt/tinyos-main-read-only/tos/system/RandomMlcgC.nc" name="Random" provided="1" ref="0x2b091811ea08">
+      <component-ref nicename="tos.system.RandomMlcgC" qname="RandomMlcgC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Random" ref="0x2b091811ea08" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Random" qname="Random"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="rand16" ref="0x2b091811ed58" scoped=""/>
+        <function-ref name="rand32" ref="0x2b091811d020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="47:/opt/tinyos-main-read-only/tos/system/RandomMlcgC.nc" name="SeedInit" provided="1" ref="0x2b091811f9f0">
+      <component-ref nicename="tos.system.RandomMlcgC" qname="RandomMlcgC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SeedInit" ref="0x2b091811f9f0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ParameterInit" qname="ParameterInit"/>
+        <arguments>
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="uint16_t" ref="0x2b091611ab20"/></typename>
+          </type-int>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091811e560" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:/opt/tinyos-main-read-only/tos/system/RandomMlcgC.nc" name="Init" provided="1" ref="0x2b091811f198">
+      <component-ref nicename="tos.system.RandomMlcgC" qname="RandomMlcgC"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Init" ref="0x2b091811f198" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Init" qname="Init"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="init" ref="0x2b091811f4e8" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

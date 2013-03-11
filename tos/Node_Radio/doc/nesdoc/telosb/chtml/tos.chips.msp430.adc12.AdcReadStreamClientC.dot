@@ -1,0 +1,16 @@
+digraph "tos.chips.msp430.adc12.AdcReadStreamClientC" {
+  n0x2b0918d64628 [shape=ellipse, style=filled, label="ReadStream", fontsize=12];
+  "WireAdcStreamP" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.adc12.WireAdcStreamP.html"];
+  "AdcReadStreamClientC.Msp430AdcClient" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Adc12ClientAutoRVGC\n(Msp430AdcClient)", URL="../chtml/tos.chips.msp430.adc12.Msp430Adc12ClientAutoRVGC.html"];
+  n0x2b0918d60358 [shape=ellipse, style=filled, label="AdcConfigure", fontsize=12];
+  "WireAdcStreamP" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.adc12.WireAdcStreamP.html"];
+  "WireAdcStreamP" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.adc12.WireAdcStreamP.html"];
+  "AdcReadStreamClientC.Msp430AdcClient" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Adc12ClientAutoRVGC\n(Msp430AdcClient)", URL="../chtml/tos.chips.msp430.adc12.Msp430Adc12ClientAutoRVGC.html"];
+  "WireAdcStreamP" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.adc12.WireAdcStreamP.html"];
+  "AdcReadStreamClientC.Msp430AdcClient" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Adc12ClientAutoRVGC\n(Msp430AdcClient)", URL="../chtml/tos.chips.msp430.adc12.Msp430Adc12ClientAutoRVGC.html"];
+  "n0x2b0918d64628" -> "WireAdcStreamP" [label="ReadStream<uint16_t>", URL="../ihtml/tos.interfaces.ReadStream.html", fontsize=10];
+  "AdcReadStreamClientC.Msp430AdcClient" -> "n0x2b0918d60358" [label="AdcConfigure<msp430adc12_channel_config_t *>", URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "WireAdcStreamP" -> "n0x2b0918d60358" [label="AdcConfigure<msp430adc12_channel_config_t *>[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "WireAdcStreamP" -> "AdcReadStreamClientC.Msp430AdcClient" [label="Resource[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.Resource.html", fontsize=10];
+  "WireAdcStreamP" -> "AdcReadStreamClientC.Msp430AdcClient" [label="Msp430Adc12SingleChannel[uint8_t]", style=bold, URL="../ihtml/tos.chips.msp430.adc12.Msp430Adc12SingleChannel.html", fontsize=10];
+}

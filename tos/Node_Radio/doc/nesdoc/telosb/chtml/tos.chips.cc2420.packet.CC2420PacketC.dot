@@ -1,0 +1,32 @@
+digraph "tos.chips.cc2420.packet.CC2420PacketC" {
+  n0x2b09180446b0 [shape=ellipse, style=filled, label="LinkPacketMetadata", fontsize=12];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  n0x2b09180484b0 [shape=ellipse, style=filled, label="CC2420Packet", fontsize=12];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  n0x2b0918043130 [shape=ellipse, style=filled, label="PacketTimeStamp32khz", fontsize=12];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  n0x2b0918045d08 [shape=ellipse, style=filled, label="CC2420PacketBody", fontsize=12];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  n0x2b091803cac8 [shape=ellipse, style=filled, label="PacketTimeSyncOffset", fontsize=12];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  n0x2b091803f020 [shape=ellipse, style=filled, label="PacketTimeStampMilli", fontsize=12];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  n0x2b09180453b8 [shape=ellipse, style=filled, label="Acks", fontsize=12];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  "CC2420PacketC.CounterToLocalTimeC" [fontsize=12, shape=box, style=dashed, label="CounterToLocalTimeC", URL="../chtml/tos.lib.timer.CounterToLocalTimeC.html"];
+  "Counter32khz32C" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.Counter32khz32C.html"];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  "CC2420PacketC.CounterToLocalTimeC" [fontsize=12, shape=box, style=dashed, label="CounterToLocalTimeC", URL="../chtml/tos.lib.timer.CounterToLocalTimeC.html"];
+  "CC2420PacketP" [fontsize=12, shape=box, URL="../chtml/tos.chips.cc2420.packet.CC2420PacketP.html"];
+  "HilTimerMilliC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.HilTimerMilliC.html"];
+  "n0x2b09180446b0" -> "CC2420PacketP" [label="LinkPacketMetadata", URL="../ihtml/tos.interfaces.LinkPacketMetadata.html", fontsize=10];
+  "n0x2b09180484b0" -> "CC2420PacketP" [label="CC2420Packet", URL="../ihtml/tos.chips.cc2420.interfaces.CC2420Packet.html", fontsize=10];
+  "n0x2b0918043130" -> "CC2420PacketP" [label="PacketTimeStamp<T32khz, uint32_t>", URL="../ihtml/tos.interfaces.PacketTimeStamp.html", fontsize=10];
+  "n0x2b0918045d08" -> "CC2420PacketP" [label="CC2420PacketBody", URL="../ihtml/tos.chips.cc2420.interfaces.CC2420PacketBody.html", fontsize=10];
+  "n0x2b091803cac8" -> "CC2420PacketP" [label="PacketTimeSyncOffset", URL="../ihtml/tos.chips.cc2420.interfaces.PacketTimeSyncOffset.html", fontsize=10];
+  "n0x2b091803f020" -> "CC2420PacketP" [label="PacketTimeStamp<TMilli, uint32_t>", URL="../ihtml/tos.interfaces.PacketTimeStamp.html", fontsize=10];
+  "n0x2b09180453b8" -> "CC2420PacketP" [label="PacketAcknowledgements", URL="../ihtml/tos.interfaces.PacketAcknowledgements.html", fontsize=10];
+  "CC2420PacketC.CounterToLocalTimeC" -> "Counter32khz32C" [label="Counter<T32khz, uint32_t>", URL="../ihtml/tos.lib.timer.Counter.html", fontsize=10];
+  "CC2420PacketP" -> "CC2420PacketC.CounterToLocalTimeC" [label="LocalTime<T32khz>", URL="../ihtml/tos.lib.timer.LocalTime.html", fontsize=10];
+  "CC2420PacketP" -> "HilTimerMilliC" [label="LocalTime<TMilli>", URL="../ihtml/tos.lib.timer.LocalTime.html", fontsize=10];
+}

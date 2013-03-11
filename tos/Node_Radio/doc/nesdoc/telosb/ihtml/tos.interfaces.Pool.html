@@ -1,0 +1,178 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Pool</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Pool</h2>
+    <b>interface Pool&lt;typedef t&gt;</b><p>
+  An allocation pool of a specific type memory objects.
+  The Pool allows components to allocate (<code>get</code>)
+  and deallocate (<code>put</code>) elements. The pool
+  does not require that deallocations be items which were
+  originally allocated. E.g., a program can create two
+  pools of the same type and pass items between them.
+  This allows, for example, a component to allocate a pool
+  of message buffers and freely buffer swap them on
+  Receive.receive events.
+
+  
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Philip Levis
+  
+      </dd>
+      <dd>
+        Kyle Jamieson
+  
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+          $Date: 2008-06-04 03:00:31 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command bool <a href="#empty">empty</a>()
+      </span><menu>
+ Returns whether there any elements remaining in the pool.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command t *<a href="#get">get</a>()
+      </span><menu>
+ Allocate an element from the pool.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#maxSize">maxSize</a>()
+      </span><menu>
+ Returns the maximum number of elements in the pool
+ (the size of a full pool).
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#put">put</a>(t *newVal)
+      </span><menu>
+ Deallocate an object, putting it back into the pool.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command uint8_t <a href="#size">size</a>()
+      </span><menu>
+ Returns how many elements are in the pool.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="empty"></a>
+    <h4>empty
+    </h4>
+    <span id=funcnameshort>command bool <b>empty</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns whether there any elements remaining in the pool.
+ If empty returns TRUE, then <code>get</code> will return
+ NULL. If empty returns FALSE, then <code>get</code> will
+ return a pointer to an object.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Whether the pool is empty.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="get"></a>
+    <h4>get
+    </h4>
+    <span id=funcnameshort>command t *<b>get</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Allocate an element from the pool.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          't* ONE_NOK' A pointer if the pool is not empty, NULL if
+ the pool is empty.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="maxSize"></a>
+    <h4>maxSize
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>maxSize</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns the maximum number of elements in the pool
+ (the size of a full pool).
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          Maximum size.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="put"></a>
+    <h4>put
+    </h4>
+    <span id=funcnameshort>command error_t <b>put</b>(t *newVal)
+    </span>
+    <p>
+    <menu>
+      
+ Deallocate an object, putting it back into the pool.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          't* ONE newVal'
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS if the entry was put in successfully, FAIL
+ if the pool is full.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="size"></a>
+    <h4>size
+    </h4>
+    <span id=funcnameshort>command uint8_t <b>size</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Returns how many elements are in the pool. If size
+ returns 0, empty() will return TRUE. If size returns
+ a non-zero value, empty() will return FALSE. The
+ return value of size is always &lte; the return
+ value of maxSize().
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          How many elements are in the pool.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

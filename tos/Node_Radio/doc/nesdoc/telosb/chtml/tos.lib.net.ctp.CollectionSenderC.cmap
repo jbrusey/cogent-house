@@ -1,0 +1,5 @@
+<area shape="rect" id="node2" href="../chtml/tos.lib.net.ctp.CollectionSenderP.html" title="CollectionSenderP" alt="" coords="21,120,192,179">
+<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Packet.html" title="Packet" alt="" coords="65,52 90,106 85,109 60,54">
+<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Packet.html" title="Packet" alt="" coords="81,78,124,95">
+<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Send.html" title="Send" alt="" coords="154,54 129,109 124,106 149,51">
+<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Send.html" title="Send" alt="" coords="139,78,172,95">

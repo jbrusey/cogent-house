@@ -1,0 +1,49 @@
+<?xml version="1.0" ?><interfacedef loc="3:./Heartbeat/Heartbeat.nc" nicename="..Heartbeat.Heartbeat" qname="Heartbeat">
+      <function command="" loc="8:./Heartbeat/Heartbeat.nc" name="init" provided="0" ref="0x2b091906e328">
+        <documentation loc="5:./Heartbeat/Heartbeat.nc">
+          <short>
+ initialise state
+</short>
+        </documentation>
+        <interfacedef-ref nicename="..Heartbeat.Heartbeat" qname="Heartbeat"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="13:./Heartbeat/Heartbeat.nc" name="triggered" provided="0" ref="0x2b091906ea08">
+        <documentation loc="10:./Heartbeat/Heartbeat.nc">
+          <short>
+ Check if heartbeat has been triggered
+</short>
+        </documentation>
+        <interfacedef-ref nicename="..Heartbeat.Heartbeat" qname="Heartbeat"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+      <function command="" loc="18:./Heartbeat/Heartbeat.nc" name="reset" provided="0" ref="0x2b091906d0d8">
+        <documentation loc="15:./Heartbeat/Heartbeat.nc">
+          <short>
+ Teset to inital values
+</short>
+        </documentation>
+        <interfacedef-ref nicename="..Heartbeat.Heartbeat" qname="Heartbeat"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+          </function-parameters>
+        </type-function>
+        <parameters>
+        </parameters>
+      </function>
+    </interfacedef>

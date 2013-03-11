@@ -1,0 +1,77 @@
+<area shape="rect" id="node2" href="../chtml/tos.chips.cc2420.transmit.CC2420TransmitP.html" title="CC2420TransmitP" alt="" coords="1452,131,1612,179">
+<area shape="poly" id="edge2" href="../ihtml/tos.chips.cc2420.interfaces.RadioBackoff.html" title="RadioBackoff" alt="" coords="1164,52 1231,78 1306,104 1439,136 1438,141 1305,109 1229,83 1162,57">
+<area shape="rect" id="edge2" href="../ihtml/tos.chips.cc2420.interfaces.RadioBackoff.html" title="RadioBackoff" alt="" coords="1305,89,1388,106">
+<area shape="rect" id="node8" href="../chtml/tos.chips.cc2420.alarm.AlarmMultiplexC.html" title="AlarmMultiplexC" alt="" coords="3303,247,3457,305">
+<area shape="poly" id="edge16" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;T32khz, uint32_t&gt;" alt="" coords="1612,153 2451,167 2908,181 3075,190 3174,200 3240,217 3302,239 3301,244 3239,222 3173,205 3074,195 2908,186 2451,172 1612,158">
+<area shape="rect" id="edge16" href="../ihtml/tos.lib.timer.Alarm.html" title="Alarm&lt;T32khz, uint32_t&gt;" alt="" coords="3243,203,3408,221">
+<area shape="rect" id="node9" href="../chtml/tos.platforms.telosa.chips.cc2420.HplCC2420PinsC.html" title="HplCC2420PinsC" alt="" coords="5,247,168,305">
+<area shape="poly" id="edge22" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="1452,158 633,174 216,188 81,196 43,201 27,205 23,212 22,219 32,236 28,239 17,220 18,210 24,201 42,195 81,191 215,182 632,168 1452,153">
+<area shape="rect" id="edge22" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="25,203,89,221">
+<area shape="poly" id="edge18" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="1452,159 678,176 288,190 161,198 109,205 99,218 92,234 88,232 94,215 107,200 161,192 287,185 678,171 1451,153">
+<area shape="rect" id="edge18" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="108,203,172,221">
+<area shape="poly" id="edge20" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="1452,158 789,172 438,186 311,195 237,205 190,221 147,242 144,238 188,216 235,200 311,190 438,181 789,167 1452,153">
+<area shape="rect" id="edge20" href="../ihtml/tos.interfaces.GeneralIO.html" title="GeneralIO" alt="" coords="236,203,300,221">
+<area shape="rect" id="node10" href="../chtml/tos.platforms.telosa.chips.cc2420.HplCC2420InterruptsC.html" title="HplCC2420InterruptsC" alt="" coords="192,247,400,305">
+<area shape="poly" id="edge24" href="../ihtml/tos.interfaces.GpioCapture.html" title="GpioCapture" alt="" coords="1452,158 1170,162 803,170 478,184 370,193 337,199 320,205 309,218 303,234 298,232 305,215 317,200 335,194 369,188 477,178 803,164 1170,156 1452,153">
+<area shape="rect" id="edge24" href="../ihtml/tos.interfaces.GpioCapture.html" title="GpioCapture" alt="" coords="319,203,400,221">
+<area shape="rect" id="node11" href="../chtml/tos.chips.cc2420.spi.CC2420SpiC.html" title="CC2420SpiC\n(Spi)" alt="" coords="1220,245,1348,307">
+<area shape="poly" id="edge26" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="1452,159 1325,163 1183,171 1062,185 1021,194 999,205 996,212 999,220 1012,230 1031,239 1084,254 1146,264 1207,269 1206,275 1145,269 1083,259 1029,244 1009,235 995,223 991,212 995,201 1019,189 1061,179 1183,166 1325,157 1452,153">
+<area shape="rect" id="edge26" href="../ihtml/tos.interfaces.Resource.html" title="Resource" alt="" coords="997,203,1056,221">
+<area shape="poly" id="edge28" href="../ihtml/tos.chips.cc2420.interfaces.ChipSpiResource.html" title="ChipSpiResource" alt="" coords="1452,160 1233,175 1137,188 1105,196 1089,205 1080,218 1081,230 1090,240 1106,248 1152,261 1206,269 1206,274 1151,266 1104,253 1087,244 1076,232 1075,217 1085,201 1103,191 1136,183 1232,169 1452,155">
+<area shape="rect" id="edge28" href="../ihtml/tos.chips.cc2420.interfaces.ChipSpiResource.html" title="ChipSpiResource" alt="" coords="1087,203,1193,221">
+<area shape="poly" id="edge30" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1452,164 1312,182 1254,193 1226,204 1222,218 1229,234 1224,236 1216,219 1222,201 1253,188 1311,176 1452,159">
+<area shape="rect" id="edge30" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1224,203,1317,221">
+<area shape="poly" id="edge32" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1452,167 1400,182 1349,205 1331,219 1315,236 1311,233 1327,215 1347,200 1398,177 1451,162">
+<area shape="rect" id="edge32" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1348,203,1441,221">
+<area shape="poly" id="edge34" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1505,181 1476,203 1443,224 1362,257 1360,252 1440,219 1473,199 1502,177">
+<area shape="rect" id="edge34" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1469,203,1563,221">
+<area shape="poly" id="edge36" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1559,178 1572,200 1573,212 1567,223 1554,234 1534,244 1482,258 1422,268 1362,274 1361,269 1421,263 1481,253 1532,239 1551,230 1563,220 1567,211 1567,201 1555,180">
+<area shape="rect" id="edge36" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1569,203,1663,221">
+<area shape="poly" id="edge38" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="1613,165 1643,174 1666,187 1677,203 1676,213 1670,223 1655,232 1627,240 1548,254 1362,273 1362,268 1547,249 1626,235 1653,227 1666,219 1671,211 1672,204 1662,191 1641,179 1612,170">
+<area shape="rect" id="edge38" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="1675,203,1776,221">
+<area shape="poly" id="edge40" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Fifo.html" title="CC2420Fifo" alt="" coords="1612,157 1714,171 1756,183 1783,201 1788,212 1783,223 1762,235 1723,244 1612,259 1480,269 1362,276 1362,270 1480,264 1611,254 1722,239 1760,230 1779,220 1783,212 1779,204 1754,188 1712,176 1612,162">
+<area shape="rect" id="edge40" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Fifo.html" title="CC2420Fifo" alt="" coords="1785,203,1857,221">
+<area shape="poly" id="edge42" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="1613,156 1703,163 1792,175 1828,184 1855,194 1869,207 1869,215 1864,223 1839,236 1792,247 1657,263 1499,272 1362,277 1362,272 1499,267 1656,257 1791,242 1837,231 1861,219 1864,214 1864,209 1852,198 1827,189 1791,181 1702,168 1612,161">
+<area shape="rect" id="edge42" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="1867,203,1947,221">
+<area shape="poly" id="edge44" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="1613,156 1818,171 1906,183 1937,191 1954,201 1959,212 1954,223 1929,232 1876,240 1714,254 1362,275 1361,270 1714,249 1875,235 1927,227 1950,219 1954,212 1950,204 1935,196 1905,189 1817,176 1612,161">
+<area shape="rect" id="edge44" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="1956,203,2057,221">
+<area shape="poly" id="edge46" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="1612,153 1738,158 1879,166 2000,179 2041,189 2065,201 2070,212 2064,223 2034,233 1971,242 1776,257 1362,276 1362,271 1775,252 1970,237 2033,228 2061,219 2064,212 2061,205 2040,194 1999,185 1879,171 1738,163 1612,159">
+<area shape="rect" id="edge46" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="2067,203,2168,221">
+<area shape="poly" id="edge48" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="1452,158 1188,161 850,168 552,182 455,193 425,198 411,205 408,212 411,219 443,229 516,238 740,254 1206,271 1206,277 739,259 516,244 442,234 408,223 402,212 407,201 423,193 454,187 552,177 850,163 1188,155 1452,152">
+<area shape="rect" id="edge48" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Register.html" title="CC2420Register" alt="" coords="409,203,511,221">
+<area shape="poly" id="edge50" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="1452,158 1217,162 922,171 665,185 580,194 555,199 543,205 540,212 543,219 569,228 629,236 813,251 1206,270 1206,276 812,256 628,241 568,233 540,223 534,212 539,201 553,194 580,189 664,179 922,165 1217,157 1452,153">
+<area shape="rect" id="edge50" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Strobe.html" title="CC2420Strobe" alt="" coords="541,203,635,221">
+<area shape="poly" id="edge52" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="1452,159 990,173 770,187 699,195 667,205 664,212 667,219 693,232 743,243 890,259 1060,268 1206,272 1206,278 1060,273 889,264 742,248 691,237 663,223 658,212 664,201 698,190 770,181 990,168 1452,153">
+<area shape="rect" id="edge52" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="665,203,745,221">
+<area shape="poly" id="edge54" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="1452,160 1051,175 865,189 804,197 778,205 774,212 778,220 798,230 837,239 951,254 1086,265 1206,271 1206,276 1086,270 951,260 836,245 796,235 774,223 769,212 774,201 803,191 864,183 1051,170 1452,154">
+<area shape="rect" id="edge54" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="776,203,856,221">
+<area shape="poly" id="edge56" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="1452,161 1125,178 978,191 930,198 910,205 906,211 906,217 921,230 952,241 996,250 1103,263 1206,270 1206,275 1102,268 995,255 951,246 918,234 901,220 900,210 906,201 929,193 977,186 1125,173 1452,155">
+<area shape="rect" id="edge56" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Ram.html" title="CC2420Ram" alt="" coords="908,203,988,221">
+<area shape="rect" id="node12" href="../chtml/tos.chips.cc2420.receive.CC2420ReceiveC.html" title="CC2420ReceiveC" alt="" coords="2247,247,2409,305">
+<area shape="poly" id="edge58" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Receive.html" title="CC2420Receive" alt="" coords="1612,154 1909,169 2063,182 2174,200 2223,217 2268,238 2265,243 2221,222 2173,205 2062,187 1909,174 1612,160">
+<area shape="rect" id="edge58" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Receive.html" title="CC2420Receive" alt="" coords="2221,203,2320,221">
+<area shape="rect" id="node13" href="../chtml/tos.chips.cc2420.packet.CC2420PacketC.html" title="CC2420PacketC" alt="" coords="2581,247,2736,305">
+<area shape="poly" id="edge60" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Packet.html" title="CC2420Packet" alt="" coords="1612,155 1983,173 2181,186 2326,200 2453,223 2569,249 2568,255 2452,228 2325,205 2181,191 1983,179 1612,161">
+<area shape="rect" id="edge60" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Packet.html" title="CC2420Packet" alt="" coords="2427,203,2520,221">
+<area shape="poly" id="edge62" href="../ihtml/tos.chips.cc2420.interfaces.CC2420PacketBody.html" title="CC2420PacketBody" alt="" coords="1612,154 2119,170 2377,183 2471,191 2526,200 2568,216 2606,237 2604,242 2566,221 2525,205 2470,197 2377,189 2119,175 1612,159">
+<area shape="rect" id="edge62" href="../ihtml/tos.chips.cc2420.interfaces.CC2420PacketBody.html" title="CC2420PacketBody" alt="" coords="2571,203,2696,221">
+<area shape="poly" id="edge64" href="../ihtml/tos.interfaces.PacketTimeStamp.html" title="PacketTimeStamp&lt;T32khz, uint32_t&gt;" alt="" coords="1612,152 1886,155 2239,162 2552,176 2655,187 2687,193 2703,201 2710,218 2703,237 2698,235 2705,218 2699,204 2685,198 2654,192 2551,181 2239,167 1886,160 1612,158">
+<area shape="rect" id="edge64" href="../ihtml/tos.interfaces.PacketTimeStamp.html" title="PacketTimeStamp&lt;T32khz, uint32_t&gt;" alt="" coords="2707,203,2951,221">
+<area shape="poly" id="edge66" href="../ihtml/tos.chips.cc2420.interfaces.PacketTimeSyncOffset.html" title="PacketTimeSyncOffset" alt="" coords="1612,153 2387,169 2778,183 2904,191 2958,201 2963,212 2958,223 2944,234 2925,244 2873,259 2812,268 2750,274 2750,269 2811,263 2872,253 2923,239 2941,230 2954,220 2957,212 2954,205 2903,197 2778,188 2387,175 1612,159">
+<area shape="rect" id="edge66" href="../ihtml/tos.chips.cc2420.interfaces.PacketTimeSyncOffset.html" title="PacketTimeSyncOffset" alt="" coords="2960,203,3103,221">
+<area shape="rect" id="node14" href="../chtml/tos.system.LedsC.html" title="LedsC" alt="" coords="3144,247,3227,305">
+<area shape="poly" id="edge68" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="1612,153 2451,167 2889,181 3037,190 3109,200 3134,215 3156,235 3152,238 3131,220 3107,205 3036,195 2889,186 2451,172 1612,158">
+<area shape="rect" id="edge68" href="../ihtml/tos.interfaces.Leds.html" title="Leds" alt="" coords="3137,203,3168,221">
+<area shape="poly" id="edge4" href="../ihtml/tos.chips.cc2420.interfaces.ReceiveIndicator.html" title="ReceiveIndicator" alt="" coords="1348,55 1424,104 1461,123 1458,127 1421,109 1345,60">
+<area shape="rect" id="edge4" href="../ihtml/tos.chips.cc2420.interfaces.ReceiveIndicator.html" title="ReceiveIndicator" alt="" coords="1423,89,1527,106">
+<area shape="poly" id="edge6" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Transmit.html" title="CC2420Transmit" alt="" coords="1535,59 1535,117 1529,117 1529,59">
+<area shape="rect" id="edge6" href="../ihtml/tos.chips.cc2420.interfaces.CC2420Transmit.html" title="CC2420Transmit" alt="" coords="1532,89,1637,106">
+<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.StdControl.html" title="StdControl" alt="" coords="1702,60 1676,85 1644,109 1611,127 1609,122 1641,104 1672,81 1698,56">
+<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.StdControl.html" title="StdControl" alt="" coords="1665,89,1735,106">
+<area shape="poly" id="edge10" href="../ihtml/tos.chips.cc2420.interfaces.ReceiveIndicator.html" title="ReceiveIndicator" alt="" coords="1856,58 1802,84 1741,109 1683,126 1626,140 1625,135 1682,121 1739,104 1800,80 1854,54">
+<area shape="rect" id="edge10" href="../ihtml/tos.chips.cc2420.interfaces.ReceiveIndicator.html" title="ReceiveIndicator" alt="" coords="1783,89,1887,106">
+<area shape="rect" id="node7" href="../chtml/tos.system.MainC.html" title="MainC" alt="" coords="2708,5,2791,64">
+<area shape="poly" id="edge14" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="2708,41 1626,148 1626,143 2708,36">
+<area shape="rect" id="edge14" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="2176,89,2196,106">
+<area shape="poly" id="edge12" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="2791,36 2934,53 3123,86 3218,108 3303,134 3371,165 3397,182 3416,201 3421,218 3417,235 3412,234 3416,218 3411,204 3393,186 3368,170 3301,139 3216,113 3122,91 2933,59 2790,41">
+<area shape="rect" id="edge12" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="3383,146,3403,163">

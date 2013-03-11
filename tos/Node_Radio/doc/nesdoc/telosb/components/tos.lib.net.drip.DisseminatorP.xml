@@ -1,0 +1,104 @@
+<?xml version="1.0" ?><component abstract="" loc="45:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc">
+        <short>
+ The DisseminatorP module holds and synchronizes a single value of a
+ chosen type.</short>
+        <long>
+ The DisseminatorP module holds and synchronizes a single value of a
+ chosen type.
+
+ See TEP118 - Dissemination for details.
+ 
+ @param t the type of the object that will be disseminated
+
+ @author Gilman Tolle &lt;gtolle@archrock.com&gt;
+ @version $Revision: 1.3 $ $Date: 2008-02-16 01:31:50 $
+</long>
+      </documentation>
+      <parameters>
+        <typedef loc="45:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" name="t" ref="0x2b0918f462c0">
+          <component-ref nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP"/>
+          <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0918f462c0" scoped=""/></type-var>
+        </typedef>
+      </parameters>
+      <module/>
+    <specification><interface loc="62:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" name="changedTask" provided="0" ref="0x2b0918fdeb78">
+      <component-ref nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="changedTask" ref="0x2b0918fdeb78" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b0918fdd020" scoped=""/>
+        <function-ref name="runTask" ref="0x2b0918fdd1a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="50:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" name="DisseminationCache" provided="1" ref="0x2b0918fe1020">
+      <component-ref nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="DisseminationCache" ref="0x2b0918fe1020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.drip.DisseminationCache" qname="DisseminationCache"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="storeData" ref="0x2b0918fe14f8" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918fe1b18" scoped=""/>
+        <function-ref name="newData" ref="0x2b0918fe1680" scoped=""/>
+        <function-ref name="start" ref="0x2b0918fe1808" scoped=""/>
+        <function-ref name="requestSeqno" ref="0x2b0918fe1990" scoped=""/>
+        <function-ref name="requestData" ref="0x2b0918fe1370" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="49:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" name="DisseminationUpdate" provided="1" ref="0x2b0918fe4c18">
+      <component-ref nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="DisseminationUpdate" ref="0x2b0918fe4c18" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.DisseminationUpdate" qname="DisseminationUpdate"/>
+        <arguments>
+          <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0918f462c0" scoped=""/></type-var>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="change" ref="0x2b0918fe27e8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="52:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" name="Leds" provided="0" ref="0x2b0918fe1dd0">
+      <component-ref nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Leds" ref="0x2b0918fe1dd0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Leds" qname="Leds"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="led0Off" ref="0x2b0918fe0170" scoped=""/>
+        <function-ref name="led0Toggle" ref="0x2b0918fe02f8" scoped=""/>
+        <function-ref name="led1On" ref="0x2b0918fe0480" scoped=""/>
+        <function-ref name="led1Toggle" ref="0x2b0918fe0608" scoped=""/>
+        <function-ref name="led2Toggle" ref="0x2b0918fe0790" scoped=""/>
+        <function-ref name="get" ref="0x2b0918fe0918" scoped=""/>
+        <function-ref name="led1Off" ref="0x2b0918fe0aa0" scoped=""/>
+        <function-ref name="led2Off" ref="0x2b0918fdf1a8" scoped=""/>
+        <function-ref name="set" ref="0x2b0918fe0c28" scoped=""/>
+        <function-ref name="led0On" ref="0x2b0918fe0db0" scoped=""/>
+        <function-ref name="led2On" ref="0x2b0918fdf020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="48:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" name="DisseminationValue" provided="1" ref="0x2b0918f45108">
+      <component-ref nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="DisseminationValue" ref="0x2b0918f45108" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.net.DisseminationValue" qname="DisseminationValue"/>
+        <arguments>
+          <type-var alignment="U:" size="U:"><typedef-ref name="t" ref="0x2b0918f462c0" scoped=""/></type-var>
+        </arguments>
+      </instance>
+      <interface-functions>
+        <function-ref name="changed" ref="0x2b0918fe4628" scoped=""/>
+        <function-ref name="get" ref="0x2b0918f45c88" scoped=""/>
+        <function-ref name="set" ref="0x2b0918fe4158" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="46:/opt/tinyos-main-read-only/tos/lib/net/drip/DisseminatorP.nc" name="StdControl" provided="1" ref="0x2b0918f46738">
+      <component-ref nicename="tos.lib.net.drip.DisseminatorP" qname="DisseminatorP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StdControl" ref="0x2b0918f46738" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b0918f46a88" scoped=""/>
+        <function-ref name="stop" ref="0x2b0918f46c10" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

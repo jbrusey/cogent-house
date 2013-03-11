@@ -1,0 +1,134 @@
+<?xml version="1.0" ?><interfacedef loc="44:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc" nicename="tos.interfaces.PacketAcknowledgements" qname="PacketAcknowledgements">
+      <documentation loc="34:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc">
+        <short>
+ This interface allows a component to enable or disable acknowledgments
+ on a per-packet basis.</short>
+        <long>
+ This interface allows a component to enable or disable acknowledgments
+ on a per-packet basis.
+
+ @author Jonathan Hui
+ @author Philip Levis
+ @author Joe Polastre
+ @date   June 21 2006
+</long>
+      </documentation>
+      <function command="" loc="59:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc" name="requestAck" provided="0" ref="0x2b0917699520">
+        <documentation loc="46:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc">
+          <short>
+ Tell a protocol that when it sends this packet, it should use synchronous
+ acknowledgments.</short>
+          <long>
+ Tell a protocol that when it sends this packet, it should use synchronous
+ acknowledgments.
+ The acknowledgment is synchronous as the caller can check whether the
+ ack was received through the wasAcked() command as soon as a send operation
+ completes.
+
+ @param 'message_t* ONE msg' - A message which should be acknowledged when transmitted.
+ @return SUCCESS if acknowledgements are enabled, EBUSY
+ if the communication layer cannot enable them at this time, FAIL
+ if it does not support them.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.PacketAcknowledgements" qname="PacketAcknowledgements"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="59:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc" name="msg" ref="0x2b09176992b0">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="71:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc" name="noAck" provided="0" ref="0x2b0917698630">
+        <documentation loc="61:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc">
+          <short>
+ Tell a protocol that when it sends this packet, it should not use
+ synchronous acknowledgments.</short>
+          <long>
+ Tell a protocol that when it sends this packet, it should not use
+ synchronous acknowledgments.
+
+ @param 'message_t* ONE msg' - A message which should not be acknowledged when transmitted.
+ @return SUCCESS if acknowledgements are disabled, EBUSY
+ if the communication layer cannot disable them at this time, FAIL
+ if it cannot support unacknowledged communication.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.PacketAcknowledgements" qname="PacketAcknowledgements"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="71:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc" name="msg" ref="0x2b09176983c0">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="85:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc" name="wasAcked" provided="0" ref="0x2b0917696700">
+        <documentation loc="73:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc">
+          <short>
+ Tell a caller whether or not a transmitted packet was acknowledged.</short>
+          <long>
+ Tell a caller whether or not a transmitted packet was acknowledged.
+ If acknowledgments on the packet had been disabled through noAck(),
+ then the return value is undefined. If a packet
+ layer does not support acknowledgements, this command must return always
+ return FALSE.
+
+ @param 'message_t* ONE msg' - A transmitted message.
+ @return Whether the packet was acknowledged.
+
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.interfaces.PacketAcknowledgements" qname="PacketAcknowledgements"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="bool" ref="0x2b0916a4ac10"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="85:/opt/tinyos-main-read-only/tos/interfaces/PacketAcknowledgements.nc" name="msg" ref="0x2b0917696490">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

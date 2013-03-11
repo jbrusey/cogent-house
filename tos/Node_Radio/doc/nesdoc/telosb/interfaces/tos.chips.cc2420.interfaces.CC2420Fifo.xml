@@ -1,0 +1,248 @@
+<?xml version="1.0" ?><interfacedef loc="40:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" nicename="tos.chips.cc2420.interfaces.CC2420Fifo" qname="CC2420Fifo">
+      <documentation loc="32:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc">
+        <short>
+ HAL abstraction for accessing the FIFO registers of a ChipCon
+ CC2420 radio.</short>
+        <long>
+ HAL abstraction for accessing the FIFO registers of a ChipCon
+ CC2420 radio.
+
+ @author Jonathan Hui &lt;jhui@archrock.com&gt;
+ @version $Revision: 1.2 $ $Date: 2008-06-03 04:43:03 $
+</long>
+      </documentation>
+      <function command="" loc="62:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="continueRead" provided="0" ref="0x2b09179c7998">
+        <documentation loc="53:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc">
+          <short>
+ Continue reading from the FIFO without having to send the address
+ byte again.</short>
+          <long>
+ Continue reading from the FIFO without having to send the address
+ byte again. The &lt;code&gt;readDone&lt;/code&gt; event will be signalled
+ upon completion.
+
+ @param data a pointer to the receive buffer.
+ @param length number of bytes to read.
+ @return SUCCESS always.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Fifo" qname="CC2420Fifo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="62:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="data" ref="0x2b09179c73e8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="62:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="length" ref="0x2b09179c7718">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="91:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="writeDone" provided="0" ref="0x2b0917a0c948">
+        <documentation loc="84:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc">
+          <short>
+ Signals the completion of a write operation.</short>
+          <long>
+ Signals the completion of a write operation.
+
+ @param data a pointer to the send buffer.
+ @param length number of bytes written.
+ @param error notification of how the operation went
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Fifo" qname="CC2420Fifo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="91:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="data" ref="0x2b0917a0c060">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="91:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="length" ref="0x2b0917a0c390">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="91:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="error" ref="0x2b0917a0c6b8">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="82:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="write" provided="0" ref="0x2b0917a0d348">
+        <documentation loc="73:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc">
+          <short>
+ Start writing the FIFO.</short>
+          <long>
+ Start writing the FIFO. The &lt;code&gt;writeDone&lt;/code&gt; event will be
+ signalled upon completion.
+
+ @param data a pointer to the send buffer.
+ @param length number of bytes to write.
+ @return status byte returned when sending the last address byte
+ of the SPI transaction.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Fifo" qname="CC2420Fifo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="cc2420_status_t" ref="0x2b09170e8b40"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="82:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="data" ref="0x2b0917a0ed20">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="82:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="length" ref="0x2b0917a0d0c8">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="51:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="beginRead" provided="0" ref="0x2b09179c8678">
+        <documentation loc="42:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc">
+          <short>
+ Start reading from the FIFO.</short>
+          <long>
+ Start reading from the FIFO. The &lt;code&gt;readDone&lt;/code&gt; event will
+ be signalled upon completion.
+
+ @param data a pointer to the receive buffer.
+ @param length number of bytes to read.
+ @return status byte returned when sending the last address byte
+ of the SPI transaction.
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Fifo" qname="CC2420Fifo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="cc2420_status_t" ref="0x2b09170e8b40"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="data" ref="0x2b09179c80c8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="51:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="length" ref="0x2b09179c83f8">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function event="" loc="71:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="readDone" provided="0" ref="0x2b0917a0e030">
+        <documentation loc="64:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc">
+          <short>
+ Signals the completion of a read operation.</short>
+          <long>
+ Signals the completion of a read operation.
+
+ @param data a pointer to the receive buffer.
+ @param length number of bytes read.
+ @param error notification of how the operation went
+</long>
+        </documentation>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Fifo" qname="CC2420Fifo"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="71:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="data" ref="0x2b09179c6720">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+                <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+              </type-int>
+            </type-pointer>
+          </variable>
+          <variable loc="71:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="length" ref="0x2b09179c6a50">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+          <variable loc="71:/opt/tinyos-main-read-only/tos/chips/cc2420/interfaces/CC2420Fifo.nc" name="error" ref="0x2b09179c6d78">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="error_t" ref="0x2b0916a571a8"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>

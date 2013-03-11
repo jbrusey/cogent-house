@@ -1,0 +1,255 @@
+<?xml version="1.0" ?><component loc="46:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP" safe="">
+      <documentation loc="33:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc">
+        <short>
+ Active message implementation on top of the CC2420 radio.</short>
+        <long>
+ Active message implementation on top of the CC2420 radio. This
+ implementation uses the 16-bit addressing mode of 802.15.4: the
+ only additional byte it adds is the AM id byte, as the first byte
+ of the data payload.
+
+ @author Philip Levis
+ @version $Revision: 1.22 $ $Date: 2010-06-29 22:07:44 $
+</long>
+      </documentation>
+      <module/>
+    <specification><interface loc="59:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="SubReceive" provided="0" ref="0x2b09182e3cc8">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubReceive" ref="0x2b09182e3cc8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b09182e20a0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="58:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="SubSend" provided="0" ref="0x2b09182e3020">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubSend" ref="0x2b09182e3020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Send" qname="Send"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b09182e3370" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09182e34f8" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09182e3680" scoped=""/>
+        <function-ref name="cancel" ref="0x2b09182e3808" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b09182e3990" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="62:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="CC2420Config" provided="0" ref="0x2b09182e1ab0">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CC2420Config" ref="0x2b09182e1ab0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Config" qname="CC2420Config"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setAutoAck" ref="0x2b09182e1e00" scoped=""/>
+        <function-ref name="isAddressRecognitionEnabled" ref="0x2b09182e0020" scoped=""/>
+        <function-ref name="setAddressRecognition" ref="0x2b09182e01a8" scoped=""/>
+        <function-ref name="syncDone" ref="0x2b09182e0330" scoped=""/>
+        <function-ref name="isHwAddressRecognitionDefault" ref="0x2b09182e04b8" scoped=""/>
+        <function-ref name="setShortAddr" ref="0x2b09182e0640" scoped=""/>
+        <function-ref name="setChannel" ref="0x2b09182e07c8" scoped=""/>
+        <function-ref name="isAutoAckEnabled" ref="0x2b09182e0950" scoped=""/>
+        <function-ref name="setPanAddr" ref="0x2b09182e0ad8" scoped=""/>
+        <function-ref name="isHwAutoAckDefault" ref="0x2b09182e0c60" scoped=""/>
+        <function-ref name="getExtAddr" ref="0x2b09182e0de8" scoped=""/>
+        <function-ref name="getShortAddr" ref="0x2b09182df020" scoped=""/>
+        <function-ref name="sync" ref="0x2b09182df1a8" scoped=""/>
+        <function-ref name="getChannel" ref="0x2b09182df430" scoped=""/>
+        <function-ref name="getPanAddr" ref="0x2b09182df5b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="54:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="RadioBackoff" provided="1" ref="0x2b09182e4020">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="RadioBackoff" ref="0x2b09182e4020" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.RadioBackoff" qname="RadioBackoff"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="requestCca" ref="0x2b09182e4370" scoped=""/>
+        <function-ref name="requestInitialBackoff" ref="0x2b09182e44f8" scoped=""/>
+        <function-ref name="setCongestionBackoff" ref="0x2b09182e4680" scoped=""/>
+        <function-ref name="setInitialBackoff" ref="0x2b09182e4808" scoped=""/>
+        <function-ref name="setCca" ref="0x2b09182e4990" scoped=""/>
+        <function-ref name="requestCongestionBackoff" ref="0x2b09182e4b18" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="53:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="SendNotifier" provided="1" ref="0x2b09182e5400">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SendNotifier" ref="0x2b09182e5400" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.SendNotifier" qname="SendNotifier"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="aboutToSend" ref="0x2b09182e5750" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="64:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="SubBackoff" provided="0" ref="0x2b09182de6a0">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SubBackoff" ref="0x2b09182de6a0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.RadioBackoff" qname="RadioBackoff"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="requestCca" ref="0x2b09182de9f0" scoped=""/>
+        <function-ref name="requestInitialBackoff" ref="0x2b09182deb78" scoped=""/>
+        <function-ref name="setCongestionBackoff" ref="0x2b09182ded00" scoped=""/>
+        <function-ref name="setInitialBackoff" ref="0x2b09182dc020" scoped=""/>
+        <function-ref name="setCca" ref="0x2b09182dc1a8" scoped=""/>
+        <function-ref name="requestCongestionBackoff" ref="0x2b09182dc330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="52:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="Packet" provided="1" ref="0x2b09182e62a8">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Packet" ref="0x2b09182e62a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Packet" qname="Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="clear" ref="0x2b09182e65f8" scoped=""/>
+        <function-ref name="payloadLength" ref="0x2b09182e6780" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09182e6908" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09182e6a90" scoped=""/>
+        <function-ref name="setPayloadLength" ref="0x2b09182e6c18" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="48:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="AMSend" provided="1" ref="0x2b09182eb938">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AMSend" ref="0x2b09182eb938" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AMSend" qname="AMSend"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="send" ref="0x2b09182ebc88" scoped=""/>
+        <function-ref name="getPayload" ref="0x2b09182ebe10" scoped=""/>
+        <function-ref name="maxPayloadLength" ref="0x2b09182ea020" scoped=""/>
+        <function-ref name="cancel" ref="0x2b09182ea1a8" scoped=""/>
+        <function-ref name="sendDone" ref="0x2b09182ea330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="50:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="Snoop" provided="1" ref="0x2b09182e8628">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Snoop" ref="0x2b09182e8628" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b09182e8978" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="60:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="CC2420Packet" provided="0" ref="0x2b09182e2368">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CC2420Packet" ref="0x2b09182e2368" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420Packet" qname="CC2420Packet"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="setPower" ref="0x2b09182e26b8" scoped=""/>
+        <function-ref name="setNetwork" ref="0x2b09182e2840" scoped=""/>
+        <function-ref name="getRssi" ref="0x2b09182e29c8" scoped=""/>
+        <function-ref name="getNetwork" ref="0x2b09182e2b50" scoped=""/>
+        <function-ref name="getPower" ref="0x2b09182e2cd8" scoped=""/>
+        <function-ref name="getLqi" ref="0x2b09182e2e60" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="63:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="ActiveMessageAddress" provided="0" ref="0x2b09182df8d0">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ActiveMessageAddress" ref="0x2b09182df8d0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ActiveMessageAddress" qname="ActiveMessageAddress"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="amAddress" ref="0x2b09182dfd20" scoped=""/>
+        <function-ref name="changed" ref="0x2b09182de020" scoped=""/>
+        <function-ref name="amGroup" ref="0x2b09182de1a8" scoped=""/>
+        <function-ref name="setAddress" ref="0x2b09182de330" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="61:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="CC2420PacketBody" provided="0" ref="0x2b09182e1188">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="CC2420PacketBody" ref="0x2b09182e1188" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.chips.cc2420.interfaces.CC2420PacketBody" qname="CC2420PacketBody"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="getPayload" ref="0x2b09182e14d8" scoped=""/>
+        <function-ref name="getHeader" ref="0x2b09182e1660" scoped=""/>
+        <function-ref name="getMetadata" ref="0x2b09182e17e8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="49:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="Receive" provided="1" ref="0x2b09182eaab0">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Receive" ref="0x2b09182eaab0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Receive" qname="Receive"/>
+      </instance>
+      <interface-parameters>
+        <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+          <typename><typedef-ref name="am_id_t" ref="0x2b09171183b0"/></typename>
+        </type-int>
+      </interface-parameters>
+      <interface-functions>
+        <function-ref name="receive" ref="0x2b09182eae00" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="67:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="Leds" provided="0" ref="0x2b09182db2a8">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="Leds" ref="0x2b09182db2a8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Leds" qname="Leds"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="led0Off" ref="0x2b09182db5f8" scoped=""/>
+        <function-ref name="led0Toggle" ref="0x2b09182db780" scoped=""/>
+        <function-ref name="led1On" ref="0x2b09182db908" scoped=""/>
+        <function-ref name="led1Toggle" ref="0x2b09182dba90" scoped=""/>
+        <function-ref name="led2Toggle" ref="0x2b09182dbc18" scoped=""/>
+        <function-ref name="get" ref="0x2b09182dbda0" scoped=""/>
+        <function-ref name="led1Off" ref="0x2b09182da020" scoped=""/>
+        <function-ref name="led2Off" ref="0x2b09182da640" scoped=""/>
+        <function-ref name="set" ref="0x2b09182da1a8" scoped=""/>
+        <function-ref name="led0On" ref="0x2b09182da330" scoped=""/>
+        <function-ref name="led2On" ref="0x2b09182da4b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="51:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="AMPacket" provided="1" ref="0x2b09182e8c18">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="AMPacket" ref="0x2b09182e8c18" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.AMPacket" qname="AMPacket"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="group" ref="0x2b09182e7020" scoped=""/>
+        <function-ref name="source" ref="0x2b09182e71a8" scoped=""/>
+        <function-ref name="address" ref="0x2b09182e7330" scoped=""/>
+        <function-ref name="destination" ref="0x2b09182e74b8" scoped=""/>
+        <function-ref name="setSource" ref="0x2b09182e7640" scoped=""/>
+        <function-ref name="setDestination" ref="0x2b09182e77c8" scoped=""/>
+        <function-ref name="type" ref="0x2b09182e7950" scoped=""/>
+        <function-ref name="setType" ref="0x2b09182e7ad8" scoped=""/>
+        <function-ref name="isForMe" ref="0x2b09182e7c60" scoped=""/>
+        <function-ref name="setGroup" ref="0x2b09182e7de8" scoped=""/>
+        <function-ref name="localGroup" ref="0x2b09182e6020" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="66:/opt/tinyos-main-read-only/tos/chips/cc2420/CC2420ActiveMessageP.nc" name="RadioResource" provided="0" ref="0x2b09182dc698">
+      <component-ref nicename="tos.chips.cc2420.CC2420ActiveMessageP" qname="CC2420ActiveMessageP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="RadioResource" ref="0x2b09182dc698" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.Resource" qname="Resource"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="release" ref="0x2b09182dc9e8" scoped=""/>
+        <function-ref name="immediateRequest" ref="0x2b09182dcb70" scoped=""/>
+        <function-ref name="request" ref="0x2b09182dccf8" scoped=""/>
+        <function-ref name="granted" ref="0x2b09182dce80" scoped=""/>
+        <function-ref name="isOwner" ref="0x2b09182db030" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

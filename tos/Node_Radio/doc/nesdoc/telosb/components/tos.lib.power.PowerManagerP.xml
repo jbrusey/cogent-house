@@ -1,0 +1,103 @@
+<?xml version="1.0" ?><component abstract="" loc="58:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP">
+      <documentation loc="41:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc">
+        <short>
+ Please refer to TEP 115 for more information about this component and its
+ intended use.&lt;br&gt;&lt;br&gt;
+
+ This is the internal implementation of the standard power management
+ policy for managing the power states of non-virtualized devices.</short>
+        <long>
+ Please refer to TEP 115 for more information about this component and its
+ intended use.&lt;br&gt;&lt;br&gt;
+
+ This is the internal implementation of the standard power management
+ policy for managing the power states of non-virtualized devices.
+ Non-virtualized devices are shared using a parameterized Resource
+ interface, and are powered down according to some policy whenever there
+ are no more pending requests to that Resource.  The policy implemented
+ by this component is to power down a device as soon as it becomes free.
+ Such a policy is useful whenever a device has a negligible wake-up
+ latency.  There is no cost associated with waiting for the device to
+ power up, so it can be powered on and off as often as possible.
+ 
+ @author Kevin Klues (klueska@cs.wustl.edu)
+</long>
+      </documentation>
+      <parameters>
+      </parameters>
+      <module/>
+    <specification><interface loc="61:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" name="SplitControl" provided="0" ref="0x2b09189ea988">
+      <component-ref nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="SplitControl" ref="0x2b09189ea988" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.SplitControl" qname="SplitControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="startDone" ref="0x2b09189eacd8" scoped=""/>
+        <function-ref name="stopDone" ref="0x2b09189eae60" scoped=""/>
+        <function-ref name="start" ref="0x2b09189e9020" scoped=""/>
+        <function-ref name="stop" ref="0x2b09189e91a8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="63:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" name="PowerDownCleanup" provided="0" ref="0x2b09189e9498">
+      <component-ref nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="PowerDownCleanup" ref="0x2b09189e9498" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.lib.power.PowerDownCleanup" qname="PowerDownCleanup"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="cleanup" ref="0x2b09189e97e8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="78:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" name="stopTask" provided="0" ref="0x2b09189e30c0">
+      <component-ref nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="stopTask" ref="0x2b09189e30c0" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b09189e3410" scoped=""/>
+        <function-ref name="runTask" ref="0x2b09189e3598" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="64:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" name="ResourceDefaultOwner" provided="0" ref="0x2b09189e9b00">
+      <component-ref nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ResourceDefaultOwner" ref="0x2b09189e9b00" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ResourceDefaultOwner" qname="ResourceDefaultOwner"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="release" ref="0x2b09189e9e50" scoped=""/>
+        <function-ref name="requested" ref="0x2b09189e8020" scoped=""/>
+        <function-ref name="granted" ref="0x2b09189e81a8" scoped=""/>
+        <function-ref name="isOwner" ref="0x2b09189e8330" scoped=""/>
+        <function-ref name="immediateRequested" ref="0x2b09189e84b8" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="73:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" name="startTask" provided="0" ref="0x2b09189e6368">
+      <component-ref nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="startTask" ref="0x2b09189e6368" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.TaskBasic" qname="TaskBasic"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="postTask" ref="0x2b09189e66b8" scoped=""/>
+        <function-ref name="runTask" ref="0x2b09189e6840" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="60:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" name="StdControl" provided="0" ref="0x2b09189ea1e8">
+      <component-ref nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="StdControl" ref="0x2b09189ea1e8" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.StdControl" qname="StdControl"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="start" ref="0x2b09189ea538" scoped=""/>
+        <function-ref name="stop" ref="0x2b09189ea6c0" scoped=""/>
+      </interface-functions>
+    </interface><interface loc="65:/opt/tinyos-main-read-only/tos/lib/power/PowerManagerP.nc" name="ArbiterInfo" provided="0" ref="0x2b09189e8770">
+      <component-ref nicename="tos.lib.power.PowerManagerP" qname="PowerManagerP"/>
+      <type-interface alignment="I:2" size="I:2"><interface-ref name="ArbiterInfo" ref="0x2b09189e8770" scoped=""/></type-interface>
+      <instance>
+        <interfacedef-ref nicename="tos.interfaces.ArbiterInfo" qname="ArbiterInfo"/>
+      </instance>
+      <interface-functions>
+        <function-ref name="inUse" ref="0x2b09189e8ac0" scoped=""/>
+        <function-ref name="userId" ref="0x2b09189e8c48" scoped=""/>
+      </interface-functions>
+    </interface></specification><referenced/></component>

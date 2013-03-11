@@ -1,0 +1,17 @@
+digraph "tos.chips.msp430.timer.Alarm32khz16C" {
+  n0x2b091747f588 [shape=ellipse, style=filled, label="Alarm", fontsize=12];
+  "Alarm32khz16C.Msp430Alarm" [fontsize=12, shape=box, style=dashed, label="Msp430AlarmC\n(Msp430Alarm)", URL="../chtml/tos.chips.msp430.timer.Msp430AlarmC.html"];
+  n0x2b0917482b48 [shape=ellipse, style=filled, label="Init", fontsize=12];
+  "Alarm32khz16C.Msp430Alarm" [fontsize=12, shape=box, style=dashed, label="Msp430AlarmC\n(Msp430Alarm)", URL="../chtml/tos.chips.msp430.timer.Msp430AlarmC.html"];
+  "Alarm32khz16C.Msp430Alarm" [fontsize=12, shape=box, style=dashed, label="Msp430AlarmC\n(Msp430Alarm)", URL="../chtml/tos.chips.msp430.timer.Msp430AlarmC.html"];
+  "Alarm32khz16C.Msp430Timer" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Timer32khzC\n(Msp430Timer)", URL="../chtml/tos.chips.msp430.timer.Msp430Timer32khzC.html"];
+  "Alarm32khz16C.Msp430Alarm" [fontsize=12, shape=box, style=dashed, label="Msp430AlarmC\n(Msp430Alarm)", URL="../chtml/tos.chips.msp430.timer.Msp430AlarmC.html"];
+  "Alarm32khz16C.Msp430Timer" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Timer32khzC\n(Msp430Timer)", URL="../chtml/tos.chips.msp430.timer.Msp430Timer32khzC.html"];
+  "Alarm32khz16C.Msp430Alarm" [fontsize=12, shape=box, style=dashed, label="Msp430AlarmC\n(Msp430Alarm)", URL="../chtml/tos.chips.msp430.timer.Msp430AlarmC.html"];
+  "Alarm32khz16C.Msp430Timer" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430Timer32khzC\n(Msp430Timer)", URL="../chtml/tos.chips.msp430.timer.Msp430Timer32khzC.html"];
+  "n0x2b091747f588" -> "Alarm32khz16C.Msp430Alarm" [label="Alarm<T32khz, uint16_t>", URL="../ihtml/tos.lib.timer.Alarm.html", fontsize=10];
+  "n0x2b0917482b48" -> "Alarm32khz16C.Msp430Alarm" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
+  "Alarm32khz16C.Msp430Alarm" -> "Alarm32khz16C.Msp430Timer" [label="Msp430Timer", URL="../ihtml/tos.chips.msp430.timer.Msp430Timer.html", fontsize=10];
+  "Alarm32khz16C.Msp430Alarm" -> "Alarm32khz16C.Msp430Timer" [label="Msp430TimerControl", URL="../ihtml/tos.chips.msp430.timer.Msp430TimerControl.html", fontsize=10];
+  "Alarm32khz16C.Msp430Alarm" -> "Alarm32khz16C.Msp430Timer" [label="Msp430Compare", URL="../ihtml/tos.chips.msp430.timer.Msp430Compare.html", fontsize=10];
+}

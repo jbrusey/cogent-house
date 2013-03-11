@@ -1,0 +1,123 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.PacketTimeStamp</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.PacketTimeStamp</h2>
+    <b>interface PacketTimeStamp&lt;typedef precision_tag, typedef size_type&gt;</b><p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command void <a href="#clear">clear</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isValid">isValid</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command void <a href="#set">set</a>(message_t *msg, size_type value)
+      </span><menu>
+ 
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command size_type <a href="#timestamp">timestamp</a>(message_t *msg)
+      </span><menu>
+ 
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="clear"></a>
+    <h4>clear
+    </h4>
+    <span id=funcnameshort>command void <b>clear</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' Message to modify.
+
+ Sets the isValid flag to FALSE.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isValid"></a>
+    <h4>isValid
+    </h4>
+    <span id=funcnameshort>command bool <b>isValid</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' Message to examine.
+
+ Returns TRUE if the time stamp of the message is valid. Under special
+ circumstances the radio chip might not be able to correctly assign a
+ precise time value to an incoming packet (e.g. under very heavy traffic
+ multiple interrupts can occur before they could be serviced, and even
+ if capture registers are used, it is not possible to get the time stamp
+ for the first or last unserviced event), in which case the time stamp
+ value should not be used. It is recommended that the isValid command be
+ called from the receive or sendDone event handler.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="set"></a>
+    <h4>set
+    </h4>
+    <span id=funcnameshort>command void <b>set</b>(message_t *msg, size_type value)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' Message to modify.
+
+ Sets the isValid flag to TRUE and the time stamp value to the
+ specified value.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="timestamp"></a>
+    <h4>timestamp
+    </h4>
+    <span id=funcnameshort>command size_type <b>timestamp</b>(message_t *msg)
+    </span>
+    <p>
+    <menu>
+      
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          'message_t *ONE msg' Message to get timestamp from.
+
+ Return the time stamp for the given message. Please check with the
+ isValid command if this value can be relied upon. If this command is
+ called after transmission, then the transmit time of the packet
+ is returned (the time when the frame synchronization byte was
+ transmitted). If this command is called after the message is received,
+ the tne receive time of the message is returned. It is recommended that
+ the timestamp command be called only from the receive or sendDone event
+ handler.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

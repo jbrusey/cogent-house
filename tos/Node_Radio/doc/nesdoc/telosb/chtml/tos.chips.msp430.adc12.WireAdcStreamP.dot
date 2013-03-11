@@ -1,0 +1,23 @@
+digraph "tos.chips.msp430.adc12.WireAdcStreamP" {
+  n0x2b0918d5c3f0 [shape=ellipse, style=filled, label="ReadStream", fontsize=12];
+  "WireAdcStreamP.ArbitrateReadStream" [fontsize=12, shape=box, style=dashed, label="ArbitratedReadStreamC\n(ArbitrateReadStream)", URL="../chtml/tos.system.ArbitratedReadStreamC.html"];
+  "AdcStreamP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcStreamP.html"];
+  n0x2b0918d58668 [shape=ellipse, style=filled, label="AdcConfigure", fontsize=12];
+  "WireAdcStreamP.ArbitrateReadStream" [fontsize=12, shape=box, style=dashed, label="ArbitratedReadStreamC\n(ArbitrateReadStream)", URL="../chtml/tos.system.ArbitratedReadStreamC.html"];
+  n0x2b0918d541c8 [shape=ellipse, style=filled, label="Resource", fontsize=12];
+  "WireAdcStreamP.ArbitrateReadStream" [fontsize=12, shape=box, style=dashed, label="ArbitratedReadStreamC\n(ArbitrateReadStream)", URL="../chtml/tos.system.ArbitratedReadStreamC.html"];
+  "AdcStreamP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcStreamP.html"];
+  "MainC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.MainC.html"];
+  "AdcStreamP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcStreamP.html"];
+  "AdcStreamP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcStreamP.html"];
+  n0x2b0918d57c08 [shape=ellipse, style=filled, label="Msp430Adc12SingleChannel", fontsize=12];
+  "AdcStreamP" [fontsize=12, shape=box, URL="../chtml/tos.chips.msp430.adc12.AdcStreamP.html"];
+  "WireAdcStreamP.Alarm" [fontsize=12, shape=box,peripheries=2, style=dashed, label="AlarmMilli32C\n(Alarm)", URL="../chtml/tos.chips.msp430.timer.AlarmMilli32C.html"];
+  "n0x2b0918d5c3f0" -> "WireAdcStreamP.ArbitrateReadStream" [label="ReadStream<uint16_t>[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.ReadStream.html", fontsize=10];
+  "AdcStreamP" -> "n0x2b0918d58668" [label="AdcConfigure<msp430adc12_channel_config_t *>[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.AdcConfigure.html", fontsize=10];
+  "WireAdcStreamP.ArbitrateReadStream" -> "n0x2b0918d541c8" [label="Resource[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.Resource.html", fontsize=10];
+  "WireAdcStreamP.ArbitrateReadStream" -> "AdcStreamP" [label="ReadStream<uint16_t>[uint8_t]", style=bold, URL="../ihtml/tos.interfaces.ReadStream.html", fontsize=10];
+  "MainC" -> "AdcStreamP" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
+  "AdcStreamP" -> "n0x2b0918d57c08" [label="Msp430Adc12SingleChannel[uint8_t]", style=bold, URL="../ihtml/tos.chips.msp430.adc12.Msp430Adc12SingleChannel.html", fontsize=10];
+  "AdcStreamP" -> "WireAdcStreamP.Alarm" [label="Alarm<TMilli, uint32_t>", URL="../ihtml/tos.lib.timer.Alarm.html", fontsize=10];
+}

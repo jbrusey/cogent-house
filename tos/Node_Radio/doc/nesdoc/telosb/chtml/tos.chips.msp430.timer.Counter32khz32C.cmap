@@ -1,0 +1,6 @@
+<area shape="rect" id="node2" href="../chtml/tos.lib.timer.TransformCounterC.html" title="TransformCounterC\n(Transform)" alt="" coords="25,120,201,171">
+<area shape="poly" id="edge2" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;T32khz, uint32_t&gt;" alt="" coords="116,53 116,106 111,106 111,53">
+<area shape="rect" id="edge2" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;T32khz, uint32_t&gt;" alt="" coords="113,78,292,95">
+<area shape="rect" id="node3" href="../chtml/tos.chips.msp430.timer.Msp430Counter32khzC.html" title="Msp430Counter32khzC" alt="" coords="5,237,221,296">
+<area shape="poly" id="edge4" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;T32khz, uint16_t&gt;" alt="" coords="116,171 116,224 111,224 111,171">
+<area shape="rect" id="edge4" href="../ihtml/tos.lib.timer.Counter.html" title="Counter&lt;T32khz, uint16_t&gt;" alt="" coords="113,195,292,213">

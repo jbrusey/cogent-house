@@ -1,0 +1,103 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.chips.cc2420.interfaces.CC2420Ram</title>
+  </head>
+  <body>
+    <h2>Interface: tos.chips.cc2420.interfaces.CC2420Ram</h2>
+    <b>interface CC2420Ram</b><p>
+ HAL abstraction for accessing theRAM of a ChipCon CC2420 radio.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Jonathan Hui &lt;jhui@archrock.com&gt;
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.2 $ $Date: 2008-06-03 04:43:03 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command cc2420_status_t <a href="#read">read</a>(uint8_t offset, uint8_t *data, uint8_t length)
+      </span><menu>
+ Read data from a RAM.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command cc2420_status_t <a href="#write">write</a>(uint8_t offset, uint8_t *data, uint8_t length)
+      </span><menu>
+ Write data to RAM.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="read"></a>
+    <h4>read
+    </h4>
+    <span id=funcnameshort>command cc2420_status_t <b>read</b>(uint8_t offset, uint8_t *data, uint8_t length)
+    </span>
+    <p>
+    <menu>
+      
+ Read data from a RAM. This operation is sychronous.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>offset</code> -  within the field.
+ 
+        </dd>
+        <dd>
+          <code>data</code> -  a pointer to the receive buffer.
+ 
+        </dd>
+        <dd>
+          <code>length</code> -  number of bytes to read.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          status byte returned when sending the last byte
+ of the SPI transaction.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="write"></a>
+    <h4>write
+    </h4>
+    <span id=funcnameshort>command cc2420_status_t <b>write</b>(uint8_t offset, uint8_t *data, uint8_t length)
+    </span>
+    <p>
+    <menu>
+      
+ Write data to RAM. This operation is sychronous.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Parameters:</b>
+        <dd>
+          <code>offset</code> -  within the field.
+ 
+        </dd>
+        <dd>
+          <code>data</code> -  a pointer to the send buffer.
+ 
+        </dd>
+        <dd>
+          <code>length</code> -  number of bytes to write.
+ 
+        </dd>
+        <dt><b>Returns:</b>
+        <dd>
+          status byte returned when sending the last address byte
+ of the SPI transaction.
+
+        </dd>
+      </dl>
+    </menu>
+  </body>
+</html>

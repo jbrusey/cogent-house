@@ -1,0 +1,177 @@
+<html>
+  <head>
+    <LINK rel="stylesheet" href="nesdoc.css" type="text/css" media="screen"><title>Interface: tos.interfaces.Resource</title>
+  </head>
+  <body>
+    <h2>Interface: tos.interfaces.Resource</h2>
+    <b>interface Resource</b><p>
+ Please refer to TEP 108 for more information about this interface and its
+ intended use.<br><br>
+
+ The Resource interface can be used to gain access to
+ shared resources.  It is always offered as a parameterized
+ interface, and its users gain access to the resource through some
+ predefined arbitration policy.
+
+ 
+    <p>
+    <dl>
+      <dt><b>Author:</b>
+      <dd>
+        Kevin Klues (klueska@cs.wustl.edu)
+ 
+      </dd>
+      <dt><b>Version:</b>
+      <dd>
+        $Revision: 1.6 $
+ 
+      </dd>
+      <dt><b>Date:</b>
+      <dd>
+        $Date: 2010-06-29 22:07:46 $
+
+      </dd>
+    </dl>
+    <p><p><div id=heading>Commands</div><div id=funcsig><span id=funcnameshort>command error_t <a href="#immediateRequest">immediateRequest</a>()
+      </span><menu>
+ Request immediate access to a shared resource.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command bool <a href="#isOwner">isOwner</a>()
+      </span><menu>
+  Check if the user of this interface is the current
+  owner of the Resource
+  
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#release">release</a>()
+      </span><menu>
+ Release a shared resource you previously acquired.
+      </menu>
+    </div><div id=funcsig><span id=funcnameshort>command error_t <a href="#request">request</a>()
+      </span><menu>
+ Request access to a shared resource.
+      </menu>
+    </div><p><div id=heading>Events</div><div id=funcsig><span id=funcnameshort>event void <a href="#granted">granted</a>()
+      </span><menu>
+ You are now in control of the resource.
+      </menu>
+    </div><p><div id=heading>Commands - Details</div>
+    <a name="immediateRequest"></a>
+    <h4>immediateRequest
+    </h4>
+    <span id=funcnameshort>command error_t <b>immediateRequest</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Request immediate access to a shared resource. You must call release()
+ when you are done with it.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS When a request has been accepted. <br>
+            FAIL The request cannot be fulfilled
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="isOwner"></a>
+    <h4>isOwner
+    </h4>
+    <span id=funcnameshort>command bool <b>isOwner</b>()
+    </span>
+    <p>
+    <menu>
+      
+  Check if the user of this interface is the current
+  owner of the Resource
+  
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          TRUE  It is the owner <br>
+             FALSE It is not the owner
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="release"></a>
+    <h4>release
+    </h4>
+    <span id=funcnameshort>command error_t <b>release</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Release a shared resource you previously acquired.  
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS The resource has been released <br>
+         FAIL You tried to release but you are not the
+              owner of the resource 
+
+ 
+        </dd>
+        <dt><b>Note:</b>
+        <dd>
+          This command should never be called between putting in a request 	  
+       and waiting for a granted event.  Doing so will result in a
+       potential race condition.  There are ways to guarantee that no
+       race will occur, but they are clumsy and overly complicated.
+       Since it doesn't logically make since to be calling
+       <code>release</code> before receiving a <code>granted</code> event, 
+       we have opted to keep thing simple and warn you about the potential 
+       race.
+
+        </dd>
+      </dl>
+    </menu>
+    <hr>
+    <a name="request"></a>
+    <h4>request
+    </h4>
+    <span id=funcnameshort>command error_t <b>request</b>()
+    </span>
+    <p>
+    <menu>
+      
+ Request access to a shared resource. You must call release()
+ when you are done with it.
+
+ 
+      <p>
+      <dl>
+        <dt><b>Returns:</b>
+        <dd>
+          SUCCESS When a request has been accepted. The granted()
+                 event will be signaled once you have control of the
+                 resource.<br>
+         EBUSY You have already requested this resource and a
+               granted event is pending
+
+        </dd>
+      </dl>
+    </menu>
+    <p><div id=heading>Events - Details</div>
+    <a name="granted"></a>
+    <h4>granted
+    </h4>
+    <span id=funcnameshort>event void <b>granted</b>()
+    </span>
+    <p>
+    <menu>
+      
+ You are now in control of the resource.
+
+    </menu>
+  </body>
+</html>

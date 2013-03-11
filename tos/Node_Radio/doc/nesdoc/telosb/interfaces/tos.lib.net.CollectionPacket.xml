@@ -1,0 +1,164 @@
+<?xml version="1.0" ?><interfacedef loc="42:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket">
+      <function command="" loc="50:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="setSequenceNumber" provided="0" ref="0x2b09176436a8">
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="50:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="msg" ref="0x2b0917643100">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="50:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="seqno" ref="0x2b0917643428">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="44:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="setOrigin" provided="0" ref="0x2b09176477b0">
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="44:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="msg" ref="0x2b09176471f8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="44:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="addr" ref="0x2b0917647530">
+            <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+              <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="47:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="setType" provided="0" ref="0x2b0917644020">
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-void alignment="I:1" size="I:1"/>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+            </type-int>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="47:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="msg" ref="0x2b0917645910">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+          <variable loc="47:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="id" ref="0x2b0917645c68">
+            <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+              <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+            </type-int>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="43:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="getOrigin" provided="0" ref="0x2b0917613b28">
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:2" cname="unsigned int" size="I:2" unsigned="">
+            <typename><typedef-ref name="am_addr_t" ref="0x2b0917118b18"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="43:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="msg" ref="0x2b09176138b8">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="49:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="getSequenceNumber" provided="0" ref="0x2b09176449c0">
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="uint8_t" ref="0x2b091611a790"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="49:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="msg" ref="0x2b0917644750">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+      <function command="" loc="46:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="getType" provided="0" ref="0x2b0917645290">
+        <interfacedef-ref nicename="tos.lib.net.CollectionPacket" qname="CollectionPacket"/>
+        <type-function alignment="I:1" size="I:1">
+          <type-int alignment="I:1" cname="unsigned char" size="I:1" unsigned="">
+            <typename><typedef-ref name="collection_id_t" ref="0x2b0916edab58"/></typename>
+          </type-int>
+          <function-parameters>
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </function-parameters>
+        </type-function>
+        <parameters>
+          <variable loc="46:/opt/tinyos-main-read-only/tos/lib/net/CollectionPacket.nc" name="msg" ref="0x2b0917645020">
+            <type-pointer alignment="I:2" size="I:2">
+              <type-tag alignment="I:1" size="I:199"><nx_struct-ref name="message_t" ref="0x2b091712f020"/>
+                <typename><typedef-ref name="message_t" ref="0x2b091712e570"/></typename>
+              </type-tag>
+            </type-pointer>
+          </variable>
+        </parameters>
+      </function>
+    </interfacedef>
