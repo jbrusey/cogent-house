@@ -35,6 +35,9 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadVOC;
     interface SIPController<FilterState *> as ReadAQ;
     interface TransmissionControl;
+    
+    interface SplitControl as OptiControl;
+    interface Read<float> as ReadOpti;
 #endif
 
 #ifdef BN
@@ -370,6 +373,11 @@ implementation
       call Configured.set(RS_VOC);
       call Configured.set(RS_DUTY);
     }
+    else if (nodeType == 5) { /* energy board */
+      call Configured.set(RS_OPTI);
+      call Configured.set(RS_VOLTAGE);
+      call OptiControl.start();
+    }
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
@@ -408,6 +416,10 @@ implementation
 	    call ReadHum.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
+   	  else if (i == RS_OPTI)
+	    call ReadOpti.read();
+    	  //else if (i == RS_CLAMP)
+	    //call ReadOpti.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -483,6 +495,10 @@ implementation
 
   event void ReadVOC.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_VOC, SC_VOC, SC_D_VOC);
+  }
+  
+  event void ReadOpti.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_OPTI, SC_OPTI);
   }
 #endif
 
@@ -679,6 +695,10 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
+  
+  event void OptiControl.startDone(error_t error) { }
+  
+  event void OptiControl.stopDone(error_t error) {}  
   
 }
 

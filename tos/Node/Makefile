@@ -1,4 +1,4 @@
-PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
+PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/OptiSmart  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
 
 COMPONENT=CogentHouseC
 
@@ -32,10 +32,10 @@ CFLAGS += -DLEAF_TIMEOUT_TIME=61440L
 
 CFLAGS += -DLOW_POWER_LISTENING
 CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=0
-CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
+CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024 #the radio should be on
 CFLAGS += -DDELAY_AFTER_RECEIVE=20
 CFLAGS += -DLPL_SLEEP=61440L #max value = max(unit16_t)
-CFLAGS += -DLPL_SEND=1024
+CFLAGS += -DLPL_SEND=0
 
 
 CFLAGS += -DDEWMA #-DKALMAN
