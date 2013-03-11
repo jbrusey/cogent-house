@@ -29,7 +29,7 @@ The module counts the number of interupts in a sample period from the Current co
 
 :author: Ross Wilkins
 :email: ross.wilkins87@googlemail.com
-:date:  31/07/2012
+:date:  11th March 2013
 */
 
 
