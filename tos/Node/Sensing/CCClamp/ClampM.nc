@@ -23,89 +23,147 @@
 Current cost clamp Module
 ===================
 
-ClampM provides read method to read from a directly interfaced current cost clamp
-
+ClampM provides read method to read from a directly interfaced current cost clamp based on the code
+by the Open Energy Monitoring Project at http://openenergymonitor.org/emon/
+and https://github.com/openenergymonitor/EmonLib
 
 :author: Ross Wilkins
 :email: ross.wilkins87@googlemail.com
-:date:  6th January 2011
+:date:  11th March 2013
 */
+
+#include "clamp_struct.h"
+#include "msp430usart.h"
+#define MY_UINT16_MAX (65535U)
+
 module ClampM
-{
-	provides 
-	{
-		interface Read<float> as ReadClamp;
-	}
-	uses
-	{		
-		interface Read<uint16_t> as GetClamp;
-	}
+{      
+  provides {
+    interface Read<clampStruct *> as ReadClamp;
+    interface SplitControl as ClampControl;
+  }
+  uses{		
+    interface Read<uint16_t> as GetClamp;
+    interface Timer<TMilli> as SenseTimer;
+  }
 }
 implementation
 {
-	const float vref=3.3;
-	const float maxAdc=4096.0;
-
-	// TO-DO add conversion coeffs here - (c,x,x2,x3...)
-	float clampCoeffs[] = {-1250, 5000};
+  const float VREF = 3.3;
+  const float MAXADC = 4096.0;
+  const float ICAL = 111.1; 
+  const int NUMBER_OF_SAMPLES = 1536; //2ms*1536=3secs
+  const float HOUSE_VOLATGE = 240.; //uk voltage
+  const uint32_t SAMPLE_PERIOD = 6144.; //6 seconds same as current cost
+  
+  float lastSampleI = 0.0;
+  float lastFilteredI = 0.0;
+  
+  float sumI;
+  uint32_t totalWatts, sampleCount;
+  float max_watts, min_watts;
+  
+  
+  task void readClampTask(){ 
+    uint32_t tw;
+    uint16_t sc;
+    float ma, mi;
+    clampStruct results;
+    
+    atomic {
+      tw = totalWatts;
+      sc = sampleCount;
+      ma = max_watts;
+      mi = min_watts;
+      totalWatts = 0;
+      sampleCount = 0;
+      max_watts = 0;
+      min_watts = MY_UINT16_MAX;
+    }
+    
+    //start read timer
+    call SenseTimer.startPeriodic(SAMPLE_PERIOD);
+    
+    if (sc != 0) {
+      results.average = ((float) tw) / sc;
+      results.max = ma;
+      results.min = mi;
+      signal ReadClamp.readDone(SUCCESS, &results);
+    }
+    else 
+      signal ReadClamp.readDone(FAIL, NULL);    
+  }
 	
+  command error_t ReadClamp.read(){
+    //stop read timer
+    call SenseTimer.stop();
+    post readClampTask();
+    return SUCCESS;
+  }
+		
+  //Convert raw adc to temp and add to current accumulator
+  event void GetClamp.readDone(error_t result, uint16_t data) {
+    float sqI;
+    float filteredI;
+    float sampleI=(data/MAXADC)*VREF;
+    
+    //Filter the current
+    filteredI = 0.996*(lastFilteredI+sampleI-lastSampleI);
+    
+    //Square and sum value for RMS
+    sqI = filteredI * filteredI;
+    sumI += sqI;
+    
+    //reset previous states
+    lastSampleI = sampleI;
+    lastFilteredI = filteredI;
+  }
 
-	task void readClampTask()
-	{
-		call GetClamp.read();
-	}
-
-
-	command error_t ReadClamp.read()
-	{
-		post readClampTask();
-		return SUCCESS;
-	}
-
-
-	#ifdef DEBUG
-	void printfFloat(float toBePrinted) {
-		uint32_t fi, f0, f1, f2;
-		char c;
-		float f = toBePrinted;
-
-		if (f<0){
-			c = '-'; f = -f;
-		} else {
-			c = ' ';
-		}
-
-		// integer portion.
-		fi = (uint32_t) f;
-
-		// decimal portion...get index for up to 3 decimal places.
-		f = f - ((float) fi);
-		f0 = f*10;   f0 %= 10;
-		f1 = f*100;  f1 %= 10;
-		f2 = f*1000; f2 %= 10;
-		printf("%c%ld.%d%d%d\n", c, fi, (uint8_t) f0, (uint8_t) f1, (uint8_t) f2);
-	}
-	#endif
-
-	//Convert raw adc to temp
-	event void GetClamp.readDone(error_t result, uint16_t data) {
-		float voltage;
-		float watts;
-		voltage=(data/maxAdc)*vref;
-		watts = horner(sizeof(clampCoeffs)/sizeof(float)-1, clampCoeffs, (float)voltage);
-
-		#ifdef DEBUG
-		printf("Clamp adc: ");
-		printf("%u",data);
-		printf("Clamp voltage: ");
-		printfFloat(voltage);
-		printf("House wattage: ");
-		printfFloat(watts);
-		printf("\n");
-		printfflush();
-		#endif
-
-		signal ReadClamp.readDone(SUCCESS, watts);
-	}
-
+  //calculate current wattage using rms method
+  void calcWattage(){
+    double Irms;
+    double I_RATIO;
+    float watts;
+    int n;
+    
+    for (n = 0; n < NUMBER_OF_SAMPLES; n++){
+      call GetClamp.read();
+    }
+    
+    //calculate rms
+    I_RATIO = ICAL *((VREF/1000.0) / 1023.0);
+    Irms = I_RATIO * sqrtf(sumI / NUMBER_OF_SAMPLES); 
+    
+    //convert to wattage using p=iv where = uk volatage of 240
+    watts = (Irms * HOUSE_VOLATGE);
+    
+    //process stats
+    totalWatts += watts;
+    sampleCount += 1;
+    if (watts < min_watts)
+      min_watts = watts;
+    if (watts > max_watts)
+      max_watts = watts;
+    
+    //Reset accumulators
+    sumI = 0;
+  }
+	
+	
+  event void SenseTimer.fired() {
+    calcWattage();
+  }
+  
+  command error_t ClampControl.start() {
+    //Set up reading timer
+    call SenseTimer.startPeriodic(SAMPLE_PERIOD);
+    signal ClampControl.startDone(SUCCESS);
+    return SUCCESS;
+  }
+  
+  command error_t ClampControl.stop() {
+    signal ClampControl.stopDone(SUCCESS);
+    return SUCCESS;
+  }
+  
 }
