@@ -33,6 +33,10 @@ def upgrade():
                    [{'id': 10, 'name': "ClusterHead",
                      'time': "2011-07-10 00:00:00",
                      'seq': 1,
+                     'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
+                    {'id': 5, 'name': "EnergyBoard",
+                     'time': "2011-07-10 00:00:00",
+                     'seq': 1,
                      'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'}
                    ])
     pass
