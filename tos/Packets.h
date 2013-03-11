@@ -72,10 +72,11 @@ enum {
   SC_BN_VOC_FIRST = 36,
   SC_BN_AQ_COUNT = 2,
   SC_BN_AQ_FIRST = 38,
-  SC_SIZE = 40, // SC_SIZE must be 1 greater than last entry
+  SC_OPTI = 40,
+  SC_SIZE = 41, // SC_SIZE must be 1 greater than last entry
 };
 
-#include "Leaf_SS/PackState/packstate.h"
+#include "Node/PackState/packstate.h"
 
 // raw sensors
 enum { 
@@ -90,7 +91,9 @@ enum {
   RS_POWER = 8,
   RS_HEATMETER = 9,
   RS_DUTY = 10,
-  RS_SIZE = 11 // must be 1 greater than last entry
+  RS_OPTI = 11,
+  RS_CLAMP = 12,
+  RS_SIZE = 13 // must be 1 greater than last entry
 };
 
 
