@@ -53,7 +53,6 @@ enum {
   SC_HEAT = 12,
   SC_DUTY_TIME= 13,
   SC_ERRNO = 14,
-  SC_SIZE_V1 = 15,
   SC_POWER_MIN = 15,
   SC_POWER_MAX = 16,
   SC_POWER_KWH = 17,
