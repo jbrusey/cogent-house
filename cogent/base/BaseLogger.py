@@ -121,9 +121,6 @@ class BaseLogger(object):
         """ receive and process a message object from the base station
         """
     
-        # get the last source 
-         LOGGER.debug("Store State")
-
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" %
                             (msg.get_special(), Packets.SPECIAL))

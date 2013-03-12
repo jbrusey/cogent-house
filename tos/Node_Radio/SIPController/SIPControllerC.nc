@@ -47,7 +47,7 @@ implementation
 	state_xs = call SinkStatePredict.predictState(&sink_state[id], current_state[id].time);  //Predict current sink state (line 4)
       y = abs(state_xs - current_state[id].x);  //Calculate state difference (line 5)
 
-      if (first[id] || (mask[id] * y) > threshold[id] || call Heartbeat.triggered())     //Detect event check if first or event or heartbeat (line 6)
+      if (first[id] || (mask[id] * y) >= threshold[id] || call Heartbeat.triggered())     //Detect event check if first or event or heartbeat (line 6)
 	eventful[id] = TRUE;
       signal SIPController.readDone[id](SUCCESS, &current_state[id]); //Read has been successful so return SUCESS and the state
       first[id] = FALSE;
