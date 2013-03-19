@@ -1,8 +1,0 @@
-digraph "tos.chips.cc2420.alarm.AlarmMultiplexC" {
-  n0x2b09178083e0 [shape=ellipse, style=filled, label="Init", fontsize=12];
-  "AlarmMultiplexC.Alarm" [fontsize=12, shape=box,peripheries=2, style=dashed, label="HplCC2420AlarmC\n(Alarm)", URL="../chtml/tos.platforms.telosa.chips.cc2420.HplCC2420AlarmC.html"];
-  n0x2b0917808d58 [shape=ellipse, style=filled, label="Alarm32khz32", fontsize=12];
-  "AlarmMultiplexC.Alarm" [fontsize=12, shape=box,peripheries=2, style=dashed, label="HplCC2420AlarmC\n(Alarm)", URL="../chtml/tos.platforms.telosa.chips.cc2420.HplCC2420AlarmC.html"];
-  "n0x2b09178083e0" -> "AlarmMultiplexC.Alarm" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
-  "n0x2b0917808d58" -> "AlarmMultiplexC.Alarm" [label="Alarm<T32khz, uint32_t>", URL="../ihtml/tos.lib.timer.Alarm.html", fontsize=10];
-}

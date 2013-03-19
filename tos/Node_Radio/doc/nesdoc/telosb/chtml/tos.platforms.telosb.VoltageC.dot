@@ -1,5 +1,0 @@
-digraph "tos.platforms.telosb.VoltageC" {
-  n0x2b0918a30bd0 [shape=ellipse, style=filled, label="Read", fontsize=12];
-  "VoltageC.Msp430InternalVoltageC" [fontsize=12, shape=box,peripheries=2, style=dashed, label="Msp430InternalVoltageC", URL="../chtml/tos.chips.msp430.sensors.Msp430InternalVoltageC.html"];
-  "n0x2b0918a30bd0" -> "VoltageC.Msp430InternalVoltageC" [label="Read<uint16_t>", URL="../ihtml/tos.interfaces.Read.html", fontsize=10];
-}

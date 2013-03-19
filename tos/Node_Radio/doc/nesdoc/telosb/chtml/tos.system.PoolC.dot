@@ -1,8 +1,0 @@
-digraph "tos.system.PoolC" {
-  n0x2b09184eb310 [shape=ellipse, style=filled, label="Pool", fontsize=12];
-  "PoolC.PoolP" [fontsize=12, shape=box, style=dashed, label="PoolP", URL="../chtml/tos.system.PoolP.html"];
-  "MainC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.MainC.html"];
-  "PoolC.PoolP" [fontsize=12, shape=box, style=dashed, label="PoolP", URL="../chtml/tos.system.PoolP.html"];
-  "n0x2b09184eb310" -> "PoolC.PoolP" [label="Pool<pool_t>", URL="../ihtml/tos.interfaces.Pool.html", fontsize=10];
-  "MainC" -> "PoolC.PoolP" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
-}

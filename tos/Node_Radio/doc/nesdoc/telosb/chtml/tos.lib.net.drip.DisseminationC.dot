@@ -1,5 +1,0 @@
-digraph "tos.lib.net.drip.DisseminationC" {
-  n0x2b0918f43908 [shape=ellipse, style=filled, label="StdControl", fontsize=12];
-  "DisseminationEngineP" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.lib.net.drip.DisseminationEngineP.html"];
-  "n0x2b0918f43908" -> "DisseminationEngineP" [label="StdControl", URL="../ihtml/tos.interfaces.StdControl.html", fontsize=10];
-}

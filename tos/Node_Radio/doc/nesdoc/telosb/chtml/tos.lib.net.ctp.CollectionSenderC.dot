@@ -1,8 +1,0 @@
-digraph "tos.lib.net.ctp.CollectionSenderC" {
-  n0x2b09188565b8 [shape=ellipse, style=filled, label="Packet", fontsize=12];
-  "CollectionSenderC.CollectionSenderP" [fontsize=12, shape=box,peripheries=2, style=dashed, label="CollectionSenderP", URL="../chtml/tos.lib.net.ctp.CollectionSenderP.html"];
-  n0x2b0918859950 [shape=ellipse, style=filled, label="Send", fontsize=12];
-  "CollectionSenderC.CollectionSenderP" [fontsize=12, shape=box,peripheries=2, style=dashed, label="CollectionSenderP", URL="../chtml/tos.lib.net.ctp.CollectionSenderP.html"];
-  "n0x2b09188565b8" -> "CollectionSenderC.CollectionSenderP" [label="Packet", URL="../ihtml/tos.interfaces.Packet.html", fontsize=10];
-  "n0x2b0918859950" -> "CollectionSenderC.CollectionSenderP" [label="Send", URL="../ihtml/tos.interfaces.Send.html", fontsize=10];
-}

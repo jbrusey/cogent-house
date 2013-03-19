@@ -1,8 +1,0 @@
-digraph "tos.platforms.epic.chips.ds2411.PlatformOneWireLowLevelC" {
-  n0x2b0917e5f3c0 [shape=ellipse, style=filled, label="OneWirePin", fontsize=12];
-  "PlatformOneWireLowLevelC.Msp430GpioC" [fontsize=12, shape=box, style=dashed, label="Msp430GpioC", URL="../chtml/tos.chips.msp430.pins.Msp430GpioC.html"];
-  "PlatformOneWireLowLevelC.Msp430GpioC" [fontsize=12, shape=box, style=dashed, label="Msp430GpioC", URL="../chtml/tos.chips.msp430.pins.Msp430GpioC.html"];
-  "HplMsp430GeneralIOC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.pins.HplMsp430GeneralIOC.html"];
-  "n0x2b0917e5f3c0" -> "PlatformOneWireLowLevelC.Msp430GpioC" [label="GeneralIO", URL="../ihtml/tos.interfaces.GeneralIO.html", fontsize=10];
-  "PlatformOneWireLowLevelC.Msp430GpioC" -> "HplMsp430GeneralIOC" [label="HplMsp430GeneralIO", URL="../ihtml/tos.chips.msp430.pins.HplMsp430GeneralIO.html", fontsize=10];
-}

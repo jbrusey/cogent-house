@@ -142,8 +142,6 @@ implementation
     int i;
     am_addr_t parent;
     
-    call LowPowerListening.setLocalWakeupInterval(LPL_SEND);
-    
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -203,6 +201,10 @@ implementation
 
 
   event void StateSender.sendDone(message_t *msg, error_t ok) {
+#ifdef DEBUG
+    printf("sending done at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
     if (ok != SUCCESS) {
 #ifdef BLINKY
       call Leds.led0Toggle(); 
@@ -238,16 +240,13 @@ implementation
     	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
 #endif
-
+	
 #ifdef SIP
     	if (call TransmissionControl.hasEvent()){
-          if (!CLUSTER_HEAD){
-#ifdef DEBUG
-	    printf("LPL Send %lu\n", call LocalTime.get());
-	    printfflush();
-#endif
-	  }
-          sendState();
+          if (!CLUSTER_HEAD)
+	    call RadioControl.start();
+	  else
+	    sendState();
 	}
 	else
 	  restartSenseTimer();
@@ -275,14 +274,11 @@ implementation
 	      break;
 	  }
 	}
-	if  (toSend || call Heartbeat.triggered()){
-          if (!CLUSTER_HEAD){
-#ifdef DEBUG
-	    printf("LPL Send %lu\n", call LocalTime.get());
-	    printfflush();
-#endif
-	  }
-	  sendState();
+	if  (toSend || call Heartbeat.triggered())
+          if (!CLUSTER_HEAD)
+	    call RadioControl.start();
+	  else
+	    sendState();
 	}
 	else
 	  restartSenseTimer();
@@ -319,6 +315,8 @@ implementation
     printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
     printfflush();
 #endif
+    if (!CLUSTER_HEAD)
+      call RadioControl.stop();
     restartSenseTimer();
   }
 
@@ -330,12 +328,12 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
+    if (CLUSTER_HEAD)
+      call RadioControl.start();
 
 #ifdef BN
     call Heartbeat.init();
 #endif
-
-    call RadioControl.start();
 
     //Inititalise filters -- Configured in the makefile
 #ifdef SIP
@@ -356,11 +354,12 @@ implementation
     if (nodeType == 0 || nodeType == CLUSTER_HEAD_TYPE) { 
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_VOLTAGE);
       call Configured.set(RS_DUTY);
+      if(nodeType == 0)
+	call Configured.set(RS_VOLTAGE);
     }
     else if (nodeType == 2) { /* co2 */
-      call Configured.set(RS_TEMPERATURE);
+     call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_DUTY);
@@ -546,20 +545,22 @@ implementation
   /*********** Radio Control *****************/
 
   event void RadioControl.startDone(error_t ok) {
-    if (ok == SUCCESS)
-      {
-	call CollectionControl.start();
-	call DisseminationControl.start();
+    if (ok == SUCCESS){
+      call CollectionControl.start();
+      call DisseminationControl.start();
 #ifdef DEBUG
-	printf("Radio On %lu\n", call LocalTime.get());
-        printfflush();
+      printf("Radio On %lu\n", call LocalTime.get());
+      printfflush();
 #endif
-      }
+      if (!CLUSTER_HEAD)
+	sendState();
+    }
     else
       call RadioControl.start();
   }
 
   event void RadioControl.stopDone(error_t ok) { 
+    call DisseminationControl.stop();
 #ifdef DEBUG
     printf("Radio Off %lu\n", call LocalTime.get());
     printfflush();
@@ -581,13 +582,9 @@ implementation
     call Leds.led2Toggle();
 #endif
 
-    if (!CLUSTER_HEAD){
-#ifdef DEBUG
-      printf("LPL Sleep %lu\n", call LocalTime.get());
-      printfflush();
-#endif
-      call LowPowerListening.setLocalWakeupInterval(LPL_SLEEP);
-    }
+    if (!CLUSTER_HEAD)
+      call RadioControl.stop();
+    
     
     call SendTimeOutTimer.stop();
 
@@ -671,8 +668,11 @@ implementation
     //check crc's, nid and seq match
     if (crc == ackMsg->crc)
       if (TOS_NODE_ID == ackMsg->node_id)
-	if (expSeq == ackMsg->seq)
-	  ackReceived();	  
+	if (expSeq == ackMsg->seq){
+	  if (!CLUSTER_HEAD)
+           call RadioControl.stop();
+    	  ackReceived();
+    	}
     return;
   }
 
