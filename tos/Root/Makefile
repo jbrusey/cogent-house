@@ -1,4 +1,4 @@
-PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/drip -I%T/lib/net/4bitle # -I../Util/ch4bitle
+PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/drip  -I%T/lib/net/4bitle #-I../Util/ch4bitle #
 COMPONENT=RssiCogentRootC
 
 PFLAGS += -DTOSH_DATA_LENGTH=180
@@ -12,12 +12,6 @@ CFLAGS += -DBLINKY
 ifneq ($(filter iris,$(MAKECMDGOALS)),) 
 	CFLAGS += -DRF230_RSSI_ENERGY
 endif
-
-CFLAGS += -DCLUSTER_HEAD=1
-CFLAGS += -DLOW_POWER_LISTENING
-CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=0
-CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
-CFLAGS += -DDELAY_AFTER_RECEIVE=20
 
 include $(MAKERULES)
 

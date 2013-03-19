@@ -1,9 +1,0 @@
-<area shape="rect" id="node2" href="../chtml/tos.lib.net.ctp.LruCtpMsgCacheP.html" title="LruCtpMsgCacheP\n(CacheP)" alt="" coords="56,131,221,181">
-<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.Cache.html" title="Cache&lt;message_t *&gt;" alt="" coords="48,59 47,83 54,105 67,120 62,124 50,108 42,83 43,59">
-<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.Cache.html" title="Cache&lt;message_t *&gt;" alt="" coords="52,89,197,106">
-<area shape="rect" id="node3" href="../chtml/tos.lib.net.ctp.CtpP.html" title="CtpP" alt="" coords="97,248,180,307">
-<area shape="poly" id="edge4" href="../ihtml/tos.lib.net.ctp.CtpPacket.html" title="CtpPacket" alt="" coords="141,182 141,234 136,234 136,182">
-<area shape="rect" id="edge4" href="../ihtml/tos.lib.net.ctp.CtpPacket.html" title="CtpPacket" alt="" coords="139,206,204,223">
-<area shape="rect" id="node4" href="../chtml/tos.system.MainC.html" title="MainC" alt="" coords="185,5,268,64">
-<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="221,65 212,87 200,108 187,123 183,119 195,105 207,85 216,63">
-<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.Init.html" title="Init" alt="" coords="208,89,228,106">

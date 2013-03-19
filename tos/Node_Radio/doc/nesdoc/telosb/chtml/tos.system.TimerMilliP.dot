@@ -1,8 +1,0 @@
-digraph "tos.system.TimerMilliP" {
-  n0x2b091760d9a8 [shape=ellipse, style=filled, label="TimerMilli", fontsize=12];
-  "HilTimerMilliC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.HilTimerMilliC.html"];
-  "MainC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.system.MainC.html"];
-  "HilTimerMilliC" [fontsize=12, shape=box,peripheries=2, URL="../chtml/tos.chips.msp430.timer.HilTimerMilliC.html"];
-  "n0x2b091760d9a8" -> "HilTimerMilliC" [label="Timer<TMilli>[uint8_t]", style=bold, URL="../ihtml/tos.lib.timer.Timer.html", fontsize=10];
-  "MainC" -> "HilTimerMilliC" [label="Init", URL="../ihtml/tos.interfaces.Init.html", fontsize=10];
-}

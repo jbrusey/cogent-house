@@ -1,9 +1,0 @@
-<area shape="rect" id="node2" href="../chtml/tos.system.LplAMSenderC.html" title="LplAMSenderC\n(SenderC)" alt="" coords="180,120,324,181">
-<area shape="poly" id="edge2" href="../ihtml/tos.interfaces.AMSend.html" title="AMSend" alt="" coords="89,48 155,94 183,111 180,115 152,98 86,53">
-<area shape="rect" id="edge2" href="../ihtml/tos.interfaces.AMSend.html" title="AMSend" alt="" coords="153,78,207,95">
-<area shape="poly" id="edge4" href="../ihtml/tos.interfaces.Packet.html" title="Packet" alt="" coords="201,51 231,107 226,109 196,54">
-<area shape="rect" id="edge4" href="../ihtml/tos.interfaces.Packet.html" title="Packet" alt="" coords="220,78,263,95">
-<area shape="poly" id="edge6" href="../ihtml/tos.interfaces.AMPacket.html" title="AMPacket" alt="" coords="308,55 278,109 273,106 303,52">
-<area shape="rect" id="edge6" href="../ihtml/tos.interfaces.AMPacket.html" title="AMPacket" alt="" coords="291,78,353,95">
-<area shape="poly" id="edge8" href="../ihtml/tos.interfaces.PacketAcknowledgements.html" title="PacketAcknowledgements" alt="" coords="423,51 360,98 330,116 327,111 357,94 420,47">
-<area shape="rect" id="edge8" href="../ihtml/tos.interfaces.PacketAcknowledgements.html" title="PacketAcknowledgements" alt="" coords="385,78,552,95">

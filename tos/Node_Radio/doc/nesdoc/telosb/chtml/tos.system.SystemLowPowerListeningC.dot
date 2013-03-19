@@ -1,5 +1,0 @@
-digraph "tos.system.SystemLowPowerListeningC" {
-  n0x2b09182b2ab8 [shape=ellipse, style=filled, label="SystemLowPowerListening", fontsize=12];
-  "SystemLowPowerListeningP" [fontsize=12, shape=box, URL="../chtml/tos.system.SystemLowPowerListeningP.html"];
-  "n0x2b09182b2ab8" -> "SystemLowPowerListeningP" [label="SystemLowPowerListening", URL="../ihtml/tos.interfaces.SystemLowPowerListening.html", fontsize=10];
-}
