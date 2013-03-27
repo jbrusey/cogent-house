@@ -34,10 +34,10 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadCO2;
     interface SIPController<FilterState *> as ReadVOC;
     interface SIPController<FilterState *> as ReadAQ;
+    interface SIPController<FilterState *> as ReadOpti;
     interface TransmissionControl;
     
     interface SplitControl as OptiControl;
-    interface Read<float> as ReadOpti;
 #endif
 
 #ifdef BN
@@ -343,6 +343,7 @@ implementation
     call ReadCO2.init(SIP_CO2_THRESH, SIP_CO2_MASK, SIP_CO2_X, SIP_CO2_DX, SIP_CO2_INIT, SIP_CO2_ALPHA, SIP_CO2_BETA);
     call ReadVOC.init(SIP_VOC_THRESH, SIP_VOC_MASK, SIP_VOC_X, SIP_VOC_DX, SIP_VOC_INIT, SIP_VOC_ALPHA, SIP_VOC_BETA);
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_X, SIP_AQ_DX, SIP_AQ_INIT, SIP_AQ_ALPHA, SIP_AQ_BETA);
+    call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_X, SIP_OPTI_DX, SIP_OPTI_INIT, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
 #endif
 
     nodeType = TOS_NODE_ID >> 12;
@@ -373,6 +374,8 @@ implementation
       call Configured.set(RS_DUTY);
     }
     else if (nodeType == 5) { /* energy board */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_OPTI);
       call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
@@ -462,6 +465,15 @@ implementation
 
 
 #ifdef SIP
+
+  void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
+  {
+    if (result == SUCCESS)
+      call PackState.add(state_code, s->x);
+    call ExpectReadDone.clear(raw_sensor);
+    post checkDataGathered();
+  }
+
   void do_readDone_filterstate(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
   {
     if (result == SUCCESS){
@@ -496,8 +508,8 @@ implementation
     do_readDone_filterstate(result, data, RS_VOC, SC_VOC, SC_D_VOC);
   }
   
-  event void ReadOpti.readDone(error_t result, float data) {
-    do_readDone(result, data, RS_OPTI, SC_OPTI);
+  event void ReadOpti.readDone(error_t result, FilterState* data) {
+    do_readDone_pass(result, data, RS_OPTI, SC_OPTI);
   }
 #endif
 
