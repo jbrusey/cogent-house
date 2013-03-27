@@ -104,6 +104,7 @@ implementation
   components SIPControllerC, PredictC;
   components FilterM;
   components DEWMAC; 
+  components PassThroughC as Pass;
   components new TimerMilliC() as HeartBeatTimer;
   components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
 
@@ -149,9 +150,13 @@ implementation
   SIPControllerC.EstimateCurrentState[RS_VOC]  -> FilterM.EstimateCurrentState[RS_VOC] ;
   CogentHouseP.ReadVOC -> SIPControllerC.SIPController[RS_VOC] ;
   
-  //Energy Board Wiring
-  CogentHouseP.ReadOpti->OptiSmartM.ReadOpti;
+
+  //Opti Smart Wiring
   CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
+  FilterM.Filter[RS_OPTI]  -> Pass.Filter[RS_OPTI];
+  FilterM.GetSensorValue[RS_OPTI]  -> OptiSmartM.ReadOpti;
+  SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
+  CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
 
   //Transmission Control
   CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;
