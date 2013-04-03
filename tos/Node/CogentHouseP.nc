@@ -352,12 +352,11 @@ implementation
     my_settings->blink = FALSE;
 
     call Configured.clearAll();
-    if (nodeType == 0 || nodeType == CLUSTER_HEAD_TYPE) { 
+    if (nodeType == 0) { 
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_DUTY);
-      if(nodeType == 0)
-	call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_VOLTAGE);
     }
     else if (nodeType == 2) { /* co2 */
      call Configured.set(RS_TEMPERATURE);
@@ -379,6 +378,18 @@ implementation
       call Configured.set(RS_OPTI);
       call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
+    }
+    else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+    }
+    else if (nodeType == CLUSTER_HEAD_VOC_TYPE) { /* clustered VOC */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+      call Configured.set(RS_AQ);
+      call Configured.set(RS_VOC);
     }
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
