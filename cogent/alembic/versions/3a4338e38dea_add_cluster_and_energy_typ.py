@@ -30,7 +30,11 @@ def upgrade():
 
 
     op.bulk_insert(nodetype,
-                   [{'id': 10, 'name': "ClusterHead",
+                   [{'id': 10, 'name': "ClusterHead CO2",
+                     'time': "2011-07-10 00:00:00",
+                     'seq': 1,
+                     'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
+                     {'id': 11, 'name': "ClusterHead AQ",
                      'time': "2011-07-10 00:00:00",
                      'seq': 1,
                      'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
