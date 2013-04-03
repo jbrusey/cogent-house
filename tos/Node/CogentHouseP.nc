@@ -26,6 +26,10 @@ module CogentHouseP
     interface StdControl as DisseminationControl;
     interface DisseminationValue<AckMsg> as AckValue;
 
+    //Current Cost
+    interface SplitControl as CurrentCostControl;
+    interface Read<ccStruct *> as ReadWattage;
+
 #ifdef SIP
     //SIP Modules
     interface SIPController<FilterState *> as ReadTemp;
@@ -473,6 +477,20 @@ implementation
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
+
+
+event void ReadWattage.readDone(error_t result, ccStruct* data) {
+  if (result == SUCCESS) {
+    call PackState.add(SC_POWER_MIN, data->min);
+    call PackState.add(SC_POWER, data->average);
+    call PackState.add(SC_POWER_MAX, data->max);
+  }
+  if (data->kwh > 0){
+    call PackState.add(SC_POWER_KWH, data->kwh);
+  }
+  call ExpectReadDone.clear(RS_POWER);
+  post checkDataGathered();
+}
 
 
 #ifdef SIP
