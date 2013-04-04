@@ -26,10 +26,6 @@ module CogentHouseP
     interface StdControl as DisseminationControl;
     interface DisseminationValue<AckMsg> as AckValue;
 
-    //Current Cost
-    interface SplitControl as CurrentCostControl;
-    interface Read<ccStruct *> as ReadWattage;
-
 #ifdef SIP
     //SIP Modules
     interface SIPController<FilterState *> as ReadTemp;
@@ -67,6 +63,7 @@ implementation
 
   uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
+  bool shutdown = FALSE;
   message_t dataMsg;
   uint16_t message_size;
   uint8_t msgSeq = 0;
@@ -80,6 +77,13 @@ implementation
   float last_errno = 1.;
   float last_transmitted_errno;
 
+  task void powerDown(){
+    call SenseTimer.stop();
+    call CollectionControl.stop();
+    call DisseminationControl.stop();
+    call RadioControl.stop();
+  }
+
   /** Restart the sense timer as a one shot. Using a one shot here
       rather than periodic removes the possibility of re-entering the
       sense loop before the last one has finished. The only slight
@@ -92,33 +96,35 @@ implementation
   void restartSenseTimer() {
     uint32_t stop_time = call LocalTime.get();
     uint32_t send_time, next_interval;
-    sending = FALSE;
+    if (!shutdown){
+      sending = FALSE;
 
 #ifdef DEBUG
-    printf("restartSenseTimer at %lu\n", call LocalTime.get());
-    printfflush();
+      printf("restartSenseTimer at %lu\n", call LocalTime.get());
+      printfflush();
 #endif
 
     //Calculate the next interval
-    if (stop_time < sense_start_time) // deal with overflow
-      send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
-    else
-      send_time = (stop_time - sense_start_time);
+      if (stop_time < sense_start_time) // deal with overflow
+	send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
+      else
+	send_time = (stop_time - sense_start_time);
     
-    if (my_settings->samplePeriod < send_time)
-      next_interval = 0;
-    else
-      next_interval = my_settings->samplePeriod - send_time;
+      if (my_settings->samplePeriod < send_time)
+	next_interval = 0;
+      else
+	next_interval = my_settings->samplePeriod - send_time;
 
 #ifdef DEBUG
-    printf("startOneShot at %lu\n", call LocalTime.get());
-    printf("interval of %lu\n", next_interval);
-    printfflush();
+      printf("startOneShot at %lu\n", call LocalTime.get());
+      printf("interval of %lu\n", next_interval);
+      printfflush();
 #endif
-    call SenseTimer.startOneShot(next_interval);
-
-    if (my_settings->blink)
-      call Leds.led1Off();
+      call SenseTimer.startOneShot(next_interval);
+      
+      if (my_settings->blink)
+	call Leds.led1Off();
+    }
   }
 
 
@@ -478,21 +484,6 @@ implementation
     post checkDataGathered();
   }
 
-
-event void ReadWattage.readDone(error_t result, ccStruct* data) {
-  if (result == SUCCESS) {
-    call PackState.add(SC_POWER_MIN, data->min);
-    call PackState.add(SC_POWER, data->average);
-    call PackState.add(SC_POWER_MAX, data->max);
-  }
-  if (data->kwh > 0){
-    call PackState.add(SC_POWER_KWH, data->kwh);
-  }
-  call ExpectReadDone.clear(RS_POWER);
-  post checkDataGathered();
-}
-
-
 #ifdef SIP
 
   void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
@@ -523,6 +514,8 @@ event void ReadWattage.readDone(error_t result, ccStruct* data) {
 
   event void ReadVolt.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
+    if (data->x < LOW_VOLTAGE)
+      post powerDown();
   }
 
   event void ReadCO2.readDone(error_t result, FilterState* data){
@@ -568,6 +561,8 @@ event void ReadWattage.readDone(error_t result, ccStruct* data) {
 
   event void ReadVolt.readDone(error_t result, float data){
     do_readDone(result, data, RS_VOLTAGE, SC_VOLTAGE);
+    if (data < LOW_VOLTAGE)
+      post powerDown();
   }
 
   event void ReadCO2.readDone(error_t result, float* data){
