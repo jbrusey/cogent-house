@@ -1,5 +1,5 @@
 // -*- c -*- 
-
+#include <stdint.h>
 /*
 * Module to forward predict based on a Filter state
 *
