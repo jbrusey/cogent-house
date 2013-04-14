@@ -67,7 +67,8 @@ implementation
   float last_duty = 0.;
 
   float last_errno = 1.;
-
+  uint8_t msgSeq = 0;
+  uint8_t expSeq = 255;
   float last_transmitted_errno;
   
   uint32_t sense_start_time;
@@ -140,6 +141,13 @@ implementation
       newData->special = 0xc7;
       newData->ctp_parent_id = -1;
       newData->timestamp = call LocalTime.get();
+      
+      //increment and pack seq
+      expSeq = msgSeq;
+      msgSeq++;
+      newData->seq = expSeq;
+      newData->rssi = 0.;
+      
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
       	newData->ctp_parent_id = parent;
       }
