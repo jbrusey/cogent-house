@@ -7,7 +7,7 @@ module CogentHouseP
     interface Boot;
     interface Leds;
     interface LocalTime<TMilli>;
-
+    
     //Timers
     interface Timer<TMilli> as SenseTimer;
     interface Timer<TMilli> as BlinkTimer;
@@ -26,29 +26,23 @@ module CogentHouseP
     interface StdControl as DisseminationControl;
     interface DisseminationValue<AckMsg> as AckValue;
 
-#ifdef SIP
     //SIP Modules
     interface SIPController<FilterState *> as ReadTemp;
     interface SIPController<FilterState *> as ReadHum;
     interface SIPController<FilterState *> as ReadVolt;
     interface SIPController<FilterState *> as ReadCO2;
-    interface SIPController<FilterState *> as ReadVOC;
-    interface SIPController<FilterState *> as ReadAQ;
-    interface SIPController<FilterState *> as ReadOpti;
+    interface SIPController<FilterState *> as ReadTempADC0;
+    interface SIPController<FilterState *> as ReadTempADC1;
+    interface SIPController<FilterState *> as ReadTempADC2;
+    interface SIPController<FilterState *> as ReadTempADC3;
+    interface SIPController<FilterState *> as ReadFlowADC1;
+    interface SIPController<FilterState *> as ReadFlowADC3;
+    interface SIPController<FilterState *> as ReadFlowADC7;
+    interface SIPController<FilterState *> as ReadSolar;
+    interface SIPController<FilterState *> as ReadSolarADC3;
+    interface SIPController<FilterState *> as ReadBlackBulb;
     interface TransmissionControl;
     
-    interface SplitControl as OptiControl;
-#endif
-
-#ifdef BN
-    interface Heartbeat;
-    interface BNController<float *> as ReadTemp;
-    interface BNController<float *> as ReadHum;
-    interface BNController<float> as ReadVolt;
-    interface BNController<float *> as ReadCO2;
-    interface BNController<float *> as ReadVOC;
-    interface BNController<float *> as ReadAQ;
-#endif
     
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -231,9 +225,6 @@ implementation
    * - only transmit data once all sensors have been read
    */
   task void checkDataGathered() {
-#ifdef BN
-    bool toSend = FALSE;
-#endif
     bool allDone = TRUE;
     uint8_t i;
 
@@ -251,7 +242,7 @@ implementation
 	printfflush();
 #endif
 	
-#ifdef SIP
+
     	if (call TransmissionControl.hasEvent()){
           if (!CLUSTER_HEAD)
 	    call RadioControl.start();
@@ -260,40 +251,6 @@ implementation
 	}
 	else
 	  restartSenseTimer();
-#endif
-
-#ifdef BN
-	// only include phase one sensing here
-	for (i = 0; i < RS_SIZE; i++) { 
-	  if (call Configured.get(i)) {
-	    if (i == RS_TEMPERATURE)
-	      toSend = call ReadTemp.hasEvent();
-	    else if (i == RS_HUMIDITY)
-	      toSend = call ReadHum.hasEvent();
-	    else if (i == RS_VOLTAGE)
-	      toSend = call ReadVolt.hasEvent();
-	    else if (i == RS_CO2)
-	      toSend = call ReadCO2.hasEvent();
-	    else if (i == RS_AQ)
-	      toSend = call ReadAQ.hasEvent();
-	    else if (i == RS_VOC)
-	      toSend = call ReadVOC.hasEvent();
-	    else
-	      continue;
-	    if (toSend)
-	      break;
-	  }
-	}
-	if  (toSend || call Heartbeat.triggered()){
-          if (!CLUSTER_HEAD)
-	    call RadioControl.start();
-	  else
-	    sendState();
-	}
-	else
-	  restartSenseTimer();
-#endif
-
       }
       else { /* phase one complete - start phase two */
 	phase_two_sensing = TRUE;
@@ -341,69 +298,91 @@ implementation
     if (CLUSTER_HEAD)
       call RadioControl.start();
 
-#ifdef BN
-    call Heartbeat.init();
-#endif
-
     //Inititalise filters -- Configured in the makefile
-#ifdef SIP
     call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_X, SIP_TEMP_DX, SIP_TEMP_INIT, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
     call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_X, SIP_HUM_DX, SIP_HUM_INIT, SIP_HUM_ALPHA, SIP_HUM_BETA);
     call ReadVolt.init(SIP_BATTERY_THRESH, SIP_BATTERY_MASK, SIP_BATTERY_X, SIP_BATTERY_DX, SIP_BATTERY_INIT, SIP_BATTERY_ALPHA, SIP_BATTERY_BETA);
     call ReadCO2.init(SIP_CO2_THRESH, SIP_CO2_MASK, SIP_CO2_X, SIP_CO2_DX, SIP_CO2_INIT, SIP_CO2_ALPHA, SIP_CO2_BETA);
-    call ReadVOC.init(SIP_VOC_THRESH, SIP_VOC_MASK, SIP_VOC_X, SIP_VOC_DX, SIP_VOC_INIT, SIP_VOC_ALPHA, SIP_VOC_BETA);
-    call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_X, SIP_AQ_DX, SIP_AQ_INIT, SIP_AQ_ALPHA, SIP_AQ_BETA);
-    call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_X, SIP_OPTI_DX, SIP_OPTI_INIT, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
-#endif
+    call ReadTempADC0.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_X, SIP_TEMPADC_DX, SIP_TEMPADC_INIT, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
+    call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_X, SIP_TEMPADC_DX, SIP_TEMPADC_INIT, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
+    call ReadTempADC2.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_X, SIP_TEMPADC_DX, SIP_TEMPADC_INIT, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
+    call ReadTempADC3.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_X, SIP_TEMPADC_DX, SIP_TEMPADC_INIT, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
+    call ReadFlowADC1.init(SIP_FLOW_THRESH, SIP_FLOW_MASK, SIP_FLOW_X, SIP_FLOW_DX, SIP_FLOW_INIT, SIP_FLOW_ALPHA, SIP_FLOW_BETA);
+    call ReadFlowADC3.init(SIP_FLOW_THRESH, SIP_FLOW_MASK, SIP_FLOW_X, SIP_FLOW_DX, SIP_FLOW_INIT, SIP_FLOW_ALPHA, SIP_FLOW_BETA);
+    call ReadFlowADC7.init(SIP_FLOW_THRESH, SIP_FLOW_MASK, SIP_FLOW_X, SIP_FLOW_DX, SIP_FLOW_INIT, SIP_FLOW_ALPHA, SIP_FLOW_BETA);
+    call ReadSolar.init(SIP_SOLAR_THRESH, SIP_SOLAR_MASK, SIP_SOLAR_X, SIP_SOLAR_DX, SIP_SOLAR_INIT, SIP_SOLAR_ALPHA, SIP_SOLAR_BETA);
+    call ReadSolarADC3.init(SIP_SOLAR_THRESH, SIP_SOLAR_MASK, SIP_SOLAR_X, SIP_SOLAR_DX, SIP_SOLAR_INIT, SIP_SOLAR_ALPHA, SIP_SOLAR_BETA);
+    call ReadBlackBulb.init(SIP_BLACKBULB_THRESH, SIP_BLACKBULB_MASK, SIP_BLACKBULB_X, SIP_BLACKBULB_DX, SIP_BLACKBULB_INIT, SIP_BLACKBULB_ALPHA, SIP_BLACKBULB_BETA);
 
     nodeType = TOS_NODE_ID >> 12;
     my_settings = &settings.byType[nodeType];
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     my_settings->blink = FALSE;
 
-    call Configured.clearAll();
-    if (nodeType == 0) { 
+   call Configured.clearAll();
+    if (nodeType == 0) {
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_DUTY);
+      call Configured.set(RS_TEMPADC2);
+      call Configured.set(RS_TEMPADC3);
+      call Configured.set(RS_FLOWADC1);
+      call Configured.set(RS_FLOWADC7);
+      call Configured.set(RS_SOLAR);
       call Configured.set(RS_VOLTAGE);
-    }
-    else if (nodeType == 2) { /* co2 */
-     call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
       call Configured.set(RS_DUTY);
     }
-    else if (nodeType == 3) { /* air quality */
+    else if (nodeType == 1) {
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_AQ);
-      call Configured.set(RS_VOC);
-      call Configured.set(RS_DUTY);
-    }
-#ifdef SIP
-    else if (nodeType == 5) { /* energy board */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_OPTI);
+      call Configured.set(RS_TEMPADC2);
+      call Configured.set(RS_TEMPADC3);
+      call Configured.set(RS_FLOWADC1);
       call Configured.set(RS_VOLTAGE);
-      call OptiControl.start();
+      call Configured.set(RS_DUTY);
+    }   
+    else if (nodeType == 2) {
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_SOLARADC3);
+      call Configured.set(RS_BLACKBULB);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
     }
-#endif
-    else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
+    if (nodeType == 3) {
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_TEMPADC0);
+      call Configured.set(RS_TEMPADC1);
+      call Configured.set(RS_TEMPADC2);
+      call Configured.set(RS_TEMPADC3);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
+    if (nodeType == 4) {
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_TEMPADC1);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
+    if (nodeType == 5) {
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_TEMPADC2);
+      call Configured.set(RS_TEMPADC3);
+      call Configured.set(RS_FLOWADC1);
+      call Configured.set(RS_FLOWADC7);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
+    if (nodeType == 6) {
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
     }
-    else if (nodeType == CLUSTER_HEAD_VOC_TYPE) { /* clustered VOC */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_AQ);
-      call Configured.set(RS_VOC);
-    }
-    
+
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
@@ -415,6 +394,7 @@ implementation
    * - begin sensing cycle by requesting, in parallel, for all active
    * sensors to start reading.
    */
+
   event void SenseTimer.fired() {
     int i;
 #ifdef BLINKY
@@ -430,7 +410,7 @@ implementation
       call ExpectReadDone.clearAll();
       call PackState.clear();
       phase_two_sensing = FALSE;
-
+      
       // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
@@ -441,10 +421,6 @@ implementation
 	    call ReadHum.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
-#ifdef SIP
-   	  else if (i == RS_OPTI)
-	    call ReadOpti.read();
-#endif
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -453,9 +429,9 @@ implementation
 	 send a packet (e.g. for duty cycle info)
       */
       post checkDataGathered();
-
     }
   }
+
 
   /* perform any phase two sensing */
   task void phaseTwoSensing() {
@@ -463,12 +439,28 @@ implementation
     for (i = 0; i < RS_SIZE; i++) { 
       if (call Configured.get(i)) {
 	call ExpectReadDone.set(i);
-	if (i == RS_CO2)
+        if (i == RS_CO2)
 	  call ReadCO2.read();
-	else if (i == RS_AQ)
-	  call ReadAQ.read();
-	else if (i == RS_VOC)
-	  call ReadVOC.read();
+	else if (i == RS_TEMPADC0)
+	  call ReadTempADC0.read();
+	else if (i == RS_TEMPADC1)
+	  call ReadTempADC1.read();
+	else if (i == RS_TEMPADC2)
+	  call ReadTempADC2.read();
+	else if (i == RS_TEMPADC3)
+	  call ReadTempADC3.read();
+	else if (i == RS_FLOWADC1)
+	  call ReadFlowADC1.read();
+	else if (i == RS_FLOWADC3)
+	  call ReadFlowADC3.read();
+	else if (i == RS_FLOWADC7)
+	  call ReadFlowADC7.read();
+	else if (i == RS_SOLAR)
+	  call ReadSolar.read();
+	else if (i == RS_SOLARADC3)
+	  call ReadSolarADC3.read();
+	else if (i == RS_BLACKBULB)
+	  call ReadBlackBulb.read();
 	else
 	  call ExpectReadDone.clear(i);
       }
@@ -486,7 +478,6 @@ implementation
     post checkDataGathered();
   }
 
-#ifdef SIP
 
   void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
   {
@@ -509,81 +500,48 @@ implementation
   event void ReadTemp.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_TEMPERATURE, SC_TEMPERATURE, SC_D_TEMPERATURE);
   }
-
   event void ReadHum.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_HUMIDITY, SC_HUMIDITY, SC_D_HUMIDITY);
   }
-
   event void ReadVolt.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
     if (data->x < LOW_VOLTAGE)
       post powerDown();
   }
-
   event void ReadCO2.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
   }
-
-  event void ReadAQ.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_AQ, SC_AQ, SC_D_AQ);
+  event void ReadTempADC0.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_TEMPADC0, SC_TEMPADC0, SC_D_TEMPADC0);
   }
-
-  event void ReadVOC.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_VOC, SC_VOC, SC_D_VOC);
+  event void ReadTempADC1.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_TEMPADC1, SC_TEMPADC1, SC_D_TEMPADC1);
+  }
+  event void ReadTempADC2.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_TEMPADC2, SC_TEMPADC2, SC_D_TEMPADC2);
+  }
+  event void ReadTempADC3.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_TEMPADC3, SC_TEMPADC3, SC_D_TEMPADC3);
+  }
+  event void ReadFlowADC1.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_FLOWADC1, SC_FLOW1, SC_D_FLOW1);
+  }
+  event void ReadFlowADC3.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_FLOWADC3, SC_FLOW3, SC_D_FLOW3);
+  }
+  event void ReadFlowADC7.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_FLOWADC7, SC_FLOW7, SC_D_FLOW7);
+  }
+  event void ReadSolar.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_SOLAR, SC_SOLAR, SC_D_SOLAR);
+  }
+  event void ReadSolarADC3.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_SOLARADC3, SC_SOLARADC3, SC_D_SOLARADC3);
+  }
+  event void ReadBlackBulb.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_BLACKBULB, SC_BLACKBULB, SC_D_BLACKBULB);
   }
   
-  event void ReadOpti.readDone(error_t result, FilterState* data) {
-    do_readDone_pass(result, data, RS_OPTI, SC_OPTI);
-  }
-  
-  event void OptiControl.startDone(error_t error) { }
-  
-  event void OptiControl.stopDone(error_t error) {}  
-#endif
-
-
-
-#ifdef BN
-  void do_readDone_exposure(error_t result, float* data,  uint raw_sensor,  uint state_count, uint state_first){
-    int i;
-
-    if (result == SUCCESS){
-      for(i = 0; i < state_count; i++){
-	call PackState.add(state_first+i,data[i]);
-      }
-    }
-    call ExpectReadDone.clear(raw_sensor);
-    post checkDataGathered();
-  }
-
-
-  event void ReadTemp.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_TEMPERATURE, SC_BN_TEMP_COUNT, SC_BN_TEMP_FIRST);
-  }
-
-  event void ReadHum.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_HUMIDITY, SC_BN_HUM_COUNT, SC_BN_HUM_FIRST);
-  }
-
-  event void ReadVolt.readDone(error_t result, float data){
-    do_readDone(result, data, RS_VOLTAGE, SC_VOLTAGE);
-    if (data < LOW_VOLTAGE)
-      post powerDown();
-  }
-
-  event void ReadCO2.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_CO2, SC_BN_CO2_COUNT, SC_BN_CO2_FIRST);
-  }
-
-  event void ReadAQ.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_AQ, SC_BN_AQ_COUNT, SC_BN_AQ_FIRST);
-  }
-
-  event void ReadVOC.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_VOC, SC_BN_VOC_COUNT, SC_BN_VOC_FIRST);
-  }
-#endif
-
   /*********** Radio Control *****************/
 
   event void RadioControl.startDone(error_t ok) {
@@ -617,9 +575,6 @@ implementation
   void ackReceived(){
     uint32_t stop_time;
     uint32_t send_time;
-#ifdef BN
-    int i;
-#endif
 #ifdef BLINKY
     call Leds.led2Toggle();
 #endif
@@ -647,32 +602,8 @@ implementation
     
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     
-
-#ifdef SIP
     call TransmissionControl.transmissionDone();
-#endif
 
-
-#ifdef BN
-    for (i = 0; i < RS_SIZE; i++) { 
-      if (call Configured.get(i)) {
-	if (i == RS_TEMPERATURE)
-	  call ReadTemp.transmissionDone();
-	else if (i == RS_HUMIDITY)
-	  call ReadHum.transmissionDone();
-	else if (i == RS_VOLTAGE)
-	  call ReadVolt.transmissionDone();
-	else if (i == RS_CO2)
-	  call ReadCO2.transmissionDone();
-	else if (i == RS_AQ)
-	  call ReadAQ.transmissionDone();
-	else if (i == RS_VOC)
-	  call ReadVOC.transmissionDone();
-	else
-	  continue;
-      }
-    }
-#endif
     restartSenseTimer();   
   }
 

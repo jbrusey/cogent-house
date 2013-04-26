@@ -35,7 +35,6 @@ Header file containing all packet formats sent/received
 #ifndef _PACKETS_H
 #define _PACKETS_H
 
-
 // state codes
 enum {
   SC_TEMPERATURE = 0,
@@ -47,32 +46,30 @@ enum {
   SC_VOLTAGE = 6,
   SC_D_VOLTAGE = 7,
   SC_CO2 = 8,
-  SC_AQ = 9,
-  SC_VOC = 10,
-  SC_POWER = 11,
-  SC_HEAT = 12,
-  SC_DUTY_TIME= 13,
-  SC_ERRNO = 14,
-  SC_POWER_MIN = 15,
-  SC_POWER_MAX = 16,
-  SC_POWER_KWH = 17,
-  SC_HEAT_ENERGY = 18,
-  SC_HEAT_VOLUME = 19,
-  SC_D_CO2 = 20,
-  SC_D_VOC = 21,
-  SC_D_AQ = 22,
-  SC_BN_TEMP_COUNT = 5,
-  SC_BN_TEMP_FIRST = 23,
-  SC_BN_HUM_COUNT = 4,
-  SC_BN_HUM_FIRST = 28,
-  SC_BN_CO2_COUNT = 4,
-  SC_BN_CO2_FIRST = 32,
-  SC_BN_VOC_COUNT = 2,
-  SC_BN_VOC_FIRST = 36,
-  SC_BN_AQ_COUNT = 2,
-  SC_BN_AQ_FIRST = 38,
-  SC_OPTI = 40,
-  SC_SIZE = 41, // SC_SIZE must be 1 greater than last entry
+  SC_D_CO2 = 9,
+  SC_TEMPADC0 = 10,
+  SC_D_TEMPADC0 = 11,
+  SC_TEMPADC1 = 12,
+  SC_D_TEMPADC1 = 13,
+  SC_TEMPADC2 = 14,
+  SC_D_TEMPADC2 = 15,
+  SC_TEMPADC3 = 16,
+  SC_D_TEMPADC3 = 17,
+  SC_FLOW1 = 18,
+  SC_D_FLOW1 = 19,
+  SC_FLOW3 = 20,
+  SC_D_FLOW3 = 21,
+  SC_FLOW7 = 22,
+  SC_D_FLOW7 = 23,
+  SC_SOLAR = 24,
+  SC_D_SOLAR = 25,
+  SC_SOLARADC3 = 26,
+  SC_D_SOLARADC3 = 27,
+  SC_BLACKBULB = 28,
+  SC_D_BLACKBULB = 29,
+  SC_DUTY_TIME= 30,
+  SC_ERRNO = 31,
+  SC_SIZE = 32 // SC_SIZE must be 1 greater than last entry
 };
 
 #include "Node/PackState/packstate.h"
@@ -85,14 +82,18 @@ enum {
   RS_TSR = 3,
   RS_VOLTAGE = 4,
   RS_CO2 = 5,
-  RS_AQ = 6,
-  RS_VOC = 7,
-  RS_POWER = 8,
-  RS_HEATMETER = 9,
-  RS_DUTY = 10,
-  RS_OPTI = 11,
-  RS_CLAMP = 12,
-  RS_SIZE = 13 // must be 1 greater than last entry
+  RS_TEMPADC0 = 6,
+  RS_TEMPADC1 = 7,
+  RS_TEMPADC2 = 8,
+  RS_TEMPADC3 = 9,
+  RS_FLOWADC1 = 10,
+  RS_FLOWADC3 = 11,
+  RS_FLOWADC7 = 12,
+  RS_SOLAR = 13,
+  RS_SOLARADC3 = 14,
+  RS_BLACKBULB = 15,
+  RS_DUTY = 16,
+  RS_SIZE = 17 // must be 1 greater than last entry
 };
 
 
@@ -106,9 +107,9 @@ enum {
   AM_STATEMSG = 7,
   SPECIAL = 0xc7,
   MAX_HOPS = 4,
-  CLUSTER_HEAD_CO2_TYPE = 10,
-  CLUSTER_HEAD_VOC_TYPE = 11,
-  CLUSTER_HEAD_MIN_TYPE = 10 //min cluster head type
+  NODE_TYPE_MAX = 10,
+  CLUSTER_HEAD_TYPE = 10,
+  CLUSTER_HEAD_MIN_TYPE = 10
 };
 
 
@@ -125,11 +126,6 @@ enum {
   ERR_SEND_WHILE_SENDING = 11,
   ERR_NO_ACK=13,
   ERR_HEARTBEAT=17
-};
-
-
-enum {
-  NODE_TYPE_MAX = 10
 };
 
 
@@ -156,12 +152,10 @@ typedef nx_struct ConfigMsg {
   nx_uint8_t special;
 } ConfigMsg;
 
-
 typedef struct CRCStruct {
   nx_uint16_t node_id;
   nx_uint16_t seq;
 } CRCStruct;
-
 
 typedef nx_struct AckMsg {
   nx_uint16_t node_id;
