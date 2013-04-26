@@ -74,7 +74,7 @@ implementation
   components HplMsp430GeneralIOC as GIO;
 
   //Sensing Modules
-  components ThermalSensingM, AirQualityM, BatterySensingM, OptiSmartM;
+  components ThermalSensingM, AirQualityM, BatterySensingM;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -85,8 +85,11 @@ implementation
   AirQualityM.GetAQ -> AQ;
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
+#ifdef SIP
+  components OptiSmartM;
   OptiSmartM.EnergyInput -> GIO.Port26;
   OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+#endif
 
   /*********** ACK CONFIG *************/
 
