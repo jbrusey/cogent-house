@@ -1001,7 +1001,7 @@ def registerNode(node=None, room=None):
         s.append("<form action=\"registerNodeSubmit\">")
         s.append("<p>Node id: %d<input type=\"hidden\" name=\"node\" value=\"%d\"/></p>" % (node, node))
         s.append("<p>House: <select name=\"house\">")        
-        for h in session.query(House):
+        for h in session.query(House):            
             s.append("<option value=\"%d\">%s</option>" % (h.id, h.address))
         s.append("</select>")
         u = _url("addNewHouse", [('regnode', node)])
