@@ -24,7 +24,7 @@ def table_with_nodes(session, html, node_set):
         html.extend([("<td>" + f + "</td>") % v
                      for (f, v) in zip(fmt, values)])
         html.append("</tr>")
-        html.append('</table>')
+    html.append('</table>')
 
 
 def packetYield(session,
