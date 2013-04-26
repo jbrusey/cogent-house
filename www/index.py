@@ -92,9 +92,13 @@ _deltaDict={
 
 _periods = {
     "hour" : 60,
+    "12-hours": 60*12,
     "day" : 1440,
+    "3-days": 1440*3,
     "week" : 1440*7,
-    "month" : 1440 * 7 * 52 / 12}
+    "month" : 1440 * 7 * 52 / 12,
+    "3-months" : 3*1440 * 7 * 52 / 12
+    }
 
 _navs = [
     ("Home", "index.py")
@@ -982,7 +986,7 @@ def dataYield():
         session.close()
     
         
-def registerNode(node=None):
+def registerNode(node=None, room=None):
     try:
         if node is None:
             raise Exception("must specify node id")
@@ -1004,7 +1008,12 @@ def registerNode(node=None):
         s.append(' <a href="%s">(add new house)</a></p>' % u)
         s.append("<p>Room: <select name=\"room\">")
         for r in session.query(Room):
-            s.append("<option value=\"%d\">%s</option>" % (r.id, r.name))
+            if room is not None and str(r.id) == room:
+                selected = ' selected="selected"'
+            else:
+                selected = ''
+            s.append("<option value=\"%d\"%s>%s</option>" %
+                     (r.id, selected, r.name))
         s.append("</select>")
         u = _url("addNewRoom", [('regnode', node)])
         s.append(' <a href="%s">(add new room)</a></p>' % u)
@@ -1156,7 +1165,7 @@ def addNewHouseSubmit(regnode=None, address=None, deployment=None ):
 #------------------------------------------------------------
 # Room
         
-def addNewRoom(regnode=None, err=None, name=None):
+def addNewRoom(regnode=None, err=None, name=None, roomType=None):
     assert regnode is not None
     errors = { 'duproom': 'This room name already exists',
                'nullroomtype': 'Please select a room type'}
@@ -1171,14 +1180,17 @@ def addNewRoom(regnode=None, err=None, name=None):
         s.append("<form action=\"addNewRoomSubmit\">")
         s.append('<input type="hidden" name="regnode" value="%s" />'
                  % (regnode))
-
         s.append('<p>Name: <input type="text" name="name" value="%s" /></p>'
                  % (name))
-        
-
         s.append('<p>Type: <select name="roomtype">')
         for d in session.query(RoomType):
-            s.append('<option value="%d">%s</option>' % (d.id, d.name))
+            
+            if roomType is not None and str(d.id) == roomType:
+                selected = ' selected="selected"'
+            else:
+                selected = ''
+            s.append('<option value="%d"%s>%s</option>' %
+                     (d.id, selected, d.name))
         s.append('</select>')
         u = _url("addNewRoomType",
                  [('ref', _url("addNewRoom", [('regnode', regnode),
@@ -1284,7 +1296,7 @@ def addNewRoomTypeSubmit(ref=None, name=None):
         h = RoomType(name=name)
         session.add(h)
         session.commit()
-        return _redirect(ref)
+        return _redirect('{}&roomType={}'.format(ref, h.id))
     except Exception, e:
         session.rollback()
         return _page('Add new room type error', '<p>%s</p>' % str(e))
@@ -1377,8 +1389,7 @@ def _plot(typ, t, v, startts, endts, debug, fmt):
 # revised spline algorithm
 #
 
-def _get_value_and_delta(session,
-                         node_id,
+def _get_value_and_delta(node_id,
                          reading_type,
                          delta_type,
                          sd,
@@ -1388,39 +1399,46 @@ def _get_value_and_delta(session,
     """
     # make sure that time period is covered by the data
     try:
-        (sd1,) = (session.query(func.max(Reading.time))
-                 .filter(and_(Reading.nodeId == node_id,
-                              Reading.typeId == reading_type,
-                     Reading.time < sd))
-            .one()
-            )
-        if sd1 is not None:
-            sd = sd1
-    except NoResultFound:
-        pass
-    
-    try:
-        (ed1,) = (session.query(func.min(Reading.time))
-                 .filter(and_(Reading.nodeId == node_id,
-                              Reading.typeId == reading_type,
-                     Reading.time > ed))
-            .one()
-            )
-        if ed1 is not None:
-            ed = ed1
-    except NoResultFound:
-        pass
-        
-    s2 = aliased(Reading)
-    return (session.query(Reading.time, Reading.value, s2.value)
-                      .join(s2, and_(Reading.time == s2.time,
-                                     Reading.nodeId == s2.nodeId))
-                      .filter(and_(Reading.typeId == reading_type,
-                                   s2.typeId == delta_type,
-                                   Reading.nodeId == node_id,
-                                   Reading.time >= sd,
-                                   Reading.time <= ed
-                          )))
+        session = Session()
+        try:
+            (sd1,) = (session.query(func.max(Reading.time))
+                     .filter(and_(Reading.nodeId == node_id,
+                                  Reading.typeId == reading_type,
+                         Reading.time < sd))
+                .one()
+                )
+            if sd1 is not None:
+                sd = sd1
+        except NoResultFound:
+            pass
+
+        try:
+            (ed1,) = (session.query(func.min(Reading.time))
+                     .filter(and_(Reading.nodeId == node_id,
+                                  Reading.typeId == reading_type,
+                         Reading.time > ed))
+                .one()
+                )
+            if ed1 is not None:
+                ed = ed1
+        except NoResultFound:
+            pass
+
+        s2 = aliased(Reading)
+        return (session.query(Reading.time, Reading.value, s2.value)
+                #, NodeState.seq_num)
+                          .join(s2, and_(Reading.time == s2.time,
+                                         Reading.nodeId == s2.nodeId))
+                          # .join(NodeState, and_(Reading.time == NodeState.time,
+                          #                       Reading.nodeId == NodeState.nodeId))
+                          .filter(and_(Reading.typeId == reading_type,
+                                       s2.typeId == delta_type,
+                                       Reading.nodeId == node_id,
+                                       Reading.time >= sd,
+                                       Reading.time <= ed
+                              )))
+    finally:
+        session.close()
 
 def _plot_splines(node_id,
                   reading_type,
@@ -1434,89 +1452,83 @@ def _plot_splines(node_id,
     are constructed based on a combination of two quadratic splines
     that are fitted together.
     """
-    try:
-        session = Session()
 
-        first = True
-        px = []
-        py = []
-        thresh = thresholds[reading_type]
-        for pt in (PartSplineReconstruct(threshold=thresh,
-                                         src=SipPhenom
-                   (src=_get_value_and_delta
-                    (session,
-                     node_id,
-                     reading_type,
-                     delta_type,
-                     start_time,
-                     end_time
-                     )))):
-            dt = matplotlib.dates.date2num(pt.dt)
-            if first:
-                coords = [(dt, pt.sp)]
-                codes = [Path.MOVETO]
-                y_max = y_min = pt.sp
-            else:
-                coords.append((dt, pt.sp))
-                codes.append(Path.LINETO)
-                y_min = min(y_min, pt.sp)
-                y_max = max(y_max, pt.sp)
-            if pt.ev:
-                px.append(dt)
-                py.append(pt.sp)
-                (last_dt, last_s, last_t) = (pt.dt, pt.s, pt.t) 
-                    
-            first = False
+    first = True
+    px = []
+    py = []
+    thresh = thresholds[reading_type]
+    for pt in (PartSplineReconstruct(threshold=thresh,
+                                     src=SipPhenom
+               (src=_get_value_and_delta
+                (node_id,
+                 reading_type,
+                 delta_type,
+                 start_time,
+                 end_time
+                 )))):
+        dt = matplotlib.dates.date2num(pt.dt)
+        if first:
+            coords = [(dt, pt.sp)]
+            codes = [Path.MOVETO]
+            y_max = y_min = pt.sp
+        else:
+            coords.append((dt, pt.sp))
+            codes.append(Path.LINETO)
+            y_min = min(y_min, pt.sp)
+            y_max = max(y_max, pt.sp)
+        if pt.ev:
+            px.append(dt)
+            py.append(pt.sp)
+            (last_dt, last_s, last_t) = (pt.dt, pt.s, pt.t) 
 
-        path = Path(coords, codes)
+        first = False
 
-        fig = plt.figure()
-        fig.set_size_inches(7, 4)
-        ax = fig.add_subplot(111)
-        ax.set_autoscalex_on(False)
-        ax.set_xlim((matplotlib.dates.date2num(start_time),
-                     matplotlib.dates.date2num(end_time)))
+    path = Path(coords, codes)
 
-        patch = patches.PathPatch(path, facecolor='none', lw=2)
+    fig = plt.figure()
+    fig.set_size_inches(7, 4)
+    ax = fig.add_subplot(111)
+    ax.set_autoscalex_on(False)
+    ax.set_xlim((matplotlib.dates.date2num(start_time),
+                 matplotlib.dates.date2num(end_time)))
+
+    patch = patches.PathPatch(path, facecolor='none', lw=2)
+    ax.add_patch(patch)
+
+    if last_dt < end_time:
+        # the last point is prior to then end time, so estimate
+        # the end point
+        delta_t = (end_time - last_dt).seconds / 300.
+        ly = last_s + last_t * delta_t
+        lx = matplotlib.dates.date2num(end_time)
+
+        ax.plot_date([lx], [ly], 'ro')
+        path = Path([(matplotlib.dates.date2num(last_dt), last_s),
+                     (lx, ly)],
+                    [Path.MOVETO,
+                     Path.LINETO])
+        patch = patches.PathPatch(path, linestyle='dashed',
+                                  facecolor='none', lw=2)
         ax.add_patch(patch)
 
-        if last_dt < end_time:
-            # the last point is prior to then end time, so estimate
-            # the end point
-            delta_t = (end_time - last_dt).seconds / 300.
-            ly = last_s + last_t * delta_t
-            lx = matplotlib.dates.date2num(end_time)
-            
-            ax.plot_date([lx], [ly], 'ro')
-            path = Path([(matplotlib.dates.date2num(last_dt), last_s),
-                         (lx, ly)],
-                        [Path.MOVETO,
-                         Path.LINETO])
-            patch = patches.PathPatch(path, linestyle='dashed',
-                                      facecolor='none', lw=2)
-            ax.add_patch(patch)
-            
 
-        ax.plot_date(px, py, fmt)
+    ax.plot_date(px, py, fmt)
 
-        fig.autofmt_xdate()
-        ax.set_xlabel("Date")
+    fig.autofmt_xdate()
+    ax.set_xlabel("Date")
 
-        ax.set_ylabel(_get_y_label(reading_type))
-                
-        image = cStringIO.StringIO()
-        fig.savefig(image, **_SAVEFIG_ARGS)
+    ax.set_ylabel(_get_y_label(reading_type))
 
-        if debug:
-            return [_CONTENT_TEXT,
-                    "px={}\npy={}"
-                    .format(px, py)]
-        else:
-            return  [_CONTENT_PLOT, image.getvalue()]
+    image = cStringIO.StringIO()
+    fig.savefig(image, **_SAVEFIG_ARGS)
 
-    finally:
-        session.close()
-            
+    if debug:
+        return [_CONTENT_TEXT,
+                "px={}\npy={}"
+                .format(px, py)]
+    else:
+        return  [_CONTENT_PLOT, image.getvalue()]
+
 
 def graph(req,
            node='64',
