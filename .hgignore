@@ -10,6 +10,7 @@ cogent/node/Packets.py
 cogent/node/*Msg.py
 ch_base.egg-info/
 build/
+dist/
 cogent/push/.cache
 cogent/push/.coverage
 tos/*/build/*
