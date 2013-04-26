@@ -2,10 +2,7 @@
 #include "../Packets.h"
 #include "Collection.h"
 #include "./Sensing/PolyClass/horner.c"
-#include "./Sensing/CurrentCost/cc_struct.h"
 #include "Filter.h"
-#include "./Exposure/exposure.h"
-#include "./Sensing/HeatMeter/hm_struct.h"
 #include <stdint.h>
 #ifdef DEBUG
 #define NEW_PRINTF_SEMANTICS
@@ -66,31 +63,44 @@ implementation
 
   //sensing interfaces
   components new SensirionSht11C();
-  components new VoltageC() as Volt;
+  components new VoltageC() as Volt; 
+  components new Temp_ADC0C() as Temp_ADC0;
+  components new Temp_ADC1C() as Temp_ADC1;
+  components new Temp_ADC2C() as Temp_ADC2;
+  components new Temp_ADC3C() as Temp_ADC3;
+  components new Flow_ADC1C() as Flow_ADC1;
+  components new Flow_ADC3C() as Flow_ADC3;
+  components new Flow_ADC7C() as Flow_ADC7;
+  components new SolarC() as Solar;
+  components new Solar_ADC3C() as Solar_ADC3;
+  components new BlackBulbC() as BlackBulb;
   components new CarbonDioxideC() as CarbonDioxide;
-  components new VOCC() as VOC;
-  components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
+  
 
   //Sensing Modules
-  components ThermalSensingM, AirQualityM, BatterySensingM;
+  components ThermalSensingM, BatterySensingM, CarM;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
   BatterySensingM.GetVoltage -> Volt;
-  AirQualityM.GetCO2 -> CarbonDioxide;
-  AirQualityM.GetVOC -> VOC;
-  AirQualityM.GetAQ -> AQ;
-  AirQualityM.CO2On -> GIO.Port23; //set to gio2
-  AirQualityM.WarmUpTimer -> WarmUpTimer;
-#ifdef SIP
-  components OptiSmartM;
-  OptiSmartM.EnergyInput -> GIO.Port26;
-  OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
-#endif
-
+  
+  CarM.GetTempADC0 -> Temp_ADC0;
+  CarM.GetTempADC1 -> Temp_ADC1;
+  CarM.GetTempADC2 -> Temp_ADC2;
+  CarM.GetTempADC3 -> Temp_ADC3;
+  CarM.GetFlowADC1 -> Flow_ADC1;
+  CarM.GetFlowADC3 -> Flow_ADC3;
+  CarM.GetFlowADC7 -> Flow_ADC7;
+  CarM.GetSolar -> Solar;
+  CarM.GetSolar_ADC3 -> Solar_ADC3;
+  CarM.GetBlackBulb -> BlackBulb;
+  CarM.GetCO2 -> CarbonDioxide;
+  CarM.CO2On -> GIO.Port23; //set to gio2
+  CarM.WarmUpTimer -> WarmUpTimer;
+  
   /*********** ACK CONFIG *************/
 
   components DisseminationC;
@@ -102,7 +112,6 @@ implementation
   CogentHouseP.CRCCalc -> CrcC;
 
 
-#ifdef SIP
   /************* SIP CONFIG ***********/
   //SIP Components
   components SIPControllerC, PredictC;
@@ -138,89 +147,60 @@ implementation
 
   // CO2 Wiring
   FilterM.Filter[RS_CO2]  -> DEWMAC.Filter[RS_CO2];
-  FilterM.GetSensorValue[RS_CO2]  -> AirQualityM.ReadCO2;
+  FilterM.GetSensorValue[RS_CO2]  -> CarM.ReadCO2;
   SIPControllerC.EstimateCurrentState[RS_CO2]  -> FilterM.EstimateCurrentState[RS_CO2];
   CogentHouseP.ReadCO2 -> SIPControllerC.SIPController[RS_CO2];
-
-  // AQ Wiring
-  FilterM.Filter[RS_AQ]  -> DEWMAC.Filter[RS_AQ];
-  FilterM.GetSensorValue[RS_AQ]  -> AirQualityM.ReadAQ;
-  SIPControllerC.EstimateCurrentState[RS_AQ]  -> FilterM.EstimateCurrentState[RS_AQ] ;
-  CogentHouseP.ReadAQ -> SIPControllerC.SIPController[RS_AQ] ;
-
-  // VOC Wiring
-  FilterM.Filter[RS_VOC]  -> DEWMAC.Filter[RS_VOC];
-  FilterM.GetSensorValue[RS_VOC]  -> AirQualityM.ReadVOC;
-  SIPControllerC.EstimateCurrentState[RS_VOC]  -> FilterM.EstimateCurrentState[RS_VOC] ;
-  CogentHouseP.ReadVOC -> SIPControllerC.SIPController[RS_VOC] ;
   
-
-  //Opti Smart Wiring
-  CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
-  FilterM.Filter[RS_OPTI]  -> Pass.Filter[RS_OPTI];
-  FilterM.GetSensorValue[RS_OPTI]  -> OptiSmartM.ReadOpti;
-  SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
-  CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
-
+  FilterM.Filter[RS_TEMPADC0]  -> DEWMAC.Filter[RS_TEMPADC0];
+  FilterM.GetSensorValue[RS_TEMPADC0]  -> CarM.ReadTempADC0;
+  SIPControllerC.EstimateCurrentState[RS_TEMPADC0]  -> FilterM.EstimateCurrentState[RS_TEMPADC0];
+  CogentHouseP.ReadTempADC0 -> SIPControllerC.SIPController[RS_TEMPADC0];
+  
+  FilterM.Filter[RS_TEMPADC1]  -> DEWMAC.Filter[RS_TEMPADC1];
+  FilterM.GetSensorValue[RS_TEMPADC1]  -> CarM.ReadTempADC1;
+  SIPControllerC.EstimateCurrentState[RS_TEMPADC1]  -> FilterM.EstimateCurrentState[RS_TEMPADC1];
+  CogentHouseP.ReadTempADC1 -> SIPControllerC.SIPController[RS_TEMPADC1];
+  
+  FilterM.Filter[RS_TEMPADC2]  -> DEWMAC.Filter[RS_TEMPADC2];
+  FilterM.GetSensorValue[RS_TEMPADC2]  -> CarM.ReadTempADC2;
+  SIPControllerC.EstimateCurrentState[RS_TEMPADC2]  -> FilterM.EstimateCurrentState[RS_TEMPADC2];
+  CogentHouseP.ReadTempADC2 -> SIPControllerC.SIPController[RS_TEMPADC2];
+  
+  FilterM.Filter[RS_TEMPADC3]  -> DEWMAC.Filter[RS_TEMPADC3];
+  FilterM.GetSensorValue[RS_TEMPADC3]  -> CarM.ReadTempADC3;
+  SIPControllerC.EstimateCurrentState[RS_TEMPADC3]  -> FilterM.EstimateCurrentState[RS_TEMPADC3];
+  CogentHouseP.ReadTempADC3 -> SIPControllerC.SIPController[RS_TEMPADC3];
+  
+  FilterM.Filter[RS_FLOWADC1]  -> DEWMAC.Filter[RS_FLOWADC1];
+  FilterM.GetSensorValue[RS_FLOWADC1]  -> CarM.ReadFlowADC1;
+  SIPControllerC.EstimateCurrentState[RS_FLOWADC1]  -> FilterM.EstimateCurrentState[RS_FLOWADC1];
+  CogentHouseP.ReadFlowADC1 -> SIPControllerC.SIPController[RS_FLOWADC1];
+  
+  FilterM.Filter[RS_FLOWADC3]  -> DEWMAC.Filter[RS_FLOWADC3];
+  FilterM.GetSensorValue[RS_FLOWADC3]  -> CarM.ReadFlowADC3;
+  SIPControllerC.EstimateCurrentState[RS_FLOWADC3]  -> FilterM.EstimateCurrentState[RS_FLOWADC3];
+  CogentHouseP.ReadFlowADC3 -> SIPControllerC.SIPController[RS_FLOWADC3];
+  
+  FilterM.Filter[RS_FLOWADC7]  -> DEWMAC.Filter[RS_FLOWADC7];
+  FilterM.GetSensorValue[RS_FLOWADC7]  -> CarM.ReadFlowADC7;
+  SIPControllerC.EstimateCurrentState[RS_FLOWADC7]  -> FilterM.EstimateCurrentState[RS_FLOWADC7];
+  CogentHouseP.ReadFlowADC7 -> SIPControllerC.SIPController[RS_FLOWADC7];
+  
+  FilterM.Filter[RS_SOLAR]  -> DEWMAC.Filter[RS_SOLAR];
+  FilterM.GetSensorValue[RS_SOLAR]  -> CarM.ReadSolar;
+  SIPControllerC.EstimateCurrentState[RS_SOLAR]  -> FilterM.EstimateCurrentState[RS_SOLAR];
+  CogentHouseP.ReadSolar -> SIPControllerC.SIPController[RS_SOLAR];
+  
+  FilterM.Filter[RS_SOLARADC3]  -> DEWMAC.Filter[RS_SOLARADC3];
+  FilterM.GetSensorValue[RS_SOLARADC3]  -> CarM.ReadSolar_ADC3;
+  SIPControllerC.EstimateCurrentState[RS_SOLARADC3]  -> FilterM.EstimateCurrentState[RS_SOLARADC3];
+  CogentHouseP.ReadSolarADC3 -> SIPControllerC.SIPController[RS_SOLARADC3];
+  
+  FilterM.Filter[RS_BLACKBULB]  -> DEWMAC.Filter[RS_BLACKBULB];
+  FilterM.GetSensorValue[RS_BLACKBULB]  -> CarM.ReadBlackBulb;
+  SIPControllerC.EstimateCurrentState[RS_BLACKBULB]  -> FilterM.EstimateCurrentState[RS_BLACKBULB];
+  CogentHouseP.ReadBlackBulb -> SIPControllerC.SIPController[RS_BLACKBULB];
+  
   //Transmission Control
   CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;
-#endif
-
-
-#ifdef BN
-  /************* BN CONFIG ***********/
-
-  components new TimerMilliC() as HeartBeatTimer;
-  components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
-  HeartbeatC.HeartbeatTimer -> HeartBeatTimer;
-  CogentHouseP.Heartbeat -> HeartbeatC;
-  
-  // Temp Wiring
-  components new ExposureControllerC(TEMP_BAND_LEN,BN_TEMP_BAND_THRESH) as TempBN;
-  components new ExposureC(TEMP_BAND_LEN, RS_TEMPERATURE, BN_GAMMA) as TempExposure;
-
-  TempExposure.GetValue -> ThermalSensingM.ReadTemp;
-  TempBN.ExposureRead -> TempExposure.Read;
-  CogentHouseP.ReadTemp -> TempBN.BNController;
-
-  // Hum Wiring
-  components new ExposureControllerC(HUM_BAND_LEN, BN_HUM_BAND_THRESH) as HumBN;
-  components new ExposureC(HUM_BAND_LEN, RS_HUMIDITY, BN_GAMMA) as HumExposure;
-
-  HumExposure.GetValue -> ThermalSensingM.ReadHum;
-  HumBN.ExposureRead -> HumExposure.Read;
-  CogentHouseP.ReadHum -> HumBN.BNController;
-
-  // Battery Wiring
-  components LowBatteryC;  
-  LowBatteryC.BatteryRead -> BatterySensingM.ReadBattery;
-  CogentHouseP.ReadVolt -> LowBatteryC.BNController;
-
-  // CO2 Wiring
-  components new ExposureControllerC(CO2_BAND_LEN,BN_CO2_BAND_THRESH) as CO2BN;
-  components new ExposureC(CO2_BAND_LEN, RS_CO2, BN_GAMMA) as CO2Exposure;
-  
-  CO2Exposure.GetValue -> AirQualityM.ReadCO2;
-  CO2BN.ExposureRead -> CO2Exposure.Read;
-  CogentHouseP.ReadCO2 -> CO2BN.BNController;
-
-
-  // AQ Wiring
-  components new ExposureControllerC(AQ_BAND_LEN,BN_AQ_BAND_THRESH) as AQBN;
-  components new ExposureC(AQ_BAND_LEN, RS_AQ, BN_GAMMA) as AQExposure;
-
-  AQExposure.GetValue -> AirQualityM.ReadAQ;
-  AQBN.ExposureRead -> AQExposure.Read;
-  CogentHouseP.ReadAQ -> AQBN.BNController;
-
-
-  // VOC Wiring
-  components new ExposureControllerC(VOC_BAND_LEN, BN_VOC_BAND_THRESH) as VOCBN;
-  components new ExposureC(VOC_BAND_LEN, RS_VOC, BN_GAMMA) as VOCExposure;
-
-  VOCExposure.GetValue -> AirQualityM.ReadVOC;
-  VOCBN.ExposureRead -> VOCExposure.Read;
-  CogentHouseP.ReadVOC -> VOCBN.BNController;
-#endif
-
 }
