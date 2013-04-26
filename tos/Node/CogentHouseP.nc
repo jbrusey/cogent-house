@@ -284,7 +284,7 @@ implementation
 	      break;
 	  }
 	}
-	if  (toSend || call Heartbeat.triggered())
+	if  (toSend || call Heartbeat.triggered()){
           if (!CLUSTER_HEAD)
 	    call RadioControl.start();
 	  else
@@ -382,6 +382,7 @@ implementation
       call Configured.set(RS_VOC);
       call Configured.set(RS_DUTY);
     }
+#ifdef SIP
     else if (nodeType == 5) { /* energy board */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -389,6 +390,7 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
     }
+#endif
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -439,10 +441,10 @@ implementation
 	    call ReadHum.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
+#ifdef SIP
    	  else if (i == RS_OPTI)
 	    call ReadOpti.read();
-    	  //else if (i == RS_CLAMP)
-	    //call ReadOpti.read();
+#endif
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -533,6 +535,10 @@ implementation
   event void ReadOpti.readDone(error_t result, FilterState* data) {
     do_readDone_pass(result, data, RS_OPTI, SC_OPTI);
   }
+  
+  event void OptiControl.startDone(error_t error) { }
+  
+  event void OptiControl.stopDone(error_t error) {}  
 #endif
 
 
@@ -732,9 +738,7 @@ implementation
     }
   }
   
-  event void OptiControl.startDone(error_t error) { }
-  
-  event void OptiControl.stopDone(error_t error) {}  
+
   
 }
 
