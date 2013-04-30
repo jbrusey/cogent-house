@@ -2,39 +2,37 @@ PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I .
 
 COMPONENT=CogentHouseC
 
-#PYTHON_TARGET_DIR=../../cogent/node
-#PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
-#BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
-#CLEAN_EXTRA += $(PYTHON_TGTS)
+PYTHON_TARGET_DIR=../../cogent/node
+PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
+BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
+CLEAN_EXTRA += $(PYTHON_TGTS)
 
 #Configuration
 CFLAGS += -DCLUSTER_HEAD=0
-
 CFLAGS += -DSIP
-#CFLAGS += -DBN
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
-#CFLAGS += -DDEBUG
+CFLAGS += -DDEBUG
 
-PFLAGS +=-DTOSH_DATA_LENGTH=180
+PFLAGS +=-DTOSH_DATA_LENGTH=144
 #PFLAGS += -DCC2420_DEF_RFPOWER=3
-#CFLAGS += -DCC2420_DEF_CHANNEL=15
+CFLAGS += -DCC2420_DEF_CHANNEL=15
 
-CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP #51 days BN
+CFLAGS += -DHEARTBEAT_MULTIPLIER=2L #7 hours SIP #51 days BN
 CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
 
 # default sensing period 307200=5 mins
-CFLAGS += -DDEF_FIRST_PERIOD=10240
-CFLAGS += -DDEF_SENSE_PERIOD=307200L
-CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
+CFLAGS += -DDEF_FIRST_PERIOD=1024
+CFLAGS += -DDEF_SENSE_PERIOD=10240L
+CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=10240L
 
-CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
+CFLAGS += -DLEAF_TIMEOUT_TIME=5000L
 CFLAGS += -DLOW_VOLTAGE=2.35
 
 CFLAGS += -DDEWMA 
 CFLAGS += -DSIP_TEMP_MASK=1
-CFLAGS += -DSIP_TEMP_THRESH=0.5
+CFLAGS += -DSIP_TEMP_THRESH=0.
 CFLAGS += -DSIP_TEMP_INIT=0
 CFLAGS += -DSIP_TEMP_X=0
 CFLAGS += -DSIP_TEMP_DX=0
@@ -66,7 +64,7 @@ CFLAGS += -DSIP_CO2_ALPHA=0.2
 CFLAGS += -DSIP_CO2_BETA=0.2
 
 CFLAGS += -DSIP_TEMPADC_MASK=1
-CFLAGS += -DSIP_TEMPADC_THRESH=1
+CFLAGS += -DSIP_TEMPADC_THRESH=0.5
 CFLAGS += -DSIP_TEMPADC_X=0
 CFLAGS += -DSIP_TEMPADC_DX=0
 CFLAGS += -DSIP_TEMPADC_INIT=0
@@ -102,15 +100,15 @@ CFLAGS += -DSIP_BLACKBULB_BETA=0.2
 
 include $(MAKERULES)
 
-#$(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
-#	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+$(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
 
-#$(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
-#	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
+$(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
 
-#$(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
-#	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
+$(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
 
-#$(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
-#	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
+$(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
+	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
 
