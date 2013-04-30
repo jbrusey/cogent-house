@@ -30,22 +30,37 @@ def upgrade():
 
 
     op.bulk_insert(nodetype,
-                   [{'id': 0, 'name': "Base",
+                   [{'id': 0, 'name': "TempFlowSolar",
                      'time': "2011-07-10 00:00:00",
                      'seq': 1,
                      'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
 
-                   {'id': 1, 'name': "Current Cost",
+                   {'id': 1, 'name': "TempFlow",
                      'time': "2011-07-10 00:00:00",
                      'seq': 1,
                      'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,5'},
 
-                   {'id': 2, 'name': "CO2",
+                   {'id': 2, 'name': "SolarBlack",
                      'time': "2011-07-10 00:00:00",
                      'seq': 1,
                      'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '63,4'},
 
-                   {'id': 3, 'name': "Air Quality",
+                   {'id': 3, 'name': "Temp4",
+                     'time': "2011-07-10 00:00:00",
+                     'seq': 1,
+                     'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '255,4'},
+                     
+                   {'id': 4, 'name': "Temp1",
+                     'time': "2011-07-10 00:00:00",
+                     'seq': 1,
+                     'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '255,4'},
+                     
+                   {'id': 5, 'name': "TempFlow2",
+                     'time': "2011-07-10 00:00:00",
+                     'seq': 1,
+                     'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '255,4'},
+                     
+                    {'id': 6, 'name': "CO2",
                      'time': "2011-07-10 00:00:00",
                      'seq': 1,
                      'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '255,4'},

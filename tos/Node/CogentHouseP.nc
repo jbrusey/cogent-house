@@ -92,18 +92,18 @@ implementation
     uint32_t send_time, next_interval;
     if (!shutdown){
       sending = FALSE;
-
+      
 #ifdef DEBUG
       printf("restartSenseTimer at %lu\n", call LocalTime.get());
       printfflush();
 #endif
-
-    //Calculate the next interval
+      
+      //Calculate the next interval
       if (stop_time < sense_start_time) // deal with overflow
 	send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
       else
 	send_time = (stop_time - sense_start_time);
-    
+      
       if (my_settings->samplePeriod < send_time)
 	next_interval = 0;
       else
@@ -164,26 +164,28 @@ implementation
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
 
+
     last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
+    
     if (newData != NULL) { 
       //we're going do a send so pack the msg count and then increment
       newData->timestamp = call LocalTime.get();
       newData->special = 0xc7;
-
+      
       //increment and pack seq
       expSeq = msgSeq;
       msgSeq++;
       newData->seq = expSeq;
       newData->rssi = 0.;
-
+      
       newData->ctp_parent_id = -1;
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
 	newData->ctp_parent_id = parent;
       }
-     
+      
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
       }
@@ -192,7 +194,11 @@ implementation
       }
       send_start_time = call LocalTime.get();
       call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
-
+#ifdef DEBUG
+      printf("pre send%lu\n", call LocalTime.get());
+      printf("message size%u\n", message_size);
+      printfflush();
+#endif
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	printf("sending begun at %lu\n", call LocalTime.get());
