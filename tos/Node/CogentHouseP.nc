@@ -7,7 +7,7 @@ module CogentHouseP
     interface Boot;
     interface Leds;
     interface LocalTime<TMilli>;
-    
+
     //Timers
     interface Timer<TMilli> as SenseTimer;
     interface Timer<TMilli> as BlinkTimer;
@@ -92,18 +92,18 @@ implementation
     uint32_t send_time, next_interval;
     if (!shutdown){
       sending = FALSE;
-      
+
 #ifdef DEBUG
       printf("restartSenseTimer at %lu\n", call LocalTime.get());
       printfflush();
 #endif
-      
-      //Calculate the next interval
+
+    //Calculate the next interval
       if (stop_time < sense_start_time) // deal with overflow
 	send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
       else
 	send_time = (stop_time - sense_start_time);
-      
+    
       if (my_settings->samplePeriod < send_time)
 	next_interval = 0;
       else
@@ -164,28 +164,26 @@ implementation
     if (last_errno != 1.)
       call PackState.add(SC_ERRNO, last_errno);
 
-
     last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
-    
     if (newData != NULL) { 
       //we're going do a send so pack the msg count and then increment
       newData->timestamp = call LocalTime.get();
       newData->special = 0xc7;
-      
+
       //increment and pack seq
       expSeq = msgSeq;
       msgSeq++;
       newData->seq = expSeq;
       newData->rssi = 0.;
-      
+
       newData->ctp_parent_id = -1;
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
 	newData->ctp_parent_id = parent;
       }
-      
+     
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
       }
@@ -400,7 +398,6 @@ implementation
    * - begin sensing cycle by requesting, in parallel, for all active
    * sensors to start reading.
    */
-
   event void SenseTimer.fired() {
     int i;
 #ifdef BLINKY
@@ -416,7 +413,7 @@ implementation
       call ExpectReadDone.clearAll();
       call PackState.clear();
       phase_two_sensing = FALSE;
-      
+
       // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
@@ -435,9 +432,9 @@ implementation
 	 send a packet (e.g. for duty cycle info)
       */
       post checkDataGathered();
+
     }
   }
-
 
   /* perform any phase two sensing */
   task void phaseTwoSensing() {
@@ -445,7 +442,7 @@ implementation
     for (i = 0; i < RS_SIZE; i++) { 
       if (call Configured.get(i)) {
 	call ExpectReadDone.set(i);
-        if (i == RS_CO2)
+	if (i == RS_CO2)
 	  call ReadCO2.read();
 	else if (i == RS_TEMPADC0)
 	  call ReadTempADC0.read();
@@ -506,14 +503,17 @@ implementation
   event void ReadTemp.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_TEMPERATURE, SC_TEMPERATURE, SC_D_TEMPERATURE);
   }
+
   event void ReadHum.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_HUMIDITY, SC_HUMIDITY, SC_D_HUMIDITY);
   }
+
   event void ReadVolt.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
     if (data->x < LOW_VOLTAGE)
       post powerDown();
   }
+
   event void ReadCO2.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
   }
@@ -547,7 +547,7 @@ implementation
   event void ReadBlackBulb.readDone(error_t result, FilterState* data) {
     do_readDone_filterstate(result, data, RS_BLACKBULB, SC_BLACKBULB, SC_D_BLACKBULB);
   }
-  
+
   /*********** Radio Control *****************/
 
   event void RadioControl.startDone(error_t ok) {

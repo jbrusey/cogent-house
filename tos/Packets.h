@@ -107,9 +107,8 @@ enum {
   AM_STATEMSG = 7,
   SPECIAL = 0xc7,
   MAX_HOPS = 4,
-  NODE_TYPE_MAX = 10,
   CLUSTER_HEAD_TYPE = 10,
-  CLUSTER_HEAD_MIN_TYPE = 10
+  CLUSTER_HEAD_MIN_TYPE = 10,
 };
 
 
@@ -126,6 +125,11 @@ enum {
   ERR_SEND_WHILE_SENDING = 11,
   ERR_NO_ACK=13,
   ERR_HEARTBEAT=17
+};
+
+
+enum {
+  NODE_TYPE_MAX = 10
 };
 
 

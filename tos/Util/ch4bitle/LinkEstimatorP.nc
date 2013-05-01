@@ -224,7 +224,7 @@ implementation {
 	continue;
       }
       //if cluster head ignore
-      if (NeighborTable[i].ll_addr >> 12 >=  CLUSTER_HEAD_MIN_TYPE){
+      if ((NeighborTable[i].ll_addr >> 12) >=  CLUSTER_HEAD_MIN_TYPE){
 	dbg("LI", "Cluster Head entry, so continuing\n");
 	continue;
       }	
@@ -455,7 +455,7 @@ implementation {
     uint8_t idx;
     
     //return max etx value if its a leaf path
-    if (!CLUSTER_HEAD && (neighbor>> 12 >=  CLUSTER_HEAD_MIN_TYPE)){
+    if (!CLUSTER_HEAD && ((neighbor >> 12) <  CLUSTER_HEAD_MIN_TYPE)){
       dbg("LI", "updateNeighborTableEst: Set etx to max where leaf path\n");
 	  return VERY_LARGE_ETX_VALUE;
     }
