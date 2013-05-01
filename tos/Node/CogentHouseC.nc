@@ -77,7 +77,6 @@ implementation
   components new CarbonDioxideC() as CarbonDioxide;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
-  
 
   //Sensing Modules
   components ThermalSensingM, BatterySensingM, CarM;
