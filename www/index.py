@@ -1001,7 +1001,7 @@ def registerNode(node=None, room=None):
         s.append("<form action=\"registerNodeSubmit\">")
         s.append("<p>Node id: %d<input type=\"hidden\" name=\"node\" value=\"%d\"/></p>" % (node, node))
         s.append("<p>House: <select name=\"house\">")        
-        for h in session.query(House):            
+        for h in session.query(House):
             s.append("<option value=\"%d\">%s</option>" % (h.id, h.address))
         s.append("</select>")
         u = _url("addNewHouse", [('regnode', node)])
@@ -1425,12 +1425,11 @@ def _get_value_and_delta(node_id,
             pass
 
         s2 = aliased(Reading)
-        return (session.query(Reading.time, Reading.value, s2.value)
-                #, NodeState.seq_num)
+        return (session.query(Reading.time, Reading.value, s2.value, NodeState.seq_num)
                           .join(s2, and_(Reading.time == s2.time,
                                          Reading.nodeId == s2.nodeId))
-                          # .join(NodeState, and_(Reading.time == NodeState.time,
-                          #                       Reading.nodeId == NodeState.nodeId))
+                          .join(NodeState, and_(Reading.time == NodeState.time,
+                                                Reading.nodeId == NodeState.nodeId))
                           .filter(and_(Reading.typeId == reading_type,
                                        s2.typeId == delta_type,
                                        Reading.nodeId == node_id,
