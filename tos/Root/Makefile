@@ -1,7 +1,7 @@
 PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/drip  -I%T/lib/net/4bitle #-I../Util/ch4bitle #
 COMPONENT=RssiCogentRootC
 
-PFLAGS += -DTOSH_DATA_LENGTH=144
+PFLAGS += -DTOSH_DATA_LENGTH=145
 CFLAGS += -DSERIAL_QUEUE_SIZE=25
 
 CFLAGS += -DCC2420_DEF_CHANNEL=15
