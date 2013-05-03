@@ -281,7 +281,6 @@ implementation
 	event void GetCO2.readDone(error_t result, uint16_t data) {
 		float voltage;
 		float CO2;
-		call CO2On.clr();
 		voltage=(data/maxAdc)*vref;
 		CO2 = horner(sizeof(CO2Coeffs)/sizeof(float)-1, CO2Coeffs, (float)voltage);
 		signal ReadCO2.readDone(SUCCESS, CO2);
