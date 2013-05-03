@@ -60,8 +60,8 @@ implementation
   bool shutdown = FALSE;
   message_t dataMsg;
   uint16_t message_size;
-  uint8_t msgSeq = 0;
-  uint8_t expSeq = 255;
+  uint32_t msgSeq = 0;
+  uint32_t expSeq = 255;
   uint32_t sense_start_time;
   uint32_t send_start_time;  
   uint8_t missedPKT = 0;
