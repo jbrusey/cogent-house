@@ -25,8 +25,7 @@ def upgrade():
     
     op.create_index('r_1', 'Reading', ['time',
                                        'nodeId',
-                                       'type',
-                                       'localtime'])
+                                       'type'])
 
     op.create_index('nodeId', 'Reading', ['nodeId'])
     op.create_index('type', 'Reading', ['type'])
