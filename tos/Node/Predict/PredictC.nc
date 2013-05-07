@@ -28,7 +28,7 @@ implementation
   {
     float deltaT;
     //Find how many sensing periods have passed
-    deltaT = ((float) subtract_time(t, fs->time)) / DEF_SENSE_PERIOD; 
+    deltaT = ((float) subtract_time(t, fs->time)); 
     return fs->x + (fs->dx * deltaT);
   }		
 }
