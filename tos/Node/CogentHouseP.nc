@@ -635,8 +635,8 @@ implementation
     crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
 
 #ifdef DEBUG
-    printf("exp seq %u\n", expSeq);
-    printf("rec seq %u\n", ackMsg->seq);
+    printf("exp seq %lu\n", expSeq);
+    printf("rec seq %lu\n", ackMsg->seq);
     printf("exp nid %u\n", TOS_NODE_ID);
     printf("rec nid %u\n", ackMsg->node_id);
     printf("exp CRC %u\n", crc);
