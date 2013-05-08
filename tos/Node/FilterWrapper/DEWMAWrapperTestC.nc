@@ -2,7 +2,6 @@
 #define NEW_PRINTF_SEMANTICS
 #include "printf.h"
 #include "minunit.h"
-#include "mat22.h"
 #include "../Sensing/PolyClass/horner.c"
 #include "SIPController.h"
 #include <stdio.h>
