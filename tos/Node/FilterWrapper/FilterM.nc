@@ -15,7 +15,7 @@ implementation {
   FilterState currentState[RS_SIZE];
   float vals[RS_SIZE][2];
 
-  command void EstimateCurrentState.init[uint8_t id](float x_init, float dx_init, bool init_set, float a, float b){
+  command void EstimateCurrentState.init[uint8_t id](float a, float b){
     call Filter.init[id](a,b);
   }
   

@@ -4,7 +4,7 @@ interface SIPController<val_t> {
   /**
    * initialise state
    */
-  command void init(float threshold, bool sensorMask, float x_init, float dx_init, bool init_set, float a, float b);
+  command void init(float threshold, bool sensorMask, float a, float b);
 
  
   /**
