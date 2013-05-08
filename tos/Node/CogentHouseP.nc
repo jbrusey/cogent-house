@@ -35,6 +35,7 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadVOC;
     interface SIPController<FilterState *> as ReadAQ;
     interface SIPController<FilterState *> as ReadOpti;
+    interface SIPController<FilterState *> as ReadTempADC1;
     interface TransmissionControl;
     
     interface SplitControl as OptiControl;
@@ -354,6 +355,7 @@ implementation
     call ReadVOC.init(SIP_VOC_THRESH, SIP_VOC_MASK, SIP_VOC_ALPHA, SIP_VOC_BETA);
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_ALPHA, SIP_AQ_BETA);
     call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
+    call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
 #endif
 
     nodeType = TOS_NODE_ID >> 12;
@@ -391,6 +393,13 @@ implementation
       call OptiControl.start();
     }
 #endif
+    if (nodeType == 6) {
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_TEMPADC1);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_DUTY);
+    }
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -465,6 +474,8 @@ implementation
 	call ExpectReadDone.set(i);
 	if (i == RS_CO2)
 	  call ReadCO2.read();
+	else if (i == RS_TEMPADC1)
+	  call ReadTempADC1.read();
 	else if (i == RS_AQ)
 	  call ReadAQ.read();
 	else if (i == RS_VOC)
@@ -530,6 +541,10 @@ implementation
 
   event void ReadVOC.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_VOC, SC_VOC, SC_D_VOC);
+  }
+  
+  event void ReadTempADC1.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_TEMPADC1, SC_TEMPADC1, SC_D_TEMPADC1);
   }
   
   event void ReadOpti.readDone(error_t result, FilterState* data) {

@@ -72,7 +72,9 @@ enum {
   SC_BN_AQ_COUNT = 2,
   SC_BN_AQ_FIRST = 38,
   SC_OPTI = 40,
-  SC_SIZE = 41, // SC_SIZE must be 1 greater than last entry
+  SC_TEMPADC1 = 41,
+  SC_D_TEMPADC1 = 42,
+  SC_SIZE = 43, // SC_SIZE must be 1 greater than last entry
 };
 
 #include "Node/PackState/packstate.h"
@@ -92,7 +94,8 @@ enum {
   RS_DUTY = 10,
   RS_OPTI = 11,
   RS_CLAMP = 12,
-  RS_SIZE = 13 // must be 1 greater than last entry
+  RS_TEMPADC1 = 13,
+  RS_SIZE = 14 // must be 1 greater than last entry
 };
 
 
