@@ -12,6 +12,8 @@ down_revision = '10d37b0cf10e'
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.sql import table, column
+from sqlalchemy import String, Integer, Float, DateTime
 
 
 def upgrade():
