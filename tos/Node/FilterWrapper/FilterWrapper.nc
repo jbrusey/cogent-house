@@ -4,7 +4,7 @@ interface FilterWrapper<val_t> {
   /**
    * Initialise filter wrapper setting id paramaterised from SIPController
    */
-  command void init(float x_init, float dx_init, bool init_set, float a, float b); 
+  command void init(float a, float b); 
    
   /**
    * Initiates a read of the value.

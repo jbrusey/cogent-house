@@ -26,10 +26,8 @@ implementation
    */
   command float Predict.predictState(FilterState *fs, uint32_t t)
   {
-    float deltaT;
     //Find how many sensing periods have passed
-    deltaT = ((float) subtract_time(t, fs->time)); 
-    return fs->x + (fs->dx * deltaT);
+    return fs->x + fs->dx * subtract_time(t, fs->time) / 1024.f;
   }		
 }
 
