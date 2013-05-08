@@ -1,4 +1,6 @@
 // -*- c -*- 
+#include "Filter.h"
+
 module DEWMAC @safe()
 {
   provides interface Filter[uint8_t id];
@@ -9,8 +11,7 @@ implementation
   float beta[RS_SIZE];
   uint32_t count[RS_SIZE];
   uint32_t old_time[RS_SIZE];
-  bool set[RS_SIZE];
-  vec2 xhat[RS_SIZE]; 
+  FilterState xhat[RS_SIZE];
 
 
   //Subtract time method to find time between now and the last reading deals with the overflow issue
@@ -23,78 +24,42 @@ implementation
   }
 
 
-  void printfloat2(float v) {
-    int i = (int) v;
-    int j;
-
-    if (isnan(v)) {
-      printf("nan");
-      return;
-    }
-    if (isinf(v)) {
-      printf("inf");
-      return;
-    }
-
-    if (v < 0) {
-      printf("-");
-      printfloat2(-v);
-      return;
-    }
-    if (v > 1e9) {
-      printf("big");
-      return;
-    }
-
-    printf("%d.", i);
-
-    v -= i;
-
-    j = 0;
-    while (j < 20 && v > 0.) {
-      v *= 10.;
-      i = (int) v;
-      v -= i;
-      printf("%d", i);  
-      j ++;
-    }
-  }
-  
-  
   /* run filter step
    * 
    * z - sensed value
    * current - sensed time
    * v - vector to copy results back to
    */
-  command void Filter.filter[uint8_t id](float z, uint32_t current, vec2 v)
+  command void Filter.filter[uint8_t id](float z, uint32_t current, FilterState *xnew)
   {
-    float delta_t;
+    uint32_t delta_t;
+    xnew->time = current;
+    xnew->z = z; /* TODO remove z from filterstate */
 
     if (count[id] == 0) {
-      xhat[id][0] = z;
-      xhat[id][1] = 0;
+      xnew->x = z;
+      xnew->dx = 0;
       count[id]++;
     }
     else{
       delta_t = subtract_time(current, old_time[id]);
-      xhat[id][0] = alpha[id] * z + (1-alpha[id]) * (xhat[id][0] + xhat[id][1]);
+      xnew->x = alpha[id] * z + (1-alpha[id]) * (xhat[id].x + xhat[id].dx);
       if (delta_t == 0) {
-	xhat[id][1] = xhat[id][1];
+	xnew->dx = xhat[id].dx;
       }
       else{
 	if (count[id] == 1) { 
-	  xhat[id][1] = (z - xhat[id][0]) / delta_t;
+	  xnew->dx = (z - xhat[id].x) / delta_t * 1024.f;
 	  count[id]++;
 	}
 	else {
-	  xhat[id][1] = beta[id] * (xhat[id][0] - xhat[id][0]) / delta_t +
-	    (1 - beta[id]) * xhat[id][1];
+	  xnew->dx = beta[id] * (xnew->x - xhat[id].x) / delta_t * 1024.f +
+	    (1 - beta[id]) * xhat[id].dx;
 	}
       }
     }
     old_time[id] = current;
-    mat22_copy_v(xhat[id], v);
+    xhat[id] = *xnew;
   }
 
 
@@ -106,20 +71,13 @@ implementation
  * a - smoothing parameter in range (0,1)
  * b - second order smoothing parameter in range (0,1)
  */
- command void Filter.init[uint8_t id](float x_init, float dx_init, bool init_set, float a, float b){
+ command void Filter.init[uint8_t id](float a, float b){
    count[id] = 0;
    old_time[id] = 0;
    alpha[id] = a;
    beta[id] = b;
-   set[id] = init_set;
-   if(init_set){
-     xhat[id][0] = x_init;
-     xhat[id][1] = dx_init;
-   }
-   else{
-     xhat[id][0] = 0.;
-     xhat[id][1] = 0.;
-   }
+   xhat[id].x = 0.;
+   xhat[id].dx = 0.;
  }
 
 }

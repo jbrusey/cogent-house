@@ -11,17 +11,19 @@ implementation
 {
   components MainC, DEWMATestP;
   
-  components DEWMAC as DEWMASine;
+  components DEWMAC as Dewma;
 
   components PrintfC;
   components SerialStartC;
   components RandomC;
   components LedsC;
+  components PredictC;
 
   DEWMATestP.Boot -> MainC.Boot; 
   DEWMATestP.Random -> RandomC;
   DEWMATestP.Leds -> LedsC;
 
-  DEWMATestP.DEWMASine -> DEWMASine.Filter[1];
+  DEWMATestP.Dewma -> Dewma.Filter[1];
+  DEWMATestP.Predict -> PredictC;
 }
 

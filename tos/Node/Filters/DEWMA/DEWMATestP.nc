@@ -7,28 +7,16 @@ module DEWMATestP @safe()
 {
   uses {
     interface Boot;
-    interface Filter as DEWMASine;
+    interface Filter as Dewma;
     interface Random;
     interface Leds;
+    interface Predict;
   }
 }
 
 implementation
 {
   int tests_run=0;
-
-  static char* test_mat22_add_v(void) {
-    
-    vec2 v1 = {10.02, 0.02}, v2 = {0., 0}, v3, v4 = {10.02, 0.02};
-    
-    mat22_add_v( v1, v2, v3);
-    
-    mu_assert("add_v failed", v3[0] == v4[0] &&
-	      v3[1] == v4[1]);
-  
-  
-    return 0;
-  }
 
   void printfloat2( float v) {
     int i = (int) v;
@@ -68,37 +56,97 @@ implementation
   }
   
   
-  static char* testSine(void){
-    float sse;
+  
+  static char* test_dewma1(void){
     float z;
-    float v[2];
-    float err;
-    float i;
+    FilterState x;
+    uint32_t i;
+    call Dewma.init(0.2f,0.2f);
+    for (i = 0; i < 100; i++) {
+      z = i * 12.1f + 4.5f;
+      call Dewma.filter(z, i*1024, &x);
+   }
+   printfloat2(x.x);
+   printf("\n");
+   printfloat2(x.dx);
+   printf("\n");
+   mu_assert("estimates after 100 iterations are wrong",
+	    fabs(x.x  - 1202.4) < 0.0001);
+   mu_assert("delta estimates after 100 iterations are wrong",
+	    fabs(x.dx - 12.1) < 0.0001); 
+  
+    return 0;
+  }
 
-    sse = 0.;
-    for (i = 1.; i < 2001.; i++) { 
-      z = ((i / 64.) + 10.);
-      call DEWMASine.filter(z, i*1024, v);
+  
+   
+  static char * test_dewma2(void) 
+  { 
+    FilterState s1, s2;
+    uint32_t c;
+    float v;
 
-      err = v[0] - (z);
-      sse += err * err;
-    }
+    call Dewma.init(0.2f, 0.2f);
 
-    mu_assert("Sine: v[0] error", v[0] == 10.+2000./64.);
-    mu_assert("Sine: v[1] error", v[1] == 1./64.); 
-    mu_assert("Sine: sse < 0.03", sse < 0.03);
+
+    c = 1024;
+    call Dewma.filter(101.f, c, &s2);
+    s1 = s2;
+  
+    c = 1024 + 512;
+    v = call Predict.predictState(&s1, c);
+  
+    mu_assert("should stay flat",
+	      v == 101.f);
 
     return 0;
   }
-   
+
+  static char * test_dewma3(void)
+  {
+    FilterState s2;
+    uint32_t c;
+    float v;
+
+    call Dewma.init(0.99f, 0.99f);
+
+    /* mu_assert("init not ok", */
+    /* 	      d.count == 0 && */
+    /* 	      d.alpha == 0.99f && */
+    /* 	      d.beta == 0.99f); */
+
+    c = 1024;
+    call Dewma.filter(101.f, c, &s2);
+    /*print_state(&s2);*/
+  
+    c = 1024 + 512;
+    call Dewma.filter(103.f, c, &s2);
+    /*print_state(&s2);*/
+  
+    c = 2048;
+
+    call Dewma.filter(105.f, c, &s2);
+    /*print_state(&s2);*/
+
+    c = 3 * 1024;
+    v = call Predict.predictState(&s2, c);
+    /*print_state(&s2);*/
+  
+    /* printf("%f, %f\n", s2.x[0], s2.x[1]); */
+    mu_assert("should roughly track trend",
+	      fabs(v - 109.f) < 0.1 &&
+	      fabs(s2.dx - 4.f) < 0.1);
+
+    return 0;
+  }
 
 
    
   static char* all_tests(void) { 
-    mu_run_test(test_mat22_add_v); 
-    call Leds.led2On();
-    mu_run_test(testSine);
-    call Leds.led1Toggle(); 
+    mu_run_test(test_dewma2); 
+    mu_run_test(test_dewma1);
+    mu_run_test(test_dewma3);
+    /* call Leds.led1Toggle();  */
     return 0;
   }
 
@@ -107,7 +155,6 @@ implementation
   {
 
     char *result;
-    call DEWMASine.init(10., 1/64., TRUE, 0.1, 0.1);
     printfflush();
 
     result = all_tests();
