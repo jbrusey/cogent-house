@@ -9,5 +9,3 @@ include $(MAKERULES)
 
 CC=gcc
 
-test: test_mat22
-	./test_mat22

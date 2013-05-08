@@ -19,24 +19,24 @@ implementation
   
   static char* testPassFilter(void){
     float z;
-    float v[2];
+    FilterState xnew;
     float i;
 
     for (i = 1.; i < 2001.; i++) { 
       z = i;
-      call Pass.filter(z, i * 1024, v);
+      call Pass.filter(z, i * 1024, &xnew);
+      mu_assert("Filtered wrong", xnew.x == z && xnew.dx == 0.f);
     }
 
-    mu_assert("Filtered: v[0] == 0", v[0] == 2000);
 
     return 0;
   }
    
    
   static char* all_tests(void) { 
-    call Leds.led2On();
-    mu_run_test(testPassFilter);  //Not working
-    call Leds.led1Toggle(); 
+    /* call Leds.led2On(); */
+    mu_run_test(testPassFilter);  
+    /* call Leds.led1Toggle();  */
     return 0;
   }
 
