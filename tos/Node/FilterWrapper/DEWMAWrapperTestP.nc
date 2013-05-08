@@ -55,7 +55,7 @@ implementation
 
   event void Boot.booted()
   {
-    call TempRead.init(0., 0., FALSE, 0.1, 0.1);
+    call TempRead.init(0.1, 0.1);
     call SenseTimer.startPeriodic(1024);
     //initialise filter
   }

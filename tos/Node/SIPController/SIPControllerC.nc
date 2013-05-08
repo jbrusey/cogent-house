@@ -57,12 +57,12 @@ implementation
       signal SIPController.readDone[id](FAIL, NULL);
   }
   
-  command void SIPController.init[uint8_t id](float thresh, bool sensorMask, float x_init, float dx_init, bool init_set, float a, float b){
+  command void SIPController.init[uint8_t id](float thresh, bool sensorMask, float a, float b){
     first[id] = TRUE;
     threshold[id] = thresh;
     mask[id] = sensorMask;
     
-    call EstimateCurrentState.init[id](x_init, dx_init, init_set, a, b);
+    call EstimateCurrentState.init[id](a, b);
     call Heartbeat.init();
   }
 
@@ -93,6 +93,6 @@ implementation
 
  default event void SIPController.readDone[uint8_t id](error_t result, FilterState* data) {}
  default command error_t EstimateCurrentState.read[uint8_t id](){ return SUCCESS;}
- default command void EstimateCurrentState.init[uint8_t id](float x_init, float dx_init, bool init_set, float a, float b){}
+ default command void EstimateCurrentState.init[uint8_t id](float a, float b){}
 
 }
