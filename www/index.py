@@ -1425,12 +1425,11 @@ def _get_value_and_delta(node_id,
             pass
 
         s2 = aliased(Reading)
-        return (session.query(Reading.time, Reading.value, s2.value)
-                #, NodeState.seq_num)
+        return (session.query(Reading.time, Reading.value, s2.value, NodeState.seq_num)
                           .join(s2, and_(Reading.time == s2.time,
                                          Reading.nodeId == s2.nodeId))
-                          # .join(NodeState, and_(Reading.time == NodeState.time,
-                          #                       Reading.nodeId == NodeState.nodeId))
+                          .join(NodeState, and_(Reading.time == NodeState.time,
+                                                Reading.nodeId == NodeState.nodeId))
                           .filter(and_(Reading.typeId == reading_type,
                                        s2.typeId == delta_type,
                                        Reading.nodeId == node_id,
