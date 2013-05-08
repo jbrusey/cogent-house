@@ -72,9 +72,10 @@ implementation
   components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
+  components new Temp_ADC1C() as Temp_ADC1;
 
   //Sensing Modules
-  components ThermalSensingM, AirQualityM, BatterySensingM;
+  components ThermalSensingM, AirQualityM, BatterySensingM, TempADCM;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -90,6 +91,7 @@ implementation
   OptiSmartM.EnergyInput -> GIO.Port26;
   OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
 #endif
+  TempADCM.GetTempADC1 -> Temp_ADC1;
 
   /*********** ACK CONFIG *************/
 
@@ -161,6 +163,12 @@ implementation
   FilterM.GetSensorValue[RS_OPTI]  -> OptiSmartM.ReadOpti;
   SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
   CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
+  
+  
+  FilterM.Filter[RS_TEMPADC1]  -> DEWMAC.Filter[RS_TEMPADC1];
+  FilterM.GetSensorValue[RS_TEMPADC1]  -> TempADCM.ReadTempADC1;
+  SIPControllerC.EstimateCurrentState[RS_TEMPADC1]  -> FilterM.EstimateCurrentState[RS_TEMPADC1];
+  CogentHouseP.ReadTempADC1 -> SIPControllerC.SIPController[RS_TEMPADC1];
 
   //Transmission Control
   CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;

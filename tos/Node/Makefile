@@ -1,4 +1,4 @@
-PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I ./Filters/PassThrough  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/OptiSmart  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
+PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I ./Filters/PassThrough  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/TempADC -I./Sensing/OptiSmart  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
 
 COMPONENT=CogentHouseC
 
@@ -17,7 +17,7 @@ CFLAGS += -DSIP
 #CFLAGS += -DBLINKY
 #CFLAGS += -DDEBUG
 
-PFLAGS +=-DTOSH_DATA_LENGTH=180
+PFLAGS +=-DTOSH_DATA_LENGTH=188
 #PFLAGS += -DCC2420_DEF_RFPOWER=3
 #CFLAGS += -DCC2420_DEF_CHANNEL=15
 
@@ -26,8 +26,8 @@ CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
-CFLAGS += -DDEF_SENSE_PERIOD=307200L
-CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
+CFLAGS += -DDEF_SENSE_PERIOD=10240L
+CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=10240L
 #CFLAGS += -DLEAF_TIMEOUT_TIME=61440L
 CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
 CFLAGS += -DLOW_VOLTAGE=2.35
@@ -37,6 +37,16 @@ CFLAGS += -DSIP_TEMP_MASK=1
 CFLAGS += -DSIP_TEMP_THRESH=0.5
 CFLAGS += -DSIP_TEMP_ALPHA=0.2
 CFLAGS += -DSIP_TEMP_BETA=0.2
+
+
+CFLAGS += -DSIP_TEMPADC_MASK=1
+CFLAGS += -DSIP_TEMPADC_THRESH=-1
+CFLAGS += -DSIP_TEMPADC_INIT=0
+CFLAGS += -DSIP_TEMPADC_X=0
+CFLAGS += -DSIP_TEMPADC_DX=0
+CFLAGS += -DSIP_TEMPADC_ALPHA=0.2
+CFLAGS += -DSIP_TEMPADC_BETA=0.2
+
 
 CFLAGS += -DSIP_HUM_MASK=1
 CFLAGS += -DSIP_HUM_THRESH=2.
