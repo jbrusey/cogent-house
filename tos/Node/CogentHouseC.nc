@@ -87,9 +87,9 @@ implementation
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
 #ifdef SIP
-  components OptiSmartM;
-  OptiSmartM.EnergyInput -> GIO.Port26;
-  OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+  components PulseReaderM;
+  PulseReaderM.EnergyInput -> GIO.Port26;
+  PulseReaderM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
 #endif
   TempADCM.GetTempADC1 -> Temp_ADC1;
 
@@ -158,9 +158,9 @@ implementation
   
 
   //Opti Smart Wiring
-  CogentHouseP.OptiControl -> OptiSmartM.OptiControl;
+  CogentHouseP.OptiControl -> PulseReaderM.PulseControl;
   FilterM.Filter[RS_OPTI]  -> Pass.Filter[RS_OPTI];
-  FilterM.GetSensorValue[RS_OPTI]  -> OptiSmartM.ReadOpti;
+  FilterM.GetSensorValue[RS_OPTI]  -> PulseReaderM.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
   CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
   
