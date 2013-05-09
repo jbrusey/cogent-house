@@ -38,6 +38,8 @@ module CogentHouseP
     interface Read<float> as ReadAQ;
     interface SplitControl as OptiControl;
     interface Read<float> as ReadOpti;
+    interface SplitControl as GasControl;
+    interface Read<float> as ReadGas;
     interface SplitControl as CurrentCostControl;
     interface Read<ccStruct *> as ReadWattage;
     interface SplitControl as HeatMeterControl;
@@ -247,6 +249,11 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call Configured.set(RS_DUTY);
     }
+    else if (nodeType == 8) { /* gas reader */
+      call Configured.set(RS_GAS);
+      call Configured.set(RS_VOLTAGE);
+      call GasControl.start();
+    }
 
     call RadioControl.start();
     
@@ -327,6 +334,8 @@ implementation
 	    call ReadHeatMeter.read();
 	  else if (i == RS_OPTI)
 	    call ReadOpti.read();
+	  else if (i == RS_GAS)
+	    call ReadGas.read();
 	  else if (i == RS_TEMPADC1)
 	    call ReadTempADC1.read();
 	  else if (i == RS_TEMPADC2)
@@ -430,6 +439,10 @@ implementation
 
   event void ReadOpti.readDone(error_t result, float data) {
     do_readDone(result, data, RS_OPTI, SC_POWER_PULSE);
+  }
+  
+  event void ReadGas.readDone(error_t result, float data) {
+    do_readDone(result, data, RS_GAS, SC_GAS_PULSE);
   }
 
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
@@ -653,8 +666,9 @@ implementation
 
   }
 
-  event void OptiControl.startDone(error_t error) { }
-  
-  event void OptiControl.stopDone(error_t error) {}  
+  event void OptiControl.startDone(error_t error) {}
+  event void OptiControl.stopDone(error_t error) {}
+  event void GasControl.startDone(error_t error) {}
+  event void GasControl.stopDone(error_t error) {}  
   
 }
