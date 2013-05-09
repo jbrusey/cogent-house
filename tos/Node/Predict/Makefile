@@ -1,4 +1,4 @@
-PFLAGS += -I../ -I ../FilterWrapper
+PFLAGS += -I../ -I ../FilterWrapper -I ../../Util
 
 COMPONENT=PredictTestC
 CFLAGS += -I$(TOSDIR)/lib/printf -Wall 
