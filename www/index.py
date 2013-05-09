@@ -1497,7 +1497,7 @@ def _plot_splines(node_id,
     if last_dt < end_time:
         # the last point is prior to then end time, so estimate
         # the end point
-        delta_t = (end_time - last_dt).seconds / 300.
+        delta_t = (end_time - last_dt).seconds
         ly = last_s + last_t * delta_t
         lx = matplotlib.dates.date2num(end_time)
 
