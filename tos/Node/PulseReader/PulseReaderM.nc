@@ -1,5 +1,5 @@
 /* -*- c -*-
-   OptiSmartM.nc - Module to sense from an optismarts pulse output
+   PulseReaderM.nc - Module to sense from a pulse output
 
    Copyright (C) 2011 Ross Wilkins
 
@@ -22,22 +22,22 @@
 
 
 =====================================
-Optismart energy Meter Module
+Pulse Reader Module
 =====================================
 
-The module counts the number of interupts in a sample period from the Current cost opti smart. The pulse output should be connected to GPIO3.
+The module counts the number of interupts in a sample period from the wired in GPIO port.
 
 :author: Ross Wilkins
 :email: ross.wilkins87@googlemail.com
-:date:  31/07/2012
+:date:  09/05/2013
 */
 
 
-module OptiSmartM
+module PulseReaderM
 {
   provides {
-    interface Read<float> as ReadOpti;
-    interface SplitControl as OptiControl;
+    interface Read<float> as ReadPulse;
+    interface SplitControl as PulseControl;
   }
   uses {	
     interface HplMsp430GeneralIO as EnergyInput;
@@ -56,10 +56,10 @@ implementation
       energyCount = 0;
     }
 
-    signal ReadOpti.readDone(SUCCESS, te);
+    signal ReadPulse.readDone(SUCCESS, te);
   }
 
-  command error_t ReadOpti.read() {
+  command error_t ReadPulse.read() {
     post readTask();
     return SUCCESS;
   }
@@ -67,10 +67,15 @@ implementation
   async event void EnergyInterrupt.fired() {
     //clear the interrupt pending flag then increment the count
     call EnergyInterrupt.clear();
+#ifdef DEBUG
+    call Leds.led2Toggle();
+    call Leds.led1Toggle();
+    call Leds.led0Toggle();
+#endif
     energyCount += 1;
   }
   
-  command error_t OptiControl.start() {
+  command error_t PulseControl.start() {
     //Set up energy pulse
     atomic{
       call EnergyInterrupt.clear();
@@ -78,12 +83,12 @@ implementation
     }
     call EnergyInterrupt.edge(FALSE);
     call EnergyInput.makeInput();
-    signal OptiControl.startDone(SUCCESS);
+    signal PulseControl.startDone(SUCCESS);
     return SUCCESS;
   }
   
-  command error_t OptiControl.stop() {
-    signal OptiControl.stopDone(SUCCESS);
+  command error_t PulseControl.stop() {
+    signal PulseControl.stopDone(SUCCESS);
     return SUCCESS;
   }
        
