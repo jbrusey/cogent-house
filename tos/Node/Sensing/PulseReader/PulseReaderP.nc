@@ -2,14 +2,15 @@
 #include "printf.h"
 #include "../printfloat.h"
 
-module OptiSmartP
+module PulseReaderP
 {
   uses {
     interface Boot;
-    interface Read<float> as ReadOpti;
-    interface SplitControl as OptiControl;
+    interface Read<float> as ReadPulse;
+    interface SplitControl as PulseControl;
     interface Timer<TMilli> as SensingTimer;
     interface LocalTime<TMilli>;
+    interface Leds;
   }
 }
 
@@ -23,15 +24,15 @@ implementation
   event void Boot.booted()
   {
     call SensingTimer.startOneShot(PERIOD);
-    call OptiControl.start();
+    call PulseControl.start();
   }
   
-  event void OptiControl.startDone(error_t error) {
+  event void PulseControl.startDone(error_t error) {
     printf("got start done %u\n", error);
     printfflush();
   }
   
-  event void OptiControl.stopDone(error_t error) {
+  event void PulseControl.stopDone(error_t error) {
     printf("got stop done %u\n", error);
     printfflush();
   }
@@ -39,11 +40,11 @@ implementation
   
   event void SensingTimer.fired() {
     printf("start read\n");
-    call ReadOpti.read();
+    call ReadPulse.read();
   }
   
   
-  event void ReadOpti.readDone(error_t result, float data) {
+  event void ReadPulse.readDone(error_t result, float data) {
     if (result == SUCCESS) {
       printf("interupt count: ");
       printfloat(data);
