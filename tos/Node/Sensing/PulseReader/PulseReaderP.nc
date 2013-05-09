@@ -1,7 +1,6 @@
 // -*- c -*-
 #include "printf.h"
-#include "../printfloat.h"
-
+#include "printfloat.h"
 module PulseReaderP
 {
   uses {

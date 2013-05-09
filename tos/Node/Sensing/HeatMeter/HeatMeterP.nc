@@ -1,7 +1,7 @@
 // -*- c -*-
 #include "printf.h"
 #include "hm_struct.h"
-#include "../printfloat.h"
+#include "printfloat.h"
 
 module HeatMeterP
 {
