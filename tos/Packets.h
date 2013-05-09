@@ -74,7 +74,20 @@ enum {
   SC_OPTI = 40,
   SC_TEMPADC1 = 41,
   SC_D_TEMPADC1 = 42,
-  SC_SIZE = 15, // SC_SIZE set to greatest number of SC types to a node type should send
+  SC_SIZE = 43, // SC_SIZE must be 1 greater than last entry
+
+  /* procedure for increasing SC_SIZE:
+   *
+   *  1. first check if old_size + 7 // 8 == new_size + 7 // 8
+   *  (where // is integer divide).
+   *  
+   *  2. if this is NOT the case, change AM_STATEMSG to a new
+   *  value. This will ensure that packets from old nodes do not
+   *  break BaseLogger.
+   */
+
+  SC_PACKED_SIZE = 15, /* SC_PACKED_SIZE must allow for maximum number
+			  of simultaneous sensing modes */
 };
 
 #include "Node/PackState/packstate.h"
@@ -97,7 +110,6 @@ enum {
   RS_TEMPADC1 = 13,
   RS_SIZE = 14 // must be 1 greater than last entry
 };
-
 
 //separate packets structure for mote type
 
@@ -143,8 +155,8 @@ typedef nx_struct StateMsg {
   nx_uint8_t seq;
   nx_int16_t rssi;
   nx_uint8_t packed_state_mask[bitset_size(SC_SIZE)];
-  nx_float packed_state[SC_SIZE];
-} StateMsg; // varies depending on SC_SIZE 
+  nx_float packed_state[SC_PACKED_SIZE];
+} StateMsg; // varies depending on SC_SIZE and SC_PACKED_SIZE
 
 
 typedef nx_struct ConfigPerType {
