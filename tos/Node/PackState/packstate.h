@@ -20,7 +20,7 @@
 
 typedef struct packed_state_t {
   unsigned char mask[bitset_size(SC_SIZE)];
-  float p[SC_SIZE]; // actual size may be less
+  float p[SC_PACKED_SIZE]; // packed limit is smaller than full set
 } packed_state_t;
 
 typedef struct unpacked_state_t {

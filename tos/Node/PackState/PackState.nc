@@ -9,7 +9,7 @@ interface PackState
 	/**
 	* 
 	*/
-	command void add(int key, float value);
+	command int add(int key, float value);
 
 
 	/**
