@@ -1,4 +1,4 @@
-PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I ./Filters/PassThrough  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/TempADC -I./Sensing/OptiSmart  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
+PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I ./Filters/PassThrough  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/TempADC -I./Sensing/PulseReader  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
 
 COMPONENT=CogentHouseC
 
