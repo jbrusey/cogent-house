@@ -25,10 +25,10 @@ implementation
     
 
     call PackState.clear();
-    call PackState.add(1, 25.5);
-    call PackState.add(2, 1e-5);
-    call PackState.add(7, 48.001);
-    call PackState.add(8, 7.0);
+    mu_assert("fail from add", call PackState.add(1, 25.5) == SUCCESS);
+    mu_assert("fail from add", call PackState.add(2, 1e-5) == SUCCESS);
+    mu_assert("fail from add", call PackState.add(7, 48.001) == SUCCESS);
+    mu_assert("fail from add", call PackState.add(8, 7.0) == SUCCESS);
 
     pslen = call PackState.pack(&ps);
 
