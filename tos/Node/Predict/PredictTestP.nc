@@ -27,7 +27,7 @@ implementation
 
 
     //Create dummy sink state
-    state_xs = call Predict.predictState(&sink_state, 100);  //Predict state 100 readings in the future (should return 100)
+    state_xs = call Predict.predictState(&sink_state, 100L*1024L);  //Predict state 100 readings in the future (should return 100)
     mu_assert("Prediction is not 100",  state_xs == 100);
     //Run predict
     return 0;
@@ -44,8 +44,8 @@ implementation
 
 
     //Create dummy sink state
-    state_xs = call Predict.predictState(&sink_state, 200);  //Predict state 100 readings in the future (should return 100)
-    mu_assert("Prediction is not 100",  state_xs == 200);
+    state_xs = call Predict.predictState(&sink_state, 200L*1024L); 
+    mu_assert("Prediction is not 200",  state_xs == 200);
     //Run predict
     return 0;
   }
