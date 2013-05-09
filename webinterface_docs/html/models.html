@@ -1,0 +1,1222 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Database and Model API &mdash; Cogent Viewer 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Cogent Viewer 0.1 documentation" href="index.html" />
+    <link rel="up" title="Working with the software" href="code.html" />
+    <link rel="next" title="Database Uploads" href="push.html" />
+    <link rel="prev" title="Installation Instructions" href="install.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="push.html" title="Database Uploads"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation Instructions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="code.html" accesskey="U">Working with the software</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-database-and-model-api">
+<h1>The Database and Model API<a class="headerlink" href="#the-database-and-model-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The table classes represent the database schema used.</p>
+<p>See <a class="reference download internal" href="_downloads/NewSchema.pdf"><tt class="xref download docutils literal"><span class="pre">Full</span> <span class="pre">Database</span> <span class="pre">Schema</span></tt></a></p>
+</div>
+<div class="section" id="the-base-class">
+<span id="gen-model-functions"></span><h2>The Base Class<a class="headerlink" href="#the-base-class" title="Permalink to this headline">¶</a></h2>
+<p>The <tt class="xref py py-class docutils literal"><span class="pre">models.meta.InnoDBMix</span></tt> class defines parameters common to all model objects.</p>
+<p>This is used as a mixin class along side the sqlalchemy.orm.Base</p>
+<dl class="class">
+<dt id="cogentviewer.models.meta.InnoDBMix">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.meta.</tt><tt class="descname">InnoDBMix</tt><a class="reference internal" href="_modules/cogentviewer/models/meta.html#InnoDBMix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.meta.InnoDBMix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin Base class for all models used in the viewer.</p>
+<p>Primarily this makes sure that all new database tables are created
+using the InnoDB engine.</p>
+<p>Addtionally this class defines standard functionality that should
+be included in all modules.</p>
+<dl class="method">
+<dt id="cogentviewer.models.meta.InnoDBMix.update">
+<tt class="descname">update</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/meta.html#InnoDBMix.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.meta.InnoDBMix.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an object using keyword arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; List of keyword arguments to add to this object</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the keyword based __init__ function provided by Base. This
+has no sanity checking.  Items that have no database column can be
+added to the database, however they will not be saved when the data
+is committed.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="model-classes">
+<h3><tt class="xref py py-mod docutils literal"><span class="pre">model</span></tt> Classes<a class="headerlink" href="#model-classes" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>We need to add a automodule function for each class.  Potentially
+it may be better to munge classes that are relevant to each other
+together to reduce the amount of work here</div></blockquote>
+</div>
+</div>
+<div class="section" id="deployment-related-classes">
+<h2>Deployment Related Classes<a class="headerlink" href="#deployment-related-classes" title="Permalink to this headline">¶</a></h2>
+<p class="graphviz">
+<img src="_images/graphviz-b781d708b9d6f843dd0342973ee6dc223442d611.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+  DeploymentMetadata[label=&lt;
+		     &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+		     &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;DeploymentMetadata&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+		     &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+		     &lt;tr&gt;&lt;td port=&quot;depid&quot;&gt;&lt;i&gt;deploymentId&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;
+		     &lt;tr&gt;&lt;td&gt;name&lt;/td&gt;&lt;/tr&gt;
+		     &lt;tr&gt;&lt;td&gt;units&lt;/td&gt;&lt;/tr&gt;
+		     &lt;tr&gt;&lt;td&gt;value&lt;/td&gt;&lt;/tr&gt;
+		     &lt;/table&gt;&gt;];
+  DeploymentMetadata:depid -&gt; Deployment:id;
+  
+  Deployment[label=&lt;
+	     &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	     &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Deployment&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt; 
+	     &lt;tr&gt;&lt;td&gt;description&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;startDate&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td&gt;endDate&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td port=&quot;meta&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;meta&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	     &lt;tr&gt;&lt;td port=&quot;houses&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;houses&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	     &lt;/table&gt;&gt;];
+
+  Deployment:meta -&gt; DeploymentMetadata [style=&quot;dashed&quot; label=&quot;deployment&quot;];
+  Deployment:houses -&gt; House [style=&quot;dashed&quot; label=&quot;deployment&quot;];	   
+}" />
+</p>
+<span class="target" id="module-cogentviewer.models.deployment"></span><p>Table to represent deployments.</p>
+<dl class="class">
+<dt id="cogentviewer.models.deployment.Deployment">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.deployment.</tt><tt class="descname">Deployment</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/deployment.html#Deployment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.deployment.Deployment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table to hold information about deployments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>integer</em>) &#8211; deployment id (pk)</li>
+<li><strong>name</strong> (<em>string</em>) &#8211; deployment name</li>
+<li><strong>description</strong> (<em>string</em>) &#8211; deployment description</li>
+<li><strong>startDate</strong> (<em>DateTime</em>) &#8211; deployment start date</li>
+<li><strong>endDate</strong> (<em>DateTime</em>) &#8211; deployment end date</li>
+<li><strong>meta</strong> (<em>list</em>) &#8211; <em>Backref:</em> all
+<a class="reference internal" href="#cogentviewer.models.housemetadata.HouseMetadata" title="cogentviewer.models.housemetadata.HouseMetadata"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.housemetadata.HouseMetadata</span></tt></a> linked to this
+deployment</li>
+<li><strong>houses</strong> (<em>list</em>) &#8211; <em>Backref:</em> all
+<a class="reference internal" href="#cogentviewer.models.house.House" title="cogentviewer.models.house.House"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.house.House</span></tt></a> objects in this deployment</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogentviewer.models.deployment.Deployment.asJSON">
+<tt class="descname">asJSON</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/deployment.html#Deployment.asJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.deployment.Deployment.asJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a JSON compatable structure representing this item
+see <tt class="xref py py-func docutils literal"><span class="pre">models.asJSON()</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.deployment.Deployment.asTree">
+<tt class="descname">asTree</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/deployment.html#Deployment.asTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.deployment.Deployment.asTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively turn the deployments into a tree</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.deployment.Deployment.toList">
+<tt class="descname">toList</tt><big>(</big><big>)</big><a class="headerlink" href="#cogentviewer.models.deployment.Deployment.toList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Flattened List represenstaion of this item</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.deploymentmetadata"></span><dl class="class">
+<dt id="cogentviewer.models.deploymentmetadata.DeploymentMetadata">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.deploymentmetadata.</tt><tt class="descname">DeploymentMetadata</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/deploymentmetadata.html#DeploymentMetadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.deploymentmetadata.DeploymentMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table to hold metadata about a deployment</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>integer</em>) &#8211; </li>
+<li><strong>deploymentId</strong> (<em>integer</em>) &#8211; <em>Foreign key</em> to <a class="reference internal" href="#cogentviewer.models.deployment.Deployment" title="cogentviewer.models.deployment.Deployment"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.deployment.Deployment</span></tt></a> this metadata belongs to</li>
+<li><strong>name</strong> (<em>string</em>) &#8211; Name of metadata</li>
+<li><strong>description</strong> (<em>string</em>) &#8211; Description of metadata</li>
+<li><strong>units</strong> (<em>string</em>) &#8211; Units of metadata</li>
+<li><strong>value</strong> (<em>float</em>) &#8211; Value of metadata</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="house-related-classes">
+<h2>House Related Classes<a class="headerlink" href="#house-related-classes" title="Permalink to this headline">¶</a></h2>
+<p class="graphviz">
+<img src="_images/graphviz-3dd4d85fd700e66b8a034bbbb26fad689b393ed1.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+  HouseMetadata[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;HouseMetadata&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt; 
+       &lt;tr&gt;&lt;td port=&quot;houseid&quot;&gt;&lt;i&gt;houseId&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;name&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;description&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;units&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;value&lt;/td&gt;&lt;/tr&gt;
+       &lt;/table&gt;&gt;];
+  
+  HouseMetadata:houseid -&gt; House:id;
+  
+  House[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;House&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt; 
+       &lt;tr&gt;&lt;td port=&quot;deptid&quot;&gt;&lt;i&gt;deploymentId&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;address&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;startdate&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;enddate&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;meta&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;meta&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;occupiers&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;occupiers&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;location&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;location&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;/table&gt;&gt;];
+  
+  House:depId -&gt; Deployment:id;
+  House:meta -&gt; HouseMetadata [style=&quot;dashed&quot;];
+  House:occupiers -&gt; Occupier [style=&quot;dashed&quot;];
+  House:location -&gt; Location [style=&quot;dashed&quot;];
+  
+  
+  Location[label=&lt;
+	   &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	   &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Location&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt; 	   
+	   &lt;tr&gt;&lt;td port=&quot;houseId&quot;&gt;houseId&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td port=&quot;roomId&quot;&gt;roomId&lt;/td&gt;&lt;/tr&gt;
+	   &lt;/table&gt;&gt;];
+  Location:houseId -&gt; House:id;
+  Location:roomId -&gt; Room:id;
+}" />
+</p>
+<span class="target" id="module-cogentviewer.models.house"></span><p>Classes and Modules that represent house related objects</p>
+<dl class="class">
+<dt id="cogentviewer.models.house.House">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.house.</tt><tt class="descname">House</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/house.html#House"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.house.House" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to represent Houses</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id of House</li>
+<li><strong>deploymentId</strong> (<em>Integer</em>) &#8211; Id of parent
+<tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.depoyment.Deployment</span></tt></li>
+<li><strong>address</strong> (<em>String</em>) &#8211; Address of property</li>
+<li><strong>startDate</strong> (<em>DateTime</em>) &#8211; start of deployment in this House</li>
+<li><strong>endDate</strong> (<em>endDate</em>) &#8211; end of depoyment in this House</li>
+<li><strong>meta</strong> &#8211; <em>backref</em>
+<a class="reference internal" href="#cogentviewer.models.housemetadata.HouseMetadata" title="cogentviewer.models.housemetadata.HouseMetadata"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.housemetadata.HouseMetadata</span></tt></a> objects
+belonging to this House</li>
+<li><strong>occupiers</strong> &#8211; <em>backref</em>
+<a class="reference internal" href="#cogentviewer.models.occupier.Occupier" title="cogentviewer.models.occupier.Occupier"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.occupier.Occupier</span></tt></a> objects belonging
+to this house</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogentviewer.models.house.House.getRooms">
+<tt class="descname">getRooms</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/house.html#House.getRooms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.house.House.getRooms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to get the Rooms this house has, This returns the
+rooms that are linked via the
+<a class="reference internal" href="#cogentviewer.models.location.Location" title="cogentviewer.models.location.Location"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.location.Location</span></tt></a> table.  Meaning
+we can get the rooms in a simple standardised way</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of <a class="reference internal" href="#cogentviewer.models.room.Room" title="cogentviewer.models.room.Room"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.room.Room</span></tt></a> objects</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.housemetadata"></span><dl class="class">
+<dt id="cogentviewer.models.housemetadata.HouseMetadata">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.housemetadata.</tt><tt class="descname">HouseMetadata</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/housemetadata.html#HouseMetadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.housemetadata.HouseMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table to hold Metadata about houses</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; id</li>
+<li><strong>houseId</strong> (<em>Integer</em>) &#8211; <em>foreignKey</em> Id of <a class="reference internal" href="#cogentviewer.models.house.House" title="cogentviewer.models.house.House"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.house.House</span></tt></a> this beongs to</li>
+<li><strong>name</strong> (<em>string</em>) &#8211; Name of metadata</li>
+<li><strong>description</strong> (<em>string</em>) &#8211; Description of metadata</li>
+<li><strong>units</strong> (<em>string</em>) &#8211; Units of Metadata</li>
+<li><strong>value</strong> (<em>float</em>) &#8211; Value of metadata</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.location"></span><dl class="class">
+<dt id="cogentviewer.models.location.Location">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.location.</tt><tt class="descname">Location</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/location.html#Location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.location.Location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Location provides a link between houses and rooms.
+This is needed if the node is moved, for example during multiple deployments.</p>
+<p>This table should be an &#8220;associatve array&#8221; transparrently linking houses and rooms</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id of Location</li>
+<li><strong>houseId</strong> (<em>Integer</em>) &#8211; Link to <a class="reference internal" href="#cogentviewer.models.house.House" title="cogentviewer.models.house.House"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.house.House</span></tt></a> the room is in</li>
+<li><strong>roomId</strong> (<em>Integer</em>) &#8211; Link to <a class="reference internal" href="#cogentviewer.models.room.Room" title="cogentviewer.models.room.Room"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.room.Room</span></tt></a> this location corresponds to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogentviewer.models.location.Location.asJSON">
+<tt class="descname">asJSON</tt><big>(</big><em>parentId=''</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/location.html#Location.asJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.location.Location.asJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>Differes from the standard asJSON model by returning the
+name of the room as its name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.location.Location.getReadings">
+<tt class="descname">getReadings</tt><big>(</big><em>typeId=None</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/location.html#Location.getReadings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.location.Location.getReadings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempt to return only readings of a certain type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>typeId</strong> &#8211; Type If of object to filter by</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="reading-related-classes">
+<h2>Reading Related Classes<a class="headerlink" href="#reading-related-classes" title="Permalink to this headline">¶</a></h2>
+<p class="graphviz">
+<img src="_images/graphviz-b4e9a2e19124bea45dea3599deca41aca3bae582.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+  Reading[label=&lt;
+	  &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	  &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Reading&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td port=&quot;time&quot;&gt;&lt;font color=&quot;red&quot;&gt;time&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td port=&quot;nodeId&quot;&gt;&lt;font color=&quot;red&quot;&gt;nodeId&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td port=&quot;typeId&quot;&gt;&lt;font color=&quot;red&quot;&gt;typeId&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td port=&quot;locationId&quot;&gt;&lt;font color=&quot;red&quot;&gt;locationId&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td&gt;value&lt;/td&gt;&lt;/tr&gt;
+	  &lt;/table&gt;&gt;];
+  
+  aNode[label=&quot;Node&quot;];
+
+  Reading:nodeId -&gt; aNode:id;
+  Reading:locationId -&gt; Location:id;
+  Reading:typeId -&gt; Type:id;
+}" />
+</p>
+<span class="target" id="module-cogentviewer.models.reading"></span><dl class="class">
+<dt id="cogentviewer.models.reading.Reading">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.reading.</tt><tt class="descname">Reading</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/reading.html#Reading"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.reading.Reading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table to hold detils of readings,</p>
+<p>Reading has a composite primary key consisiting of time,nodeId,typeId</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>time</strong> (<em>DateTime</em>) &#8211; Time reading was taken</li>
+<li><strong>nodeId</strong> (<em>Integer</em>) &#8211; Id of <a class="reference internal" href="#cogentviewer.models.node.Node" title="cogentviewer.models.node.Node"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.node.Node</span></tt></a> that took this sample</li>
+<li><strong>typeId</strong> (<em>Integer</em>) &#8211; Id of <tt class="xref py py-class docutils literal"><span class="pre">cogentviwer.models.sensortype.SensorType</span></tt> that this reading came from</li>
+<li><strong>locationId</strong> (<em>Integer</em>) &#8211; Id of <a class="reference internal" href="#cogentviewer.models.location.Location" title="cogentviewer.models.location.Location"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.location.Location</span></tt></a> that this reading came from</li>
+<li><strong>value</strong> (<em>float</em>) &#8211; The sensor reading itself</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogentviewer.models.reading.Reading.asJSON">
+<tt class="descname">asJSON</tt><big>(</big><em>slope=1</em>, <em>offset=0</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/reading.html#Reading.asJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.reading.Reading.asJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return this reading as a JSON relevant tuple</p>
+<p>This should format the sample so it is parseable by JSON / Javascript
+That will allow it to be graphed using either DOJO or Highcharts</p>
+<p>The format is (time,value) where time is Unixtime in miliseconds</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The original timestamp is multipled by 1000, to shift from seconds to miliseconds.
+As per the JSON / Javascript Standard.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.reading.Reading.fromJSON">
+<tt class="descname">fromJSON</tt><big>(</big><em>jsonDict</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/reading.html#Reading.fromJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.reading.Reading.fromJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the object using a JSON string</p>
+<p>:var jsonDict:: Either a JSON string (from json.dumps) or dictionary
+containing key,value pairs (from asDict())</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.reading.Reading.getCalibValues">
+<tt class="descname">getCalibValues</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/reading.html#Reading.getCalibValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.reading.Reading.getCalibValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Reading as a tuple of (time,calibratedValue)</p>
+<p>This returns the same as GetRawValues but will calibrate the data against stored values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Return DateTime time:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Time that this reading was taken</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return Float value:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Value of the reading at this Time Calibrated against the sensor values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.reading.Reading.getRawValues">
+<tt class="descname">getRawValues</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/reading.html#Reading.getRawValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.reading.Reading.getRawValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Reading as a Tuple of (time,value)</p>
+<p>Unlike other methods this does no data processing, returning the Raw (rather than calibrated)
+sensor reading.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Return DateTime time:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Time that this reading was taken</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Return Float value:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Value of the reading at this Time</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.reading.Reading.toDict">
+<tt class="descname">toDict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/reading.html#Reading.toDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.reading.Reading.toDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper Method to convert an object to a dictionary.</p>
+<p>This will return a dictionary object, representing this object.  As the
+Reading table does some trickery with reading.typeId remapping it to
+(type) then we need to take account of that.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As this is intended to simplify conversion to and from JSON,
+datetimes are converted using .isoformat()</p>
+</div>
+<p>:return:: A dictionary of {__table__:&lt;tablename&gt; .. (key,value)* pairs}</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cogentviewer.models.reading.calibJSON">
+<tt class="descclassname">cogentviewer.models.reading.</tt><tt class="descname">calibJSON</tt><big>(</big><em>theQuery</em><big>)</big><a class="headerlink" href="#cogentviewer.models.reading.calibJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator object to calibate all readings,
+hopefully this gathers all calibration based readings into one 
+area</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>theQuery</strong> &#8211; SQLA query object containing Reading values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cogentviewer.models.reading.calibratePairs">
+<tt class="descclassname">cogentviewer.models.reading.</tt><tt class="descname">calibratePairs</tt><big>(</big><em>theQuery</em><big>)</big><a class="headerlink" href="#cogentviewer.models.reading.calibratePairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator object to calibrate readings and return in JSON 
+friendly format</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>theQuery</strong> &#8211; SQLA query object containing readings</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="cogentviewer.models.reading.calibrateReadings">
+<tt class="descclassname">cogentviewer.models.reading.</tt><tt class="descname">calibrateReadings</tt><big>(</big><em>theQuery</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/reading.html#calibrateReadings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.reading.calibrateReadings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator object to calibate all readings,
+hopefully this gathers all calibration based readings into one 
+area</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>theQuery</strong> &#8211; SQLA query object containing Reading values</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="room-related-classes">
+<h2>Room Related Classes<a class="headerlink" href="#room-related-classes" title="Permalink to this headline">¶</a></h2>
+<p class="graphviz">
+<img src="_images/graphviz-8325e02e64d1dfa1effcabd782c155424a78b451.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+  Room[label=&lt;
+	  &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	  &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Room&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt; 	   
+	  &lt;tr&gt;&lt;td port=&quot;roomTypeId&quot;&gt;roomTypeId&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td&gt;Name&lt;/td&gt;&lt;/tr&gt;
+	  &lt;tr&gt;&lt;td port=&quot;location&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;Location&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	  &lt;/table&gt;&gt;];
+  
+  Room:roomTypeId -&gt; RoomType:id;
+  Room:location -&gt; Location [style=&quot;dotted&quot;];
+  
+  RoomType[label=&lt;
+	   &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	   &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;RoomType&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt; 	   
+	   &lt;tr&gt;&lt;td&gt;name&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td port=&quot;rooms&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;rooms&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	   &lt;/table&gt;&gt;];
+  RoomType:rooms -&gt; Room [style=&quot;dotted&quot;];
+  
+
+  
+}" />
+</p>
+<span class="target" id="module-cogentviewer.models.room"></span><dl class="class">
+<dt id="cogentviewer.models.room.Room">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.room.</tt><tt class="descname">Room</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/room.html#Room"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.room.Room" title="Permalink to this definition">¶</a></dt>
+<dd><p>A room in a <a class="reference internal" href="#cogentviewer.models.house.House" title="cogentviewer.models.house.House"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.house.House</span></tt></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id</li>
+<li><strong>roomTypeId</strong> (<em>Integer</em>) &#8211; The <a class="reference internal" href="#cogentviewer.models.roomtype.RoomType" title="cogentviewer.models.roomtype.RoomType"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.roomtype.RoomType</span></tt></a> of the room</li>
+<li><strong>name</strong> (<em>String</em>) &#8211; Name of the Room</li>
+<li><strong>location</strong> &#8211; <em>backref</em> The <a class="reference internal" href="#cogentviewer.models.location.Location" title="cogentviewer.models.location.Location"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.location.Location</span></tt></a> of the room</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogentviewer.models.room.Room.asList">
+<tt class="descname">asList</tt><big>(</big><em>parentId=''</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/room.html#Room.asList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.room.Room.asList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn this object into a list, so the tree functions can display it</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.roomtype"></span><dl class="class">
+<dt id="cogentviewer.models.roomtype.RoomType">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.roomtype.</tt><tt class="descname">RoomType</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/roomtype.html#RoomType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.roomtype.RoomType" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Type of Room  e.g. bedroom or kitchen</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id</li>
+<li><strong>name</strong> (<em>String</em>) &#8211; Name of the Room</li>
+<li><strong>rooms</strong> &#8211; What <a class="reference internal" href="#cogentviewer.models.room.Room" title="cogentviewer.models.room.Room"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.room.Room</span></tt></a> objects are of this type</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="node-related-classes">
+<h2>Node Related Classes<a class="headerlink" href="#node-related-classes" title="Permalink to this headline">¶</a></h2>
+<p class="graphviz">
+<img src="_images/graphviz-41d5c88f4ee43469220b5f5d68a3077c235b84f9.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+  NodeState[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;NodeState&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;time&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;nodeId&quot;&gt;nodeId&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;parent&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;localtime&lt;/td&gt;&lt;/tr&gt;
+       //&lt;tr&gt;&lt;td port=&quot;occupiers&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;occupiers&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;/table&gt;&gt;];
+  NodeState:nodeId -&gt; aNode:id
+  
+  NodeHistory[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;NodeState&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;nodeId&quot;&gt;&lt;font color=&quot;red&quot;&gt;nodeId&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;startDate&quot;&gt;&lt;font color=&quot;red&quot;&gt;startDate&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;endDate&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;houseAddress&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;roomType&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;roomName&lt;/td&gt;&lt;/tr&gt;
+       &lt;/table&gt;&gt;];
+  NodeHistory:nodeId -&gt; aNode:id
+  
+  aNode[label=&lt;
+	&lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	&lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Node&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;locationId&quot;&gt;locationId&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;nodeTypeId&quot;&gt;nodeTypeId&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;stateHistory&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;stateHistory&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;nodeHistory&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;nodeHistory&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;readings&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;readings&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;sensors&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;sensors&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;	
+	&lt;/table&gt;&gt;];
+  aNode:houseId -&gt; House:id;
+  aNode:roomId -&gt; Room:id;
+  aNode:nodeTypeId -&gt; NodeType:id;
+  //Backrefs
+  aNode:stateHistory -&gt; NodeState [style=&quot;dashed&quot; label=&quot;node&quot;]
+  aNode:nodeHistory -&gt; NodeHistory [style=&quot;dashed&quot; label=&quot;node&quot;]
+  aNode:readings -&gt; Readings [style=&quot;dashed&quot; label=&quot;node&quot;]
+  aNode:sensors -&gt; sensors [style=&quot;dashed&quot; label=&quot;node&quot;]
+  
+  NodeType[label=&lt;
+	&lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	&lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;NodeType&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+  	&lt;tr&gt;&lt;td&gt;name&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt;time&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt;seq&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt;updated_seq&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt;period&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt;blink&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt;confifured&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;nodes&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;nodes&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;/table&gt;&gt;];
+  NodeType:nodes -&gt; aNode:id [style=&quot;dashed&quot; label=&quot;nodeType&quot;];
+  
+	
+	
+}" />
+</p>
+<span class="target" id="module-cogentviewer.models.node"></span><dl class="class">
+<dt id="cogentviewer.models.node.Node">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.node.</tt><tt class="descname">Node</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/node.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.node.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to hold detals of the nodes themselves</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Node Id</li>
+<li><strong>locationId</strong> (<em>Integer</em>) &#8211; <a class="reference internal" href="#cogentviewer.models.location.Location" title="cogentviewer.models.location.Location"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.location.Location</span></tt></a> this node is in</li>
+<li><strong>nodeTypeId</strong> (<em>Integer</em>) &#8211; <a class="reference internal" href="#cogentviewer.models.nodetype.NodeType" title="cogentviewer.models.nodetype.NodeType"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.nodetype.NodeType</span></tt></a> this node is.</li>
+<li><strong>stateHistory</strong> &#8211; <em>Backref</em> to <a class="reference internal" href="#cogentviewer.models.nodestate.NodeState" title="cogentviewer.models.nodestate.NodeState"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.nodestate.NodeState</span></tt></a></li>
+<li><strong>nodeHistory</strong> &#8211; <em>Backref</em> to <a class="reference internal" href="#cogentviewer.models.nodehistory.NodeHistory" title="cogentviewer.models.nodehistory.NodeHistory"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.nodehistory.NodeHistory</span></tt></a></li>
+<li><strong>readings</strong> &#8211; <em>Backref</em> to <a class="reference internal" href="#cogentviewer.models.reading.Reading" title="cogentviewer.models.reading.Reading"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.reading.Reading</span></tt></a></li>
+<li><strong>sensors</strong> &#8211; <em>Backref</em> to <a class="reference internal" href="#cogentviewer.models.sensor.Sensor" title="cogentviewer.models.sensor.Sensor"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.sensor.Sensor</span></tt></a></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogentviewer.models.node.Node.asJSON">
+<tt class="descname">asJSON</tt><big>(</big><em>parentId=''</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/node.html#Node.asJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.node.Node.asJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a Location Parameter to make sure we can link back to location when we come to get the data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cogentviewer.models.node.Node.getSamples">
+<tt class="descname">getSamples</tt><big>(</big><em>limit=None</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/node.html#Node.getSamples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.node.Node.getSamples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Testing Function,
+Can we fetch samples from this Node with some stripping out of data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.nodetype"></span><dl class="class">
+<dt id="cogentviewer.models.nodetype.NodeType">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.nodetype.</tt><tt class="descname">NodeType</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/nodetype.html#NodeType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.nodetype.NodeType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of Node</p>
+<p>These values should remain relitively static as we only have a given number of nodetypes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id</li>
+<li><strong>name</strong> (<em>String</em>) &#8211; Name of type</li>
+<li><strong>time</strong> (<em>DateTime</em>) &#8211; </li>
+<li><strong>seq</strong> (<em>Integer</em>) &#8211; </li>
+<li><strong>updated_seq</strong> (<em>Integer</em>) &#8211; </li>
+<li><strong>period</strong> (<em>Integer</em>) &#8211; </li>
+<li><strong>blink</strong> (<em>Boolean</em>) &#8211; </li>
+<li><strong>configured</strong> &#8211; <tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.node.BitsetType</span></tt></li>
+<li><strong>nodes</strong> &#8211; <em>backref</em> to <a class="reference internal" href="#cogentviewer.models.node.Node" title="cogentviewer.models.node.Node"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.node.Node</span></tt></a></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.nodehistory"></span><dl class="class">
+<dt id="cogentviewer.models.nodehistory.NodeHistory">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.nodehistory.</tt><tt class="descname">NodeHistory</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/nodehistory.html#NodeHistory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.nodehistory.NodeHistory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to hold history of the node</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nodeId</strong> (<em>Integer</em>) &#8211; Id of <a class="reference internal" href="#cogentviewer.models.node.Node" title="cogentviewer.models.node.Node"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.node.Node</span></tt></a> this history belogs to</li>
+<li><strong>startDate</strong> (<em>DateTime</em>) &#8211; </li>
+<li><strong>endDate</strong> (<em>DateTime</em>) &#8211; </li>
+<li><strong>houseAddress</strong> (<em>String</em>) &#8211; </li>
+<li><strong>roomType</strong> (<em>String</em>) &#8211; </li>
+<li><strong>roomName</strong> (<em>String</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.nodestate"></span><dl class="class">
+<dt id="cogentviewer.models.nodestate.NodeState">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.nodestate.</tt><tt class="descname">NodeState</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/nodestate.html#NodeState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.nodestate.NodeState" title="Permalink to this definition">¶</a></dt>
+<dd><p>It appears that this table holds the state of any nodes.</p>
+<p>I assume this will be used for the routing tree display,</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id of NodeState</li>
+<li><strong>time</strong> (<em>DateTime</em>) &#8211; Timestamp of state</li>
+<li><strong>nodeId</strong> (<em>Integer</em>) &#8211; <a class="reference internal" href="#cogentviewer.models.node.Node" title="cogentviewer.models.node.Node"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.node.Node</span></tt></a> this state belongs to</li>
+<li><strong>parent</strong> (<em>Integer</em>) &#8211; Parent node in the routing tree?</li>
+<li><strong>localtime</strong> (<em>BigInteger</em>) &#8211; Local time of the node (in unix time??)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="occupier-related-classes">
+<h2>Occupier Related Classes<a class="headerlink" href="#occupier-related-classes" title="Permalink to this headline">¶</a></h2>
+<p class="graphviz">
+<img src="_images/graphviz-e39aa32b735eb28b59266aef260099f0169e2e5b.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+
+  // From Deployment
+
+  Occupier[label=&lt;
+	   &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	   &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Occupier&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td port=&quot;houseid&quot;&gt;&lt;i&gt;houseId&lt;/i&gt;&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td&gt;name&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td&gt;contactNumber&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td&gt;startDate&lt;/td&gt;&lt;/tr&gt;
+	   &lt;tr&gt;&lt;td&gt;endDate&lt;/td&gt;&lt;/tr&gt;
+	   &lt;/table&gt;&gt;];
+  Occupier:houseId -&gt; House:id;
+  }" />
+</p>
+<span class="target" id="module-cogentviewer.models.occupier"></span><p>Table to hold details of Occupiers</p>
+<dl class="class">
+<dt id="cogentviewer.models.occupier.Occupier">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.occupier.</tt><tt class="descname">Occupier</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/occupier.html#Occupier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.occupier.Occupier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing someone who lives in a house</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id</li>
+<li><strong>houseId</strong> (<em>Integer</em>) &#8211; <em>fk</em> to <a class="reference internal" href="#cogentviewer.models.house.House" title="cogentviewer.models.house.House"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.house.House</span></tt></a></li>
+<li><strong>name</strong> (<em>String</em>) &#8211; Name of Resident</li>
+<li><strong>contactNumber</strong> (<em>String</em>) &#8211; Contact Number</li>
+<li><strong>startDate</strong> (<em>DateTime</em>) &#8211; </li>
+<li><strong>endDate</strong> (<em>DateTime</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="sensor-related-classes">
+<h2>Sensor Related Classes<a class="headerlink" href="#sensor-related-classes" title="Permalink to this headline">¶</a></h2>
+<p class="graphviz">
+<img src="_images/graphviz-7c9b231d9c054eb211223b909d433fade89bdcc0.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+  Sensor[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Sensor&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;sensorTypeId&quot;&gt;sensorTypeId&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;nodeId&quot;&gt;nodeId&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;calibrationSlope&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;calibrationOffset&lt;/td&gt;&lt;/tr&gt;
+       &lt;/table&gt;&gt;];
+  Sensor:sensorTypeId -&gt; SensorType:id
+  Sesnor:nodeId -&gt; aNode:id
+  
+  SensorType[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;SensorType&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;name&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;code&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;units&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;c0&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;c1&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;c2&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;c3&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;readings&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;readings&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;sensors&quot;&gt;&lt;font color=&quot;blue&quot;&gt;&lt;i&gt;sensors&lt;/i&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;	
+       &lt;/table&gt;&gt;];
+  SensorType:readings -&gt; Reading [style=&quot;dashed&quot; label=&quot;typ&quot;]
+  SensorType:sensors -&gt; Sensor [style=&quot;dashed&quot; label=&quot;sensorType&quot;]
+  
+  
+
+
+
+}" />
+</p>
+<span class="target" id="module-cogentviewer.models.sensor"></span><p>Classes and Modules that represent sensor related objects</p>
+<dl class="class">
+<dt id="cogentviewer.models.sensor.Sensor">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.sensor.</tt><tt class="descname">Sensor</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/sensor.html#Sensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.sensor.Sensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to deal with Sensor Objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id of Sensor</li>
+<li><strong>sensorTypeId</strong> (<em>Integer</em>) &#8211; <em>fk</em> to <a class="reference internal" href="#cogentviewer.models.sensortype.SensorType" title="cogentviewer.models.sensortype.SensorType"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.sensortype.SensorType</span></tt></a></li>
+<li><strong>nodeId</strong> (<em>Integer</em>) &#8211; <em>fk</em> to <a class="reference internal" href="#cogentviewer.models.node.Node" title="cogentviewer.models.node.Node"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.node.Node</span></tt></a></li>
+<li><strong>calibrationSlope</strong> (<em>Float</em>) &#8211; Calibration slope of this Sensor</li>
+<li><strong>calibrationOffset</strong> (<em>Float</em>) &#8211; Calibration offset of this Sensor</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="cogentviewer.models.sensor.Sensor.flatNav">
+<tt class="descname">flatNav</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/sensor.html#Sensor.flatNav"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.sensor.Sensor.flatNav" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flatten the object into a JSON hashable array,</p>
+<p>This is intended to be used to generate the site navigation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the object in the form {&#8220;name&#8221;,&#8221;id&#8221;,&#8221;chldren&#8221;:[]}</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.sensortype"></span><p>Classes and Modules that represent sensor related objects</p>
+<dl class="class">
+<dt id="cogentviewer.models.sensortype.SensorType">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.sensortype.</tt><tt class="descname">SensorType</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/sensortype.html#SensorType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.sensortype.SensorType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent Sensor Types</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This table is a candiate for &#8220;insert on create&#8221; as sensor types should be static</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; </li>
+<li><strong>name</strong> (<em>String</em>) &#8211; </li>
+<li><strong>code</strong> (<em>String</em>) &#8211; </li>
+<li><strong>units</strong> (<em>String</em>) &#8211; </li>
+<li><strong>c0</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>c1</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>c2</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>c3</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>readings</strong> &#8211; <em>backref</em> to <a class="reference internal" href="#cogentviewer.models.reading.Reading" title="cogentviewer.models.reading.Reading"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.reading.Reading</span></tt></a></li>
+<li><strong>sensors</strong> &#8211; <em>backref</em> to <a class="reference internal" href="#cogentviewer.models.sensor.Sensor" title="cogentviewer.models.sensor.Sensor"><tt class="xref py py-class docutils literal"><span class="pre">cogentviewer.models.sensor.Sensor</span></tt></a></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="other-classes">
+<h2>Other Classes<a class="headerlink" href="#other-classes" title="Permalink to this headline">¶</a></h2>
+<p>Classes that deal with other stuff</p>
+<p class="graphviz">
+<img src="_images/graphviz-d862654fcd4190ccbd103cabb4c3b72a82a57e3e.png" alt="digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname=&quot;Courier&quot;];
+  Host[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Host&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;id&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;hostname&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;lastupdate&lt;/td&gt;&lt;/tr&gt;
+       &lt;/table&gt;&gt;];
+
+LastReport[label=&lt;
+       &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+       &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;LastReport&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td port=&quot;name&quot;&gt;name&lt;/td&gt;&lt;/tr&gt;
+       &lt;tr&gt;&lt;td&gt;value&lt;/td&gt;&lt;/tr&gt;
+       &lt;/table&gt;&gt;];
+
+LastMessage[label=&lt;
+	    &lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	    &lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;LastMessage&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	    &lt;tr&gt;&lt;td port=&quot;id&quot;&gt;&lt;font color=&quot;red&quot;&gt;id&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	    &lt;tr&gt;&lt;td&gt;time&lt;/td&gt;&lt;/tr&gt;
+	    &lt;tr&gt;&lt;td&gt;pickledObject&lt;/td&gt;&lt;/tr&gt;
+	    &lt;/table&gt;&gt;]
+
+Weather[label=&lt;
+	&lt;table border=&quot;0&quot; cellborder=&quot;1&quot; cellspacing=&quot;0&quot;&gt;
+	&lt;tr&gt;&lt;td&gt;&lt;font face=&quot;Helvetica&quot;&gt;&lt;b&gt;Weather&lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td port=&quot;time&quot;&gt;&lt;font color=&quot;red&quot;&gt;time&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; outTemp &lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; outHum&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; dew&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; gust&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; wSpeed&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; wDir&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; wChill&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; apparentTemp&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; rain&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; pressure&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; tempIn&lt;/td&gt;&lt;/tr&gt;
+	&lt;tr&gt;&lt;td&gt; humIn&lt;/td&gt;&lt;/tr&gt;
+	&lt;/table&gt;&gt;];
+
+	    
+	    
+}" />
+</p>
+<span class="target" id="module-cogentviewer.models.Bitset"></span><span class="target" id="module-cogentviewer.models.host"></span><span class="target" id="module-host"></span><dl class="class">
+<dt id="cogentviewer.models.host.Host">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.host.</tt><tt class="descname">Host</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/host.html#Host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.host.Host" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table to hold information about Hosts</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>integer</em>) &#8211; id (pk)</li>
+<li><strong>hostname</strong> (<em>string</em>) &#8211; name</li>
+<li><strong>lastupdate</strong> (<em>DateTime</em>) &#8211; lastupdate</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.lastreport"></span><dl class="class">
+<dt id="cogentviewer.models.lastreport.LastReport">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.lastreport.</tt><tt class="descname">LastReport</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/lastreport.html#LastReport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.lastreport.LastReport" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Class to deal with LastReports</dt>
+<dd>This holds details of the last report E-Mailed to chuser</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>String</em>) &#8211; Name</li>
+<li><strong>value</strong> (<em>String</em>) &#8211; Value</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.rawmessage"></span><p>Table to hold details of raw messages</p>
+<span class="target" id="module-rawmessage"></span><dl class="class">
+<dt id="cogentviewer.models.rawmessage.RawMessage">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.rawmessage.</tt><tt class="descname">RawMessage</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/rawmessage.html#RawMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.rawmessage.RawMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Raw Message</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>id</strong> (<em>Integer</em>) &#8211; Id</li>
+<li><strong>time</strong> (<em>Datetime</em>) &#8211; </li>
+<li><strong>pickledObject</strong> (<em>String</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-cogentviewer.models.weather"></span><p>Table to hold details of Weather</p>
+<span class="target" id="module-weather"></span><dl class="class">
+<dt id="cogentviewer.models.weather.Weather">
+<em class="property">class </em><tt class="descclassname">cogentviewer.models.weather.</tt><tt class="descname">Weather</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/cogentviewer/models/weather.html#Weather"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cogentviewer.models.weather.Weather" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table to deal with Weather</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>time</strong> (<em>DateTime</em>) &#8211; </li>
+<li><strong>outTemp</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>outHum</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>dew</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>gust</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>wSpeed</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>wDir</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>wChill</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>apparentTemp</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>rain</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>pressure</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>tempIn</strong> (<em>Float</em>) &#8211; </li>
+<li><strong>humIn</strong> (<em>Float</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="section" id="upgrading-the-database-using-alembic">
+<h3>Upgrading the Database using Alembic<a class="headerlink" href="#upgrading-the-database-using-alembic" title="Permalink to this headline">¶</a></h3>
+<p>Some Notes on Alembic</p>
+</div>
+</div>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<p>Should be as easy as:</p>
+<div class="highlight-python"><pre>$pip install alembic</pre>
+</div>
+</div>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<p>Database Upgrade scripts are kept in:</p>
+<div class="highlight-python"><pre>/cogent/alembic</pre>
+</div>
+<p>And the main .ini setup file can be found in:</p>
+<div class="highlight-python"><pre>/cogent/alembic.ini</pre>
+</div>
+<p>Hopefully everything is setup correctly.  But if you use a different database schema / username / password you may need to modify the setup string in this .ini file.</p>
+</div>
+<div class="section" id="running-the-upgrade">
+<h2>Running the Upgrade<a class="headerlink" href="#running-the-upgrade" title="Permalink to this headline">¶</a></h2>
+<p>Again this should be as simple as:</p>
+<div class="highlight-python"><pre>$alembic upgrade head</pre>
+</div>
+<p>However, sometimes (with a new version of models.py but an old version of the
+database) We can have problems with the expected tables allready existing.  In
+this case a workaround (not a very good one) is to manually remove the</p>
+<blockquote>
+<div># lastReport
+# location
+# host
+# rawmessage</div></blockquote>
+<p>tables from the database</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A better solution would be not to run any of the new models code (therefore updating the DB)
+before you run the alembic upgrade</p>
+</div>
+</div>
+<div class="section" id="adding-a-changeset">
+<h2>Adding a changeset<a class="headerlink" href="#adding-a-changeset" title="Permalink to this headline">¶</a></h2>
+<p>If we want to change the DB follow this process</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Database and Model API</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#the-base-class">The Base Class</a><ul>
+<li><a class="reference internal" href="#model-classes"><tt class="docutils literal"><span class="pre">model</span></tt> Classes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#deployment-related-classes">Deployment Related Classes</a></li>
+<li><a class="reference internal" href="#house-related-classes">House Related Classes</a></li>
+<li><a class="reference internal" href="#reading-related-classes">Reading Related Classes</a></li>
+<li><a class="reference internal" href="#room-related-classes">Room Related Classes</a></li>
+<li><a class="reference internal" href="#node-related-classes">Node Related Classes</a></li>
+<li><a class="reference internal" href="#occupier-related-classes">Occupier Related Classes</a></li>
+<li><a class="reference internal" href="#sensor-related-classes">Sensor Related Classes</a></li>
+<li><a class="reference internal" href="#other-classes">Other Classes</a><ul>
+<li><a class="reference internal" href="#upgrading-the-database-using-alembic">Upgrading the Database using Alembic</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#install">Install</a></li>
+<li><a class="reference internal" href="#setup">Setup</a></li>
+<li><a class="reference internal" href="#running-the-upgrade">Running the Upgrade</a></li>
+<li><a class="reference internal" href="#adding-a-changeset">Adding a changeset</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="install.html"
+                        title="previous chapter">Installation Instructions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="push.html"
+                        title="next chapter">Database Uploads</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/models.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="push.html" title="Database Uploads"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation Instructions"
+             >previous</a> |</li>
+        <li><a href="index.html">Cogent Viewer 0.1 documentation</a> &raquo;</li>
+          <li><a href="code.html" >Working with the software</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Daniel Goldsmith.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

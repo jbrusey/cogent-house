@@ -1,0 +1,61 @@
+digraph g{
+  node[shape=record];
+  rankdir=LR;
+  DeploymentMeta[label="DeploymentMetadata | <f0> id | <f1> deploymentId (FK)| name| description | units| value" ];
+  DeploymentMeta:f1 -> Deployment:f0;
+
+  Deployment [label="Deployment | <f0> id | name | description | startDate | endDate"];
+  Deployment -> DeploymentMeta [label="meta" style="dotted"];
+  Deployment -> House [label="houses" style="dotted"];
+  
+  HouseMetaData[label="HouseMetadata | <f0> id | <f1> houseId | name | description | units | value"];
+  House[label="House | <f0> id | <f1> deploymentId | address | startDate | endDate"];
+  HouseMetaData:f1 -> House:f0;
+  House:f1 -> Deployment:f0;
+  House -> HouseMetaData [label="meta" style="dotted"];
+  House -> nodes [label="nodes" style="dotted"];
+  House -> occupiers [label="occupier" style="dotted"];
+
+  NodeState[label="NodeState|<f0>id|time|<f1>nodeId|parent|localtime"];
+  NodeState:f1 -> ANode:f0;
+  NodeHistory[label="NodeHistory|<f0>startDate|<f1>nodeId||endDate|houseAddress|roomType|roomName"];
+  NodeHistory:f1 -> ANode:f0;
+  ANode[label="Node| <f0> id| <f1> houseId| <f2> roomId| <f3> nodeTypeId"];
+  ANode:f1 -> House:f0;
+  ANode:f2 -> Room:f0;  //UNCOMMENT WHEN ROOM AVAILABLE
+  ANode:f3 -> NodeType:f0;
+  ANode -> StateHistory [label="stateHistory" style="dotted"];
+  ANode -> NodeHistory  [label="nodeHistory" style="dotted"];
+  ANode -> Readings [label="Readings",style="dotted"];
+ 
+ 
+  NodeType[label="NodeType| <f0>id |name|time|seq|updated_seq|period|blink|configured"];
+  NodeType -> ANode [label="nodes",style="dotted"];
+
+
+  Occupier[label="Occupier|<f0>id|<f1>houseId|name|contactNumber|startDate|endDate"];
+  Occupier:f1 -> House:f0;
+
+  RawMessage[label="RawMessage|<f0>id|time|pickedObject"];
+
+  Reading[label="Reading|<f0>id|time|<f1>nodeId|<f2>typeId|value"];
+  Reading:f1 -> ANode:f0;
+  Reading:f2 -> SensorType:f0;
+   
+  Room[label="Room|<f0>id|<f1>roomTypeId|name"];
+  RoomType[label="RoomType|<f0>id|name"];
+  Room:f1 -> RoomType:f0;
+  Room -> ANode [label="Nodes",style="dotted"];
+  RoomType -> Room [label="rooms",style="dotted"];
+
+  Sensor[label="Sensor|<f0>id|<f1>sensorTypeId|<f2>nodeId"];
+  SensorType[label="SensorType|<f0>id|<f1>name"];
+  Sensor:f1 -> SensorType:f0;
+  Sensor:f2 -> ANode:f0;
+  Sensor -> ANode [label="sensors",style="dotted"];
+  SensorType -> Reading [label="typ",style="dotted"];
+  SensorType -> Sensor [label="sensorType",style="dotted"];
+
+  Weather[label="Weather|<f0>time|outTemp|outHum|dew|gust|wSpeed|wDir|wChill|apparentTemp|rain|pressure|tempIn|humId"];
+
+}
