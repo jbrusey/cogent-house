@@ -6,7 +6,8 @@ configuration PulseReaderC { }
 
 implementation
 {
-  components MainC, PulseReaderP, PulseReaderM, LedsC;
+  components MainC, PulseReaderP, LedsC;
+  components new PulseReaderM() as PulseReaderM;
   components new TimerMilliC() as SensingTimer;
   components HilTimerMilliC;
   components PrintfC, SerialStartC;

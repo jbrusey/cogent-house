@@ -55,16 +55,16 @@ implementation
   components AirQualityM;
   components WindowSensorM;
   components HeatMeterM;
-  components PulseReaderM;
+  components new PulseReaderM() as OptiReader;
   components BlackBulbM;
 
   //sensor readings
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
 
-  PulseReaderM.Leds -> LedsC;
-  PulseReaderM.EnergyInput -> GIO.Port26;
-  PulseReaderM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+  OptiReader.Leds -> LedsC;
+  OptiReader.EnergyInput -> GIO.Port26;
+  OptiReader.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
 
   LightSensingM.GetPAR -> PAR;
   LightSensingM.GetTSR -> TSR;
@@ -93,8 +93,8 @@ implementation
   CogentHouseP.ReadCO2->AirQualityM.ReadCO2;
   CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
   CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
-  CogentHouseP.ReadOpti->PulseReaderM.ReadPulse;
-  CogentHouseP.OptiControl -> PulseReaderM.PulseControl;
+  CogentHouseP.ReadOpti->OptiReader.ReadPulse;
+  CogentHouseP.OptiControl -> OptiReader.PulseControl;
   CogentHouseP.ReadTempADC1->WindowSensorM.ReadTempADC1;
   CogentHouseP.ReadTempADC2->WindowSensorM.ReadTempADC2;
   CogentHouseP.ReadBlackBulb->BlackBulbM.ReadTemp;
