@@ -74,7 +74,7 @@ enum {
   SC_OPTI = 40,
   SC_TEMPADC1 = 41,
   SC_D_TEMPADC1 = 42,
-  SC_SIZE = 43, // SC_SIZE must be 1 greater than last entry
+  SC_SIZE = 15, // SC_SIZE set to greatest number of SC types to a node type should send
 };
 
 #include "Node/PackState/packstate.h"
