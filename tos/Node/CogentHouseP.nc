@@ -143,6 +143,10 @@ implementation
 
   /********* Data Send Methods **********/
 
+  void packstate_add(int key, float value) {
+      if (call PackState.add(key, value) == FAIL)
+	reportError(ERR_PACK_STATE_OVERFLOW);
+  }
 
   void sendState()
   {
@@ -167,11 +171,8 @@ implementation
     }
 
     if (call Configured.get(RS_DUTY))
-      call PackState.add(SC_DUTY_TIME, last_duty);
-    if (last_errno != 1.)
-      call PackState.add(SC_ERRNO, last_errno);
+      packstate_add(SC_DUTY_TIME, last_duty);
 
-    last_transmitted_errno = last_errno;
     pslen = call PackState.pack(&ps);
     message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
@@ -438,6 +439,10 @@ implementation
 #endif
       call ExpectReadDone.clearAll();
       call PackState.clear();
+      if (last_errno != 1.)
+	packstate_add(SC_ERRNO, last_errno);
+      last_transmitted_errno = last_errno;
+
       phase_two_sensing = FALSE;
 
       // only include phase one sensing here
@@ -492,7 +497,7 @@ implementation
 
   void do_readDone(error_t result, float data, uint raw_sensor, uint state_code){
     if (result == SUCCESS)
-      call PackState.add(state_code, data);
+      packstate_add(state_code, data);
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
@@ -502,7 +507,7 @@ implementation
   void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
   {
     if (result == SUCCESS)
-      call PackState.add(state_code, s->x);
+      packstate_add(state_code, s->x);
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
@@ -510,8 +515,8 @@ implementation
   void do_readDone_filterstate(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
   {
     if (result == SUCCESS){
-      call PackState.add(state_code, s->x);
-      call PackState.add(delta_state_code, s->dx);
+      packstate_add(state_code, s->x);
+      packstate_add(delta_state_code, s->dx);
     }
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
@@ -564,7 +569,7 @@ implementation
 
     if (result == SUCCESS){
       for(i = 0; i < state_count; i++){
-	call PackState.add(state_first+i,data[i]);
+	packstate_add(state_first+i,data[i]);
       }
     }
     call ExpectReadDone.clear(raw_sensor);
@@ -646,11 +651,6 @@ implementation
     call SendTimeOutTimer.stop();
 
     
-    //reset errors
-    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-      last_errno = last_errno / last_transmitted_errno;
-    else
-      last_errno = 1.;
     
     stop_time = call LocalTime.get();
     //Calculate the next interval
