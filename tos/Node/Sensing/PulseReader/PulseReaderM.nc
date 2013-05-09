@@ -33,7 +33,7 @@ The module counts the number of interupts in a sample period from the wired in G
 */
 
 
-module PulseReaderM
+genric module PulseReaderM()
 {
   provides {
     interface Read<float> as ReadPulse;
