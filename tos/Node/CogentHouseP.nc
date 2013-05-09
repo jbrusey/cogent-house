@@ -174,7 +174,7 @@ implementation
       packstate_add(SC_DUTY_TIME, last_duty);
 
     pslen = call PackState.pack(&ps);
-    message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
+    message_size = sizeof (StateMsg) - sizeof ps + pslen * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       //we're going do a send so pack the msg count and then increment

@@ -14,8 +14,11 @@ CFLAGS += -DSIP
 #CFLAGS += -DBN
 
 # turn on leds for debugging?
-#CFLAGS += -DBLINKY
-#CFLAGS += -DDEBUG
+# use "make telosb install.2 debug=1" to turn on debug
+ifdef debug
+CFLAGS += -DBLINKY
+CFLAGS += -DDEBUG
+endif
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
 #PFLAGS += -DCC2420_DEF_RFPOWER=3
