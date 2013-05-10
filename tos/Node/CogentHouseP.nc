@@ -19,12 +19,11 @@ module CogentHouseP
     interface StdControl as CollectionControl;
     interface CtpInfo;
     interface Packet;
-    interface LowPowerListening;    
+    interface LowPowerListening;
+    interface PacketAcknowledgements;
 
     // ack interfaces
     interface Crc as CRCCalc;
-    interface StdControl as DisseminationControl;
-    interface DisseminationValue<AckMsg> as AckValue;
 
 #ifdef SIP
     //SIP Modules
@@ -81,9 +80,10 @@ implementation
   task void powerDown(){
     call SenseTimer.stop();
     call CollectionControl.stop();
-    call DisseminationControl.stop();
     call RadioControl.stop();
   }
+
+
 
   /** Restart the sense timer as a one shot. Using a one shot here
       rather than periodic removes the possibility of re-entering the
@@ -126,6 +126,71 @@ implementation
       if (my_settings->blink)
 	call Leds.led1Off();
     }
+  }
+
+
+  /*********** ACK Methods  *****************/
+  //updates SIP models and restarts sense timers and calculate duty time
+  void ackReceived(){
+    uint32_t stop_time;
+    uint32_t send_time;
+#ifdef BN
+    int i;
+#endif
+#ifdef BLINKY
+    call Leds.led2Toggle();
+#endif
+
+#ifdef DEBUG
+    printf("ack packet rec at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+
+    if (!CLUSTER_HEAD)
+      call RadioControl.stop();
+    
+    
+    call SendTimeOutTimer.stop();
+
+    
+    
+    stop_time = call LocalTime.get();
+    //Calculate the next interval
+    if (stop_time < send_start_time) // deal with overflow
+      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
+    else
+      send_time = (stop_time - send_start_time);
+    last_duty = (float) send_time;
+    
+    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+    
+
+#ifdef SIP
+    call TransmissionControl.transmissionDone();
+#endif
+
+
+#ifdef BN
+    for (i = 0; i < RS_SIZE; i++) { 
+      if (call Configured.get(i)) {
+	if (i == RS_TEMPERATURE)
+	  call ReadTemp.transmissionDone();
+	else if (i == RS_HUMIDITY)
+	  call ReadHum.transmissionDone();
+	else if (i == RS_VOLTAGE)
+	  call ReadVolt.transmissionDone();
+	else if (i == RS_CO2)
+	  call ReadCO2.transmissionDone();
+	else if (i == RS_AQ)
+	  call ReadAQ.transmissionDone();
+	else if (i == RS_VOC)
+	  call ReadVOC.transmissionDone();
+	else
+	  continue;
+      }
+    }
+#endif
+    restartSenseTimer();   
   }
 
 
@@ -201,6 +266,7 @@ implementation
       send_start_time = call LocalTime.get();
       call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
 
+      call PacketAcknowledgements.requestAck(&dataMsg);
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	printf("sending begun at %lu\n", call LocalTime.get());
@@ -218,6 +284,9 @@ implementation
     printfflush();
 #endif
     if (ok != SUCCESS) {
+      if(call PacketAcknowledgements.wasAcked(msg)) {
+	ackReceived();
+      }
 #ifdef BLINKY
       call Leds.led0Toggle(); 
 #endif
@@ -609,7 +678,6 @@ implementation
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS){
       call CollectionControl.start();
-      call DisseminationControl.start();
 #ifdef DEBUG
       printf("Radio On %lu\n", call LocalTime.get());
       printfflush();
@@ -622,7 +690,6 @@ implementation
   }
 
   event void RadioControl.stopDone(error_t ok) { 
-    call DisseminationControl.stop();
 #ifdef DEBUG
     printf("Radio Off %lu\n", call LocalTime.get());
     printfflush();
@@ -630,107 +697,6 @@ implementation
 #ifdef BLINKY
     call Leds.led1Toggle(); 
 #endif
-  }
-
-  /*********** ACK Methods  *****************/
-  //updates SIP models and restarts sense timers and calculate duty time
-  void ackReceived(){
-    uint32_t stop_time;
-    uint32_t send_time;
-#ifdef BN
-    int i;
-#endif
-#ifdef BLINKY
-    call Leds.led2Toggle();
-#endif
-
-    if (!CLUSTER_HEAD)
-      call RadioControl.stop();
-    
-    
-    call SendTimeOutTimer.stop();
-
-    
-    
-    stop_time = call LocalTime.get();
-    //Calculate the next interval
-    if (stop_time < send_start_time) // deal with overflow
-      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
-    else
-      send_time = (stop_time - send_start_time);
-    last_duty = (float) send_time;
-    
-    my_settings->samplePeriod = DEF_SENSE_PERIOD;
-    
-
-#ifdef SIP
-    call TransmissionControl.transmissionDone();
-#endif
-
-
-#ifdef BN
-    for (i = 0; i < RS_SIZE; i++) { 
-      if (call Configured.get(i)) {
-	if (i == RS_TEMPERATURE)
-	  call ReadTemp.transmissionDone();
-	else if (i == RS_HUMIDITY)
-	  call ReadHum.transmissionDone();
-	else if (i == RS_VOLTAGE)
-	  call ReadVolt.transmissionDone();
-	else if (i == RS_CO2)
-	  call ReadCO2.transmissionDone();
-	else if (i == RS_AQ)
-	  call ReadAQ.transmissionDone();
-	else if (i == RS_VOC)
-	  call ReadVOC.transmissionDone();
-	else
-	  continue;
-      }
-    }
-#endif
-    restartSenseTimer();   
-  }
-
-
-  /** AckValue.changed
-   *
-   * - triggered when ack messgaes are disseminated
-   * - checks if this ack message is for the packet
-   */
-
-
-  event void AckValue.changed() { 
-    const AckMsg *ackMsg = call AckValue.get();
-    CRCStruct crs;
-    uint16_t crc;
-#ifdef DEBUG
-    printf("ack packet rec at %lu\n", call LocalTime.get());
-    printfflush();
-#endif
-
-    crs.node_id = ackMsg->node_id;
-    crs.seq = ackMsg->seq;
-    crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
-
-#ifdef DEBUG
-    printf("exp seq %u\n", expSeq);
-    printf("rec seq %u\n", ackMsg->seq);
-    printf("exp nid %u\n", TOS_NODE_ID);
-    printf("rec nid %u\n", ackMsg->node_id);
-    printf("exp CRC %u\n", crc);
-    printf("rec CRC %u\n", ackMsg->crc);
-    printfflush();
-#endif 
-    
-    //check crc's, nid and seq match
-    if (crc == ackMsg->crc)
-      if (TOS_NODE_ID == ackMsg->node_id)
-	if (expSeq == ackMsg->seq){
-	  if (!CLUSTER_HEAD)
-           call RadioControl.stop();
-    	  ackReceived();
-    	}
-    return;
   }
 
 
