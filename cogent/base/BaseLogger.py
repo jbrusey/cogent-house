@@ -103,6 +103,19 @@ class BaseLogger(object):
         session.close()    
                              
 
+    def send_ack(self,
+                 seq=None,
+                 dest=None):
+        """ send acknowledgement message
+        """
+        ack_msg = AckMsg()
+        ack_msg.set_seq(seq)
+        ack_msg.set_node_id(dest)
+        
+        self.bif.sendMsg(ack_msg, dest)
+        LOGGER.debug("Sending Ack %s to %s" %
+                     (seq, dest))
+
 
     def store_state(self, msg):
         """ receive and process a message object from the base station
@@ -158,6 +171,10 @@ class BaseLogger(object):
                     value=value))
 
             session.commit()
+
+            #send acknowledgement to base station to fwd to node
+            self.send_ack(seq=seq,
+                          dest=node_id)
                      
             LOGGER.debug("reading: %s, %s" % (node_state, pack_state))
         except Exception as exc:
