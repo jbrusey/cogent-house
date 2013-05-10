@@ -39,6 +39,7 @@ implementation
   components new CollectionSenderC(AM_STATEMSG) as StateSender;
 
   CogentHouseP.RadioControl -> ActiveMessageC;
+  CogentHouseP.PacketAcknowledgements -> ActiveMessageC;
   CogentHouseP.CollectionControl -> CollectionC;
   CogentHouseP.CtpInfo -> CollectionC;
   CogentHouseP.StateSender -> StateSender;
@@ -102,12 +103,7 @@ implementation
   
   /*********** ACK CONFIG *************/
 
-  components DisseminationC;
-  components new DisseminatorC(AckMsg, AM_ACKMSG);
   components CrcC;
-
-  CogentHouseP.DisseminationControl -> DisseminationC;
-  CogentHouseP.AckValue -> DisseminatorC;
   CogentHouseP.CRCCalc -> CrcC;
 
 
