@@ -221,13 +221,13 @@ implementation
 	newData->packed_state[i] = ps.p[i];
       }
       send_start_time = call LocalTime.get();
-      call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
 #ifdef DEBUG
       printf("pre send%lu\n", call LocalTime.get());
       printf("message size%u\n", message_size);
       printfflush();
 #endif
       call PacketAcknowledgements.requestAck(&dataMsg);
+      call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	printf("sending begun at %lu\n", call LocalTime.get());
@@ -242,16 +242,19 @@ implementation
   event void StateSender.sendDone(message_t *msg, error_t ok) {
 #ifdef DEBUG
     printf("sending done at %lu\n", call LocalTime.get());
+    printf("Acked %u\n",call PacketAcknowledgements.wasAcked(msg));
     printfflush();
 #endif
     if (ok != SUCCESS) {
-      if(call PacketAcknowledgements.wasAcked(msg)) {
-	ackReceived();
-      }
 #ifdef BLINKY
       call Leds.led0Toggle(); 
 #endif
       reportError(ERR_SEND_FAILED);
+    }
+    else {
+      if(call PacketAcknowledgements.wasAcked(msg)) {
+	    ackReceived();
+      }
     }
   }
 
