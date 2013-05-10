@@ -22,9 +22,9 @@ module CogentHouseP
     interface LowPowerListening;    
 
     // ack interfaces
-    interface Receive as AckReceiver;
     interface Crc as CRCCalc;
-    interface Map as AckHeardMap;
+    interface StdControl as DisseminationControl;
+    interface DisseminationValue<AckMsg> as AckValue;
 
     //SIP Modules
     interface SIPController<FilterState *> as ReadTemp;
@@ -74,6 +74,7 @@ implementation
   task void powerDown(){
     call SenseTimer.stop();
     call CollectionControl.stop();
+    call DisseminationControl.stop();
     call RadioControl.stop();
   }
 
@@ -558,6 +559,7 @@ implementation
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS){
       call CollectionControl.start();
+      call DisseminationControl.start();
 #ifdef DEBUG
       printf("Radio On %lu\n", call LocalTime.get());
       printfflush();
@@ -570,6 +572,7 @@ implementation
   }
 
   event void RadioControl.stopDone(error_t ok) { 
+    call DisseminationControl.stop();
 #ifdef DEBUG
     printf("Radio Off %lu\n", call LocalTime.get());
     printfflush();
@@ -623,8 +626,9 @@ implementation
    * - checks if this ack message is for the packet
    */
 
-  event message_t* AckReceiver.receive(message_t* msg,void* payload, uint8_t len) {
-    AckMsg* aMsg;
+
+  event void AckValue.changed() { 
+    const AckMsg *ackMsg = call AckValue.get();
     CRCStruct crs;
     uint16_t crc;
 #ifdef DEBUG
@@ -632,33 +636,29 @@ implementation
     printfflush();
 #endif
 
-    aMsg = (AckMsg*)payload;
-    if (len == sizeof(AckMsg)){
-      crs.node_id = aMsg->node_id;
-      crs.seq = aMsg->seq;
-      crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
+    crs.node_id = ackMsg->node_id;
+    crs.seq = ackMsg->seq;
+    crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
 
 #ifdef DEBUG
-      printf("exp seq %lu\n", expSeq);
-      printf("rec seq %lu\n", aMsg->seq);
-      printf("exp nid %u\n", TOS_NODE_ID);
-      printf("rec nid %u\n", aMsg->node_id);
-      printf("exp CRC %u\n", crc);
-      printf("rec CRC %u\n", aMsg->crc);
-      printfflush();
+    printf("exp seq %lu\n", expSeq);
+    printf("rec seq %lu\n", ackMsg->seq);
+    printf("exp nid %u\n", TOS_NODE_ID);
+    printf("rec nid %u\n", ackMsg->node_id);
+    printf("exp CRC %u\n", crc);
+    printf("rec CRC %u\n", ackMsg->crc);
+    printfflush();
 #endif 
     
     //check crc's, nid and seq match
-      if (crc == aMsg->crc)
-	if (TOS_NODE_ID == aMsg->node_id)
-	  if (expSeq == aMsg->seq){
-	    if (!CLUSTER_HEAD)
-	      call RadioControl.stop();
-	    ackReceived();
-	  }
-      return SUCCESS;
-    }
-      return 0;
+    if (crc == ackMsg->crc)
+      if (TOS_NODE_ID == ackMsg->node_id)
+	if (expSeq == ackMsg->seq){
+	  if (!CLUSTER_HEAD)
+           call RadioControl.stop();
+    	  ackReceived();
+    	}
+    return;
   }
 
 

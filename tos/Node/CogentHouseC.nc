@@ -58,9 +58,6 @@ implementation
   components new PackStateC(SC_SIZE) as PackState;
   components new AccessibleBitVectorC(SC_SIZE) as ABV;
 
-  components CrcC;
-  CogentHouseP.CRCCalc -> CrcC;
-
   PackState.Mask -> ABV;
   CogentHouseP.PackState -> PackState;
 
@@ -105,9 +102,13 @@ implementation
   
   /*********** ACK CONFIG *************/
 
-  // ack interfaces
-  components new AMReceiverC(AM_ACKMSG) as AckReceiver;
-  CogentHouseP.AckReceiver -> AckReceiver;
+  components DisseminationC;
+  components new DisseminatorC(AckMsg, AM_ACKMSG);
+  components CrcC;
+
+  CogentHouseP.DisseminationControl -> DisseminationC;
+  CogentHouseP.AckValue -> DisseminatorC;
+  CogentHouseP.CRCCalc -> CrcC;
 
 
   /************* SIP CONFIG ***********/
