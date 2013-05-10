@@ -33,7 +33,7 @@ module CarM
 }
 implementation
 {
-	const uint32_t DELAY_PERIOD=10240;
+	const uint32_t DELAY_PERIOD=0.;
 	const float vref=2.5;
 	const float maxAdc=4096.0;
 	float SolarCoeffs[] = {0, 100};
