@@ -17,12 +17,10 @@ module CogentRootP @safe() {
       interface Packet as RadioPacket;
       interface CollectionPacket;
 
-      //ack interfaces
-      interface AMSend as AckForwarder;
-      interface Packet;
+      // dissemination
+      interface DisseminationUpdate<AckMsg> as AckUpdate;
+      interface StdControl as DisseminationControl;
       interface Crc as CRCCalc ;
-      interface Queue<AckMsg *> as AckQueue;
-      interface Pool<message_t> as AckPool;
 
       //data forwarding interfaces
       interface AMSend as UartSend[am_id_t id];
@@ -31,8 +29,8 @@ module CogentRootP @safe() {
       interface Receive as UartAckReceive;
 
       // queuing
-      interface Queue<message_t *> as DataQueue;
-      interface Pool<message_t> as DataPool;
+      interface Queue<message_t *>;
+      interface Pool<message_t>;
 
       interface Timer<TMilli> as BlinkTimer;
       interface Leds;
@@ -45,8 +43,6 @@ implementation
 {
   message_t fwdMsg;
   bool fwdBusy;
-  bool fwdAck = FALSE;
-  message_t dataMsg;
   message_t uartmsg;
 
   event void Boot.booted()
@@ -61,6 +57,7 @@ implementation
       call RadioControl.start();
     else {
       call CollectionControl.start();
+      call DisseminationControl.start();
       call RootControl.setRoot();
     }
   }
@@ -70,8 +67,8 @@ implementation
 
   //DEAL WITH STATE
   task void serialForwardTask() { 
-    if (!call DataQueue.empty() && !fwdBusy) {
-      message_t* msg = call DataQueue.dequeue();
+    if (!call Queue.empty() && !fwdBusy) {
+      message_t* msg = call Queue.dequeue();
       uint8_t len = call RadioPacket.payloadLength(msg);
       void *radio_payload = call RadioPacket.getPayload(msg, len);
       collection_id_t id = call CollectionPacket.getType(msg);
@@ -108,11 +105,11 @@ implementation
 #ifdef BLINKY
     call Leds.led2Toggle();
 #endif
-    if (!call DataPool.empty() && call DataQueue.size() < call DataQueue.maxSize()) { 
-      message_t *tmp = call DataPool.get();
+    if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) { 
+      message_t *tmp = call Pool.get();
       if (!signal RadioIntercept.forward[id](msg,payload,len))
           return tmp;
-      call DataQueue.enqueue(msg);
+      call Queue.enqueue(msg);
       if (!fwdBusy) {
 	post serialForwardTask();
       }
@@ -123,72 +120,27 @@ implementation
 
   event void UartSend.sendDone[am_id_t id](message_t *msg, error_t error) {
     fwdBusy = FALSE;
-    call DataPool.put(msg);
-    if (! call DataQueue.empty())
+    call Pool.put(msg);
+    if (! call Queue.empty())
       post serialForwardTask();
   }
 
-
-  task void transmit() {
-    AckMsg *ackData;
-    AckMsg* aMsg;
+  event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len)
+  {    
+    AckMsg *ackMsg = payload;
     CRCStruct crs;
     uint16_t crc;
-    
+
 #ifdef BLINKY 
     call Leds.led1Toggle();
 #endif
-    
-    if (!call AckQueue.empty() && !fwdAck) {
-      aMsg = call AckQueue.dequeue();
-      ackData = (AckMsg *) call Packet.getPayload(&dataMsg,  sizeof (AckMsg));
-      if (ackData != NULL) { 
-	
-	//calculate crc
-	crs.node_id = aMsg->node_id;
-	crs.seq = aMsg->seq;
-	crc = call CRCCalc.crc16(&crs, sizeof crs);
-        ackData->node_id = crs.node_id;
-        ackData->seq = crs.seq;
-        ackData->crc = crc;
-	if (call AckForwarder.send(ackData->node_id, &dataMsg,  sizeof (AckMsg)) == SUCCESS) {
-	  fwdAck = TRUE;	
-#ifdef BLINKY
-	  call Leds.led2On();
-#endif
-	}	  
-      }
-    }
-  }
-
-  event void AckForwarder.sendDone(message_t *msg, error_t ok) {
-    fwdAck = FALSE;
-#ifdef BLINKY
-    call Leds.led2Off();
-#endif
-	
-#ifdef BLINKY 
-    call Leds.led0Toggle();
-#endif
-    call AckPool.put(msg);
-    if (! call AckQueue.empty())
-      post transmit();
-  }
-
-  event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len){
-    AckMsg* aMsg;
-#ifdef BLINKY
-    call Leds.led0Toggle();
-#endif
-    if (!call AckPool.empty() && call AckQueue.size() < call AckQueue.maxSize()) {
-      message_t *tmp = call AckPool.get();
-      aMsg = (AckMsg*)payload;
-      call AckQueue.enqueue(aMsg);
-      
-      if (!fwdAck)
-	post transmit();
-      
-      return tmp;
+    if (len == sizeof(*ackMsg)) {
+      //message is ok calculate crc
+      crs.node_id = ackMsg->node_id;
+      crs.seq = ackMsg->seq;
+      crc = call CRCCalc.crc16(&crs, sizeof crs);
+      ackMsg->crc=crc;
+      call AckUpdate.change(ackMsg);
     }
     return msg;
   }

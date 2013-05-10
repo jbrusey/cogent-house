@@ -28,24 +28,20 @@ implementation
   CogentRootP.CollectionPacket -> CollectionC;
   CogentRootP.CollectionReceive -> CollectionC.Receive;
   CogentRootP.RadioPacket -> CollectionC;
+  
   RadioIntercept = CogentRootP.RadioIntercept;
 
-
-  components new AMSenderC(AM_ACKMSG) as AckForwarder;
-  CogentRootP.AckForwarder -> AckForwarder;
-  CogentRootP.Packet -> AckForwarder;
+  components DisseminationC;
+  components new DisseminatorC(AckMsg, AM_ACKMSG);
+  CogentRootP.DisseminationControl -> DisseminationC;
+  CogentRootP.AckUpdate -> DisseminatorC;
   components CrcC;
   CogentRootP.CRCCalc -> CrcC;
 
-  components new QueueC(message_t*, RADIO_QUEUE_SIZE) as DataQueue;
-  components new PoolC(message_t, RADIO_QUEUE_SIZE) as DataPool;
-  CogentRootP.DataQueue -> DataQueue;
-  CogentRootP.DataPool -> DataPool;
-
-  components new QueueC(AckMsg*, RADIO_QUEUE_SIZE) as AckQueue;
-  components new PoolC(message_t, RADIO_QUEUE_SIZE) as AckPool;
-  CogentRootP.AckQueue -> AckQueue;
-  CogentRootP.AckPool -> AckPool;
+  components new QueueC(message_t*, SERIAL_QUEUE_SIZE);
+  components new PoolC(message_t, SERIAL_QUEUE_SIZE);
+  CogentRootP.Queue -> QueueC;
+  CogentRootP.Pool -> PoolC;
 	
   components new TimerMilliC() as BlinkTimer;
   CogentRootP.BlinkTimer -> BlinkTimer;
