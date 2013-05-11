@@ -27,13 +27,16 @@ def upgrade():
                                        'nodeId',
                                        'type'])
 
-    op.create_index('nodeId', 'Reading', ['nodeId'])
-    op.create_index('type', 'Reading', ['type'])
-    op.create_index('locationId', 'Reading', ['locationId'])
+    op.create_index('nodeId_i', 'Reading', ['nodeId'])
+    op.create_index('type_i', 'Reading', ['type'])
+    op.create_index('locationId_i', 'Reading', ['locationId'])
 
 
     
 def downgrade():
     op.drop_index('ns_1')
     op.drop_index('r_1')
+    op.drop_index('nodeId_i')
+    op.drop_index('type_i')
+    op.drop_index('locationId_i')
 
