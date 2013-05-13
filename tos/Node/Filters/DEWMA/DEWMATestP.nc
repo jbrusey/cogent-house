@@ -55,7 +55,35 @@ implementation
     }
   }
   
-  
+char * test_dewma_not_using_rate_correctly(void)
+{
+    float z;
+    FilterState x;
+    uint32_t i;
+    uint32_t t;
+    call Dewma.init(0.2f,0.2f);
+    for (i = 0; i < 129; i++) {
+        t = i*10*8 ;
+        z = t / 1024.0 * 12.1 + 4.5;
+        call Dewma.filter(z, t, &x);
+    }  
+
+    printfloat2(x.x);
+    printf("\n");
+    printfloat2(x.dx);
+    printf("\n");
+    mu_assert("estimates after 100 iterations are wrong",
+	      fabs(x.x - (121.f+4.5f) ) < 0.0001f);
+    mu_assert("delta estimates after 100 iterations are wrong",
+        fabs(x.dx - 12.1f) < 0.0001f);
+    return 0;
+    
+    //16.4790019989013671875
+    //0.12099983692169189453
+
+}
+
+
   
   static char* test_dewma1(void){
     float z;
@@ -146,6 +174,7 @@ implementation
     mu_run_test(test_dewma2); 
     mu_run_test(test_dewma1);
     mu_run_test(test_dewma3);
+    mu_run_test(test_dewma_not_using_rate_correctly);
     /* call Leds.led1Toggle();  */
     return 0;
   }
