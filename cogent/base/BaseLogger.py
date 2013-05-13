@@ -1,3 +1,5 @@
+#rrdtool graph test.png DEF:x1=32768_None_6.rrd:reading:AVERAGE LINE1:x1#FF0000
+
 #
 # BaseLogger
 #
@@ -34,6 +36,10 @@ DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
 import sqlalchemy.exc
+
+#New RRD stuff
+import rrdstore
+RRDLIST = {}
 
 
 class BaseLogger(object):
@@ -314,6 +320,14 @@ class BaseLogger(object):
                     state.append((i,v))
                     log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
                     
+                    #Store in a RRD Database
+                    theRRD = RRDLIST.get((n,i,locId),None)
+                    if theRRD is None:
+                        theRRD = rrdstore.RRDStore(n,i,locId)
+                        RRDLIST[(n,i,locId)] = theRRD
+                    #theRRD.getInfo()
+                    theRRD.update(t,v)
+
                     try:
                         r = Reading(time=t,
                                     nodeId=n,
@@ -422,6 +436,7 @@ if __name__ == '__main__':
     logger.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
     lm.create_tables()
-    
+
+  
     lm.run()
 		
