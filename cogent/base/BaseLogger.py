@@ -1,4 +1,5 @@
 #rrdtool graph test.png DEF:x1=32768_None_6.rrd:reading:AVERAGE LINE1:x1#FF0000
+#rrdtool fetch 32768_None_6.rrd AVERAGE -s -1h
 
 #
 # BaseLogger
@@ -321,13 +322,17 @@ class BaseLogger(object):
                     log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
                     
                     #Store in a RRD Database
+                    t1 = time.time()
                     theRRD = RRDLIST.get((n,i,locId),None)
                     if theRRD is None:
                         theRRD = rrdstore.RRDStore(n,i,locId)
                         RRDLIST[(n,i,locId)] = theRRD
                     #theRRD.getInfo()
                     theRRD.update(t,v)
+                    t2 = time.time()
+                    log.debug("Time Taken to update RRD {0}".format(t2-t1))
 
+                    t1 = time.time()
                     try:
                         r = Reading(time=t,
                                     nodeId=n,
@@ -356,7 +361,8 @@ class BaseLogger(object):
                         else:
                             logger.error("Sensor type exists")
                         
-
+                    t2 = time.time()
+                    log.debug("Time taken to update DB {0}".format(t2-t1))
                     j += 1
 
             session.commit()
