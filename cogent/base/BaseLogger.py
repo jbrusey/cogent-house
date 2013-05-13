@@ -1,5 +1,7 @@
 #rrdtool graph test.png DEF:x1=32768_None_6.rrd:reading:AVERAGE LINE1:x1#FF0000
 #rrdtool fetch 32768_None_6.rrd AVERAGE -s -1h
+#python BaseLogger.py -l debug -f testLog.log -t
+
 
 #
 # BaseLogger
