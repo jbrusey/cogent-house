@@ -20,25 +20,10 @@ viewer = False
 
 import ConfigParser
 
-try:
-    import cogentviewer
-    viewer = True
-except:
-    print "Using Base Namespace"
-
-if viewer:
-    from pyramid import testing
-    import transaction
-    import cogentviewer.models as models
-    import cogentviewer.models.meta as meta
-    import cogentviewer.models.populateData as populateData
-    config = testing.setUp()
-    config.scan('cogentviewer.models')
-else:
-    import cogent
-    import cogent.base.model as models
-    import cogent.base.model.meta as meta   
-    import cogent.base.model.populateData as populateData
+import cogent
+import cogent.base.model as models
+import cogent.base.model.meta as meta   
+import cogent.base.model.populateData as populateData
 
 
 from datetime import datetime, timedelta
