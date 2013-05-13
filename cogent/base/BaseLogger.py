@@ -10,6 +10,7 @@ import sys
 import os
 from optparse import OptionParser
 
+
 if "TOSROOT" not in os.environ:
     raise Exception("Please source the Tiny OS environment script first")
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
@@ -32,6 +33,7 @@ F="/home/james/sa.db"
 DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
+import sqlalchemy.exc
 
 
 class BaseLogger(object):
@@ -150,7 +152,9 @@ class BaseLogger(object):
                  SensorType(id=23,name="Black Bulb",
                             code="BBT",
                             units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
+                            c0=0., c1=1., c2=0., c3=0.),               
+                 SensorType(id=24, name="Gas Pulse",
+                             code="gpls"),
 		 SensorType(id=99,name="Gas Consumption",
                             code="Gas",
                             units="kWh",
@@ -308,12 +312,37 @@ class BaseLogger(object):
                 if mask[i]:
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
-                    r = Reading(time=t,
-                                nodeId=n,
-                                typeId=i,
-                                locationId=locId,
-                                value=v)
-                    session.add(r)
+                    log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
+                    
+                    try:
+                        r = Reading(time=t,
+                                    nodeId=n,
+                                    typeId=i,
+                                    locationId=locId,
+                                    value=v)
+                        session.add(r)
+                        session.flush()
+                    except sqlalchemy.exc.IntegrityError:
+                        logger.error("Unable to store, checking if node type exists")
+                        session.rollback()
+                        
+                        s = session.query(SensorType).filter_by(id=i).first()
+                        if s is None:
+                            s = SensorType(id=i,name="UNKNOWN")
+                            session.add(s)
+                            log.info("Adding new sensortype")
+                            session.flush()
+                            r = Reading(time=t,
+                                        nodeId=n,
+                                        typeId=i,
+                                        locationId=locId,
+                                        value=v)
+                            session.add(r)
+                            session.flush()                            
+                        else:
+                            logger.error("Sensor type exists")
+                        
+
                     j += 1
 
             session.commit()
