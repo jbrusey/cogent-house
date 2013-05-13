@@ -352,6 +352,12 @@ if __name__ == '__main__':
                       help="Log file to use (Default /var/log/ch/Baselogger.log",
                       default="/var/log/ch/BaseLogger.log")
 
+    parser.add_option("-t", "--log-terminal",
+                      help="Echo Logging output to terminal",
+                      action="store_true",                      
+                      default=False)
+    
+
     (options, args) = parser.parse_args()
     if len(args) != 0:
         parser.error("incorrect number of arguments")
@@ -366,12 +372,24 @@ if __name__ == '__main__':
         parser.error("invalid LEVEL: " + options.log_level)
 
     logfile = options.log_file
-    
+
     #logging.basicConfig(filename="/var/log/ch/BaseLogger.log"
     logging.basicConfig(filename=logfile,
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=lvlmap[options.log_level])
+
+    #And if we want to echo the output on the terminal
+    logterm = options.log_terminal
+    if logterm:
+        console = logging.StreamHandler()
+        console.setLevel(lvlmap[options.log_level])
+        formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+        console.setFormatter(formatter)
+        logging.getLogger('').addHandler(console)
+
+        
+
     logger.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
     lm.create_tables()
