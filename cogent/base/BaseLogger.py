@@ -348,6 +348,10 @@ if __name__ == '__main__':
                       default="info",
                       metavar="LEVEL")
 
+    parser.add_option("-f", "--log-file",
+                      help="Log file to use (Default /var/log/ch/Baselogger.log",
+                      default="/var/log/ch/BaseLogger.log")
+
     (options, args) = parser.parse_args()
     if len(args) != 0:
         parser.error("incorrect number of arguments")
@@ -361,9 +365,10 @@ if __name__ == '__main__':
     if options.log_level not in lvlmap:
         parser.error("invalid LEVEL: " + options.log_level)
 
+    logfile = options.log_file
     
-    
-    logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
+    #logging.basicConfig(filename="/var/log/ch/BaseLogger.log"
+    logging.basicConfig(filename=logfile,
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=lvlmap[options.log_level])
