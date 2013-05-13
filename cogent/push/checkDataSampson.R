@@ -102,26 +102,26 @@ destData$dset <- "DEST"
 ## plt + facet_grid(nodeId~.)
 
 #And Both Together
-plt <- ggplot(sourceData,aes(ts,meanVal,color=dset))
-plt <- plt+geom_line()
+#plt <- ggplot(sourceData,aes(ts,meanVal,color=dset))
+#plt <- plt+geom_line()
+#plt <- plt+geom_point(data=destData)
+#plt + facet_grid(nodeId~.)
+
+
+plt <- ggplot(sourceData,aes(ts,meanVal,color=dset,shape=dset))
+plt <- plt+geom_point()
 plt <- plt+geom_point(data=destData)
 plt + facet_grid(nodeId~.)
 
+## #Both together with Location names rtather than Ids
+## #And Both Together
+## plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(name)))
+## plt <- plt+geom_point()
+## plt <- plt+geom_line(data=destData)
+## plt + facet_grid(nodeId~.)
 
-plt <- ggplot(sourceData,aes(ts,meanVal,color=dset))
-plt <- plt+geom_point(shape=0)
-plt <- plt+geom_point(data=destData,shape=4)
-plt + facet_grid(nodeId~.)
-
-#Both together with Location names rtather than Ids
-#And Both Together
-plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(name)))
-plt <- plt+geom_point()
-plt <- plt+geom_line(data=destData)
-plt + facet_grid(nodeId~.)
-
-#Or Alternately
-plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
-plt <- plt+geom_point()
-plt <- plt+geom_line(data=destData)
-plt + facet_grid(name~.)
+## #Or Alternately
+## plt <- ggplot(sourceData,aes(ts,meanVal,color=factor(locationId)))
+## plt <- plt+geom_point()
+## plt <- plt+geom_line(data=destData)
+## plt + facet_grid(name~.)

@@ -13,7 +13,7 @@ con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
 houses <- dbReadTable(con,"House")
 
 #This House
-thisHouse <- houses[8,]
+thisHouse <- houses[19,]
 
 calibrationData <- dbReadTable(con,"Sensor")
 
@@ -70,12 +70,14 @@ tmp <- merge(tmp,locList,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
 calib <- merge(tmp,calibrationData,by.x=c("nodeId","type"),by.y=c("nodeId","sensorTypeId"),all.x=TRUE)
 
 noCalibIdx <- which(is.na(calib$id)==TRUE)
-calib[noCalibIdx,]$calibrationSlope <- 1
-calib[noCalibIdx,]$calibrationOffset <- 0
+if (length(noCalibIdx > 0)) {
+  calib[noCalibIdx,]$calibrationSlope <- 1
+  calib[noCalibIdx,]$calibrationOffset <- 0
+}
 
 calib$calibValue <- (calib$value * calib$calibrationSlope) + calib$calibrationOffset
 
-calib <- subset(calib,ts<as.POSIXlt("2012-02-27"))
+calib <- subset(calib)
 
 ## #Plot all of this Data
 ## #plt <- ggplot(theData)
@@ -83,14 +85,14 @@ calib <- subset(calib,ts<as.POSIXlt("2012-02-27"))
 ## plt + facet_grid(type~.,scale="free_y")
 
 #plt <- ggplot(tmp)
-plt <- ggplot(calib)
-plt <- plt +geom_line(aes(ts,calibValue,color=factor(location)))
-plt + facet_grid(name~.,scale="free_y")
-ggsave("preMelt.png")
+## plt <- ggplot(calib)
+## plt <- plt +geom_line(aes(ts,calibValue,color=factor(location)))
+## plt + facet_grid(name~.,scale="free_y")
+## ggsave("preMelt.png")
 
 #preMelt <- subset(calib,select=c("nodeId","type","locationId","date","calibValue"))
 
-preMelt <- subset(calib,select=c("nodeId","name","location","ts","calibValue"))
+#preMelt <- subset(calib,select=c("nodeId","name","location","ts","calibValue"))
 #preMelt <-  preMelt[1:50,]
 #Flatten this Down
 #melted <- melt(preMelt,id=c("nodeId","type","locationId","ts"))
@@ -99,12 +101,12 @@ preMelt <- subset(calib,select=c("nodeId","name","location","ts","calibValue"))
 
 
 
-preMelt$ts <- as.character(preMelt$ts)
-melted <- melt(preMelt,id=c("nodeId","location","name","ts"))
-#newexport <- cast(melted,ts~nodeId+location+name)
-newexport <- cast(melted,ts~nodeId+location+name)
-#newexport <- reshape(melted,
-write.csv(newexport,"flatExport.csv",row.names=FALSE)
+#preMelt$ts <- as.character(preMelt$ts)
+## melted <- melt(preMelt,id=c("nodeId","location","name","ts"))
+## #newexport <- cast(melted,ts~nodeId+location+name)
+## newexport <- cast(melted,ts~nodeId+location+name)
+## #newexport <- reshape(melted,
+## write.csv(newexport,"flatExport.csv",row.names=FALSE)
 #Brailes EXPORT
 #melted <- melt(exportData,id=c("locationId","nodeId","Date","Address","LocName"),na.rm=TRUE)
 #exportReady <- cast(melted)
@@ -124,30 +126,29 @@ dailySummary <-  ddply(calib,
 #ds <- dailySummary[1:20,]
 melted <- melt(dailySummary,id=c("date","nodeId","location","name"))
 export <- cast(melted,date~nodeId+location+name)
-write.csv(export,"hourlyAvg.csv",row.names=FALSE)
+theName <- paste(thisHouse$address,"Hour.csv",sep="")
+write.csv(export,theName,row.names=FALSE)
 #melted <- melt(dailySummary,id=c("nodeId","locationId","date"))
 #flat <- cast(melted)
 
-plt <- ggplot(melted)
-plt <- plt + geom_line(aes(ts,value,color=factor(type)))
-plt + facet_grid(nodeId~.)
+#plt <- ggplot(melted)
+#plt <- plt + geom_line(aes(ts,value,color=factor(type)))
+#plt + facet_grid(nodeId~.)
 
 
 #TEST FOR RRD
-subData <- subset(theData,nodeId==197 & type == 0)
-plt <- ggplot(subData)
-plt <- plt+geom_line(aes(ts,value))
-plt
-ggsave("Beryfields197.png")
+#subData <- subset(theData,nodeId==197 & type == 0)
+#plt <- ggplot(subData)
+#plt <- plt+geom_line(aes(ts,value))
+#plt
+#ggsave("Beryfields197.png")
 
-subData <- subset(subData,select=c(unix,value))
-write.csv(subData,"berryfields.csv",row.names=FALSE)
-
-
-foo <- calib[1:10,]
+#subData <- subset(subData,select=c(unix,value))
+#write.csv(subData,"berryfields.csv",row.names=FALSE)
 
 
-
+#foo <- calib[1:10,]
+foo <- calib
 foo$date <- as.Date(foo$ts)
 foo$hour <- format(foo$ts, "%H")
 foo$fifteen <- floor(as.numeric(format(foo$ts, "%M")) / 15) * 15
@@ -156,10 +157,24 @@ foo$sumtime <- as.POSIXlt(foo$fDate)
 
 
 #Lets try that in one
-foo$summtime <- as.POSIXlt(paste(as.Date(foo$ts),
+foo$time <- as.POSIXlt(paste(as.Date(foo$ts),
                                  paste(format(foo$ts,"%H"),
                                        floor(as.numeric(format(foo$ts,"%M"))/15)*15,
                                        "00",
                                        sep=":")
                                  )
                            )
+
+
+fifteenSummary <-  ddply(foo,
+                         .(nodeId,location,name,time),
+                         summarise,
+                         avgVal = mean(calibValue)
+                         )
+
+
+melted <- melt(fifteenSummary,id=c("time","nodeId","location","name"))
+melted$time <- as.character(melted$time)
+export <- cast(melted,time~nodeId+location+name)
+theName <- paste(thisHouse$address,"Fifteen.csv",sep="")
+write.csv(export,theName,row.names=FALSE)
