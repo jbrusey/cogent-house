@@ -428,6 +428,8 @@ class Pusher(object):
            #Look for the Last update
            self.uploadReadings(item)
 
+        #Then upload the node Sttes
+        self.uploadNodeStates()
         self.saveMappings()
 
     def loadMappings(self):
@@ -937,6 +939,83 @@ class Pusher(object):
             r = requests.post(theUrl,data=json.dumps(dictItem))
             log.debug(r)
 
+    def uploadNodeStates(self):
+        """
+        Upload Nodestates between two databases
+        """
+
+        log = self.log
+        log.info("---- Upload Node States ----")
+
+        session = self.localSession()
+
+        #Get the last state upload 
+        mappingConfig = self.mappingConfig
+
+        uploadDate = mappingConfig.get("lastStateUpdate",None)
+        lastUpdate = None
+
+
+        if uploadDate:
+            log.debug("Last State upload from Config {0}".format(uploadDate))            
+            if uploadDate and uploadDate != "None":
+                lastUpdate = dateutil.parser.parse(uploadDate)
+
+        log.info("Last Update from Config {0}".format(lastUpdate))
+        
+        #Otherwise we want to fetch the last synchronisation
+        #Which is a little bit difficult as we dont have a house or anything to base this on So we will have to rely on this being correct
+        
+        #Count total number of Nodestates to upload
+        theStates = session.query(models.NodeState)
+        if lastUpdate:
+            theStates = theStates.filter(models.NodeState.time>lastUpdate)
+
+        origCount = theStates.count()
+        log.info("--> Total of {0} Nodestates to transfer".format(origCount))
+        rdgCount = origCount
+        transferCount = 0
+
+        while rdgCount > 0:
+            theState = session.query(models.NodeState)
+            if lastUpdate:
+                theState = theStates.filter(models.NodeState.time>lastUpdate)
+            theState = theState.order_by(models.NodeState.time)
+            theState = theState.limit(self.pushLimit)
+            rdgCount = theState.count()
+            if rdgCount <= 0:
+                log.info("--> No States Remain")
+                return True
+            
+            transferCount += rdgCount
+            log.debug("--> Transfer {0}/{1} States to remote DB".format(transferCount,origCount))
+
+
+            #Convert to REST
+            jsonList = [x.toDict() for x in theState]
+            lastSample = theState[-1].time
+            log.debug("Last State in List {0}".format(lastSample))
+
+            #Zip him up
+            jsonStr = json.dumps(jsonList)
+            gzStr = zlib.compress(jsonStr)
+
+            #And Upload
+            theUrl = "{0}bulk/".format(self.restUrl)
+            restQry = requests.post(theUrl,data=gzStr)
+
+            if restQry.status_code== 500:
+                log.warning("Upload of States Fails")
+                log.warning(restQry)
+                raise Exception ("Upload Failed")
+            
+            #update the stample times
+            lastUpdate = lastSample
+            mappingConfig["lastStateUpdate"] = lastUpdate
+            self.saveMappings()
+
+        return rdgCount > 0
+            
         
     def uploadReadings(self,theHouse):
         """
