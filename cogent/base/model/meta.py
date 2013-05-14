@@ -119,7 +119,7 @@ class InnoDBMix(object):
 
         #Check if we have a string or dictonary
         
-        log.debug("FROMJSON Demung {0}".format(jsonDict))
+        #log.debug("FROMJSON Demung {0}".format(jsonDict))
 
         if type(jsonDict) == str:
             jsonDict = json.loads(jsonDict)

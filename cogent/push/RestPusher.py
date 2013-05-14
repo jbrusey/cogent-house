@@ -75,7 +75,7 @@ This replaces the ssh tunnel database access currently used to transfer samples.
 """
 
 import logging
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
                     datefmt = "%m-%d-%Y %H:%M",
                     )
@@ -197,9 +197,9 @@ class PushServer(object):
                         This can be used to overwrite the url in the config file
         """
 
+        #Create Logging
         self.log = logging.getLogger("Push Server")
         log = self.log
-        #log.setLevel(logging.DEBUG)
         log.addHandler(fh)
         log.info("="*70)
         log.info("Initialising Push Server")
@@ -240,29 +240,40 @@ class PushServer(object):
 
         #Next we want to queue up all the remote URLS we wish to push to.
 
-        #Locations in the config File
-        locations = configParser["locations"]
         
-        self.QueueLocations(locations,configParser,mappingConfig,pushLimit)
 
-    def QueueLocations(self,locations,configParser,mappingConfig,pushLimit):
+        self.QueueLocations(configParser,mappingConfig,pushLimit)
+
+    def QueueLocations(self,configParser,mappingConfig,pushLimit):
+        """
+        Function to enque a set of locations that the push server is to push to
+
+        :param configParser: Config parser object we are reading from
+        :param mappingConfig: Config parser object we are writing to
+        :param pushLimit: Maximum number of samples to transmit in one go.
+        """
+
+        #Create a session
         localSession = self.localSession
         log = self.log
         syncList = []
 
+        #Read Locations in the config File
+        locations = configParser["locations"]
+
+        #For Each location we are looking at
         for item in locations:
             #Check if we need to synchronise to this location.
             needSync = locations.as_bool(item)
-            log.debug("Location {0} Needs Sync {1}".format(item,needSync))
+            log.debug("Location {0} Needs Sync >{1}".format(item,needSync))
 
-            if needSync:
-                #Enque
+            if needSync: #Enqueue
                 thisLoc = configParser[item]
                 log.info("Adding {0} to synchronise Queue".format(thisLoc))
                 thePusher = Pusher(localSession, #Session
                                    thisLoc["resturl"], #Url to Push to
                                    mappingConfig, #Mapping Configuration file
-                                   pushLimit,                                   
+                                   pushLimit,  #Limit on number of samples to transmit                                 
                                    )
                 syncList.append(thePusher)
 
@@ -317,7 +328,8 @@ class Pusher(object):
         """
 
         self.log = logging.getLogger("Pusher")
-        self.log.setLevel(logging.INFO)
+        #self.log.setLevel(
+        #self.log.setLevel(logging.INFO)
         #self.log.setLevel(logging.WARNING)
         log = self.log
         log.addHandler(fh)
@@ -396,6 +408,9 @@ class Pusher(object):
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
         self.syncSensorTypes()       
+
+        #BOOKMARK
+        return
         self.syncRoomTypes()
         self.syncRooms()
         self.syncDeployments()
@@ -447,7 +462,7 @@ class Pusher(object):
         """Helper function to Add / Fetch a single item from the Database
         """
         #It would be nice to add "reverse" Synchronisation here (i.e. reflect changes on main server).
-        log = self.log
+        log = self.log        
         #restSession = self.restSession
         #restQry = restSession.request_get(theUrl)
         restQry = requests.get(theUrl)
@@ -632,17 +647,19 @@ class Pusher(object):
         remoteQry = requests.get(theUrl)
         #print remoteQry
         jsonBody=remoteQry.json()
-        #print jsonBody
-        #sys.exit(0)
+        
         #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)
-        
-        for item in restItems:
-            #print item
-            remoteTypes[item.id] = item
 
+        #log.debug("---- SENSOR TYPES FROM REMOTE SERVER ---")
+        for item in restItems:
+            #log.debug("--> {0}".format(item))
+            remoteTypes[item.id] = item
+        #sys.exit(0)
         itemTypes = session.query(self.SensorType)
+        #log.debug("---- SENSOR TYPES FROM LOCAL SERVER ----")
         for item in itemTypes:
+            #log.debug(item)
             localTypes[item.id] = item
 
         theDiff = DictDiff(remoteTypes,localTypes)
@@ -660,6 +677,8 @@ class Pusher(object):
         log.debug( removedItems)
         log.debug( "--> Changed")
         log.debug( changedItems)
+        #return
+        #sys.exit(0)
 
         if changedItems:
             log.warning("Sensor Types with mathching Id's but different Names")
@@ -686,8 +705,10 @@ class Pusher(object):
             dictItem = theItem.toDict()
             #We then Post the New Item to the Remote DBString
             r= requests.post(theUrl,data=json.dumps(dictItem))
+            log.debug(r)
             #print dictItem
 
+        log.debug("Updateing Mapping Dictionary")
         #Update the Mapping Dictionary
         newTypes = {}
         for key,value in localTypes.iteritems():
@@ -696,7 +717,7 @@ class Pusher(object):
             
         #self.mappedSensorTypes = localType
         self.mappedSensorTypes = newTypes
-        
+        return True
 
     def syncDeployments(self):
         """Synchronise Deployments between the local and remote Databaess"""

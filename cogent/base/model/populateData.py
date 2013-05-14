@@ -188,12 +188,17 @@ def _parseCalibration(filename,sensorcode,session=False):
     basePath = None
     for item in CALIB_LOCS:
         thePath = os.path.join(*item)
+        log.debug("Path to test {0}".format(thePath))
         if os.path.exists(thePath):
             basePath = thePath
             log.debug("Base Path is {0}".format(basePath))
             break
-            
-    thePath = os.path.join(basePath,theFile)
+
+    if basePath is None:
+    #log.info("Path to test {0}".format(basePath,))
+        thePath = theFile
+    else:
+        thePath = os.path.join(basePath,theFile)
 
     #Find the relevant sensor type
     sensorType = session.query(SensorType).filter_by(code=sensorcode).first()
