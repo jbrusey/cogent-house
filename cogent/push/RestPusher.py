@@ -408,11 +408,8 @@ class Pusher(object):
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
         self.syncSensorTypes()       
-
-        #BOOKMARK
-        return
         self.syncRoomTypes()
-        self.syncRooms()
+        self.syncRooms() 
         self.syncDeployments()
         self.loadMappings()
         self.saveMappings()
@@ -613,6 +610,7 @@ class Pusher(object):
         for item in localQry:
             #Convert the local types to hold mapped room type Ids
             mappedId = mappedRoomTypes.get(item.roomTypeId,None)
+            #mappedId = mappedRoomTypes.get(item.roomTypeId,None)
             tmpRoom = self.Room(id = item.id,
                                 name = item.name,
                                 roomTypeId = mappedId
@@ -708,7 +706,7 @@ class Pusher(object):
             log.debug(r)
             #print dictItem
 
-        log.debug("Updateing Mapping Dictionary")
+        log.debug("Updating Mapping Dictionary")
         #Update the Mapping Dictionary
         newTypes = {}
         for key,value in localTypes.iteritems():
@@ -963,8 +961,11 @@ class Pusher(object):
             lastUpdate = uploadDates.get(str(theHouse.id),None)
             if lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
-        log.info("Last Update from Config is {0}".format(lastUpdate))
-            
+            else:
+                lastUpdate = None
+        log.info("Last Update from Config is {0} {1}".format(lastUpdate,type(lastUpdate)))
+
+
         #Get the last reading for this House
         session = self.localSession()
         #restSession =self.restSession
