@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 #LOCAL_URL = "sqlite:///local.db"
-LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
+LOCAL_URL = 'mysql://chuser@localhost/pushSource'
 
 import cogent
 import cogent.base.model as models
