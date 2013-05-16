@@ -107,17 +107,17 @@ class Datagen(object):
         self.node38 = node38
 
         #Finally add an Upload URL if required
-        theUrl = session.query(models.UploadURL).filter_by(url="dang@127.0.0.1").first()
-        if not theUrl:
-            theUrl = models.UploadURL(url="dang@127.0.0.1",
-                                      dburl="mysql://test_user:test_user@localhost:3307/pushTest")
-            session.add(theUrl)
+        # theUrl = session.query(models.UploadURL).filter_by(url="dang@127.0.0.1").first()
+        # if not theUrl:
+        #     theUrl = models.UploadURL(url="dang@127.0.0.1",
+        #                               dburl="mysql://test_user:test_user@localhost:3307/pushTest")
+        #     session.add(theUrl)
         
-        theUrl = session.query(models.UploadURL).filter_by(url="dang@cogentee.coventry.ac.uk").first()
-        if not theUrl:
-            theUrl = models.UploadURL(url="dang@cogentee.coventry.ac.uk",
-                                      dburl="mysql://dang:j4a77aec@localhost:3307/chtest")
-            session.add(theUrl)
+        # theUrl = session.query(models.UploadURL).filter_by(url="dang@cogentee.coventry.ac.uk").first()
+        # if not theUrl:
+        #     theUrl = models.UploadURL(url="dang@cogentee.coventry.ac.uk",
+        #                               dburl="mysql://dang:j4a77aec@localhost:3307/chtest")
+        #     session.add(theUrl)
 
         session.commit()
 

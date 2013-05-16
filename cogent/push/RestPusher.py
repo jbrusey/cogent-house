@@ -960,6 +960,8 @@ class Pusher(object):
             log.debug("Last State upload from Config {0}".format(uploadDate))            
             if uploadDate and uploadDate != "None":
                 lastUpdate = dateutil.parser.parse(uploadDate)
+        else:
+            lastUpdate = self.firstUpload  #Hack to match last nodestate with the first Reading we transfer
 
         log.info("Last Update from Config {0}".format(lastUpdate))
         
@@ -969,6 +971,7 @@ class Pusher(object):
         #Count total number of Nodestates to upload
         theStates = session.query(models.NodeState)
         if lastUpdate:
+            log.debug("-- Filter on {0}".format(lastUpdate))
             theStates = theStates.filter(models.NodeState.time>lastUpdate)
 
         origCount = theStates.count()
@@ -1004,6 +1007,7 @@ class Pusher(object):
             theUrl = "{0}bulk/".format(self.restUrl)
             restQry = requests.post(theUrl,data=gzStr)
 
+            log.debug("REST QUERY RETURN CODE {0}".format(restQry.status_code))
             if restQry.status_code== 500:
                 log.warning("Upload of States Fails")
                 log.warning(restQry)
@@ -1044,6 +1048,10 @@ class Pusher(object):
                 lastUpdate = None
         log.info("Last Update from Config is {0} {1}".format(lastUpdate,type(lastUpdate)))
 
+        #TODO:
+        # This is a temporary fix for the problem for nodestates,  Currently I cannot think of a sensible way 
+        # To do this without generting a lot of network traffic.  
+        self.firstUpload = lastUpdate
 
         #Get the last reading for this House
         session = self.localSession()
