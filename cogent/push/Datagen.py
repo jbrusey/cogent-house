@@ -143,8 +143,6 @@ class Datagen(object):
         fakeTime = currentTime - timedelta(seconds=deploymentSeconds)
         log.debug("Current Time is {0}  -> Start time is {1}".format(currentTime,fakeTime))
 
-        sys.exit(0)
-
         totalCount = 0
         try:
             #while totalCount < 500000:
