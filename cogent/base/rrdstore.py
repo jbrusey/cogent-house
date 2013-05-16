@@ -7,16 +7,17 @@ import time
 import datetime
 
 import logging
-LOG = logging.getLogger("")
+LOG = logging.getLogger("RRDStore")
+LOG.setLevel(logging.INFO)
+
 
 import pyrrd.rrd as rrd
-#from pyrrd.rrd import DataSource, RRA, RRD
 
 class RRDStore(object):
     """
     Store data from nodes in an RRD
     """
-    def __init__(self,nodeId,typeId,locationId):
+    def __init__(self,nodeId,typeId,locationId,startTime = None):
         #thisPath = os.path.join(
         rrdfd = "{0}_{1}_{2}.rrd".format(nodeId,locationId,typeId)
         LOG.debug("RRD File {0}".format(rrdfd))
@@ -32,18 +33,29 @@ class RRDStore(object):
 
             #Data Sources
             datasources = []
+            #We Only need a single datasource
             ds = rrd.DataSource(dsName="reading",dsType="GAUGE",heartbeat=600)
             datasources.append(ds)
             
             #And archives
             archives = []
-            rra = rrd.RRA(cf="AVERAGE", xff=0.5, steps=1, rows=24) #Every 5 mins
-            archives.append(rra)
-            rra = rrd.RRA(cf="AVERAGE", xff=0.5, steps=6, rows=24) #Every 1/2 Hour
-            archives.append(rra)
+            #(288 samples per day)
+            archives.append(rrd.RRA(cf="AVERAGE", xff=0.5, steps=1, rows=8064))  #5 Minute Samples for 1 month 
+            archives.append(rrd.RRA(cf="AVERAGE", xff=0.5, steps=12, rows=2016)) #Every Hour for 3 months
+            archives.append(rrd.RRA(cf="MIN", xff=0.5, steps=12, rows=2016)) 
+            archives.append(rrd.RRA(cf="MAX", xff=0.5, steps=12, rows=2016)) 
+            archives.append(rrd.RRA(cf="AVERAGE", xff=0.5, steps=288, rows=365)) #Every Day for a Year
+            archives.append(rrd.RRA(cf="MIN", xff=0.5, steps=288, rows=365))
+            archives.append(rrd.RRA(cf="MAX", xff=0.5, steps=288, rows=365))
 
             #Ensure URC and offset
-            now = int(time.mktime(datetime.datetime.utcnow().utctimetuple()) - 300)
+            if startTime:
+                if type(startTime) == datetime.datetime:
+                    now = int(time.mktime(startTime.utctimetuple()) - 300)
+                else:
+                    now = startTime
+            else:
+                now = int(time.mktime(datetime.datetime.utcnow().utctimetuple()) - 300)
             #Create the RRD itself
             theRRD = rrd.RRD(rrdfd, ds=datasources, rra=archives, step=300,start = now)
             theRRD.create()

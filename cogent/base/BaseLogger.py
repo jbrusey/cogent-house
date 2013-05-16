@@ -9,6 +9,7 @@
 # log data from mote to a database and also print out 
 #
 # J. Brusey, R. Wilkins, April 2011
+# D. Goldsmith, May 2013
 
 import logging
 import sys

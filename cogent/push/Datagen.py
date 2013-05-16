@@ -17,18 +17,22 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
-READING_GAP = 10  #How often to add a new reading (Seconds)
+READING_GAP = 300  #How often to add a new reading (Seconds)
 STATE_SWITCH = 100 #How often to fake a nodestate change
 
-BULK_SAMPLES = 100000 #How many samples to add in Bulk
+BULK_SAMPLES = 157824 #How many samples to add in Bulk
+#BULK_SAMPLES = 288
 BULK_OFFSET = 1 #Offest multiplier (EG doing a bulk add will take us up to now.  This will do BULK_SAMPLES*OFFSET = Now
 
+import cogent.base.rrdstore as rrdstore
+
+RRDLIST = {}
 
 class Datagen(object):
     def __init__(self):
         log.debug("Initialising Push Script")
         engine = sqlalchemy.create_engine(LOCAL_URL)
-        
+    
         #Intialise the databse
         models.initialise_sql(engine)
         models.populate_data()
@@ -149,20 +153,48 @@ class Datagen(object):
             while totalCount < BULK_SAMPLES:
                 #Add a reading every N seconds
                 #log.debug("Adding New Reading {0}".format(fakeTime))
+                
+                thisRRD = RRDLIST.get((node37.id,
+                                       0,
+                                       node37.locationId), None)
+                if thisRRD is None:
+                    thisRRD = rrdstore.RRDStore(node37.id,
+                                                0,
+                                                node37.locationId,
+                                                startTime = fakeTime)
+                    RRDLIST[(node37.id,0,node37.locationId)] = thisRRD
 
                 theReading = models.Reading(time = fakeTime,
                                             nodeId = node37.id,
                                             locationId = node37.locationId,
                                             value = localCount,
                                             typeId = 0)
+
                 session.add(theReading)
 
-                theReading = models.Reading(time = fakeTime,
-                                            nodeId = node38.id,
-                                            locationId = node38.locationId,
-                                            value = 100-localCount,
-                                            typeId = 0)            
+                thisRRD.update(fakeTime,localCount)
+
+                # ---- AND Node 38
+                thisRRD = RRDLIST.get((node38.id,
+                                       0,
+                                       node38.locationId), None)
+                if thisRRD is None:
+                    thisRRD = rrdstore.RRDStore(node38.id,
+                                                0,
+                                                node38.locationId,
+                                                startTime = fakeTime)
+
+                    RRDLIST[(node38.id,0,node38.locationId)] = thisRRD
+
+                thisReading = models.Reading(time = fakeTime,
+                                             nodeId = node38.id,
+                                             locationId = node38.locationId,
+                                             value = 100-localCount,
+                                             typeId = 0)            
                 session.add(theReading)
+
+                thisRRD.update(fakeTime,localCount)
+
                 session.flush()
                 if localCount == STATE_SWITCH:
                     log.debug("Switching States")
