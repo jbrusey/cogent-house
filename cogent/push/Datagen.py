@@ -17,8 +17,12 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
-READING_GAP = 10
-STATE_SWITCH = 100
+READING_GAP = 10  #How often to add a new reading (Seconds)
+STATE_SWITCH = 100 #How often to fake a nodestate change
+
+BULK_SAMPLES = 100000 #How many samples to add in Bulk
+BULK_OFFSET = 1 #Offest multiplier (EG doing a bulk add will take us up to now.  This will do BULK_SAMPLES*OFFSET = Now
+
 
 class Datagen(object):
     def __init__(self):
@@ -132,10 +136,19 @@ class Datagen(object):
         node37 = self.node37
         node38 = self.node38
 
+        #Work out a better start time
+        currentTime = datetime.now()
+        #Calculate total seconds for samples
+        deploymentSeconds = (BULK_SAMPLES*READING_GAP)*BULK_OFFSET
+        fakeTime = currentTime - timedelta(seconds=deploymentSeconds)
+        log.debug("Current Time is {0}  -> Start time is {1}".format(currentTime,fakeTime))
+
+        sys.exit(0)
+
         totalCount = 0
         try:
             #while totalCount < 500000:
-            while totalCount < 100000:
+            while totalCount < BULK_SAMPLES:
                 #Add a reading every N seconds
                 #log.debug("Adding New Reading {0}".format(fakeTime))
 
@@ -192,7 +205,7 @@ class Datagen(object):
 
                 #time.sleep(READING_GAP)
                 totalCount += 1
-                fakeTime = fakeTime + timedelta(seconds=10)
+                fakeTime = fakeTime + timedelta(seconds=READING_GAP)
                 #session.commit()
         except KeyboardInterrupt:
             log.debug("Closing Everything down")
