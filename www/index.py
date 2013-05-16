@@ -904,7 +904,12 @@ def yield24():
              house_name, room_name) in yield_q.all():
 
              #missed = (maxseq - minseq + 257) % 256 - seqcnt
-            y = (seqcnt * 100.) / ((maxseq - minseq + 257) % 256)
+            if maxseq < minseq:
+                seq_diff = minseq - maxseq + 0xffffffff + 1
+            else:
+                seq_diff = maxseq - minseq
+             
+            y = (seqcnt * 100.) / seq_diff
 
             values = [node_id, house_name, room_name, seqcnt, minseq, maxseq, str(last_heard), y]
             fmt = ['%d', '%s', '%s', '%d', '%d', '%d', '%s', '%8.2f']
