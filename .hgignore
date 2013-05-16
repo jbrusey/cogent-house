@@ -8,7 +8,8 @@ tos/Root/build
 tos/Root/*/build
 cogent/node/Packets.py
 cogent/node/*Msg.py
-ch_base.egg-info/
 build/
 cogent/push/.cache
 cogent/push/.coverage
+*.egg-info/*
+dataclense/*
