@@ -43,7 +43,7 @@ implementation
     }
     else{
       delta_t = subtract_time(current, old_time[id]);
-      xnew->x = alpha[id] * z + (1-alpha[id]) * (xhat[id].x + xhat[id].dx);
+      xnew->x = alpha[id] * z + (1-alpha[id]) * (xhat[id].x + (xhat[id].dx * delta_t / 1024.f));
       if (delta_t == 0) {
 	xnew->dx = xhat[id].dx;
       }
