@@ -907,7 +907,7 @@ def yield24():
             if maxseq < minseq:
                 seq_diff = minseq - maxseq + 0xffffffff + 1
             else:
-                seq_diff = maxseq - minseq
+                seq_diff = maxseq - minseq + 1
              
             y = (seqcnt * 100.) / seq_diff
 
