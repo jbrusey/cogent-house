@@ -13,14 +13,21 @@ LOG.setLevel(logging.INFO)
 
 import pyrrd.rrd as rrd
 
+RRDPATH = "/usr/share/cogent-house/"
+#RRDPATH "
+
 class RRDStore(object):
     """
     Store data from nodes in an RRD
     """
     def __init__(self,nodeId,typeId,locationId,startTime = None):
         #thisPath = os.path.join(
-        rrdfd = "{0}_{1}_{2}.rrd".format(nodeId,locationId,typeId)
-        LOG.debug("RRD File {0}".format(rrdfd))
+        rrdname = "{0}_{1}_{2}.rrd".format(nodeId,locationId,typeId)
+        LOG.debug("RRD File {0}".format(rrdname))
+        
+        rrdfd = os.path.join(RRDPATH,rrdname)
+
+        LOG.debug("Full Path {0}".format(rrdfd))
 
         #Check if this exists
         if os.path.exists(rrdfd):
@@ -73,3 +80,12 @@ class RRDStore(object):
 
     def getInfo(self):
         print self.rrd.info()
+
+
+if __name__ == "__main__":
+    if not os.path.exists(RRDPATH):
+        print "Attemptoing to create directory"
+        print os.makedirs(RRDPATH)
+
+    foo = RRDStore(1000,1000,1000)
+    #print foo

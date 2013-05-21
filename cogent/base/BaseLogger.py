@@ -45,7 +45,6 @@ import sqlalchemy.exc
 import rrdstore
 RRDLIST = {}
 
-
 class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
         self.engine = create_engine(dbfile, echo=False)
@@ -314,6 +313,9 @@ class BaseLogger(object):
                            parent=msg.get_ctp_parent_id(),
                            localtime=msg.get_timestamp())
             session.add(ns)
+
+
+            log.debug("Message from {0}".format(n))
 
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
