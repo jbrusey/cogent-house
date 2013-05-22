@@ -1098,8 +1098,8 @@ class Pusher(object):
         rdgCount = origCount
         transferCount = 0
                           
-        #for x in range(2):
-        while rdgCount > 0:
+        for x in range(2):
+        #while rdgCount > 0:
         #while True:
             #Add some timings
             stTime = time.time()
