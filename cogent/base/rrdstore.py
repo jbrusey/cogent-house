@@ -16,6 +16,10 @@ import pyrrd.rrd as rrd
 RRDPATH = "/usr/share/cogent-house/"
 #RRDPATH "
 
+class RRDServer(object):
+    """Server to deal with RRD based stuff"""
+    pass
+
 class RRDStore(object):
     """
     Store data from nodes in an RRD
