@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, and_, distinct, select, alias, distinct
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
-from datetime import datetime
+from datetime import datetime, timedelta
 import os.path
 import csv
 import scipy.stats as stats
@@ -373,6 +373,33 @@ def get_yield_location(session, loc_id, reading_type, start_time = datetime.from
     row_count=len(list(rows))
    
     return (row_count * 100.0) / expected_rows
+    
+def get_yield_by_nodes_and_date(session, hnum, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+
+    yields={}
+    expected_rows = 288.
+    d = timedelta(days=1)
+    locations = get_locations_by_house(session, hnum)
+    
+
+    
+    for room,lid in locations.iteritems():
+        start = start_time
+        plus_one = start_time + d
+      	while start < end_time:
+      	    rows = _query_by_location_and_type(session, lid, reading_type, start, plus_one)
+            row_count=len(list(rows))
+            
+            if room not in yields:            
+                yields[room]={}
+                
+            yields[room][start] = (row_count * 100.0) / expected_rows
+            
+            start = start + d
+            plus_one = plus_one + d
+  	
+    return yields
+
 
 
 def get_houses(session):
