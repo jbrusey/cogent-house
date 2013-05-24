@@ -16,7 +16,7 @@ from sqlalchemy import Table, Column, Integer, ForeignKey,String,DateTime,Boolea
 from sqlalchemy.orm import relationship, backref
 
 import sqlalchemy.types as types
-
+#from Bitset import Bitset
 
 
 
