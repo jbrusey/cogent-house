@@ -1,3 +1,12 @@
+#rrdtool graph test.png DEF:x1=32768_None_6.rrd:reading:AVERAGE LINE1:x1#FF0000
+#rrdtool fetch 32768_None_6.rrd AVERAGE -s -1h
+#python BaseLogger.py -l debug -f testLog.log -t
+#
+# Node IDS
+#20480 is the nodeId you want
+##basically look at CogentHouseP from line 183 to get the node type then * that by 4096
+
+
 #
 # BaseLogger
 #
@@ -61,196 +70,6 @@ class BaseLogger(object):
 
         #Moved this so it calls the models.populate data version of this code
         populateData.init_data(session)
-        return
-        # if session.query(SensorType).get(0) is None:
-        #     logger.debug("adding sensor types")
-        #     # assume no sensor types have been added
-        #     session.add_all(
-        #         [SensorType(id=0,name="Temperature",
-        #                     code="T",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=1,name="Delta Temperature",
-        #                     code="dT",
-        #                     units="deg.C/s",
-        #                     c0=0., c1=1., c2=0., c3=0.),                              
-        #          SensorType(id=2,name="Humidity",
-        #                     code="RH",
-        #                     units="%",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=3,name="Delta Humidity",
-        #                     code="dRH",
-        #                     units="%/s",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=4,name="Light PAR",
-        #                     code="PAR",
-        #                     units="Lux",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=5,name="Light TSR",
-        #                     code="TSR",
-        #                     units="Lux",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=6,name="Battery Voltage",
-        #                     code="BAT",
-        #                     units="V",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=7,name="Delta Battery Voltage",
-        #                     code="dBT",
-        #                     units="V/s",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=8,name="CO2",
-        #                     code="CO2",
-        #                     units="ppm",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=9,name="Air Quality",
-        #                     code="AQ",
-        #                     units="ppm",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=10,name="VOC",
-        #                     code="VOC",
-        #                     units="ppm",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=11,name="Power",
-        #                     code="POW",
-        #                     units="W",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=12,name="Heat",
-        #                     code="HET",
-        #                     units="W",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=13,name="Duty cycle",
-        #                     code="DUT",
-        #                     units="ms",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=14,name="Error",
-        #                     code="ERR",
-        #                     units="",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=15,name="Power Min",
-        #                     code="PMI",
-        #                     units="w",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=16,name="Power Max",
-        #                     code="PMA",
-        #                     units="w",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=17,name="Power Consumption",
-        #                     code="CON",
-        #                     units="kWh",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=18,name="Heat Energy",
-        #                     code="HEN",
-        #                     units="kWh",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=19,name="Heat Volume",
-        #                     code="HVO",
-        #                     units="L",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=20,name="Power pulses",
-        #                     code="POP",
-        #                     units="p",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=21,name="Window Temperature 1",
-        #                     code="WT1",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=22,name="Window Temperature 2",
-        #                     code="WT2",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=23,name="Black Bulb",
-        #                     code="BBT",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),               
-        #          SensorType(id=24, name="Gas Pulse",
-        #                      code="gpls"),
-	# 	 SensorType(id=99,name="Gas Consumption",
-        #                     code="Gas",
-        #                     units="kWh",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-	# 	SensorType(id=102,name="Outside Temperature",
-        #                     code="ws_temp_out",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),   
-	# 	SensorType(id=103,name="Outside Humidity",
-        #                     code="ws_hum_out",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),    
-	# 	SensorType(id=104,name="WS Inside Temperature",
-        #                     code="ws_temp_in",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),   
-	# 	SensorType(id=105,name="WS Inside Humidity",
-        #                     code="ws_hum_in",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),    
-        #          SensorType(id=106,name="Dew Point",
-        #                     code="ws_dew",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=107,name="Apparent Temperature",
-        #                     code="ws_apparent_temp",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=108,name="Wind Gust",
-        #                     code="ws_wind_gust",
-        #                     units="mph",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=109,name="Average Wind Speed",
-        #                     code="ws_wind_ave",
-        #                     units="mph",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=110,name="Wind Direction",
-        #                     code="ws_wind_dir",
-        #                     units="",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=111,name="Wind Chill",
-        #                     code="ws_wind_chill",
-        #                     units="deg.C",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=112,name="Rain Fall",
-        #                     code="ws_rain",
-        #                     units="mm",
-        #                     c0=0., c1=1., c2=0., c3=0.),
-        #          SensorType(id=113,name="Absolute Pressure",
-        #                     code="ws_abs_pressure",
-        #                     units="hpa",
-        #                     c0=0., c1=1., c2=0., c3=0.)])
-        #     session.commit()
-        # session.close()    
-                             
-    # def update_settings(self):
-
-    #     x = self.setting_session.query(NodeType).filter(NodeType.seq != NodeType.updated_seq).first()
-    #     if x is not None:
-    #         cm = ConfigMsg()
-    #         max_nodetype = self.setting_session.query(func.max(NodeType.id)).one()[0] + 1
-    #         max_nodetype = min(max_nodetype, Packets.NODE_TYPE_MAX)
-    #         cm.set_typeCount(max_nodetype)
-    #         for i in range(max_nodetype):
-    #             nt = self.setting_session.query(NodeType).filter(NodeType.id==i).first()
-    #             if nt is not None:
-    #                 cm.setElement_byType_samplePeriod(i, nt.period)
-    #                 if nt.blink:
-    #                     cm.setElement_byType_blink(i, 1)
-    #                 else:
-    #                     cm.setElement_byType_blink(i, 0)
-                    
-    #                 for j in range(len(nt.configured.a)):
-    #                     cm.setElement_byType_configured(i, j, nt.configured.a[j])
-    #                 nt.updated_seq = nt.seq
-    #             else:
-    #                 logger.warning("no NodeType record for type %d - setting some default values" % (i))
-    #                 cm.setElement_byType_samplePeriod(i, 300 * 1024) # 300 seconds
-    #                 cm.setElement_byType_blink(i,1)
-    #                 for j in range(cm.numElements_byType_configured(1)):
-    #                     cm.setElement_byType_configured(i, j, 0)
-
-    #         cm.set_special(Packets.SPECIAL)
-    #         self.bif.sendMsg(cm)
-    #         logger.debug("sending config: %s" % cm)
-
-    #         self.setting_session.commit()
 
     def duplicate_packet(self, session, time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
@@ -328,10 +147,10 @@ class BaseLogger(object):
                     
                     #Store in a RRD Database
                     t1 = time.time()
-                    theRRD = RRDLIST.get((n,i,locId),None)
+                    theRRD = RRDLIST.get((n,i,1000),None)
                     if theRRD is None:
-                        theRRD = rrdstore.RRDStore(n,i,locId)
-                        RRDLIST[(n,i,locId)] = theRRD
+                        theRRD = rrdstore.RRDStore(n,i,1000)
+                        RRDLIST[(n,i,1000)] = theRRD
                     #theRRD.getInfo()
                     theRRD.update(t,v)
                     t2 = time.time()
@@ -379,7 +198,7 @@ class BaseLogger(object):
             session.close()
 
     def run(self):
-        LOG.info("Stating Baselogger Daemon")
+
         try:
             while True:
                 # wait up to 30 seconds for a message
@@ -447,5 +266,7 @@ if __name__ == '__main__':
     logger.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
     lm.create_tables()
+
+  
     lm.run()
 		
