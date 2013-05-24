@@ -11,6 +11,7 @@ REQUIRES = ['SQLAlchemy',
             "pyserial",
             "requests",
             "pyrrd",
+            "transaction",
             ]
     
 setup(name='ch-base',
