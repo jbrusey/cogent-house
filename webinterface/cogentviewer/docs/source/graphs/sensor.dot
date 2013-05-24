@@ -1,0 +1,37 @@
+digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname="Courier"];
+  Sensor[label=<
+       <table border="0" cellborder="1" cellspacing="0">
+       <tr><td><font face="Helvetica"><b>Sensor</b></font></td></tr>
+       <tr><td port="id"><font color="red">id</font></td></tr>
+       <tr><td port="sensorTypeId">sensorTypeId</td></tr>
+       <tr><td port="nodeId">nodeId</td></tr>
+       <tr><td>calibrationSlope</td></tr>
+       <tr><td>calibrationOffset</td></tr>
+       </table>>];
+  Sensor:sensorTypeId -> SensorType:id
+  Sesnor:nodeId -> aNode:id
+  
+  SensorType[label=<
+       <table border="0" cellborder="1" cellspacing="0">
+       <tr><td><font face="Helvetica"><b>SensorType</b></font></td></tr>
+       <tr><td port="id"><font color="red">id</font></td></tr>
+       <tr><td>name</td></tr>
+       <tr><td>code</td></tr>
+       <tr><td>units</td></tr>
+       <tr><td>c0</td></tr>
+       <tr><td>c1</td></tr>
+       <tr><td>c2</td></tr>
+       <tr><td>c3</td></tr>
+       <tr><td port="readings"><font color="blue"><i>readings</i></font></td></tr>
+       <tr><td port="sensors"><font color="blue"><i>sensors</i></font></td></tr>	
+       </table>>];
+  SensorType:readings -> Reading [style="dashed" label="typ"]
+  SensorType:sensors -> Sensor [style="dashed" label="sensorType"]
+  
+  
+
+
+
+}

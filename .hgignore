@@ -1,0 +1,15 @@
+syntax: glob
+*.pyc
+*~
+docs/build
+tos/Node/build
+tos/Node/*/build
+tos/Root/build
+tos/Root/*/build
+cogent/node/Packets.py
+cogent/node/*Msg.py
+build/
+cogent/push/.cache
+cogent/push/.coverage
+*.egg-info/*
+dataclense/*
