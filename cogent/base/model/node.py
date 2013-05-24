@@ -16,6 +16,8 @@ from sqlalchemy.orm import relationship, backref
 
 #import sqlalchemy.types as types
 
+import location
+
 class Node(meta.Base, meta.InnoDBMix):
     """
     Class to hold detals of the nodes themselves
@@ -127,20 +129,27 @@ class Node(meta.Base, meta.InnoDBMix):
         locId = jsondict.get("locationId",None)
         #Lets Try Cheating here.
 
+        if locId is None:
+            return
+
+        return
+        session = meta.Session()
+        newLocation = session.query(location.Location).filter_by(id=locId).first()
+
         if self.locationId is None:
             #Force an Update
             LOG.debug("Forcing Location Update to {0}".format(locId))
             self.locationId = locId
-            self.all_locs.append(locId)
+            self.all_locs.append(newLocation)
             LOG.debug("New Loc {0} {1}".format(self.locationId,self.location))
 
-        elif self.location.id == locId:
+        elif self.locationId == locId:
             LOG.debug("Location has been updated correctly")
             if self.location in self.all_locs:
                 LOG.debug("We Know about this location")
             else:
                 LOG.debug("No such Location in the List")
-                self.all_locs.append(self.location)
+                self.all_locs.append(newLocation)
         else:
             LOG.warning("Location Id {0} != locId {1}".format(self.location.id,
                                                               locId))

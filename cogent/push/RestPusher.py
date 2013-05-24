@@ -284,6 +284,7 @@ class PushServer(object):
         log = self.log
         engine = sqlalchemy.create_engine(localURL)
         models.initialise_sql(engine)
+        #models.init_model(engine)
         localSession = sqlalchemy.orm.sessionmaker(bind=engine)
         self.localSession = localSession
         log.info("Database Connection to {0} OK".format(localURL))
@@ -520,7 +521,7 @@ class Pusher(object):
         #Then stuff were the ID's different
         changed = theDiff.changed()
         log.debug("Changed, {0}".format(changed))
-        #sys.exit(0)
+
         for item in changed:
             localItem = localTypes[item]
             remoteItem = remoteTypes[item]
@@ -540,7 +541,7 @@ class Pusher(object):
            session.flush()
            log.info("New Id {0}".format(thisItem))
            mergedItems[origId] = thisItem.id
-        #sys.exit(0)
+
         session.commit()
         
 
@@ -565,7 +566,7 @@ class Pusher(object):
         session = self.localSession()
         log.debug("--> Synchronising Room Types")
         #First we need to map room Types
-        #sys.exit(0)
+
         #Fetch the room types from the remote Database
         theUrl = "{0}roomtype/".format(self.restUrl)
 
@@ -637,12 +638,12 @@ class Pusher(object):
         theUrl = "{0}{1}".format(self.restUrl,"sensortype/")
         
         #print theUrl
-        #sys.exit(0)
+
         
         remoteTypes = {}
         localTypes = {}
 
-        #sys.exit(0)
+
         #remoteQry = restSession.request_get(theUrl)
         remoteQry = requests.get(theUrl)
         #print remoteQry
@@ -655,7 +656,7 @@ class Pusher(object):
         for item in restItems:
             #log.debug("--> {0}".format(item))
             remoteTypes[item.id] = item
-        #sys.exit(0)
+
         itemTypes = session.query(self.SensorType)
         #log.debug("---- SENSOR TYPES FROM LOCAL SERVER ----")
         for item in itemTypes:
@@ -678,7 +679,7 @@ class Pusher(object):
         log.debug( "--> Changed")
         log.debug( changedItems)
         #return
-        #sys.exit(0)
+
 
         if changedItems:
             log.warning("Sensor Types with mathching Id's but different Names")
@@ -738,7 +739,7 @@ class Pusher(object):
         localQry = session.query(self.Deployment)
         localTypes = dict([(x.name,x) for x in localQry])
 
-        #sys.exit(0)
+
 
         mappedDeployments = self._syncItems(localTypes,remoteTypes,theUrl)
         self.mappedDeployments = mappedDeployments

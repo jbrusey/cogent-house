@@ -61,6 +61,33 @@ def init_model(engine):
     DO NOT REMOVE ON MERGE
     """
     Session.configure(bind=engine)
+
+ 
+
+def initialise_sql(engine, dropTables=False):
+    """Initialise the database
+
+    :param engine: Engine to use for the database
+    :param dropTables: Do we want to clean the database out or not
+    :param session: Use a session other than the global DB session
+
+    .. warning:: 
+    
+        Previously this function called the populateData function. I
+        have removed this functionality Any function that calls
+        initialise_sql will have to call the init_data method if
+        required
+
+    """
+    log.info("Initialising Database")
+    meta.Session.configure(bind = engine)
+    Base.metadata.bind = engine
+
+    if dropTables:
+        Base.metadata.drop_all(engine)
+
+    Base.metadata.create_all(engine)  
+
     
 
 def findClass(tableName):
