@@ -41,6 +41,7 @@ from roomtype import *
 from sensor import *
 from sensortype import *
 from weather import *
+from Bitset import *
 #from event import *
 from timings import *
 from user import *
