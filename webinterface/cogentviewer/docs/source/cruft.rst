@@ -48,7 +48,7 @@ Normal Text
 .. sidebar:: Sidebar Title
    :subtitle: An Optional Subtitle
 
-   We can also stick text into a sidebar, This gives an alternate form oh highighting
+   We can also stick text into a sidebar, This gives an alternate form of highighting
 
 With a sidebar the text below is floated right and will flow around the sidebar itself.
 
