@@ -96,10 +96,7 @@ require(["dijit/form/Button"
 
             depSelect = new FilterSelect({
                     id: "depSelect"
-                    #name: "deploySelect"
-                    #value: "Final Test"
                     store:deployStore,
-                    #store:deployDataStore
                     searchAttr: "name"
                     placeholder:"Select a deployment"
                     }
@@ -109,7 +106,7 @@ require(["dijit/form/Button"
             depSelect.startup()
 
 
-            #Create Everything Proggramatiaccaly so I can fiddle with the values
+            #Create Everything Programatiaccaly so I can fiddle with the values
             houseAdd = new TextBox({}
                 "houseAdd"
                 )

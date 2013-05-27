@@ -1,11 +1,24 @@
-<%inherit file="baseContainers.mak"/>
+##<%inherit file="baseContainers.mak"/>
 
-<%block name="styles">
 
-<link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dojox/grid/resources/Grid.css')}"/>
-<link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dojox/grid/resources/claroGrid.css')}"/>
+##<%block name="styles">
 
+## <link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dojox/grid/resources/Grid.css')}"/>
+## <link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dojox/grid/resources/claroGrid.css')}"/>
+
+##</%block>
+
+<%inherit file="base.mak"/>
+
+<%!
+   _sideWidth = 3
+   _mainWidth = 12 - _sideWidth
+%>
+
+<%block name="pageheader">
+<h1>Homepage</h1>
 </%block>
+
 
 
 <%block name="pagecontent">
@@ -18,10 +31,9 @@
 </%block>
 
 ##And Our Navigation Block
-<%block name="othercontent">
+<%block name="sidenav">
   <div dojoType="dijit.layout.ContentPane" extractContent="false" preventCache="false" preload="false" refreshOnShow="false" region="left" splitter="true" doLayout="false" title="Main">
 
-  <aside>
   <h3>Filters</h3>
   <ul>
     <li>StartDate</li>
@@ -37,7 +49,7 @@
 
     <h3>Select Data</h3>
     <div id="treeNode"></div>  
-  </aside>
+
 
   </div>
 </%block>

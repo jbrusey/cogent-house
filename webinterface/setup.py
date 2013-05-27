@@ -16,11 +16,16 @@ requires = [
     'waitress',
     "python-dateutil==1.5",
     'MySQL-python',
+    "WebTest",
+    "pyrrd",
+    "passlib",
+    "demjson", #Until RRD 1.4.8 comes out
+    "requests",
     ]
 
 
 setup(name='cogent-viewer',
-      version='0.1',
+      version='0.3.0',
       description='cogent-viewer',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[
@@ -43,6 +48,9 @@ setup(name='cogent-viewer',
       main = cogentviewer:main
       [console_scripts]
       initialize_webinterface_db = cogentviewer.scripts.initializedb:main
+      add_webinterface_user = cogentviewer.scripts.addUser:main
+      get_webinterface_js = cogentviewer.scripts.getjs:main
       """,
+
       )
 
