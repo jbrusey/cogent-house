@@ -1,35 +1,29 @@
 """
-.. codeauthor::  Ross Wiklins 
+.. codeauthor::  Ross Wiklins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 """
-
 
 #SQL Alchemy Relevant information
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 
 #And Backrefs and Relations.
 
-#Setup Logging
-import logging
-log = logging.getLogger(__name__)
-
 #Import Pyramid Meta Data
 import meta
-Base = meta.Base
 
-
-class DeploymentMetadata(Base, meta.InnoDBMix):
+class DeploymentMetadata(meta.Base, meta.InnoDBMix):
     """
     Table to hold metadata about a deployment
 
     :var integer id:
-    :var integer deploymentId: *Foreign key* to :class:`cogentviewer.models.deployment.Deployment` this metadata belongs to
+    :var integer deploymentId: *Foreign key* to `Deployment`
     :var string name:  Name of metadata
     :var string description: Description of metadata
     :var string units: Units of metadata
     :var float value: Value of metadata
     """
+
     __tablename__ = "DeploymentMetadata"
 
     id = Column(Integer, primary_key=True)
