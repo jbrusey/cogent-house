@@ -1,9 +1,16 @@
-<%inherit file="baseContainers.mak"/>
+<%inherit file="base.mak"/>
 
-<%block name="styles">
+<%!
+   _sideWidth = 0
+   _mainWidth = 12 - _sideWidth
+%>
 
-
+<%block name="pageheader">
+<h1>Homepage</h1>
 </%block>
+
+
+##<%inherit file="baseContainers.mak"/>
 
 
 <%block name="pagecontent">

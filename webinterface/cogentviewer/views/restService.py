@@ -10,6 +10,7 @@ import pyramid.url
 
 import cogentviewer.models.meta as meta
 import cogentviewer.models as models
+import cogentviewer.views.rrdstore as rrdstore
 
 import logging
 
@@ -25,6 +26,7 @@ import time
 import zlib
 import json
 
+RRD_DICT =  {}
 
 def _getDeploymentTree(request):
     """Fetch a tree to be used for navigation"""
@@ -33,14 +35,12 @@ def _getDeploymentTree(request):
     #Fetch a list of deployments
 
     params = request.params
-
+    log.debug("Query Parameters {0}".format(params))
     if params:
-        log.debug("Query parameters {0}".format(params))
         parent = params.get("parent",None)
         log.debug("Looking for parent {0}".format(parent))
         if parent:
             depSplit = parent.split("_")
-
             if parent == "root":
                 theQry = session.query(models.Deployment)
                 outList = []
@@ -52,11 +52,14 @@ def _getDeploymentTree(request):
                                     "type":"deployment"
                                     })
                 return outList
+
             elif depSplit[0] == "d":
                 log.debug("Parent is a Deployment")
                 theQry = session.query(models.House).filter_by(deploymentId = depSplit[1])
                 outList = []
+                log.debug("--> Children Are:")
                 for item in theQry:
+                    log.debug("--> {0}".format(item))
                     outList.append({"id":"h_{0}".format(item.id),
                                     "name":item.address,
                                     "parent":"d_{0}".format(depSplit[1]),
@@ -84,51 +87,52 @@ def _getDeploymentTree(request):
             elif depSplit[0] == "l":
                 log.debug("Parent is a Location")
                 outList = []
+                #Use the Node Location Table to find Nodes associated with this Location
+                theqry = session.query(models.Location).filter_by(id=depSplit[1])
+                theitem = theqry.first()
+                log.debug("The Qry {0}".format(theitem))
+                log.debug("--> {0}".format(theitem.allnodes))
                 
-                theQry = session.query(sqlalchemy.distinct(models.Reading.typeId)).filter_by(locationId = depSplit[1])
-                for item in theQry:
-                    log.info("Distinct Sensor Type {0}".format(item))
-                    sType = session.query(models.SensorType).filter_by(id=item[0]).first()
-                    if sType is None:
-                        log.warning("Sensor Type {0} Doesnt Exist".format(item))
-                        theItem = {"id":"t_{0}_{1}".format(depSplit[1],item[0]),
-                                   "name":"Unknown Type ({0})".format(item[0]),
+                #Fetch all Nodes
+                for node in theitem.allnodes:
+                    log.debug("--> --> Processing Node {0}".format(node))
+                    for sensor in node.sensors:
+                        log.debug("--> ==> Sensor are {0}".format(sensor))
+                        sensortype = sensor.sensorType
+                        log.debug("==> ==> {0}".format(sensortype))
+                        theItem = {"id":"t_{0}_{1}".format(depSplit[1], sensor.sensorTypeId),
+                                   "name":sensortype.name,
                                    "type":"sensorType",
-                                   "parent":"l_{0}".format(depSplit[1]),
+                                   "parent":"l:{0}".format(depSplit[1]),
                                    }
-                    else:
-                        theItem = {"id":"t_{0}_{1}".format(depSplit[1],item[0]),
-                                   "name":sType.name,
-                                   "type":"sensorType",
-                                   "parent":"l_{0}".format(depSplit[1]),
-                                   }
-                    outList.append(theItem)
-                    log.debug(theItem)
-
-                #By Node (But I dont need to do that)
-                # locQry = session.query(models.Location).filter_by(id = depSplit[1])
-                # for item in locQry:
-                #     log.debug("Location is {0} -> {1}".format(item,item.OldNodes))
-                    
-                    #for node in item.OldNodes:
-                    #    outList.append({"id":"n_{0}".format(node.id),
-                    #                    "name":node.id,
-                    #                    "parent":"l_{0}".format(depSplit[1]),
-                    #                    "type":"node"})
-
+                        outList.append(theItem)
+                
+                # theQry = session.query(sqlalchemy.distinct(models.Reading.typeId)).filter_by(locationId = depSplit[1])
+                # for item in theQry:
+                #     log.info("Distinct Sensor Type {0}".format(item))
+                #     sType = session.query(models.SensorType).filter_by(id=item[0]).first()
+                #     if sType is None:
+                #         log.warning("Sensor Type {0} Doesnt Exist".format(item))
+                #         theItem = {"id":"t_{0}_{1}".format(depSplit[1],item[0]),
+                #                    "name":"Unknown Type ({0})".format(item[0]),
+                #                    "type":"sensorType",
+                #                    "parent":"l_{0}".format(depSplit[1]),
+                #                    }
+                #     else:
+                #         theItem = {"id":"t_{0}_{1}".format(depSplit[1],item[0]),
+                #                    "name":sType.name,
+                #                    "type":"sensorType",
+                #                    "parent":"l_{0}".format(depSplit[1]),
+                #                    }
+                #     outList.append(theItem)
+                #     log.debug(theItem)
+                          
                 return outList
-            # return [
-            #     {"id":"withdep","name":"Deployments","parent":"root"},
-            #     {"id":"nodep","name":"dep 2","parent":"root"},
-            #     ]
-        #else:
         return []
     else:
         log.debug("Returning All Object")
         outList = [
             {"id":"root","name":"All Deployments"},
-            #{"id":"d1","name":"dep 1","parent":"root"},
-            #{"id":"d2","name":"dep 2","parent":"root"},
             ]
         return outList
 
@@ -136,8 +140,13 @@ def _getDeploymentTree(request):
     log.debug("Query Returns {0}".format(outList))
     return outList
 
+
 def genericRest(request):
     #Create a session
+    return _wrappedRest(request)
+
+#@models.timings.timedtext("Generic Rest Query")
+def _wrappedRest(request):
     session = meta.Session()
     
     log.debug("="*80)
@@ -161,37 +170,67 @@ def genericRest(request):
     if theType.lower() == "bulk":
         log.debug("BULK UPLOAD")
         #parameters = request.json_body
+
+        #Start an RRD Server
+        rrdServer = rrdstore.RRDServer()
+
         parameters = request.body
         #log.debug(parameters)
-        #unZip = zlib.decompress(parameters)
+        
         try:
             unZip = zlib.decompress(parameters)
         except zlib.error,e:
             log.warning("Bulk Upload Error (ZLIB) {0}".format(e))
             unZip = parameters
             
-
+        log.debug("==== Bulk Upload Unzipped ====")
         jsonBody = json.loads(unZip)
+        log.debug("--> Converted from JSON")
+        #log.debug(jsonBody)
         #jsonBody = jsonh.loads(unZip)
         #print jsonBody
 
         objGen = models.clsFromJSON(jsonBody)
+        log.debug("--> Generator Created")
         import time
         t1 = time.time()
         for item in objGen:
             #pass
-            #print item
+            #print "----> New Item to be Added {0}".format(item)
             session.add(item)
+
+            #And RRD Stuff
+            if type(item) == models.Reading:
+                #print "Reading to be added"
+                nodeId = item.nodeId
+                typeId = item.typeId
+                locationId = item.locationId
+                #log.debug("Reading is {0} {1} {2}".format(nodeId,typeId,locationId))
+                theRRD = RRD_DICT.get((nodeId,typeId,1000),None)
+                if theRRD is None:
+                    log.debug("--> Creating New RRD")
+                    theRRD = rrdstore.RRDStore(nodeId,typeId,1000,item.time)
+                    RRD_DICT[(nodeId,typeId,1000)] = theRRD
+
+                #theRRD.update(item.time,item.value)
+                theRRD.add(item.time,item.value)
+            #    rrdStore.add(item)
             #session.merge(item)
         #session.flush()
         log.debug("Items Added")
+
+        #Flush RRDs
+        for item in RRD_DICT.values():
+            print "Item to be flushed {0}".format(item)
+            item.flush()
+
         try:
             session.flush()
         #except sqlalchemy.IntegrityError,e:
         except Exception,e:
             log.warning("Bulk Upload Error")
             log.warning(e)
-            request.response.status = 404
+            request.response.status = 500
             return ["Error: {0}".format(e)]
         
         t2 = time.time()
@@ -203,15 +242,13 @@ def genericRest(request):
         log.debug("Bulk Upload Success")
         #session.commit()
         #session.close()
+        rrdServer.shutdown()
         return []
         #return [x.id for x in objGen]
     elif theType.lower() == "deploymenttree":
         log.debug("Deployment Tree")
         return _getDeploymentTree(request)
         #return []
-
-
-
 
     #Deal with ranges
     reqRange = request.headers.get("Range",None)
@@ -422,8 +459,8 @@ def genericRest(request):
                 theQry.update({"locationId": None})
                 
                 #And Reset the other associated stuff
-                log.debug("Old Nodes {0}".format(loc.OldNodes))
-                del(loc.OldNodes)
+                #log.debug("Old Nodes {0}".format(loc.OldNodes))
+                #del(loc.OldNodes)
                 #loc.Node.locationId = None
                 for item in loc.nodes:
                     item.locationId = None
@@ -585,8 +622,6 @@ def summaryRest(request):
     reqType = request.method
     #parameters = request.json_body
     log.debug("REST Summary called with params ID: {0} Type: {1} Parameters:{2} Method: {3}".format(theId,theType,parameters,reqType))
-
-
 
     if theType == "register":
         return _getRegistered(theId,parameters,reqType,request)
@@ -915,7 +950,6 @@ def _getRegistered(theId,parameters,reqType,request):
 
 
     #Otherwise Fetch the Base Items
-
     houseLoc = theHouse.locations
     log.debug("Locations are {0}".format(houseLoc))
 
@@ -924,7 +958,8 @@ def _getRegistered(theId,parameters,reqType,request):
    
 
     for loc in houseLoc:
-        locNodes = loc.OldNodes
+        #locNodes = loc.OldNodes
+        locNodes = loc.allnodes
         log.debug("Location {0} Nodes {1}".format(loc,locNodes))
         #if locNodes is None:
             #Hunt for locations manually (this should only happen on update)

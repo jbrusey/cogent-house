@@ -4,22 +4,23 @@ Deal with Electriricty Data
 
 from pyramid.response import Response
 from pyramid.renderers import render_to_response
-import pyramid.url
+from pyramid.view import view_config
 
 import logging
 log = logging.getLogger(__name__)
 
 import homepage
-
 import cogentviewer.models.meta as meta
 import cogentviewer.models as models
 import time
 
-
+@view_config(route_name='electricity', renderer='cogentviewer:templates/electricity.mak',permission="view")
 def electricity(request):
     outDict = {}
     outDict["headLinks"] = homepage.genHeadUrls(request)
     outDict["sideLinks"] = homepage.genSideUrls(request)
+    theUser = homepage.getUser(request)
+    outDict["user"] = theUser.username
 
     outDict["pgTitle"] = "Electricity Data"
     #outDict["deployments"] =deps

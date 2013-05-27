@@ -3,10 +3,11 @@
 
 <%block name="styles">
 <%doc>
-<link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dojox/grid/resources/Grid.css')}"/>
+
 <link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dojox/grid/resources/claroGrid.css')}"/>
 </%doc>
 
+<link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dojox/grid/resources/Grid.css')}"/>
 <link rel="stylesheet" href="${request.static_url('cogentviewer:jslibs/dojo/dgrid/css/skins/claro.css')}"/>
 
 
@@ -30,13 +31,22 @@
 #grid .field-selector {
     width: 6em;
 }
+
 </style>
 
 </%block>
 
 
-<%block name="pagecontent">
+<%block name="pageheader">
+Deployment Details
+</%block>
 
+<%block name="phoneheader">
+Deployment Details
+</%block>
+
+<%block name="pagecontent">
+<div class="claro">
 This page allows houses within deployments to be registered or edited.
 
 <section>
@@ -50,31 +60,31 @@ This page allows houses within deployments to be registered or edited.
 
 <section>
 <h3>Deployment Details</h3>
+
+
 <form>
-<dl>
-<dt><label for="depName">Deployment Group</label></dt>
-<dd><select id="depName"></select></dd>
-</dl>
+  <dl>
+    <dt><label for="depName">Deployment Group</label></dt>
+    <dd><select id="depName"></select></dd>
+  </dl>
 
 
-<h3>House Details</h3>
+  <h3>House Details</h3>
 
-<dl>
-<dt><label for="houseAdd">Address</label></dt>
-<dd><input id="houseAdd" ></input></dd>
+  <dl>
+    <dt><label for="houseAdd">Address</label></dt>
+    <dd><input id="houseAdd" ></input></dd>
 
-<dt><label for="stDate">Start Date</label></dt>
-<dd><input id="stDate"></input><input id="stTime"></input></dd>
+    <dt><label for="stDate">Start Date</label></dt>
+    <dd><input id="stDate"></input><input id="stTime"></input></dd>
 
-<dt><label for="edDate">End Date</label></dt>
-<dd><input id="edDate"></input><input id="edTime"></input></dd>
-
-
-</dl>
+    <dt><label for="edDate">End Date</label></dt>
+    <dd><input id="edDate"></input><input id="edTime"></input></dd>  
+  </dl>
 
 
-<button  id="Save">Submit</button>
-<button  id="Reset">Cancel</button>
+  <button  id="Save">Submit</button>
+  <button  id="Reset">Cancel</button>
 </form>
 
 </section>
@@ -124,7 +134,7 @@ Details of nodes that have recently been heard by the server
   </form>
   </div>
 </div>
-
+</div>
 </%block>
 
 <%block name="scripts">

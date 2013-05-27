@@ -1,25 +1,89 @@
 # Function to fetch and plot time series data
 #
 
+options = {
+    chart:
+        renderTo: "theGraph"
+    rangeSelector :
+        selected : 1
+    title:
+        text: "Time Series Data"
+    series: [{}]
+    }
+
+window.chart = new Highcharts.StockChart({
+    chart:
+        renderTo: "theGraph"
+    rangeSelector :
+        selected : 1
+    title:
+        text: "Time Series Data"
+    series: [{}]
+    })
+
+
 require(["dojo/topic","dojo/io/script"],
     (topic,ioscript) ->
         topic.subscribe("navTree", (arg1) ->
             fetchData(arg1)
 
-            #    console.log("--- FIRED --- ",arg1)
+            console.log("--- FIRED --- ",arg1)
             )
+#                         title:
+#                             text: "Time Series Data"
+#                         legend:
+#                             enabled: true
+#                             align: "left"
+#                             layout: "vertical"
+#                             verticalAlign:"top"
+#                         credits:
+#                             enabled: false
+#                         exporting:
+#                             width: 1024
+#                         xAxis:
+#                             type: "datetime"
+#                         rangeSelector:{
+#                             buttons: [
+#                                 {
+#                                 type:"day"
+#                                 count:1
+#                                 text:"1d"
+#                                 }
+#                                 {
+#                                 type:"day"
+#                                 count:3
+#                                 text:"3d"
+#                                 }
+#                                 {
+#                                 type:"week"
+#                                 count:1
+#                                 text:"1w"
+#                                 }
+#                                 {
+#                                 type:"all"
+#                                 text:"All"
+#                                 }
+#                                 ]
+#                                 selected:2
+#                             }
 
+##                        }
+
+##        theChart = new Highcharts.StockChart(graphOptions)
 
         fetchData = (args) ->
-            console.log("Fecthing Data with Args ",args)
+            console.log("Fetching Data with Args ",args)
             args.graphType = "time"
+            #console.log("Graphing Opts ",graphOptions)
+            window.chart.showLoading()
+            console.log("Done")
             ioscript.get({
                 url:"jsonFetch"
                 content:args
                 callbackParamName:"callback"
                 }).then((data) ->
                     console.log("Data Returned ",data)
-                    plotTS(data)
+                    #plotTS(data)
                     console.log("Plotted")
                     return
                 )

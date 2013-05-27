@@ -2,7 +2,6 @@
 
 require(["dgrid/OnDemandGrid", "dgrid/tree", "dojo/store/JsonRest", "dgrid/extensions/DijitRegistry", "dojo/_base/declare", "dijit/tree/ObjectStoreModel", "dijit/Tree", "dojo/domReady!"], function(Grid, tree, JsonRest, DijitRegistry, Declare, ObjectStoreModel, Tree) {
   var theModel, theTree, treeStore;
-  console.log("Starting Tree Grid");
   treeStore = JsonRest({
     target: "rest/deploymenttree/",
     getChildren: function(object, options) {
@@ -17,7 +16,8 @@ require(["dgrid/OnDemandGrid", "dgrid/tree", "dojo/store/JsonRest", "dgrid/exten
     store: treeStore
   });
   theTree = new Tree({
-    model: theModel
+    model: theModel,
+    persist: true
   }, "treeNode");
   theTree.getIconClass = function(item, opened) {
     if (item.id === "root") {
@@ -73,7 +73,7 @@ require(["dijit/form/Button", "dijit/form/DateTextBox", "dijit/form/FilteringSel
   }, "clearData");
   clearData.startup();
   return showData = function() {
-    var item, selEnd, selSensor, selStart, selectedItems, splitItem, theId, theTree, treeItems, _i, _len;
+    var item, locationList, selEnd, selSensor, selStart, selectedItems, splitItem, theId, theTree, treeItems, _i, _len;
     theTree = dijit.byId("treeNode");
     treeItems = theTree.selectedItems;
     selectedItems = {
@@ -82,9 +82,18 @@ require(["dijit/form/Button", "dijit/form/DateTextBox", "dijit/form/FilteringSel
       "locations": [],
       "locType": []
     };
+    selStart = startDateSelect.get("value");
+    selEnd = stopDateSelect.get("value");
+    selSensor = sensorTypeSelect.get("value");
+    console.log("Select Start ", selStart);
+    console.log("Select End   ", selEnd);
+    console.log("Selected Sensor ", selSensor);
+    locationList = [];
     for (_i = 0, _len = treeItems.length; _i < _len; _i++) {
       item = treeItems[_i];
+      console.log(item);
       if (item.id === "root") {
+        console.log("Root Item selected, Stopping this madness");
         return;
       } else {
         theId = item.id;
@@ -95,19 +104,25 @@ require(["dijit/form/Button", "dijit/form/DateTextBox", "dijit/form/FilteringSel
         } else if (splitItem[0] === "h") {
           selectedItems.houses.push(splitItem[1]);
         } else if (splitItem[0] === "l") {
+          console.log("Location ", splitItem);
           selectedItems.locations.push(splitItem[1]);
+          if (selSensor) {
+            log.debug("--> Sensor Type Selected");
+          }
         } else if (splitItem[0] === "t") {
           selectedItems.locType.push([splitItem[1], splitItem[2]]);
+          locationList.push([splitItem[1], splitItem[2]]);
         }
       }
     }
+    console.log("Location List ", locationList);
+    return;
     selStart = startDateSelect.get("value");
     selEnd = stopDateSelect.get("value");
     selSensor = sensorTypeSelect.get("value");
     selectedItems.startDate = selStart;
     selectedItems.endDate = selEnd;
     selectedItems.sensorType = selSensor;
-    console.log("Element to be Published ", selectedItems);
-    return topic.publish("navTree", selectedItems);
+    return console.log("Element to be Published ", selectedItems);
   };
 });
