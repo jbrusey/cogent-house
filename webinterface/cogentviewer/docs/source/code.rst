@@ -9,10 +9,10 @@ This section gives some details of the software behind the cogent-viewer.
 .. toctree::
    :maxdepth: 1
 
-   install
-   models
-   push
-   restInterface
+   .. install
+   newInstall
+
+
 
 Modules
 ========

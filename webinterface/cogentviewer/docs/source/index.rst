@@ -23,7 +23,9 @@ Contents:
    webinterface
    code
 
-   cruft
+   technical-docs
+
+   .. cruft
 
 
 

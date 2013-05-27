@@ -19,32 +19,32 @@ The :class:`models.meta.InnoDBMix` class defines parameters common to all model 
 
 This is used as a mixin class along side the sqlalchemy.orm.Base 
 
-.. autoclass::	cogentviewer.models.meta.InnoDBMix
-   :members:
+.. .. autoclass::	cogentviewer.models.meta.InnoDBMix
+..    :members:
 
 ========================
 :mod:`model` Classes
 ========================
 
-..
+.. ..
 
-   We need to add a automodule function for each class.  Potentially
-   it may be better to munge classes that are relevant to each other
-   together to reduce the amount of work here
+..    We need to add a automodule function for each class.  Potentially
+..    it may be better to munge classes that are relevant to each other
+..    together to reduce the amount of work here
 
-.. todo::
+.. .. todo::
    
-   Classes that need to be fully documented  
-   #. Bitset
-   #. Host
-   #. LastReport
-   #. NodeState
-   #. NodeHistory
-   #. NodeType
+..    Classes that need to be fully documented  
+..    #. Bitset
+..    #. Host
+..    #. LastReport
+..    #. NodeState
+..    #. NodeHistory
+..    #. NodeType
 
 
-Deployment Related Classes
-==========================
+.. Deployment Related Classes
+.. ==========================
 
 .. graphviz:: graphs/deployment.dot
 
@@ -59,100 +59,101 @@ Deployment Related Classes
 House Related Classes
 ======================
 
-.. graphviz:: graphs/house.dot
+.. .. graphviz:: graphs/house.dot
 
-.. automodule:: cogentviewer.models.house
-   :members:
+.. .. automodule:: cogentviewer.models.house
+..    :members:
 
-.. automodule:: cogentviewer.models.housemetadata
-   :members:
+.. .. automodule:: cogentviewer.models.housemetadata
+..    :members:
 
-.. automodule:: cogentviewer.models.location
-   :members:
+.. .. automodule:: cogentviewer.models.location
+..    :members:
 
 
-Reading Related Classes
-========================
+.. Reading Related Classes
+.. ========================
 
-.. graphviz:: graphs/reading.dot
+.. .. graphviz:: graphs/reading.dot
 
-.. automodule:: cogentviewer.models.reading
-   :members:
+.. .. automodule:: cogentviewer.models.reading
+..    :members:
 
 
 Room Related Classes
 =====================
 
-.. graphviz:: graphs/room.dot
+.. .. graphviz:: graphs/room.dot
 
-.. automodule:: cogentviewer.models.room
-   :members:
+.. .. automodule:: cogentviewer.models.room
+..    :members:
 
-.. automodule:: cogentviewer.models.roomtype
-   :members:
+.. .. automodule:: cogentviewer.models.roomtype
+..    :members:
 
 
 Node Related Classes
 =====================
 
-.. graphviz:: graphs/node.dot
+.. .. graphviz:: graphs/node.dot
 
-.. automodule:: cogentviewer.models.node
-   :members:
+.. .. automodule:: cogentviewer.models.node
+..    :members:
 
-.. automodule:: cogentviewer.models.nodetype
-   :members:
+.. .. automodule:: cogentviewer.models.nodetype
+..    :members:
 
-.. automodule:: cogentviewer.models.nodehistory
-   :members:
+.. .. automodule:: cogentviewer.models.nodehistory
+..    :members:
 
-.. automodule:: cogentviewer.models.nodestate
-   :members:
+.. .. automodule:: cogentviewer.models.nodestate
+..    :members:
 
 
 
 Occupier Related Classes
 =========================
 
-.. graphviz:: graphs/occupier.dot
+.. .. graphviz:: graphs/occupier.dot
 
-.. automodule:: cogentviewer.models.occupier
-   :members:
+.. .. automodule:: cogentviewer.models.occupier
+..    :members:
 
 Sensor Related Classes
 =======================
 
-.. graphviz:: graphs/sensor.dot
+.. .. graphviz:: graphs/sensor.dot
 
-.. automodule:: cogentviewer.models.sensor
-   :members:
+.. .. automodule:: cogentviewer.models.sensor
+..    :members:
 
-.. automodule:: cogentviewer.models.sensortype
-   :members:
+.. .. automodule:: cogentviewer.models.sensortype
+..    :members:
 
 
 
 Other Classes
 ==============
 
-Classes that deal with other stuff
+.. Classes that deal with other stuff
 
-.. graphviz:: graphs/other.dot
+.. .. graphviz:: graphs/other.dot
 
-.. automodule:: cogentviewer.models.Bitset
-   :members:
+.. .. automodule:: cogentviewer.models.Bitset
+..    :members:
 
-.. automodule:: cogentviewer.models.host
-   :members:
+.. .. automodule:: cogentviewer.models.host
+..    :members:
 
-.. automodule:: cogentviewer.models.lastreport
-   :members:
+.. .. automodule:: cogentviewer.models.lastreport
+..    :members:
    
-.. automodule:: cogentviewer.models.rawmessage
-   :members:
+.. .. automodule:: cogentviewer.models.rawmessage
+..    :members:
 
-.. automodule:: cogentviewer.models.weather
-   :members:
+.. .. automodule:: cogentviewer.models.weather
+..    :members:
+
 
 ======================================
 Upgrading the Database using Alembic
@@ -206,10 +207,10 @@ tables from the database
 
 
 
-Adding a changeset
-====================
+.. Adding a changeset
+.. ====================
 
-If we want to change the DB follow this process
+.. If we want to change the DB follow this process
 
 
 
