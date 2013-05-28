@@ -72,10 +72,10 @@ implementation
   components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
-  components new Temp_ADC1C() as Temp_ADC1;
+
 
   //Sensing Modules
-  components ThermalSensingM, AirQualityM, BatterySensingM, TempADCM;
+  components ThermalSensingM, AirQualityM, BatterySensingM;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -86,6 +86,7 @@ implementation
   AirQualityM.GetAQ -> AQ;
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
+  
 #ifdef SIP
   components new PulseReaderM() as OptiReader;
 
@@ -93,9 +94,16 @@ implementation
   OptiReader.EnergyInput -> GIO.Port26;
   OptiReader.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
   
-#endif
-  TempADCM.GetTempADC1 -> Temp_ADC1;
+  components new PulseReaderM() as GasReader;
 
+  GasReader.Leds -> LedsC;
+  GasReader.EnergyInput -> GIO.Port26;
+  GasReader.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+  
+  components TempADCM;
+  components new Temp_ADC1C() as Temp_ADC1;
+  TempADCM.GetTempADC1 -> Temp_ADC1;
+#endif
   /*********** ACK CONFIG *************/
 
   components DisseminationC;
@@ -166,7 +174,13 @@ implementation
   FilterM.GetSensorValue[RS_OPTI]  -> OptiReader.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
   CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
-  
+
+  //Gas Smart Wiring
+  CogentHouseP.GasControl -> GasReader.PulseControl;
+  FilterM.Filter[RS_GAS]  -> Pass.Filter[RS_GAS];
+  FilterM.GetSensorValue[RS_GAS]  -> GasReader.ReadPulse;
+  SIPControllerC.EstimateCurrentState[RS_GAS]  -> FilterM.EstimateCurrentState[RS_GAS] ;
+  CogentHouseP.ReadGas -> SIPControllerC.SIPController[RS_GAS] ;  
   
   FilterM.Filter[RS_TEMPADC1]  -> DEWMAC.Filter[RS_TEMPADC1];
   FilterM.GetSensorValue[RS_TEMPADC1]  -> TempADCM.ReadTempADC1;
