@@ -9,7 +9,6 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 
 #Configuration
 CFLAGS += -DCLUSTER_HEAD=0
-
 CFLAGS += -DSIP
 #CFLAGS += -DBN
 
