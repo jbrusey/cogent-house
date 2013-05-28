@@ -35,10 +35,12 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadVOC;
     interface SIPController<FilterState *> as ReadAQ;
     interface SIPController<FilterState *> as ReadOpti;
+    interface SIPController<FilterState *> as ReadGas;
     interface SIPController<FilterState *> as ReadTempADC1;
     interface TransmissionControl;
-    
     interface SplitControl as OptiControl;
+    interface SplitControl as GasControl;    
+
 #endif
 
 #ifdef BN
@@ -356,6 +358,7 @@ implementation
     call ReadVOC.init(SIP_VOC_THRESH, SIP_VOC_MASK, SIP_VOC_ALPHA, SIP_VOC_BETA);
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_ALPHA, SIP_AQ_BETA);
     call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
+    call ReadGas.init(SIP_GAS_THRESH, SIP_GAS_MASK, SIP_GAS_ALPHA, SIP_GAS_BETA);
     call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
 #endif
 
@@ -387,13 +390,10 @@ implementation
     }
 #ifdef SIP
     else if (nodeType == 5) { /* energy board */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_OPTI);
       call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
     }
-#endif
     if (nodeType == 6) {
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -401,6 +401,12 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call Configured.set(RS_DUTY);
     }
+    else if (nodeType == 7) { /* gas board */
+      call Configured.set(RS_GAS);
+      call Configured.set(RS_VOLTAGE);
+      call GasControl.start();
+    }
+#endif
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -458,6 +464,8 @@ implementation
 #ifdef SIP
    	  else if (i == RS_OPTI)
 	    call ReadOpti.read();
+   	  else if (i == RS_GAS)
+	    call ReadGas.read();
 #endif
 	  else
 	    call ExpectReadDone.clear(i);
@@ -479,8 +487,10 @@ implementation
 	call ExpectReadDone.set(i);
 	if (i == RS_CO2)
 	  call ReadCO2.read();
+#ifdef SIP
 	else if (i == RS_TEMPADC1)
 	  call ReadTempADC1.read();
+#endif
 	else if (i == RS_AQ)
 	  call ReadAQ.read();
 	else if (i == RS_VOC)
@@ -556,11 +566,16 @@ implementation
     do_readDone_pass(result, data, RS_OPTI, SC_OPTI);
   }
   
-  event void OptiControl.startDone(error_t error) { }
+  event void ReadGas.readDone(error_t result, FilterState* data) {
+    do_readDone_pass(result, data, RS_GAS, SC_GAS);
+  }
   
-  event void OptiControl.stopDone(error_t error) {}  
-#endif
+  event void OptiControl.startDone(error_t error) {}
+  event void OptiControl.stopDone(error_t error) {} 
+  event void GasControl.startDone(error_t error) {}
+  event void GasControl.stopDone(error_t error) {}  
 
+#endif
 
 
 #ifdef BN

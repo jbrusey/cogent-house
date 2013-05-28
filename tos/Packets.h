@@ -74,7 +74,8 @@ enum {
   SC_OPTI = 40,
   SC_TEMPADC1 = 41,
   SC_D_TEMPADC1 = 42,
-  SC_SIZE = 43, // SC_SIZE must be 1 greater than last entry
+  SC_GAS = 43,
+  SC_SIZE = 44, // SC_SIZE must be 1 greater than last entry
 
   /* procedure for increasing SC_SIZE:
    *
@@ -108,7 +109,8 @@ enum {
   RS_OPTI = 11,
   RS_CLAMP = 12,
   RS_TEMPADC1 = 13,
-  RS_SIZE = 14 // must be 1 greater than last entry
+  RS_GAS= 14,
+  RS_SIZE = 15 // must be 1 greater than last entry
 };
 
 //separate packets structure for mote type
