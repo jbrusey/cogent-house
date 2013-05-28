@@ -1,0 +1,27 @@
+|-------------+-----+-------------+---------+-------------|
+| No of Nodes | Set | Node Number | Node Id | Description |
+|-------------+-----+-------------+---------+-------------|
+|             |     |             |         |             |
+|             |     |             |         |             |
+
+
+
+| Type Id | Description          |
+|---------+----------------------|
+|       0 | Battery Powered Node |
+|---------+----------------------|
+|       2 | Co2 Sensing Node     |
+|---------+----------------------|
+|      10 | Server Node          |
+|---------+----------------------|
+
+
+| Server Name | URL                         |
+|-------------+-----------------------------|
+| gauss       | gauss.local/webInterface    |
+| einstein    | einstein.local/webInterface |
+| euler       | euler.local/webInterface    |
+|-------------+-----------------------------|
+
+
+
