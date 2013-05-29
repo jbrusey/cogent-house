@@ -99,9 +99,9 @@ char * test_dewma_not_using_rate_correctly(void)
    printfloat2(x.dx);
    printf("\n");
    mu_assert("estimates after 100 iterations are wrong",
-	    fabs(x.x  - 1202.4) < 0.0001);
+	    fabs(x.x  - 1202.40083) < 0.0001);
    mu_assert("delta estimates after 100 iterations are wrong",
-	    fabs(x.dx - 12.1) < 0.0001); 
+	    fabs(x.dx - 12.0999864) < 0.0001); 
   
     return 0;
   }
