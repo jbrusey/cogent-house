@@ -91,6 +91,10 @@ _deltaDict={
     } 
 
 _periods = {
+    "5 Mins" : 5,
+    "10 Mins" : 10,
+    "15 Mins" : 15,
+    "30 Mins" : 30,
     "hour" : 60,
     "12-hours": 60*12,
     "day" : 1440,
