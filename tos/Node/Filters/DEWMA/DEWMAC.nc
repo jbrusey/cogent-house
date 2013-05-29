@@ -48,14 +48,14 @@ implementation
 	xnew->dx = xhat[id].dx;
       }
       else{
-	if (count[id] == 1) { 
-	  xnew->dx = (z - xhat[id].x) / delta_t * 1024.f;
-	  count[id]++;
-	}
-	else {
-	  xnew->dx = beta[id] * (xnew->x - xhat[id].x) / delta_t * 1024.f +
-	    (1 - beta[id]) * xhat[id].dx;
-	}
+	/* if (count[id] == 1) {  */
+	/*   xnew->dx = (z - xhat[id].x) / delta_t * 1024.f; */
+	/*   count[id]++; */
+	/* } */
+	/* else { */
+	xnew->dx = beta[id] * (xnew->x - xhat[id].x) / delta_t * 1024.f +
+	  (1 - beta[id]) * xhat[id].dx;
+	/* } */
       }
     }
     old_time[id] = current;
