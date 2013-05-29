@@ -1,0 +1,154 @@
+#+SEQ_TODO: TODO BUG STARTED | DONE CANCELLED
+
+* TODO Documentation [0/2]
+** TODO Update / Test Installation Text
+** TODO Update / Test Setup Text
+
+* TODO Install [0/1]
+** TODO Java script downloads
+
+* TODO Page Checks [1/3]
+** TODO Add all pages to this document
+** DONE No Data [6/6]
+*** DONE Homepage
+    CLOSED: [2013-05-16 Thu 11:31]
+*** DONE Timeseries
+    CLOSED: [2013-05-16 Thu 11:31]
+*** DONE Exposure							:BUG:
+    CLOSED: [2013-05-16 Thu 13:28]
+    Has Some Kind of Bug
+*** DONE Electricity							:BUG:
+    CLOSED: [2013-05-16 Thu 13:28]
+    Same bug as Exposure
+*** DONE Admin								:BUG:
+    CLOSED: [2013-05-16 Thu 13:28]
+    No State as Deployment
+*** DONE Browser
+    CLOSED: [2013-05-16 Thu 11:33]
+** TODO With Data [1/6]
+*** DONE Homepage
+    CLOSED: [2013-05-20 Mon 15:22]
+*** TODO Timeseries
+*** TODO Exposure
+*** TODO Electricity
+*** TODO Admin
+*** TODO Browser
+
+
+* TODO Functionality [1/4]
+** DONE Overview of deployment / Current known nodes
+   CLOSED: [2013-05-22 Wed 11:31]
+** TODO Setup new deployment
+** TODO View Graphs [0/4]
+*** TODO Raw Data timeline
+*** TODO Comfort Graphs
+*** TODO Electricity / Gas 
+*** TODO Add / Edit User 
+** TODO Download Datasets [0/2]
+*** TODO Raw
+*** TODO Aggregated
+
+* TODO Push [3/6]
+** DONE Check Push works first time
+   CLOSED: [2013-05-16 Thu 09:45]
+** DONE Check subsequent times
+   CLOSED: [2013-05-16 Thu 09:58]
+** DONE When config file is nonexistent [2/3]
+   CLOSED: [2013-05-16 Thu 13:38]
+*** DONE Readings / Mappings fit
+    CLOSED: [2013-05-16 Thu 10:08]
+*** DONE Silent error on Node state if entries exist.
+    CLOSED: [2013-05-16 Thu 11:00]
+** TODO From multiple Databases
+** TODO When Parameters in Deployment House (etc) are updated [0/2]
+*** TODO Source
+*** TODO Sink 
+** TODO Modify code to deal with updated values				:BUG:
+   Reference Bug https://code.google.com/p/cogent-house/issues/detail?id=3
+   
+   This is related to the equality checking code. And modifying the details of the table after it is created.
+   For Example consider the following deployments
+   
+   | DB     | id | name     | description                         | startDate | endDate |
+   |--------+----+----------+-------------------------------------+-----------+---------|
+   | Source |  1 | pushTest |                                     | 1/1/2013  |         |
+   | Sink   |  1 | pushTest | A description added at a later date | 1/1/2013  |         | 
+
+   They are the same deployment,  However the current method of checking if deployments match fails here. And a duplicate entry is created
+   There is a similar problem for
+   
+
+
+
+
+* TODO Future work [0/1]
+** TODO Better way of dealing with push node states.
+   Currently We have a hacktastic (TM) method that looks at the most recent upload and fakes it based on that.
+   It is possible that we could miss nodestates out of the transfer using this method.  
+   However, it is a quick and simple  way that reduces network traffic.  
+
+
+* TODO RRD Stuff [2/5]
+** DONE On Receive
+   CLOSED: [2013-05-17 Fri 10:04]
+** TODO On Bulk Upload
+** DONE Display via Graphs (Node Page)
+   CLOSED: [2013-05-20 Mon 15:22]
+** TODO Calibration
+** TODO Export
+** TODO May be an idea to add some kind of flush		    :FEATURE:
+
+
+
+* Setup
+** DONE Formalchemy
+** DONE Get directory structure sorted
+** DONE Intergrate Models
+
+* TODO General Display [2/6]
+** DONE Template [1/1]
+*** DONE Version 1
+
+** DONE Add / Remove Nodes
+   CLOSED: [2013-05-16 Thu 09:38]
+** TODO Packet Yield
+** TODO Low Batts
+** TODO Logfile Viewer
+** TODO Export Data
+
+* TODO Intergrate Graphs [1/5]
+** DONE Time Series
+** TODO Electricity
+** TODO Battery
+** TODO Duty Cycle
+** TODO Network Tree
+
+
+* TODO JSON Data Retrival [2/3]
+*** DONE JSON P Interface
+*** DONE Flatten Functionalty
+**** Flatten For Node Type
+*** TODO Summary Functionalty
+
+* TODO Database Trickery [/]
+** TODO Work out where Deployment fits into the grand scheme of things
+** TODO Work out how to seperate samples
+At the moment the number of nodes is static.  
+This will make it a little tricky to get multiple deployments (or Houses) out of one set of kit.
+
+What I propose is to:
+ + For each new deployment, create a new house.
+ + Make sure the start and end dates are correct.
+ + When Retrieving data, we limit by the house start and end date (or by user specified dates)
+ 
+ [ ] I will also have to work out how this fits into node history
+
+
+
+* TODO BUGS [1/3]
+** TODO Get the "Add new node page" to remember what I typed
+** TODO At the Moment the Deployment* Tables are not used,  It may be an Idea to set a page up to include these.
+Rather than Deployment, it states house.  This may work in samson, but is not so good for what I need to do.
+
+** DONE Cannot register nodes on Deployment page..			:BUG:
+   CLOSED: [2013-05-17 Fri 17:04]
