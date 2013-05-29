@@ -1,4 +1,6 @@
-#TRy to get the tree sorted here
+# Javascripts to support a tree view of the deployment higherachy
+#
+
 require([
     "dgrid/OnDemandGrid"
     "dgrid/tree"
@@ -10,7 +12,7 @@ require([
     "dojo/domReady!"
     ],
     (Grid,tree,JsonRest,DijitRegistry,Declare,ObjectStoreModel,Tree) ->
-        console.log("Starting Tree Grid")
+        #console.log("Starting Tree Grid")
 
         treeStore = JsonRest({
             target: "rest/deploymenttree/",
@@ -19,13 +21,9 @@ require([
                 theChildren = this.query({parent: object.id})
                 #console.log("Children Are ",theChildren)
                 return theChildren
-            #mayHaveChildren: (object) ->
-            #    console.log("May Have children Called for ",object)
-            #    return object.children == true
-                #return false
         })
 
-        #return
+
         theModel = new ObjectStoreModel({
             store:treeStore
             #query:{id:"root"}
@@ -34,6 +32,7 @@ require([
         theTree = new Tree({
             model:theModel
             #persist:false
+            persist:true
             }
             "treeNode"
             )
@@ -47,6 +46,7 @@ require([
                     return "dijitFolderClosed"
                 #return ""
             else if item.type == "deployment"
+                #return "icon-house"
                 return "deployIcon"
             else if item.type == "house"
                 #console.log("Item is House")
@@ -60,23 +60,6 @@ require([
         theTree.startup()
 
         return
-        # treeModel = new ObjectStoreModel({
-        #     store: treeStore,
-        #     query: {"root"}
-        #     mayHaveChildren: (item) ->
-        #         log.debug("Calling May Have Children for ",item)
-        #         return item.children == true
-        # })
-
-        # theTree = new Tree({
-        #     model: treeModel
-        #     }
-        #     "treeNode"
-        #     )
-
-        # theTree.startup()
-
-    #theTree.startup()
 
     )
 
@@ -100,47 +83,6 @@ require([
   #(FilteringSelect,DateTextBox) ->
   (Button,DateTextBox,Select,Cache,JsonRest,Observable,Memory,ObjectStoreModel,Tree,ready,topic) ->
 
-    # #Make the Tree
-    # #treeStore = Cache(Observable(JsonRest({target:"./rest/deploymenttree/"})),Memory())
-    # treeStore = JsonRest({
-    #     target: "./rest/deploymenttree/"
-    #     })
-
-    # #treeStore.getParent = (object) ->
-    # #    console.log("Getting parent for ",object)
-    # #   return this.query({parent: object.id})
-
-
-
-    # #treeStore.mayHaveChildren = () ->
-
-
-    # treeModel = new ObjectStoreModel({
-    #     store: treeStore,
-    #     query: {id:"root"}
-    #     })
-
-
-    # ready(() ->
-    #     theTree = new Tree({
-    #         model: treeModel
-    #         }
-    #         "treeNode"
-    #         )
-    #     console.log("Starting Tree")
-    #     theTree.startup()
-    #     console.log(treeModel)
-    #     )
-    #
-    # theTree = new Tree({
-    #     model: treeModel
-    #     }
-    #     "treeNode"
-    #     )
-    # theTree.startup()
-
-    #And the Form
-
     typeStore = Cache(Observable(JsonRest({target:"./rest/sensortype/"})),Memory())
 
     #Form Elements
@@ -155,12 +97,6 @@ require([
       "stopDate"
     )
     stopDateSelect.startup()
-
-
-    #Store the the Filtering Select
-    #typeStore = new ItemFileReadStore({
-    #  url: "jsonnav"
-    #  })
 
     sensorTypeSelect = new Select({
       name:"sensorType"
@@ -217,9 +153,21 @@ require([
             "locType": []
             }
 
+
+        selStart = startDateSelect.get("value")
+        selEnd = stopDateSelect.get("value")
+        selSensor = sensorTypeSelect.get("value")
+
+        console.log("Select Start ",selStart)
+        console.log("Select End   ",selEnd)
+        console.log("Selected Sensor ",selSensor)
+
+        locationList = []
+
         for item in treeItems
+            console.log(item)
             if item.id == "root"
-                #console.log("Root Item selected, Stopping this madness")
+                console.log("Root Item selected, Stopping this madness")
                 return
             else
                 theId = item.id
@@ -232,12 +180,19 @@ require([
                 else if splitItem[0] == "h"
                     selectedItems.houses.push(splitItem[1])
                 else if splitItem[0] == "l"
+                    console.log("Location ",splitItem)
                     selectedItems.locations.push(splitItem[1])
+                    if selSensor
+                        log.debug("--> Sensor Type Selected")
                 else if splitItem[0] == "t"
                     selectedItems.locType.push([splitItem[1],splitItem[2]])
+                    locationList.push([splitItem[1],splitItem[2]])
         #console.log("Selected Items ",selectedItems)
         #We can then deail with the selected items
 
+
+        console.log("Location List ",locationList)
+        return
         selStart = startDateSelect.get("value")
         selEnd = stopDateSelect.get("value")
         selSensor = sensorTypeSelect.get("value")
@@ -250,6 +205,9 @@ require([
         console.log("Element to be Published ",selectedItems)
 
         #Publish an event to the NavTree stream
-        topic.publish("navTree",selectedItems)
+        #topic.publish("navTree",selectedItems)
+
 
   )
+
+

@@ -41,6 +41,27 @@ Here we can update all the various room types and other metadata
 <button id="typeReset"></button>
 <!-- <button id="typeNew"></button> -->
 
+<h3>Users</h2>
+<table class="table">
+  <thead>
+    <tr>
+      <td>Username</td>
+      <td>Email</td>
+      <td>Edit</td>
+    </tr>
+  </thead>
+ 
+  <tbody>
+    %for user in userList:
+    <tr>
+      <td>${user[0]}</td>
+      <td>${user[1]}</td>
+      <td><a href=${user[2]}>Edit User</a></td>
+    </tr>
+    %endfor
+  </tbody>
+</table>
+<a class="btn" href="${request.route_url('user',id='')}">Add New User</a>
 
 <!-- Dialogs -->
 <div class="dijitHidden">
@@ -106,7 +127,6 @@ Here we can update all the various room types and other metadata
     <button id="room_cancel"></button>
   </div>
 </div>
-
 </%block>
 
 <%block name="scripts">

@@ -7,8 +7,24 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 import logging
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
+
+#Security
+from pyramid.security import (
+    Allow,
+    Everyone,
+    )
+
+from passlib.context import CryptContext
+
+#Global Pasword Hashing Algorithm
+pwdContext = CryptContext(
+    #Schemes to Support
+    schemes=["sha256_crypt", "md5_crypt"],
+    default = "sha256_crypt"
+    )
+     
 
 #Functions provided by from meta import *
 __all__ = ['Base', 'Session']
@@ -35,8 +51,18 @@ import json
 # The declarative Base
 Base = declarative_base()
 
-
+import warnings
+  
 class SerialiseMixin(object):
+
+    def dict(self):
+        """place holder before we move across to the RestALCHEMY version
+        """
+        return self.toDict()
+
+    def json(self):
+        return json.dumps(self.dict())
+
     def toDict(self):
         """
         Method to convert a row from an SQLAlchemy table to a dictionary.
@@ -49,9 +75,16 @@ class SerialiseMixin(object):
                    datetimes are converted using .isoformat()
 
         :return:: A dictionary of {__table__:<tablename> .. (key,value)* pairs}
+
+        .. deprecated:: 0.2.0
+             toDict() will be removed in favor of the dict() method, (prepare for transistion to restAlchmey)
+        
+
         """
 
+        LOG.warning("toDict Depricated, please use dict() function instead")
         #Appending a table to the dictionary could help us when unpacking objects
+        
         out = {"__table__": self.__tablename__}
 
         #Iterate through each column in our table
@@ -62,7 +95,7 @@ class SerialiseMixin(object):
             try:
                 value = getattr(self, col.name)
             except AttributeError, e:
-                log.warning("Conversion Error {0}".format(e))
+                LOG.warning("Conversion Error {0}".format(e))
 
             #Conversion code for datetime
             if isinstance(col.type, sqlalchemy.DateTime) and value:
@@ -77,6 +110,11 @@ class SerialiseMixin(object):
 #        """Update the object given a dictionary of <key>,<value> pairs
 #        """
 
+    def from_dict(self,jsonList):
+        return self.fromJSON(jsonList)
+
+    def from_json(self,jsonList):
+        return self.fromJSON(jsonList)
 
     def fromJSON(self,jsonDict):
         """Update the object using a JSON string
@@ -86,8 +124,8 @@ class SerialiseMixin(object):
         """
 
         #Check if we have a string or dictonary
-        
-        log.debug("de-serialising {0}".format(jsonDict))
+        LOG.warning("fromJSON depricated in 0.2.0,  use from_json() instead")
+        LOG.debug("de-serialising {0}".format(jsonDict))
 
         if type(jsonDict) == str:
             jsonDict = json.loads(jsonDict)
@@ -106,9 +144,9 @@ class SerialiseMixin(object):
             else:
                 #Convert if it is a datetime object
                 if isinstance(col.type, sqlalchemy.DateTime) and newValue:
-                    log.debug("{0} CASTING DATE {0}".format("-="*15))
+                    LOG.debug("{0} CASTING DATE {0}".format("-="*15))
                     newValue = dateutil.parser.parse(newValue,ignoretz=True)
-                    log.debug("New Time {0}".format(newValue))
+                    LOG.debug("New Time {0}".format(newValue))
                 #And set our variable
             setattr(self, col.name, newValue)
 
@@ -146,4 +184,28 @@ class InnoDBMix(SerialiseMixin):
 
 
 
+import user
 
+
+class RootFactory(object):
+    """New Root Factory Object to assign permissions
+    And control the ACL
+    """
+
+    __acl__ = [(Allow,Everyone,"logout"),
+               (Allow,"group:user","view"),
+               (Allow,"group:root","view")]
+    
+    def __init__(self,request):
+        pass
+
+def groupfinder(userid,request):
+    LOG.debug("-----> Group Finder Called {0}".format(userid))
+    session = Session()
+    theUser = session.query(user.User).filter_by(id=userid).first()
+    if theUser.level == "root":
+        return["group:root"]
+    elif theUser.level == "user":
+        return ["group:user"]
+
+    return ["group:none"]

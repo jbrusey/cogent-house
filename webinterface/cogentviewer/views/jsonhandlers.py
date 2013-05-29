@@ -260,8 +260,6 @@ def jsonFetch(request):
     #log.debug("Json Body {0}".format(request.json_body()))
     log.debug("--> Parameter Dictionary {0}".format(paramDict))
 
-
-
     sensorType = paramDict.get("sensorType",None)
     startDate = paramDict.get("startDate",None)
     endDate = paramDict.get("endDate",None)
@@ -289,7 +287,7 @@ def jsonFetch(request):
     log.debug("Type: {0}".format(graphType))
     
 
-
+    return
     paramDict = [sensorType,startDate,endDate,1]
 
     data = []
@@ -446,367 +444,6 @@ def jsonFetch(request):
     return returnItem
 
 
-    # #return []
-    # #And Convert Datetimes to python Datetimes
-    # if startDate:
-    #     if startDate == 'Invalid Date':
-    #         startDate = None
-    #     else:
-    #         startDate = dateutil.parser.parse(startDate)
-    # if stopDate:
-    #     if stopDate == 'Invalid Date':
-    #         stopDate = None
-    #     else:
-    #         stopDate = dateutil.parser.parse(stopDate)
-    # if sensorType == '':
-    #     sensorType = None
-    # else:
-    #     sensorType = int(sensorType)
-
-    # if treeItems:
-    #     treeItems = json.loads(treeItems)
-    #     #treeItems = [int(x.split("_")[-1]) for x in treeItems]
-
-
-
-    # log.info("--> Sensor Type {0}".format(sensorType))
-    # log.info("--> Start Time {0} {1}".format(startDate,type(startDate)))
-    # log.info("--> Stop Time {0}".format(stopDate))
-    # log.info("--> Tree Items {0}".format(treeItems))
-    # log.info("--> Graph Type {0}".format(graphType))
-    # #Get the Raw Data
-    
-    # #Graph Headings etc
-    # outDict = {}
-
-    # #Switch Context based on graph we wish to output
-
-    # if graphType == "time":
-    #     if sensorType is None:
-    #         outDict["title"] = "Time Series Data"
-    #         outDict["yAxis"] = "Units"
-    #     else:
-    #         session = meta.Session()
-    #         sensorObj = session.query(models.SensorType).filter_by(id=sensorType).first()
-    #         outDict["title"] = "{0}".format(sensorObj.name)
-    #         outDict["yAxis"] = "{0}".format(sensorObj.units) 
-
-    #         log.debug("Sensor Item {0}".format(sensorObj))
-
-    #     outData = []
-    #     #outData = _processTimeSeries(treeItems,startDate,stopDate,sensorType)
-    #     outDict["series"] = outData
-    #     return outDict
-
-
-    # elif graphType == "expose":
-    #     #if sensorType is None:
-    #     thisDict = {}
-    #     session = meta.Session()
-
-    #     if sensorType is None:
-    #         #For all three types
-    #         for sType in ["temperature","humidity"]:#,"co2"]:
-    #             thisDict = {}
-    #             theType = session.query(models.SensorType).filter_by(name=sType).first()
-    #             log.debug("Type {0}".format(theType))
-
-    #             sensorType = theType.id
-    #             thisDict["title"] = "{0} Exposure".format(theType.name)
-
-    #             outData,outLabels = _processExposure(treeItems,startDate,stopDate,sensorType)
-    #             thisDict["labels"] = outLabels
-    #             thisDict["series"] =outData
-    #             outDict[sType] = thisDict
-    #     else:        
-    #         theSensor = session.query(models.SensorType).filter_by(id=sensorType).first()
-    #         thisDict["title"] = "{0} Exposure".format(theSensor.name)
-    #         outData,outLabels = _processExposure(treeItems,startDate,stopDate,sensorType)
-    #         thisDict["labels"] = outLabels
-    #         thisDict["series"] =outData
-    #         outDict[theSensor.name.lower()] = thisDict
-
-    # return outDict
-
-# def _processExposure(treeItems,startDate,stopDate,sensorType):
-#     log.debug("Processing Exposure Data")
-#     session = meta.Session()
-#     dataStream = []
-#     outStream = []
-#     outLabels = []
-#     #Just Temp for the moment
-
-#     theType = session.query(models.SensorType).filter_by(id=sensorType).first()
-#     if theType.name == "Temperature":
-        
-#         headerList = [("Potental Health <16C","#204a87"),
-#                       ("Cold <=18C","#b0bfeb"),
-#                       ("Comfort <=22C","#66a266"),
-#                       ("Warm <=27C","#ffff00"),
-#                       ("Overheated >27C","#931111")]
-        
-#     elif theType.name == "Humidity":
-#         headerList = [("Dry <45%", "#ff420e"),
-#                       ("Comfort <=65%", "#579d1c"),
-#                       ("Damp <=85%", "#800080"),
-#                       ("Risk >85%","#280099")]
-    
-
-#     #Setup the output stream
-#     for item in headerList:
-#         outStream.append({"name":item[0],
-#                           "data":[],
-#                           "color":item[1]})
-#         #outStream.append({"name":item[0],
-#         #                 "data":[],
-#         #                 })                          
-                          
-
-
-#     for item in treeItems:
-#         log.debug("Item {0}".format(item))
-#         parts = item.split("_")
-        
-#         if parts[0] == "L":
-#             log.debug("Processing Location {0}".format(parts[1]))
-#             thisStream,theLabel = _processLocationExpose(parts[1],startDate,stopDate,sensorType)
-#             log.debug(thisStream[0])
-#             for item in enumerate(thisStream[0]):
-#                 log.debug("Adding {0}".format(item))
-#                 outStream[item[0]]["data"].append(int(item[1]))
-#                 outLabels.append(theLabel)
-            
-#         if parts[0] == "H":
-#             log.debug("Processing House {0}".format(parts[1]))
-#             house = session.query(models.House).filter_by(id=parts[1]).first()
-#             for item in house.locations:
-#                 thisStream,theLabel = _processLocationExpose(item.id,startDate,stopDate,sensorType)
-#                 log.debug(thisStream[0])
-#                 for item in enumerate(thisStream[0]):
-#                     log.debug("Adding {0}".format(item))
-#                     outStream[item[0]]["data"].append(int(item[1]))
-        
-#                 outLabels.append(theLabel)
-
-#     log.debug(outStream)
-#     log.debug(outLabels)
-#     return outStream,outLabels
-                  
-
-# def _processLocationExpose(locationId, startDate, stopDate, sensorType):
-#     """Get Exposure data for a specific location"""
-#     session = meta.Session()
-
-#     log.debug("Processing Location {0}".format(locationId))
-#     locationQuery = session.query(models.Location).filter_by(id = locationId).first()
-#     locString = locationQuery.room.name
-
-#     theQuery = session.query(models.Reading)
-
-#     log.debug("Total Readings {0}".format(theQuery.count()))
-#     log.debug("--> sType {0}".format(sensorType))
-#     #Filter out sensor types
-#     if not sensorType is None: #0 for Temperature
-#         theQuery = theQuery.filter_by(typeId = sensorType)
-#     if startDate:
-#         theQuery = theQuery.filter(models.Reading.time >= startDate)
-#     if stopDate:
-#         theQuery = theQuery.filter(models.Reading.time < stopDate)
-
-#     #Grab the Data for that location
-#     theQuery = theQuery.filter_by(locationId = locationId)
-#     log.debug("Total Results {0}".format(theQuery.count()))
-    
-#     #I would have used the numpy hisstogram function, but as I need to calibrate data
-#     #We may as well iterate
-#     sensorObj = session.query(models.SensorType).filter_by(id=sensorType).first()
-
-#     if sensorObj.name == "Temperature": #Temperature
-#         bins = [-20,16.001,18.001,22.001,27.001,40]
-#     elif sensorObj.name == "Humidity":
-#         bins = [0,45.001,65.001,85.001,100]
-        
-
-#     calibValues = {}
-#     exposeValues = []
-#     for item in theQuery:
-#         calib = calibValues.get(item.nodeId,None)
-#         if calib is None:
-#             calib = session.query(models.Sensor.calibrationOffset,
-#                                   models.Sensor.calibrationSlope).filter_by(nodeId = item.nodeId,
-#                                                            sensorTypeId = sensorType).first()
-#             if calib is None:
-#                 calib = [0.0,1.0]
-
-#             calibValues[item.nodeId] = calib
-
-#             #Calibrate the reading
-#         exposeValues.append(calib[0] + item.value * calib[1])
-
-#     #Then bin using numpy
-    
-#     log.debug("Expose Values {0}".format(exposeValues[:10]))
-#     binnedData = numpy.histogram(exposeValues,bins)
-#     log.debug(binnedData[0])
-#     return binnedData,locString
-            
-        
-        
-
-#     #Unfortunately bins are lessthan, 
-    
-#     #Bin the data
-#     #binnedData = numpy.histogram(theQuery,bins)
-#     #log.debug(binnedData)
-    
-
-
-
-# def _processTimeSeries(treeItems, startDate, stopDate, sensorType):
-#     """Process an Item as Returned by the Deplyoment Tree Display"""
-#     log.debug("{0} Processing Tree {0}".format("="*30))
-#     dataStream = []
-#     session = meta.Session()
-
-#     for item in treeItems:
-#         log.debug("Item {0}".format(item))
-#         parts = item.split("_")
-
-#         log.debug("Parts {0}".format(parts))
-
-#         if parts[0] == "L":
-#             #Deal with a Location
-#             log.debug("Procssing Location {0}".format(parts[1]))
-#             thisStream = _processLocationTime(parts[1],startDate,stopDate,sensorType)
-#             dataStream.extend(thisStream)
-            
-#         #So We Get the House
-#         elif parts[0] == "H":
-#             #Deal with a House
-#             log.debug("Processing House Id {0}".format(parts[1]))
-#             theHouse = session.query(models.House).filter_by(id=parts[1]).first()
-#             log.debug("--> House {0}".format(theHouse))
-#             for location in theHouse.locations:
-#                 log.debug("Processing Location {0}".format(location))
-#                 thisStream = _processLocationTime(location.id,startDate,stopDate,sensorType)
-#                 dataStream.extend(thisStream)
-                          
-#     return dataStream
-
-
-
-# def _processLocationTime(locationId, startDate, stopDate, sensorType):
-#     """Fetch the data from an individual location"""
-#     session = meta.Session()
-#     #Fetch the data itself
-
-#     locationQuery = session.query(models.Location).filter_by(id = locationId).first()
-#     locString = locationQuery.room.name
-    
-#     theQuery = session.query(models.Reading)
-
-#     log.debug("Total Readings {0}".format(theQuery.count()))
-#     log.debug("--> sType {0}".format(sensorType))
-#     #Filter out sensor types
-#     if not sensorType is None: #0 for Temperature
-#         theQuery = theQuery.filter_by(typeId = sensorType)
-#     if startDate:
-#         theQuery = theQuery.filter(models.Reading.time >= startDate)
-#     if stopDate:
-#         theQuery = theQuery.filter(models.Reading.time < stopDate)
-
-#     #Grab the Data for that location
-#     theQuery = theQuery.filter_by(locationId = locationId)
-#     log.debug("Total Results {0}".format(theQuery.count()))
-    
-#     #Now we need to process the readings and turn them into something suitable for Graphing
-
-#     #Split out each individual Node
-#     sensorSeries = {}
-#     graphSeries = []
-#     for item in theQuery:
-#         #print "Processing {0}".format(item)
-#         typeStream = sensorSeries.get(item.typeId,{})
-#         nodeStream = typeStream.get(item.nodeId,[])
-#         nodeStream.append(item)
-#         typeStream[item.nodeId] = nodeStream
-#         sensorSeries[item.typeId] = typeStream
-
-#     #Now we process each individual series TODO: We could put an Axis shift here
-#     for typeKey,typeItem in sensorSeries.iteritems():
-#         #Process individual sensor types
-#         theType = session.query(models.SensorType).filter_by(id=typeKey).first()
-#         log.debug("Demunge Sensor Type {0}".format(theType))
-#         #print typeItem
-#         #Then the Individual readings themselves
-#         for nodeKey,nodeItem in typeItem.iteritems():
-#             #print "Node Key {0}".format(nodeKey)
-#             #theNode = session.query(models.Node).filter_by(id=nodeKey).first()
-#             log.debug("--> Demunge Node {0}".format(nodeKey))
-#             #Now we can calibrate and ut each of these into a series ready for plotting
-
-#             #if sensorType is None:
-#             seriesTitle = "{0} <br> Node {1}  ({2})".format(locString,nodeKey,theType.units)
-#             #else:
-#             #    seriesTitle = "{0} / Node {1}".format(locString,nodeKey)
-
-#             #Then Calibrate the Readings
-#             theSensor = session.query(models.Sensor).filter_by(sensorTypeId=typeKey,
-#                                                                nodeId = nodeKey).first()
-#             if theSensor is None:
-#                 #Create a temproary sensor Object
-#                 offset = 0
-#                 slope = 1
-#             else:
-#                 offset = theSensor.calibrationOffset
-#                 slope = theSensor.calibrationSlope
-
-#             readings = [x.asJSON(slope,offset) for x in nodeItem]
-
-#             #log.debug("--> --> Series {0}".format(seriesTitle))
-#             #log.debug("--> --> Readings {0}".format(readings))
-#             thisSeries = {"name":seriesTitle,"data":readings}
-#             graphSeries.append(thisSeries)
-
-#     return graphSeries
-
-# # def getTimeSeries(startDate=None, stopDate=None, sensorType=None, Location=None):
-# #     """
-# #     Do the Hard work of fetching the time series data
-# #     """
-# #     log.debug("Fetch Time Series")
-# #     session = meta.Session()
-# #     #Fetch the data itself
-    
-# #     theQuery = session.query(models.Reading)
-
-# #     log.debug("Total Readings {0}".format(theQuery.count()))
-# #     #Filter out sensor types
-# #     if sensorType:
-# #         theQuery = theQuery.filter_by(typeId = sensorType)
-# #     if startDate:
-# #         theQuery = theQuery.filter(models.Reading.time >= startDate)
-# #     if stopDate:
-# #         theQuery = theQuery.filter(models.Reading.time < stopDate)
-
-# #     #Fake a connection to a Location
-# #     theLocation = session.query(models.Location).filter_by(id=1).first()
-
-
-    
-# #     return theQuery
-# #     log.debug("Filtered Readings {0}".format(theQuery.count()))
-
-# def prepareGraph(readings):
-#     """Turn a list of readings into a form that StockCharts is happy with"""
-
-#     seriesTitle = "Foo"
-#     #outData = [x.asJSON() for x in readings]
-#     outData = [(1,1),(2,5),(3,3)]
-#     thisSeries = {"name": seriesTitle,"data":outData}
-#     return thisSeries
-    
-                  
 
 def jsonnav(request):
     """Return a json representation of the information stored in the database,
@@ -840,141 +477,105 @@ def jsonnav(request):
     return theData
 
 
-def jsonRest(request):
+# def jsonRest(request):
 
-    #Get any Parameters supplied pat of the URL
-    deployId = request.matchdict.get("deployId",None)
-    session = meta.Session()
-    log.debug("{0} JSON REST CALLED {0}".format("=-"*20))
-    log.debug("Usefull Request information")
-    log.debug("Method {0}".format(request.method))
-    log.debug("Parameters {0}".format(request.params))
-    log.debug("Matchdict {0}".format(request.matchdict))
-    log.debug("UrlArgs {0}".format(deployId))
-    log.debug("="*40)
+#     #Get any Parameters supplied pat of the URL
+#     deployId = request.matchdict.get("deployId",None)
+#     session = meta.Session()
+#     log.debug("{0} JSON REST CALLED {0}".format("=-"*20))
+#     log.debug("Useful Request information")
+#     log.debug("Method {0}".format(request.method))
+#     log.debug("Parameters {0}".format(request.params))
+#     log.debug("Matchdict {0}".format(request.matchdict))
+#     log.debug("UrlArgs {0}".format(deployId))
+#     log.debug("="*40)
 
-    #testItems = {"id":"A","label":"Root","children":[{"id":"A1","label":"A1"},
-    #                                                 {"id":"A2","label":"A2"}]}
+#     #testItems = {"id":"A","label":"Root","children":[{"id":"A1","label":"A1"},
+#     #                                                 {"id":"A2","label":"A2"}]}
 
-    #Do this in a basic way, Just give us a tree
-    rootItem = {"id":"root",
-                "label":"deployments"}
+#     #Do this in a basic way, Just give us a tree
+#     rootItem = {"id":"root",
+#                 "label":"deployments"}
     
 
-    children = []
+#     children = []
 
-    noDep = {"id":"nodep","label":"No Deployment"}
+#     noDep = {"id":"nodep","label":"No Deployment"}
     
-    #And get any children ("deployments")
-    deployments = session.query(models.Deployment).all()
-    log.debug("Deployments")
-    for item in deployments:
-        treeItem = item.asTree()
-        children.append(treeItem)
-        #treeItem = None
-        #log.debug("--> {0} {1}".format(item,treeItem))
+#     #And get any children ("deployments")
+#     deployments = session.query(models.Deployment).all()
+#     log.debug("Deployments")
+#     for item in deployments:
+#         treeItem = item.asTree()
+#         children.append(treeItem)
+#         #treeItem = None
+#         #log.debug("--> {0} {1}".format(item,treeItem))
 
 
-    #Sort out houses without a deployment
-    children.append(noDep)
-    rootItem["children"] = children
-    return [rootItem]
+#     #Sort out houses without a deployment
+#     children.append(noDep)
+#     rootItem["children"] = children
+#     return [rootItem]
 
-    theQry = session.query(models.House).filter_by(deploymentId=None)
-    log.debug("Houses without a Deployment")
-    for item in theQry:
-        log.debug("--> {0}".format(item))
-        treeItem = item.asTree()
-        children.append(treeItem)
-
-
-    rootItem["children"] = children
+#     theQry = session.query(models.House).filter_by(deploymentId=None)
+#     log.debug("Houses without a Deployment")
+#     for item in theQry:
+#         log.debug("--> {0}".format(item))
+#         treeItem = item.asTree()
+#         children.append(treeItem)
 
 
-    #We only have one root, but there could be more
-    theTree = [rootItem]
-    #import pprint
-    #pprint.pprint(theTree)
-    return theTree
+#     rootItem["children"] = children
 
 
-    return
+#     #We only have one root, but there could be more
+#     theTree = [rootItem]
+#     #import pprint
+#     #pprint.pprint(theTree)
+#     return theTree
 
-    if request.method == "GET":
-        #GETS ask for an Item.
-        #Generally if there are no parameters then we return everything
-        log.debug("--> GET REQUEST")
-        #Deal with the case where we want the root item
 
-        if deployId == "root":
-            log.debug("--> --> Returning Root Object")
+#     return
 
-            #Add A Root Node
-            theItem = {"id":"root",
-                       "name":"kangaroot",
-                       "children": [{"id":"D_1",
-                                     "name":"Dep1"},
-                                    {"id":"D_2",
-                                     "name":"Dep2"}
-                                    ]
-                       }
-            return theItem
-        elif deployId == None:
-            log.debug("{0} No Deployment Id Given {0}".format("-"*5))
-            #This means we need to issue a general query
+#     if request.method == "GET":
+#         #GETS ask for an Item.
+#         #Generally if there are no parameters then we return everything
+#         log.debug("--> GET REQUEST")
+#         #Deal with the case where we want the root item
+
+#         if deployId == "root":
+#             log.debug("--> --> Returning Root Object")
+
+#             #Add A Root Node
+#             theItem = {"id":"root",
+#                        "name":"kangaroot",
+#                        "children": [{"id":"D_1",
+#                                      "name":"Dep1"},
+#                                     {"id":"D_2",
+#                                      "name":"Dep2"}
+#                                     ]
+#                        }
+#             return theItem
+#         elif deployId == None:
+#             log.debug("{0} No Deployment Id Given {0}".format("-"*5))
+#             #This means we need to issue a general query
             
-            #Take a look at the parameters we have been Given
-            params = request.params
-            parent = params.get("parent",None)
-            if parent:
-                log.debug(" Searching for objects with parent {0}".format(parent))
+#             #Take a look at the parameters we have been Given
+#             params = request.params
+#             parent = params.get("parent",None)
+#             if parent:
+#                 log.debug(" Searching for objects with parent {0}".format(parent))
                 
-                if parent == "root":
-                    #We need to return deployments
-                    theQry = session.query(models.Deployment)
-                    #log.debug("Query Results {0}".format(theQry))
-                    retVals = [x.asJSON() for x in theQry]
-                    #log.debug("Return {0}".format(retVals))
-                    return retVals
+#                 if parent == "root":
+#                     #We need to return deployments
+#                     theQry = session.query(models.Deployment)
+#                     #log.debug("Query Results {0}".format(theQry))
+#                     retVals = [x.asJSON() for x in theQry]
+#                     #log.debug("Return {0}".format(retVals))
+#                     return retVals
             
-        else:
-            log.warning("{0} Dealing with another deployment Id {0}".format("#"*30))
+#         else:
+#             log.warning("{0} Dealing with another deployment Id {0}".format("#"*30))
 
 
-        return ""
-        # if request.params:
-        #     log.warning("########### Parameters Given ###############")
-        #     #At the moment I know this is a deployment
-            
-        #     #First thing we need to do is return 
-            
-
-        #     theQry = session.query(models.Deployment).all()
-        #     return [x.asJSON() for x in theQry]
-
-        # if not request.matchdict:
-        #     log.debug("Another Request")
-        #     log.debug(request.params)
-
-        #     # log.debug("Return Everything")
-        
-        #     # theList = []
-        #     # #Add A Root Node
-        #     # theList.append({"id":"root",
-        #     #                 "name":"root",
-        #     #                 "children": True
-        #     #                 })
-
-        #     # return theList
-        #     #return jsonnav(request)
-        
-        # # else:
-        # #     if request.matchdict["deployId"] == "root":
-        # #         log.debug("Returning Root Object")
-
-        # #         #Add A Root Node
-        # #         theItem = {"id":"root",
-        # #                    "name":"root",
-        # #                    "children": True
-        # #                    }
-        # #         return theItem
+#         return ""

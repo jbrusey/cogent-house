@@ -9,7 +9,7 @@ PFLAGS +=-DTOSH_DATA_LENGTH=106
 
 # turn on leds for debugging?
 #CFLAGS += -DBLINKY
-#CFLAGS += -DDEBUG
+CFLAGS += -DDEBUG
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_SENSE_PERIOD=307200
 CFLAGS += -DDEF_FIRST_PERIOD=30720

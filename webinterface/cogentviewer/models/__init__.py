@@ -18,6 +18,9 @@ from sqlalchemy.orm import mapperlib
 
 from meta import *
 
+#Namespace Manginlg the Proper way, (via all)
+#__all__ = ["deployment.*"]
+
 #Namespace Mangling
 from deployment import *
 from deploymentmetadata import *
@@ -38,66 +41,27 @@ from roomtype import *
 from sensor import *
 from sensortype import *
 from weather import *
-from uploadurl import *
 from event import *
+from timings import *
+from user import *
 
-#import populateData
 
 import json
 
 #Setup Logging
-
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.WARNING)
 
 TABLEMAP = {}
 
+def init_model(engine):
+    """Call me before using any of the tables or classes in the model
 
-# def initialise_sql(engine, dropTables=False):
-#     """Initialise the database
-
-#     :param engine: Engine to use for the database
-#     :param dropTables: Do we want to clean the database out or not
-#     :param session: Use a session other than the global DB session
-
-#     .. warning:: 
+    DO NOT REMOVE ON MERGE
+    """
+    Session.configure(bind=engine)
     
-#         Previously this function called the populateData function. I
-#         have removed this functionality Any function that calls
-#         initialise_sql will have to call the init_data method if
-#         required
-
-#     """
-#     log.info("Initialising Database")
-#     meta.Session.configure(bind = engine)
-#     Base.metadata.bind = engine
-
-#     if dropTables:
-#         Base.metadata.drop_all(engine)
-
-#     Base.metadata.create_all(engine)  
-
-# def populate_data(session=None):
-#     """Populate the database with some initial data
-
-#     :param session: Session to use to populate database"""
-#     log.info("Populating Data")
-
-#     #Create a brand new session, not linked to any sort of transaction managers
-#     if not session:
-#         tMaker = sqlalchemy.orm.sessionmaker()
-#         session = tMaker()
-    
-
-#     populateData.init_data(session)
-
-    
-    
-# def init_model(engine):
-#     """Call me before using any of the tables or classes in the model"""
-#     Session.configure(bind=engine)
-
 
 def findClass(tableName):
     """Helper method that attempts to find a SQLA class given a tablename
@@ -166,6 +130,10 @@ def clsFromJSON(theList):
                "node":Node,
                "sensor":Sensor,
                "nodestate":NodeState,
+               "roomtype":RoomType,
+               "sensortype":SensorType,
+               "room":Room,
+               "location":Location,
                }
 
         
@@ -179,6 +147,4 @@ def clsFromJSON(theList):
         theModel.fromJSON(item)
         yield theModel
             
-
-
     

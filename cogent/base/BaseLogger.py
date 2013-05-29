@@ -51,6 +51,8 @@ class BaseLogger(object):
         self.metadata.create_all(self.engine)
 
         session = Session()
+
+        #Fix this so if we happen to add a new sensor type things will work
         if session.query(SensorType).get(0) is None:
             logger.debug("adding sensor types")
             # assume no sensor types have been added
@@ -150,6 +152,10 @@ class BaseLogger(object):
                  SensorType(id=23,name="Black Bulb",
                             code="BBT",
                             units="deg.C",
+                            c0=0., c1=1., c2=0., c3=0.),
+                 SensorType(id=24,name="Gas Pulse",
+                            code="GPL",
+                            units="p",
                             c0=0., c1=1., c2=0., c3=0.),
 		 SensorType(id=99,name="Gas Consumption",
                             code="Gas",
@@ -345,7 +351,7 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error, [default: info]",
-                      default="info",
+                      default="debug",
                       metavar="LEVEL")
 
     (options, args) = parser.parse_args()
@@ -360,10 +366,13 @@ if __name__ == '__main__':
 
     if options.log_level not in lvlmap:
         parser.error("invalid LEVEL: " + options.log_level)
+      
+    # logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
+    #                     filemode="a",
+    #                     format="%(asctime)s %(levelname)s %(message)s",
+    #                     level=lvlmap[options.log_level])
 
-    
-    
-    logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
+    logging.basicConfig(filename="BaseLogger.log",
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=lvlmap[options.log_level])
