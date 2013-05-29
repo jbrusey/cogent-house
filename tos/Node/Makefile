@@ -9,8 +9,8 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 
 #Configuration
 CFLAGS += -DCLUSTER_HEAD=0
-#CFLAGS += -DSIP
-CFLAGS += -DBN
+CFLAGS += -DSIP
+#CFLAGS += -DBN
 
 # turn on leds for debugging?
 # use "make telosb install.2 debug=1" to turn on debug
