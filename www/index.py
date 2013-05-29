@@ -1444,6 +1444,12 @@ def _get_value_and_delta(node_id,
     finally:
         session.close()
 
+#TODO remove this when sipsim has been fixed
+def _adjust_deltas(x):
+    """ SipSim currently assumes that the deltas are per interval and
+    the default interval is 5 minutes. """
+    return [(a,b,c*300.,d) for (a,b,c,d) in x]
+
 def _plot_splines(node_id,
                   reading_type,
                   delta_type,
@@ -1463,13 +1469,13 @@ def _plot_splines(node_id,
     thresh = thresholds[reading_type]
     for pt in (PartSplineReconstruct(threshold=thresh,
                                      src=SipPhenom
-               (src=_get_value_and_delta
-                (node_id,
-                 reading_type,
-                 delta_type,
-                 start_time,
-                 end_time
-                 )))):
+               (src=_adjust_deltas(_get_value_and_delta
+                                   (node_id,
+                                    reading_type,
+                                    delta_type,
+                                    start_time,
+                                    end_time
+                                    ))))):
         dt = matplotlib.dates.date2num(pt.dt)
         if first:
             coords = [(dt, pt.sp)]
@@ -1503,7 +1509,7 @@ def _plot_splines(node_id,
         # the last point is prior to then end time, so estimate
         # the end point
         delta_t = (end_time - last_dt).seconds
-        ly = last_s + last_t * delta_t
+        ly = last_s + last_t * delta_t / 300. # TODO fix when sipsim is fixed
         lx = matplotlib.dates.date2num(end_time)
 
         ax.plot_date([lx], [ly], 'ro')
