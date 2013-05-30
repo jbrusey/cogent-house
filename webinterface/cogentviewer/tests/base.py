@@ -28,6 +28,8 @@ import cogentviewer.models as models
 ROOT_PATH = os.path.dirname(__file__)
 SETTINGS_PATH = os.path.join(ROOT_PATH,"../../","test.ini")
 
+#settings = appconfig('config:' + SETTINGS_PATH)
+
 #log.debug("Loading Test Cases Name is {0} {1}".format(__name__,type(__name__)))
 
 #log.debug("META IS")
@@ -52,6 +54,7 @@ def initDatabase():
 
     #log.debug("Initialising SQL")
     #initialise_sql(engine)
+    #meta.Base.metadata.bind = engine
 
     #log.debug("Populating Data")
     #populate_data()
@@ -61,6 +64,7 @@ def initDatabase():
 if meta.Base.metadata.bind is None:
     log.info("No Database Initiated")
     initDatabase()
+
 
 class BaseTestCase(unittest.TestCase):
     """Base class for testing"""
@@ -73,6 +77,15 @@ class BaseTestCase(unittest.TestCase):
         settings = appconfig('config:' + SETTINGS_PATH)
         cls.engine = engine_from_config(settings,prefix='sqlalchemy.')
         cls.Session = sessionmaker()
+
+    # def setUp(self):
+    #     super(BaseTestCase, self).setUp()
+    #     from cogentviewer import main
+    #     #settings = { 'sqlalchemy.url': 'sqlite://'}
+    #     app = main({}, **settings)
+
+    #     from webtest import TestApp
+    #     self.testapp = TestApp(app)
 
     def setUp(self):
         """Called each time a test case is called,
@@ -95,48 +108,123 @@ class BaseTestCase(unittest.TestCase):
         self.transaction.rollback()
         self.session.close()
 
-    def doSerialise(self,originalObject):
+class FunctionalTest(BaseTestCase):
+    """ Add Functinal Testing (for the web pages themselves) functionalty"""
+    
+    @classmethod
+    def setUpClass(cls):
         """
-        Helper function to serialise an object, convert to JSON 
-        then bring it back again
+        New Setup Function, creates an app 
         """
-        
-        #Convert Object
-        theDict = originalObject.toDict()
-        self.assertIsInstance(theDict,dict)
-        jsonString = json.dumps(theDict)
-        self.assertIsInstance(jsonString,str)
-        
-        #And return
-        returnedItem = models.newClsFromJSON(jsonString)
-        self.assertIsInstance(returnedItem,type(originalObject))
-        self.assertEqual(returnedItem,originalObject)
 
+        #not sure on classmehtod inheritance
+        settings = appconfig('config:' + SETTINGS_PATH)
+        cls.engine = engine_from_config(settings,prefix='sqlalchemy.')
+        cls.Session = sessionmaker()
 
+        #super(BaseTestCase, cls).setUp()
+        from cogentviewer import main
+        app = main({}, **settings)
+
+        from webtest import TestApp
+        cls.testapp = TestApp(app)
+        
+
+class ModelTestCase(BaseTestCase):
+    """Subclass to test models"""
+
+    def testEq(self):
+        self.fail("You need to implement the Equality Test for this Model")
+    
+    def testCmp(self):
+        self.fail("You need to implement the CMP test for this Model")
+
+    def assertReallyEqual(self, a, b):
+        # assertEqual first, because it will have a good message if the
+        # assertion fails.
+        self.assertEqual(a, b)
+        self.assertEqual(b, a)
+        self.assertTrue(a == b)
+        self.assertTrue(b == a)
+        self.assertFalse(a != b)
+        self.assertFalse(b != a)
+        self.assertEqual(0, cmp(a, b))
+        self.assertEqual(0, cmp(b, a))
+
+    def assertReallyNotEqual(self, a, b):
+        # assertNotEqual first, because it will have a good message if the
+        # assertion fails.
+        self.assertNotEqual(a, b)
+        self.assertNotEqual(b, a)
+        self.assertFalse(a == b)
+        self.assertFalse(b == a)
+        self.assertTrue(a != b)
+        self.assertTrue(b != a)
+        self.assertNotEqual(0, cmp(a, b))
+        self.assertNotEqual(0, cmp(b, a))
+        
+    def _serialobj(self):
+        """Helper method, return an object to serialise"""
+        self.fail("You need to implement a serialObj method for this class")
+        pass
+
+    def _dictobj(self):
+        """Helper method, retrun a dictionary represnetaion of the _serialobj object"""
+        self.fail("You need to implement a serialObj method for this class")
+        pass
 
     def testSerialise(self):
-        """Test Serialisation of the object, this need overriding to 
-        make call with the object class
-        """
-        self.fail("meta.toDict Unit Test Not Implemented for this class")
-        self.doSerialise()
-    
+        theObj = self._serialobj()
 
-    # def testCreate(self):
-    #     self.fail("Create Unit Test Not Implemented for this class")
+        #convert to dictionary
+        #theDict = theObj.toDict()
+        theDict = theObj.dict()
+        #print "DICT ",theDict
+        #Convert Back
+        newObj = models.newClsFromJSON(theDict)
+        #print "NEW: ",newObj
+        self.assertEqual(theObj,newObj)
+
+    def testDict(self):
+        """Test Convertsion to a dictionary"""
+        theItem = self._serialobj()
+        theDict = self._dictobj()
+        # now = datetime.datetime.now()
+
+        # theItem = models.Deployment(id=1,
+        #                             name="Test",
+        #                             description="A Testing Deployment",
+        #                             startDate = now,
+        #                             endDate = now)
+
+        # #See if we get the dictionaty we expect
+        # #Should be the parameters + __table__ == "name"
+        
+        # theDict = {"__table__":"Deployment",
+        #            "id":1,
+        #            "name":"Test",
+        #            "description":"A Testing Deployment",
+        #            "startDate": now.isoformat(),
+        #            "endDate": now.isoformat()}
+
+        objDict = theItem.dict()
+        self.assertIsInstance(objDict,dict)
+        self.assertEqual(objDict,theDict)
 
 
-    # def testUpdate(self):
-    #     self.fail("meta.Update Unit Test Not Implemented for this class")
-    #     return
+    #  THIS METHOD GIVES A FEW PROBLEMS,  IE Dictionary has no garentees on how it will serialise,
+    #  Therefore its a tad tricky to compare two strings from a serialised dictionarty
+    #  It is sovered by the serialise testist though.
+    # def testJson(self):
+    #     """Test Conversion to a JSON Object"""
+    #     theItem = self._serialobj()
+    #     theDict = self._dictobj()
 
-    def testToDict(self):
-        self.fail("meta.toDict Unit Test Not Implemented for this class")
-        return
+    #     #And the same with the json method
+    #     objJson = theItem.json()
+    #     self.assertIsInstance(objJson,str)
+    #     self.assertEqual(objJson,json.dumps(theDict))
 
-    # def testFromJSON(self):
-    #     self.fail("meta.fromJSON Unit Test Not Implemented for this class")
-    #     return
 
 
 
