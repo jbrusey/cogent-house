@@ -197,9 +197,9 @@ class PushServer(object):
                         This can be used to overwrite the url in the config file
         """
 
+        #Create Logging
         self.log = logging.getLogger("Push Server")
         log = self.log
-        #log.setLevel(logging.DEBUG)
         log.addHandler(fh)
         log.info("="*70)
         log.info("Initialising Push Server")
@@ -240,29 +240,39 @@ class PushServer(object):
 
         #Next we want to queue up all the remote URLS we wish to push to.
 
-        #Locations in the config File
-        locations = configParser["locations"]
         
-        self.QueueLocations(locations,configParser,mappingConfig,pushLimit)
+        self.QueueLocations(configParser,mappingConfig,pushLimit)
 
-    def QueueLocations(self,locations,configParser,mappingConfig,pushLimit):
+    def QueueLocations(self,configParser,mappingConfig,pushLimit):
+        """
+        Function to enque a set of locations that the push server is to push to
+
+        :param configParser: Config parser object we are reading from
+        :param mappingConfig: Config parser object we are writing to
+        :param pushLimit: Maximum number of samples to transmit in one go.
+        """
+
+        #Create a session
         localSession = self.localSession
         log = self.log
         syncList = []
 
+        #Read Locations in the config File
+        locations = configParser["locations"]
+
+        #For Each location we are looking at
         for item in locations:
             #Check if we need to synchronise to this location.
             needSync = locations.as_bool(item)
-            log.debug("Location {0} Needs Sync {1}".format(item,needSync))
+            log.debug("Location {0} Needs Sync >{1}".format(item,needSync))
 
-            if needSync:
-                #Enque
+            if needSync: #Enqueue
                 thisLoc = configParser[item]
                 log.info("Adding {0} to synchronise Queue".format(thisLoc))
                 thePusher = Pusher(localSession, #Session
                                    thisLoc["resturl"], #Url to Push to
                                    mappingConfig, #Mapping Configuration file
-                                   pushLimit,                                   
+                                   pushLimit,  #Limit on number of samples to transmit                                 
                                    )
                 syncList.append(thePusher)
 
@@ -416,6 +426,8 @@ class Pusher(object):
            #Look for the Last update
            self.uploadReadings(item)
 
+        #Then upload the node Sttes
+        self.uploadNodeStates()
         self.saveMappings()
 
     def loadMappings(self):
@@ -506,7 +518,7 @@ class Pusher(object):
         #Then stuff were the ID's different
         changed = theDiff.changed()
         log.debug("Changed, {0}".format(changed))
-        #sys.exit(0)
+
         for item in changed:
             localItem = localTypes[item]
             remoteItem = remoteTypes[item]
@@ -526,7 +538,7 @@ class Pusher(object):
            session.flush()
            log.info("New Id {0}".format(thisItem))
            mergedItems[origId] = thisItem.id
-        #sys.exit(0)
+
         session.commit()
         
 
@@ -551,7 +563,7 @@ class Pusher(object):
         session = self.localSession()
         log.debug("--> Synchronising Room Types")
         #First we need to map room Types
-        #sys.exit(0)
+
         #Fetch the room types from the remote Database
         theUrl = "{0}roomtype/".format(self.restUrl)
 
@@ -622,23 +634,23 @@ class Pusher(object):
         theUrl = "{0}{1}".format(self.restUrl,"sensortype/")
         
         #print theUrl
-        #sys.exit(0)
+
         
         remoteTypes = {}
         localTypes = {}
 
-        #sys.exit(0)
+
         #remoteQry = restSession.request_get(theUrl)
         remoteQry = requests.get(theUrl)
         #print remoteQry
         jsonBody=remoteQry.json()
-        #print jsonBody
-        #sys.exit(0)
+        
         #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)
-        
+
+        #log.debug("---- SENSOR TYPES FROM REMOTE SERVER ---")
         for item in restItems:
-            #print item
+            #log.debug("--> {0}".format(item))
             remoteTypes[item.id] = item
 
         itemTypes = session.query(self.SensorType)
@@ -660,6 +672,8 @@ class Pusher(object):
         log.debug( removedItems)
         log.debug( "--> Changed")
         log.debug( changedItems)
+        #return
+
 
         if changedItems:
             log.warning("Sensor Types with mathching Id's but different Names")
@@ -686,8 +700,10 @@ class Pusher(object):
             dictItem = theItem.toDict()
             #We then Post the New Item to the Remote DBString
             r= requests.post(theUrl,data=json.dumps(dictItem))
+            #log.debug(r)
             #print dictItem
 
+        log.debug("Updating Mapping Dictionary")
         #Update the Mapping Dictionary
         newTypes = {}
         for key,value in localTypes.iteritems():
@@ -696,7 +712,7 @@ class Pusher(object):
             
         #self.mappedSensorTypes = localType
         self.mappedSensorTypes = newTypes
-        
+        return True
 
     def syncDeployments(self):
         """Synchronise Deployments between the local and remote Databaess"""
@@ -717,7 +733,7 @@ class Pusher(object):
         localQry = session.query(self.Deployment)
         localTypes = dict([(x.name,x) for x in localQry])
 
-        #sys.exit(0)
+
 
         mappedDeployments = self._syncItems(localTypes,remoteTypes,theUrl)
         self.mappedDeployments = mappedDeployments
@@ -918,6 +934,87 @@ class Pusher(object):
             r = requests.post(theUrl,data=json.dumps(dictItem))
             log.debug(r)
 
+    def uploadNodeStates(self):
+        """
+        Upload Nodestates between two databases
+        """
+
+        log = self.log
+        log.info("---- Upload Node States ----")
+
+        session = self.localSession()
+
+        #Get the last state upload 
+        mappingConfig = self.mappingConfig
+
+        uploadDate = mappingConfig.get("lastStateUpdate",None)
+        lastUpdate = None
+
+
+        if uploadDate:
+            log.debug("Last State upload from Config {0}".format(uploadDate))            
+            if uploadDate and uploadDate != "None":
+                lastUpdate = dateutil.parser.parse(uploadDate)
+        else:
+            lastUpdate = self.firstUpload  #Hack to match last nodestate with the first Reading we transfer
+
+        log.info("Last Update from Config {0}".format(lastUpdate))
+        
+        #Otherwise we want to fetch the last synchronisation
+        #Which is a little bit difficult as we dont have a house or anything to base this on So we will have to rely on this being correct
+        
+        #Count total number of Nodestates to upload
+        theStates = session.query(models.NodeState)
+        if lastUpdate:
+            log.debug("-- Filter on {0}".format(lastUpdate))
+            theStates = theStates.filter(models.NodeState.time>lastUpdate)
+
+        origCount = theStates.count()
+        log.info("--> Total of {0} Nodestates to transfer".format(origCount))
+        rdgCount = origCount
+        transferCount = 0
+
+        while rdgCount > 0:
+            theState = session.query(models.NodeState)
+            if lastUpdate:
+                theState = theStates.filter(models.NodeState.time>lastUpdate)
+            theState = theState.order_by(models.NodeState.time)
+            theState = theState.limit(self.pushLimit)
+            rdgCount = theState.count()
+            if rdgCount <= 0:
+                log.info("--> No States Remain")
+                return True
+            
+            transferCount += rdgCount
+            log.debug("--> Transfer {0}/{1} States to remote DB".format(transferCount,origCount))
+
+
+            #Convert to REST
+            jsonList = [x.toDict() for x in theState]
+            lastSample = theState[-1].time
+            log.debug("Last State in List {0}".format(lastSample))
+
+            #Zip him up
+            jsonStr = json.dumps(jsonList)
+            gzStr = zlib.compress(jsonStr)
+
+            #And Upload
+            theUrl = "{0}bulk/".format(self.restUrl)
+            restQry = requests.post(theUrl,data=gzStr)
+
+            log.debug("REST QUERY RETURN CODE {0}".format(restQry.status_code))
+            if restQry.status_code== 500:
+                log.warning("Upload of States Fails")
+                log.warning(restQry)
+                raise Exception ("Upload Failed")
+            
+            #update the stample times
+            lastUpdate = lastSample
+            mappingConfig["lastStateUpdate"] = lastUpdate
+            self.saveMappings()
+
+        return rdgCount > 0
+            
         
     def uploadReadings(self,theHouse):
         """
@@ -942,12 +1039,19 @@ class Pusher(object):
             lastUpdate = uploadDates.get(str(theHouse.id),None)
             if lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
-        log.info("Last Update from Config is {0}".format(lastUpdate))
+            else:
+                lastUpdate = None
+        log.info("Last Update from Config is >{0}< >{1}<".format(lastUpdate,type(lastUpdate)))
+
+        #TODO:
+        # This is a temporary fix for the problem for nodestates,  Currently I cannot think of a sensible way 
+        # To do this without generting a lot of network traffic.  
+        self.firstUpload = lastUpdate
 
         #Get the last reading for this House
         session = self.localSession()
+        #restSession =self.restSession
 
-        #restSession =self.restSession        print type(lastUpdate)
         #As we should be able to trust the last update field of the config file.
         #Only request the last sample from the remote DB if this does not exist.
         if lastUpdate == "None" or lastUpdate is None:
@@ -958,7 +1062,7 @@ class Pusher(object):
             #restQuery = restSession.request_get(theUrl,args=params)
             restQuery = requests.get(theUrl,params=params)
             strDate =  restQuery.json()
-                   
+
             log.debug("Str Date {0}".format(strDate))
             if strDate is None:
                 log.info("--> --> No Readings in Remote DB")
