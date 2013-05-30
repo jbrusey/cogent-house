@@ -63,7 +63,7 @@ def main(argv=sys.argv):
     Base.metadata.bind = engine
 
     DBSession = meta.Session()
-    DBSession.configure(bind=engine)
+    #DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
 
     populateData.init_data(DBSession)
