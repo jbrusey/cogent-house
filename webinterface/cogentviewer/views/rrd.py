@@ -1,21 +1,3 @@
-"""
-Files to deal with RRD databases
-"""
-
-
-import logging
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
-
-import time
-import datetime
-import math
-#import json
-#import demjson as json
-import demjson
-
-import os.path
-
 from pyramid.response import Response
 from pyramid.renderers import render_to_response
 import pyramid.url
@@ -24,9 +6,17 @@ import cogentviewer.models.meta as meta
 import cogentviewer.models as models
 import homepage
 
+import logging
+
 import pyrrd.rrd as rrd
-#import pyrrd.export as export
 import pyrrd.graph as graph
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
+import time
+import datetime
+import math
 
 
 def _loadRRD(thefile):
@@ -133,7 +123,7 @@ def _jsonify(theRRD):
               #  "type":"arearange",
               #  "data":outValues},
               {"name":"6Hr Avg",
-               #"step":True,#
+               #"step":True,
                "data":lowValues},
               {"name":"Reading",
                "data":hiValues},
@@ -146,98 +136,10 @@ def _jsonify(theRRD):
     return series
 
 def jsonrrd(request):
-    nodeId = 69
-    typeId = 0
-    locationId = 3
-    filename = "{0}_{1}_{2}.rrd".format(nodeId,typeId,locationId)
-    #See if an RRD exists
-    rrdExits = os.path.isfile(filename)
-    print "RRD Exists {0}".format(rrdExits)
-    #session = meta.Session()
-    #rrdExits = session.query(models.RRD).first()
+    fd = "cogentviewer/static/pytest.rrd"
 
-    #RRD Native JSON
-    #rrdtool xport --json --start=1345460228 --end=1364380730 DEF:tempavg=69_0_3.rrd:temp:AVERAGE XPORT:tempavg
-    #RRD GRaphing
-    #rrdtool graph temprrd.png --start=1345460228 --end=1364380730 DEF:tempavg=69_0_3.rrd:temp:AVERAGE LINE:tempavg#FF0000:"Avg"
-
-
-    if rrdExits:
-        log.debug("RRD Exists")
-        
-        paramDict = request.GET.mixed()
-        print "PARAMETERS SUPPLIED {0}".format(paramDict)
-        # parameters = request.body
-        # print "BODY {0}".format(parameters)
-        startTime = paramDict.get("start",None)
-        stopTime = paramDict.get("end",None)
-        hires = paramDict.get("hires",False)
-        print "Hires :",hires
-        print "Hires = True: ",hires=='true'
-        #Load into memory
-        theRRD = _loadRRD(filename)      
-        
-        #rrdFile = theRRD.rrd
-        if startTime is None:
-            if hires =='true':
-                first = theRRD.first() #Only get the first month
-                print "--> Short"
-            else:
-                first = theRRD.first(5) #Get Everything
-                print "--> Everything"
-
-        else:
-            first = int(startTime) / 1000
-
-        print "First: {0}".format(first)
-        #first = theRRD.first(5)
-        if stopTime:
-            last = int(stopTime) / 1000
-        else:
-            last = theRRD.last()
-
-        print "First {0} Last {1}".format(first,last)
-        #Graph ing
-
-        #Work out an Export
-        #last= theRRD.last()
-        #first = last - ((60*60*24)*7) #1 Week
-        #first = last - ((60*60*5)*1)
-        e = export.Export("lastweek.json",
-                          start=first,
-                          end=last,
-                          json=True,
-                          )
-
-        def1 = export.DEF(rrdfile=filename,
-                          vname="tempavg",
-                          dsName="temp",
-                          step=300)
-
-        def2 = export.DEF(rrdfile=filename,
-                          vname="tempmin",
-                          dsName="temp",
-                          cdef="MIN")
-
-        export1 = export.Xport(defObj=def1)
-        export2 = export.Xport(defObj=def2)
-        #e.data.extend([def1,def2,export1,export2])
-        e.data.extend([def1,export1])
-        #print e.write() #Write to file
-        theStr = e.fetch()
-        #print theStr
-        #jsonStr = json.loads(str(theStr))
-        jsonStr = demjson.decode(theStr) #Untill RRDtool 1.4.8 is released
-        return jsonStr
-        return theStr
-        return json.loads(e.fetch())
-
-    else:
-        thisRRD = models.rrddb.populateFake()
-        
-        #print thisRRD
-          
-    jsonout = "RRD TEST"
+    theRRD = _loadRRD(fd)
+    jsonout = _jsonify(theRRD)
     return jsonout
 
 
@@ -253,64 +155,64 @@ def rrdgraph(request):
     #Graphing
 
 
-    # fd = "cogentviewer/static/pytest.rrd"
-    # theRRD = rrd.RRD(fd,mode="r")
+    fd = "cogentviewer/static/pytest.rrd"
+    theRRD = rrd.RRD(fd,mode="r")
 
-    # last = theRRD.last()
-    # first = last - (300*4032)
-    # hifirst = theRRD.first()
-    # lofirst = theRRD.first(4)
-    # print "LAST {0} First {1} / {2}".format(last,first,hifirst)
-    # graphfile = "cogentviewer/static/theGraph.png"
-    # g = graph.Graph(graphfile,
-    #                 start = hifirst,
-    #                 end = last,
-    #                 imgformat="PNG")
+    last = theRRD.last()
+    first = last - (300*4032)
+    hifirst = theRRD.first()
+    lofirst = theRRD.first(4)
+    print "LAST {0} First {1} / {2}".format(last,first,hifirst)
+    graphfile = "cogentviewer/static/theGraph.png"
+    g = graph.Graph(graphfile,
+                    start = hifirst,
+                    end = last,
+                    imgformat="PNG")
 
 
 
-    # def1 = graph.DEF(rrdfile=fd,
-    #                  vname="tempavg",
-    #                  dsName="temp")
+    def1 = graph.DEF(rrdfile=fd,
+                     vname="tempavg",
+                     dsName="temp")
 
-    # def2 = graph.DEF(rrdfile=fd,
-    #                  vname="tempmin",
-    #                  dsName = "temp",
-    #                  cdef="MIN")
+    def2 = graph.DEF(rrdfile=fd,
+                     vname="tempmin",
+                     dsName = "temp",
+                     cdef="MIN")
 
-    # line1 = graph.LINE(defObj=def1,color="#FF0000",legend="temperature")
-    # line2 = graph.LINE(defObj=def2,color="#00FF00",legend="min")
-    # g.data.extend([def1,line1,def2,line2])
-    # g.write()
+    line1 = graph.LINE(defObj=def1,color="#FF0000",legend="temperature")
+    line2 = graph.LINE(defObj=def2,color="#00FF00",legend="min")
+    g.data.extend([def1,line1,def2,line2])
+    g.write()
     
 
-    # graphfile = "cogentviewer/static/theGraphLow.png"
-    # g = graph.Graph(graphfile,
-    #                 start = lofirst,
-    #                 end = last,
-    #                 imgformat="PNG")
+    graphfile = "cogentviewer/static/theGraphLow.png"
+    g = graph.Graph(graphfile,
+                    start = lofirst,
+                    end = last,
+                    imgformat="PNG")
 
 
 
-    # def1 = graph.DEF(rrdfile=fd,
-    #                  vname="tempavg",
-    #                  dsName="temp",
-    #                  cdef="AVERAGE")
-    # def2 = graph.DEF(rrdfile=fd,
-    #                  vname="tempmin",
-    #                  dsName="temp",
-    #                  cdef="MIN")
-    # def3 = graph.DEF(rrdfile=fd,
-    #                  vname="tempmax",
-    #                  dsName="temp",
-    #                  cdef="MAX")
+    def1 = graph.DEF(rrdfile=fd,
+                     vname="tempavg",
+                     dsName="temp",
+                     cdef="AVERAGE")
+    def2 = graph.DEF(rrdfile=fd,
+                     vname="tempmin",
+                     dsName="temp",
+                     cdef="MIN")
+    def3 = graph.DEF(rrdfile=fd,
+                     vname="tempmax",
+                     dsName="temp",
+                     cdef="MAX")
 
 
-    # line1 = graph.LINE(defObj=def1,color="#FF0000",legend="Average")
-    # line2 = graph.LINE(defObj=def2,color="#FF0000",legend="Min")
-    # line3 = graph.LINE(defObj=def3,color="#FF0000",legend="Max")
-    # g.data.extend([def1,line1,def2,line2,def3,line3])
-    # g.write()
+    line1 = graph.LINE(defObj=def1,color="#FF0000",legend="Average")
+    line2 = graph.LINE(defObj=def2,color="#FF0000",legend="Min")
+    line3 = graph.LINE(defObj=def3,color="#FF0000",legend="Max")
+    g.data.extend([def1,line1,def2,line2,def3,line3])
+    g.write()
 
 
 
