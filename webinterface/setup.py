@@ -16,11 +16,14 @@ requires = [
     'waitress',
     "python-dateutil==1.5",
     'MySQL-python',
+    "WebTest",
+    "pyrrd",
+    "passlib",
     ]
 
 
 setup(name='cogent-viewer',
-      version='0.1',
+      version='0.2',
       description='cogent-viewer',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

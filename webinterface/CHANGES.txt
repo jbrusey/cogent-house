@@ -7,4 +7,9 @@
 ----
 
 -  Change Reading -> SensorType "typ" backref to "sensorType"
--  Remove 
+
+
+0.2
+----
+-  Security Added
+
