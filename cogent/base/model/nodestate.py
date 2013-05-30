@@ -38,6 +38,7 @@ class NodeState(Base,meta.InnoDBMix):
     :var Integer parent: Parent node in the routing tree?
     :var BigInteger localtime: Local time of the node
     :var Integer seq_num: Packet sequence number
+    :var Integer rssi: RSSI value
     """
 
     __tablename__ = "NodeState"
