@@ -22,7 +22,10 @@ log = logging.getLogger(__name__)
 import base
 import cogentviewer.models as models
 
-import unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 @unittest.skip("Base Class, Skip for most purposes")
 class TestStub(base.BaseTestCase):
@@ -48,8 +51,6 @@ class TestStub(base.BaseTestCase):
 
     def testCreate(self):
         pass
-
-
 
     def testUpdate(self):
         pass
