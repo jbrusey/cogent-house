@@ -943,15 +943,14 @@ class Pusher(object):
             if lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
         log.info("Last Update from Config is {0}".format(lastUpdate))
-            
+
         #Get the last reading for this House
         session = self.localSession()
-        #restSession =self.restSession
 
+        #restSession =self.restSession        print type(lastUpdate)
         #As we should be able to trust the last update field of the config file.
         #Only request the last sample from the remote DB if this does not exist.
-
-        if lastUpdate is None:
+        if lastUpdate == "None" or lastUpdate is None:
             log.info("--> Requesting date of last reading in Remote DB")
             params = {"house":theHouse.address,
                       "lastUpdate":lastUpdate}
@@ -959,7 +958,7 @@ class Pusher(object):
             #restQuery = restSession.request_get(theUrl,args=params)
             restQuery = requests.get(theUrl,params=params)
             strDate =  restQuery.json()
-
+                   
             log.debug("Str Date {0}".format(strDate))
             if strDate is None:
                 log.info("--> --> No Readings in Remote DB")
@@ -974,7 +973,6 @@ class Pusher(object):
         uploadDates[str(theHouse.id)] = lastUpdate
         mappingConfig["lastupdate"] = uploadDates
         self.saveMappings()
-
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
