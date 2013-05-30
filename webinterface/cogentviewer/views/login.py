@@ -54,6 +54,8 @@ def checkLogin(request):
     username = request.POST.get("username")
     password = request.POST.get("password")
 
+    log.debug("Uname {0} Password {1}".format(username,password))
+
     #Fetch the user from the database:
     session = meta.Session()
     theUser = session.query(user.User).filter_by(username=username).first()
@@ -67,7 +69,7 @@ def checkLogin(request):
     if passOk:
         log.debug("Passwords match")
         headers = remember(request,theUser.id)
-        log.debug("Headders Set")
+              
         return True,HTTPFound(location = referrer,
                               headers=headers)
     else:
@@ -101,10 +103,8 @@ def checkLogin(request):
     #     return False,{"loginMsg":"Invalid Login Details"}
 
 
-@view_config(route_name="login",renderer="cogentviewer:templates/login.mak")
-@forbidden_view_config(renderer="cogentviewer:templates/login.mak")
-
-
+@view_config(route_name="login",renderer="login.mak")
+@forbidden_view_config(renderer="login.mak")
 def loginView(request):
 
     outDict = {}
@@ -161,7 +161,7 @@ def checkRegister(request):
     pass
     
 
-@view_config(route_name="register",renderer="cogentviewer:templates/register.mak")
+@view_config(route_name="register",renderer="register.mak")
 def registerView(request):
 
     outDict = {}
