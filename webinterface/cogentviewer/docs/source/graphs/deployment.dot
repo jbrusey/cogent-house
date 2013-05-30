@@ -1,0 +1,28 @@
+digraph g{
+  rankdir=LR;
+  node[shape=plaintext fontname="Courier"];
+  DeploymentMetadata[label=<
+		     <table border="0" cellborder="1" cellspacing="0">
+		     <tr><td><font face="Helvetica"><b>DeploymentMetadata</b></font></td></tr>
+		     <tr><td port="id"><font color="red">id</font></td></tr>
+		     <tr><td port="depid"><i>deploymentId</i></td></tr>
+		     <tr><td>name</td></tr>
+		     <tr><td>units</td></tr>
+		     <tr><td>value</td></tr>
+		     </table>>];
+  DeploymentMetadata:depid -> Deployment:id;
+  
+  Deployment[label=<
+	     <table border="0" cellborder="1" cellspacing="0">
+	     <tr><td><font face="Helvetica"><b>Deployment</b></font></td></tr>
+	     <tr><td port="id"><font color="red">id</font></td></tr> 
+	     <tr><td>description</td></tr>
+	     <tr><td>startDate</td></tr>
+	     <tr><td>endDate</td></tr>
+	     <tr><td port="meta"><font color="blue"><i>meta</i></font></td></tr>
+	     <tr><td port="houses"><font color="blue"><i>houses</i></font></td></tr>
+	     </table>>];
+
+  Deployment:meta -> DeploymentMetadata [style="dashed" label="deployment"];
+  Deployment:houses -> House [style="dashed" label="deployment"];	   
+}
