@@ -84,7 +84,7 @@ logging.basicConfig(level=logging.INFO,
 logsize = (1024*1024) * 5 #5Mb Logs
 
 import logging.handlers
-fh = logging.handlers.RotatingFileHandler("push_test.log",maxBytes=logsize,backupCount = 5)
+fh = logging.handlers.RotatingFileHandler("push.log",maxBytes=logsize,backupCount = 5)
 fh.setLevel(logging.INFO)
 
 fmt = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
@@ -327,8 +327,8 @@ class Pusher(object):
         """
 
         self.log = logging.getLogger("Pusher")
-        self.log.setLevel(logging.INFO)
-        #self.log.setLevel(logging.WARNING)
+        #self.log.setLevel(logging.INFO)
+        self.log.setLevel(logging.WARNING)
         log = self.log
         log.addHandler(fh)
 
