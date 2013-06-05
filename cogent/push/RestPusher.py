@@ -1047,7 +1047,7 @@ class Pusher(object):
                 lastUpdate = dateutil.parser.parse(lastUpdate)
             else:
                 lastUpdate = None
-        log.info("Last Update from Config is {0} {1}".format(lastUpdate,type(lastUpdate)))
+        log.info("Last Update from Config is >{0}< >{1}<".format(lastUpdate,type(lastUpdate)))
 
         #TODO:
         # This is a temporary fix for the problem for nodestates,  Currently I cannot think of a sensible way 
