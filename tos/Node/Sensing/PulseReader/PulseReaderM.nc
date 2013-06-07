@@ -47,13 +47,12 @@ generic module PulseReaderM()
 }
 implementation
 {
-  float energyCount = 0;
+  uint32_t energyCount = 0;
   
   task void readTask() {
     float te;
     atomic {
-      te = energyCount;
-      energyCount = 0;
+      te = (float) energyCount;
     }
 
     signal ReadPulse.readDone(SUCCESS, te);
@@ -72,7 +71,7 @@ implementation
     call Leds.led1Toggle();
     call Leds.led0Toggle();
 #endif
-    energyCount += 1;
+    energyCount++;
   }
   
   command error_t PulseControl.start() {
