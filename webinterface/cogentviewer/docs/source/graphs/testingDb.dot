@@ -1,0 +1,150 @@
+digraph g{
+  node[shape=plaintext,fontname="Courier"];
+  rankdir="LR";
+  //Deployment
+  deployment[label=<
+	     <table border="0" cellborder="1" cellspacing="0">
+	     
+	     <tr><td><font face="Helvetica">Deployment</font></td></tr>
+	     <tr><td>Name: 'test'</td></tr>
+	     <tr><td>description: 'testing'</td></tr>
+	     <tr><td>startDate: now()</td></tr>
+	     <tr><td>endDate: now()+2</td></tr>
+	     </table>>];
+  
+  //Types
+  subgraph cluster_RoomType {
+    label="Room / Types";
+    bedroomType[label="Bedroom",shape="ellipse"];
+    livingType[label="Living Room",shape="ellipse"];  
+    masterBed[label=<
+	      <table border="0" cellborder="1" cellspacing="0">
+	      <tr><td><font face="Helvetica">Room</font></td></tr>
+	      <tr><td>name: 'Master Bedroom'</td></tr>
+	      </table>>];
+    
+    secondBed[label=<
+	      <table border="0" cellborder="1" cellspacing="0">
+	      <tr><td><font face="Helvetica">Room</font></td></tr>
+	      <tr><td>name: 'Second Bedroom'</td></tr>
+	      </table>>];
+    
+    livingRoom[label=<
+	       <table border="0" cellborder="1" cellspacing="0">
+	       <tr><td><font face="Helvetica">Room</font></td></tr>
+	       <tr><td>name: 'Living Room'</td></tr>
+	       </table>>];
+    //
+    masterBed -> bedroomType;
+    secondBed -> bedroomType;
+    livingRoom -> livingType;
+    };
+    //Each House
+    //Houses and locations
+    subgraph cluster_House1 {
+      label="House1";
+      house1[label=<
+	     <table border="0" cellborder="1" cellspacing="0">
+	     <tr><td><font face="Helvetica">House</font></td></tr>
+	     <tr><td>address: 'add1'</td></tr>
+	     <tr><td>startDate: now()</td></tr>
+	     <tr><td>endDate: now()+2</td></tr>
+	     </table>>];
+      subgraph cluster_house1Loc {
+	label="Locations"
+	//Locations in this House
+	loc1_Master[shape="ellipse"];
+	loc1_Living[shape="ellipse"];
+	loc1_Second[shape="ellipse"];
+	};
+	//
+	subgraph cluster_house1Nodes {
+	  label="Nodes"
+	  node37 [label="Node 37",shape="ellipse"];  
+	  node38 [label="Node 38",shape="ellipse"];  
+	  node39 [label="Node 39",shape="ellipse"];
+	  node40 [label="Node 40",shape="ellipse"];
+	  };
+	  //
+	  subgraph cluster_house1Read{
+	    label="Readings"
+	    depOneRead[label=<
+		       <table border="0" cellborder="1" cellspacing="0">     
+		       <tr><td><font face="Helvetica">Reading []</font></td></tr>
+		       <tr><td>From: now()</td></tr>
+		       <tr><td>To: now() + 2days</td></tr>
+		       </table>>];
+	    node40ReadOne[label=<
+			  <table border="0" cellborder="1" cellspacing="0">     
+			  <tr><td><font face="Helvetica">Reading []</font></td></tr>
+			  <tr><td>From: now()</td></tr>
+			  <tr><td>To: now() + 1day</td></tr>
+			  </table>>];
+	    
+	    node40ReadTwo[label=<
+			  <table border="0" cellborder="1" cellspacing="0">     
+			  <tr><td><font face="Helvetica">Reading []</font></td></tr>
+			  <tr><td>From: now()+1day</td></tr>
+			  <tr><td>To: now() + 2days</td></tr>
+			  </table>>];
+	    };
+	    //
+	    house1 -> loc1_Master;
+	    house1 -> loc1_Second;
+	    house1 -> loc1_Living;
+	    //
+	    loc1_Master -> node37
+	    loc1_Second -> node38;
+	    loc1_Living -> node39;
+	    loc1_Living -> node40;
+	    loc1_Master -> node40;
+	    //
+	    node37->depOneRead;
+	    node38->depOneRead;
+	    node39->depOneRead;
+	    node40 -> node40ReadOne;
+	    node40 -> node40ReadTwo;
+	  }
+	  //      
+	  //House 2
+	  subgraph cluster_House2 {
+	    label="House2";
+	    house2[label=<
+		   <table border="0" cellborder="1" cellspacing="0">
+		   <tr><td><font face="Helvetica">House</font></td></tr>
+		   <tr><td>address: 'add2'</td></tr>
+		   <tr><td>startDate: now()+1</td></tr>
+		   <tr><td>endDate: now()+2</td></tr>
+		   </table>>];
+	    //Locations in this house
+	    subgraph cluster_NodeLoc2{
+	      label="Locations"
+	      loc2_Master[shape="ellipse"];
+	      loc2_Living[shape="ellipse"];
+	      };
+	      //
+	      subgraph cluster_NodeHouse2 {
+		label="House2"
+		node69 [label="Node 69",shape="ellipse"];
+		node70 [label="Node 70",shape="ellipse"];
+		};
+		house2 -> loc2_Master -> node69;
+		house2 -> loc2_Living -> node70;
+		//
+		subgraph cluster_House2_Readings{
+		  label="Readings"
+		  depTwoRead[label=<
+			     <table border="0" cellborder="1" cellspacing="0">     
+			     <tr><td><font face="Helvetica">Reading []</font></td></tr>
+			     <tr><td>From: now()+1day</td></tr>
+			     <tr><td>To: now() + 2days</td></tr>
+			     </table>>];
+		  };
+		  node69->depTwoRead;
+		  node70->depTwoRead;
+		}
+		//Links
+		deployment -> house1;
+		deployment -> house2;
+		//
+		};//End of Graph
