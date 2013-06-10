@@ -70,6 +70,7 @@ class BaseLogger(object):
 
         #Moved this so it calls the models.populate data version of this code
         populateData.init_data(session)
+        return
 
     def duplicate_packet(self, session, time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
@@ -89,7 +90,35 @@ class BaseLogger(object):
         return ((nid % 4096) / 32,
                 nid % 32,
                 nid / 4096)
-    	
+    
+    def store_rrd(self, n, i, t, v, locId = 1000):
+        """Store the latest reading in a RRD file
+        
+        :param n: Node Id
+        :param i: Node Type
+        :param t: Time
+        :param v: Value
+
+        .. note::
+        
+            Currently this does not take account of the location Id.  This may be an option in the future
+        """
+        #Store in a RRD Database
+        
+        t1 = time.time()
+        theRRD = RRDLIST.get((n,i,locId),None)
+        if theRRD is None:
+            try:
+                theRRD = rrdstore.RRDStore(n,i,locId)
+                RRDLIST[(n,i,locId)] = theRRD
+
+                theRRD.update(t,v)
+                t2 = time.time()
+                log.debug("Time Taken to update RRD {0}".format(t2-t1))        
+            except Exception,e:
+                log.warning("Problem updating RRD")
+                log.warning(e)
+	
     def store_state(self, msg):
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
@@ -145,17 +174,8 @@ class BaseLogger(object):
                     state.append((i,v))
                     log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
                     
-                    #Store in a RRD Database
-                    t1 = time.time()
-                    theRRD = RRDLIST.get((n,i,1000),None)
-                    if theRRD is None:
-                        theRRD = rrdstore.RRDStore(n,i,1000)
-                        RRDLIST[(n,i,1000)] = theRRD
-                    #theRRD.getInfo()
-                    theRRD.update(t,v)
-                    t2 = time.time()
-                    log.debug("Time Taken to update RRD {0}".format(t2-t1))
-
+                    #Store in RRD
+                    self.store_rrd(n, i, t, v):
                     t1 = time.time()
                     try:
                         r = Reading(time=t,
@@ -198,7 +218,7 @@ class BaseLogger(object):
             session.close()
 
     def run(self):
-
+        LOG.info("Stating Baselogger Daemon")
         try:
             while True:
                 # wait up to 30 seconds for a message
@@ -266,7 +286,5 @@ if __name__ == '__main__':
     logger.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
     lm.create_tables()
-
-  
     lm.run()
 		
