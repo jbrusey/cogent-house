@@ -90,8 +90,6 @@ def populate_data(session=None):
 
     populateData.init_data(session)
 
-    
-    
 def init_model(engine):
     """Call me before using any of the tables or classes in the model"""
     Session.configure(bind=engine)
