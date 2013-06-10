@@ -19,6 +19,7 @@ class BaseIF(object):
     def __init__(self, source):
         self.mif = MoteIF.MoteIF()
         self.source = self.mif.addSource(source)
+        self.source.open()
         self.mif.addListener(self, StateMsg)
         self.queue = Queue()
 
