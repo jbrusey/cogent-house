@@ -193,9 +193,9 @@ class BaseLogger(object):
 
         try:
             while True:
-                # wait up to 30 seconds for a message
+                # wait up to 5 seconds for a message
                 try:
-                    msg = self.bif.queue.get(True, 30)
+                    msg = self.bif.get(True, 5)
                     self.store_state(msg)
                 except Empty:
                     pass
