@@ -384,9 +384,11 @@ class Pusher(object):
         #Do we have a connection to the server
         log = self.log
 
-        restSession = self.restSession
-        restQry = restSession.request_get("/deployment/0")
-        if restQry["headers"]["status"] == "503":
+        #Fetch the room types from the remote Database                                                                                                      
+        theUrl = "{0}deployment/".format(self.restUrl)
+        # #Fetch All Deployments the Remote Database knows about                                                                                            
+        restQry = requests.get(theUrl)
+        if restQry.status_code == 503:
             log.warning("No Connection to server available")
             return False
         log.debug("Connection to rest server OK")
@@ -403,6 +405,11 @@ class Pusher(object):
         log = self.log
 
         log.debug("Performing sync")
+
+        if (self.checkConnection()==False):
+            exit(1)
+
+
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
         self.syncSensorTypes()       
@@ -429,6 +436,7 @@ class Pusher(object):
         #Then upload the node Sttes
         self.uploadNodeStates()
         self.saveMappings()
+        exit(0)
 
     def loadMappings(self):
         """Load known mappings from the config file,
