@@ -1,0 +1,161 @@
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+/* @import url(http://fonts.googleapis.com/css?family=Ubuntu); */
+@import url(http://fonts.googleapis.com/css?family=Ubuntu:400,700);
+
+body {
+    font-family: "Ubuntu", "Helvetica Neue", Helvetica, Arial, sans-serif;
+/* font-size: 13px; */
+/* line-height: 18px; */
+/* color: #333333; */
+/* background-color: #ffffff; */
+}
+
+
+
+.well {
+    background-color: #dfe6f1;
+}
+
+.nav-header{
+    text-shadow: none;
+}
+
+.navbar {
+  color: #555555;
+}
+
+
+.navbar-inner {
+  background-color: #fafafa;
+  background-image: -moz-linear-gradient(top, #ced4dd, #dfe6f1);
+  background-image: -ms-linear-gradient(top, #ced4dd, #dfe6f1);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ced4dd), to(#dfe6f1));
+  background-image: -webkit-linear-gradient(top, #ced4dd, #dfe6f1);
+  background-image: -o-linear-gradient(top, #ced4dd, #dfe6f1);
+  background-image: linear-gradient(top, #ced4dd, #dfe6f1);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#'ced4dd, endColorstr='#'dfe6f1, GradientType=0);
+  -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);
+     -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);
+}
+
+.navbar .nav > .active > a,
+.navbar .nav > .active > a:hover,
+.navbar .nav > .active > a:focus {
+  color: #3b7be5;
+  text-decoration: none;
+  background-color: #ced4dd;
+  /*background-color: rgba(0, 0, 0, 0.5);*/
+}
+
+.navbar .brand{
+    color: #2155ab;
+    text-shadow: none;
+}
+
+.navbar-link {
+    color: #555555
+}
+
+
+.navbar .nav > li > a {
+  color: #2155ab;
+  text-decoration: none;
+  text-shadow: none;
+}
+
+
+.navbar .btn-navbar {
+  text-shadow: none;
+}
+
+.navbar .nav li.dropdown > .dropdown-toggle .caret {
+  border-top-color: #555555;
+  border-bottom-color: #555555;
+}
+
+.navbar-inverse .navbar-search .search-query:focus,
+.navbar-inverse .navbar-search .search-query.focused {
+    text-shadow: none;
+}
+
+.navbar-inverse .btn-navbar {
+    text-shadow: none;
+}
+
+
+.hero-unit {
+  padding: 60px;
+  margin-bottom: 30px;
+  background-color: #CED4DD;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 10px 0;
+  font-family: inherit;
+  font-weight: bold;
+  line-height: 1;
+  color: #2155ab;
+  text-rendering: optimizelegibility;
+}
+
+
+.affix {
+    position: fixed;
+    top: 60px;    
+ /* width:auto; */
+    /* display:block; */
+}
+
+
+
+/* .sidenav { */
+/*     border: 1px solid #E5E5E5; */
+/*     border-radius: 6px; */
+/*     -moz-border-radius: 6px; */
+/*     padding: 0px; */
+/* } */
+
+
+
+/* nav-list > li > a, */
+/* .nav-list .nav-header { */
+/*     text-shadow: none; */
+
+/* } */
+
+/* .sidenav > .nav-stacked { */
+/*     border-radius: 6px; */
+/*     -moz-border-radius: 6px; */
+/* } */
+
+
+    
+
+.sidenav > .nav-stacked > li:first-child {
+    border-radius: 6px 6px 0 0;
+    -webkit-border-radius: 6px 6px 0 0;
+    -moz-border-radius: 6px 6px 0 0;
+}
+
+.sidenav > .nav-stacked > li:last-child {
+    border-radius: 0 0 6px 6px;
+    -webkit-border-radius: 0 0 6px 6px;
+    -moz-border-radius: 0 0 6px 6px;
+}
+
+.sidenav > .nav-stacked > li {
+    /* display:block; */
+    /* padding: 8px 14px; */
+    border: 1px solid #E5E5E5;
+}
