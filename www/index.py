@@ -765,7 +765,7 @@ def viewLog(req):
 
 def missing():
     try:
-        t = datetime.utcnow() - timedelta(hours=1)
+        t = datetime.utcnow() - timedelta(hours=8)
         session = Session()
         s = ['<p>']
 
@@ -777,7 +777,7 @@ def missing():
         if len(missing_set) == 0:
             s.append("No nodes missing")
         else:
-            s.append("</table><p><p><h3>Registered nodes not reporting in last hour</h3><p>")
+            s.append("</table><p><p><h3>Registered nodes not reporting in last eight hours</h3><p>")
 
             s.append("<table border=\"1\">")
             s.append("<tr><th>Node</th><th>House</th><th>Room</th><th>Last Heard</th><th></th></tr>"  )
