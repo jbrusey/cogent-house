@@ -138,7 +138,6 @@ class DictDiff(object):
     def changed(self):
         """Return items that have changed between dictionaries"""
         changed = [x for x in self.intersect if self.other[x] != self.mine[x]]
-        #print changed
         return set(changed)
 
     def unchanged(self):
@@ -370,13 +369,19 @@ class Pusher(object):
     #     #Do we have a connection to the server
     #     log = self.log
 
-    #     restSession = self.restSession
-    #     restQry = restSession.request_get("/deployment/0")
-    #     if restQry["headers"]["status"] == "503":
-    #         log.warning("No Connection to server available")
-    #         return False
-    #     log.debug("Connection to rest server OK")
-    #     return True
+    def checkConnection(self):
+        #Do we have a connection to the server
+        log = self.log
+
+        #Fetch the room types from the remote Database                                                                                                      
+        theUrl = "{0}deployment/".format(self.restUrl)
+        # #Fetch All Deployments the Remote Database knows about                                                                                            
+        restQry = requests.get(theUrl)
+        if restQry.status_code == 503:
+            log.warning("No Connection to server available")
+            return False
+        log.debug("Connection to rest server OK")
+        return True
 
 
     def sync(self):
@@ -389,6 +394,11 @@ class Pusher(object):
         log = self.log
 
         log.debug("Performing sync")
+
+        if ! self.checkConnection():
+            return False
+
+
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
         self.syncSensorTypes()       
@@ -414,6 +424,7 @@ class Pusher(object):
         #Then upload the node Sttes
         self.uploadNodeStates()
         self.saveMappings()
+        return True
 
     def loadMappings(self):
         """Load known mappings from the config file,
@@ -617,7 +628,6 @@ class Pusher(object):
         #Fetch the sensor types from the remote Database
         theUrl = "{0}{1}".format(self.restUrl,"sensortype/")
         
-        #print theUrl
 
         
         remoteTypes = {}
@@ -626,7 +636,6 @@ class Pusher(object):
 
         #remoteQry = restSession.request_get(theUrl)
         remoteQry = requests.get(theUrl)
-        #print remoteQry
         jsonBody=remoteQry.json()
         
         #jsonBody = json.loads(remoteQry['body'])
@@ -680,12 +689,9 @@ class Pusher(object):
             theItem = localTypes[item]
             log.info("--> Sensor {0} Not in Remote Database: {1}".format(item,theItem))
             theUrl = "{0}sensortype/".format(self.restUrl)
-            #print theUrl
             dictItem = theItem.toDict()
             #We then Post the New Item to the Remote DBString
             requests.post(theUrl,data=json.dumps(dictItem))
-            #log.debug(r)
-            #print dictItem
 
         log.debug("Updating Mapping Dictionary")
         #Update the Mapping Dictionary
@@ -831,11 +837,8 @@ class Pusher(object):
 
         theQry = lSess.query(self.Location)
 
-        #print mappedHouses
-        #print mappedRooms
         for item in theQry:
             #Convert to take account of mapped houses and Rooms
-            #print item
             hId = mappedHouses[item.houseId]
             rId =mappedRooms.get(item.roomId,None)
             log.debug("Mapping for item {0} : House {1} Room {2}".format(item,hId,rId))
@@ -1010,7 +1013,6 @@ class Pusher(object):
         #Load the Mapped items to the local namespace
         mappedLocations = self.mappedLocations
         mappedTypes = self.mappedSensorTypes
-        #print mappedTypes
         #Mapping Config
         mappingConfig = self.mappingConfig
         
@@ -1018,7 +1020,6 @@ class Pusher(object):
         uploadDates = mappingConfig.get("lastupdate",None)
         lastUpdate = None
         if uploadDates:
-            print uploadDates
             lastUpdate = uploadDates.get(str(theHouse.id),None)
             if lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
@@ -1120,8 +1121,6 @@ class Pusher(object):
             #                                   body=json.dumps(jsonList))
             #log.debug(restQry)
             restQry = requests.post(theUrl,data=gzStr)
-            #print restQry
-            #print restQry.status_code
 
             transTime = time.time()
             if restQry.status_code == 500:
@@ -1149,4 +1148,4 @@ if __name__ == "__main__":
     logging.debug("Testing Push Classes")
 
     server = PushServer()
-    server.sync()
+    exit(! server.sync()) # exit with 1 if false

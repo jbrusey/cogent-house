@@ -19,9 +19,13 @@ class BaseIF(object):
     def __init__(self, source):
         self.mif = MoteIF.MoteIF()
         self.source = self.mif.addSource(source)
-        self.source.open()
         self.mif.addListener(self, StateMsg)
         self.queue = Queue()
+
+    def get(self, wait=True, timeout=30):
+        if self.source.isDone():
+            raise Exception("source is no longer connected")
+        return self.queue.get(wait, timeout)
 
     def receive(self, src, msg):
         self.queue.put(msg)
@@ -44,7 +48,7 @@ if __name__ == '__main__':
     while True:
         # wait up to 30 seconds for a message
         try:
-            msg = bif.queue.get(True, 30)
+            msg = bif.get(True, 5)
 
 	    j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
@@ -54,8 +58,8 @@ if __name__ == '__main__':
                 if mask[i]:
                     try:
                         v = msg.getElement_packed_state(j)
-                    except:
-                        v = "Invalid"
+                    except Exception, e:
+                        v = "Invalid {!s}".format(e)
                     print "%s\t%s\t%s" % (j, i, v)
                 j += 1
             print ""
