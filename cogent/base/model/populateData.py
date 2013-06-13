@@ -206,7 +206,6 @@ def populateSensorTypes(session = False):
                              units="hpa",
                              c0=0., c1=1., c2=0., c3=0.)]
     
-
     with transaction.manager:
         for item in sensorList:        
             LOG.debug("Adding Sensor {0}".format(item.name))

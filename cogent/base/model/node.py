@@ -34,7 +34,7 @@ class Node(meta.Base, meta.InnoDBMix):
 
     __tablename__ = "Node"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=False)
     locationId = Column(Integer,
                         ForeignKey('Location.id'),
                         nullable=True)
