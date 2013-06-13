@@ -48,7 +48,7 @@ import cogent
 import cogent.base.model as models
 import cogent.base.model.meta as meta
 
-from diffdict import *
+from dictdiff import *
 
 #Disable Requests Logging
 requests_log = logging.getLogger("requests")

@@ -15,6 +15,17 @@ Allows comparison of two dictionary objects to identify
     This code relies on the __eq__ method(s) of objects in the dictionary being
     defined, to make comparisons between items.  If undefined, then there are
     no guarantees on the results of the comparison.
+
+Example Use
+-------------
+
+>>> basedict = {1:"foo", 2:"bar", 3:"baz"}
+>>> otherdict = {1:"foo", 2:"bar", 3:"baz"}
+
+#Compare for Equality
+>>> dd = DictDiff(basedict, otherdict)
+
+
 """
 
 __version__ = "0.0.2"
