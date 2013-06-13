@@ -27,7 +27,7 @@ Push Script Setup
 
 #Python Library Imports
 import unittest
-from datetime import datetime, timedelta
+import datetime
 
 import logging
 logging.basicConfig(level=logging.DEBUG,
@@ -383,7 +383,7 @@ class TestPush(unittest.TestCase):
         sink.flush()
         sink.commit()
 
-
+    @unittest.skip
     def testSyncNodes(self):
         """Test that the node synch code works correctly"""
         source = self.sourcesession()
@@ -453,3 +453,143 @@ class TestPush(unittest.TestCase):
         source.commit()
         sink.flush()
         sink.commit()
+
+    def testReadings(self):
+        """Test that the Readings update works"""
+
+        log = self.log
+        
+
+        #Cleanup
+        session = self.sourcesession()
+        theQry = session.query(models.Reading).delete()
+        theQry = session.query(models.Location).delete()
+        theQry = session.query(models.Node).delete()
+        theQry = session.query(models.House).delete()
+        theQry = session.query(models.Deployment).delete()
+        session.commit()
+
+        #Remote Session
+        rsession = self.sinksession()
+        theQry = rsession.query(models.Reading).delete()
+        theQry = rsession.query(models.Location).delete()
+        theQry = rsession.query(models.Node).delete()
+        theQry = rsession.query(models.House).delete()
+        theQry = rsession.query(models.Deployment).delete() 
+        rsession.commit()
+
+        #Populate the Database
+        session = self.sourcesession()
+        #And Create the relevant objects
+        theDeployment = models.Deployment(name="Test Deployment")
+        session.add(theDeployment)
+        theHouse = models.House(address="Test Address",
+                                deploymentId = theDeployment.id)
+        session.add(theHouse)
+        theNode = models.Node(id=101)
+        session.add(theNode)
+        
+
+        #A Few Locations
+        theRoom = session.query(models.Room).filter_by(name="Master Bedroom").first()
+        theLocation = models.Location(houseId = theHouse.id,
+                                      roomId = theRoom.id)
+
+        session.add(theLocation)
+        session.flush()
+        #SensorType 0 should already exist
+
+        READINGS = 100
+        now = datetime.datetime.now()
+        startDate = now - datetime.timedelta(seconds = 1*READINGS)
+        log.debug("Now {0} Start {1}".format(now,startDate))
+
+        for x in range(READINGS):
+            thisReading = models.Reading(time=startDate,
+                                         nodeId = 101,
+                                         value = x,
+                                         locationId = theLocation.id,
+                                         typeId = 0)
+            session.add(thisReading)
+            startDate = startDate + datetime.timedelta(seconds=1)
+        
+        session.flush()
+        session.commit()
+
+        #Then Do the Preliminary Sync
+        pusher = self.thePusher
+
+        pusher.syncSensorTypes() #TST
+        pusher.syncRoomTypes() #TST 
+        pusher.syncRooms()  #TST
+        pusher.syncDeployments() #TST
+        pusher.syncNodes()
+        pusher.loadMappings()
+
+        #And upload the Readings
+        pusher.uploadReadings(theHouse)
+
+        #Now we need to check all the items arrived as expected
+        source = self.sourcesession()
+        sink = self.sinksession()
+
+        sourceQry = source.query(models.Reading).all()
+        sinkQry = sink.query(models.Reading).all()
+
+        self.assertEqual(sourceQry,sinkQry)
+      
+
+
+        #Lets repeat that to make sure everything works a second time
+        startDate = datetime.datetime.now()
+
+        ITEMS = 50
+        for x in range(5):
+            session = self.sourcesession()
+            log.debug("Repeating {0} ".format(x))
+            for x in range(ITEMS):
+
+                thisReading = models.Reading(time=startDate,
+                                             nodeId = 101,
+                                             value = x,
+                                             locationId = theLocation.id,
+                                             typeId = 0)
+                session.add(thisReading)
+                startDate = startDate + datetime.timedelta(seconds=1)
+        
+                session.flush()
+                session.commit() 
+
+            #And upload the Readings
+            pusher.loadMappings()
+            pusher.uploadReadings(theHouse)
+
+            #Now we need to check all the items arrived as expected
+            source = self.sourcesession()
+            sink = self.sinksession()
+
+            sourceQry = source.query(models.Reading).all()
+            sinkQry = sink.query(models.Reading).all()
+
+            self.assertEqual(sourceQry,sinkQry)               
+            
+            
+
+        #Cleanup
+        theQry = session.query(models.Reading).delete()
+        theQry = session.query(models.Location).delete()
+        theQry = session.query(models.Node).delete()
+        theQry = session.query(models.House).delete()
+        theQry = session.query(models.Deployment).delete()
+        session.commit()
+
+        #Remote Session
+        rsession = self.sinksession()
+        theQry = rsession.query(models.Reading).delete()
+        theQry = rsession.query(models.Location).delete()
+        theQry = rsession.query(models.Node).delete()
+        theQry = rsession.query(models.House).delete()
+        theQry = rsession.query(models.Deployment).delete() 
+        rsession.commit()
+
+        return
