@@ -61,7 +61,7 @@ class Room(BASE, meta.InnoDBMix):
 
 
     def __str__(self):
-        return "Room ({0}) {1} {2}".format(self.id, self.name,self.roomTypeId)
+        return "Room ({0}) {1} (Type={2})".format(self.id, self.name,self.roomTypeId)
 
 
     def __eq__(self, other):

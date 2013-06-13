@@ -11,5 +11,6 @@ cogent/node/*Msg.py
 build/
 cogent/push/.cache
 cogent/push/.coverage
+cogent/push/testcover/
 *.egg-info/*
 dataclense/*
