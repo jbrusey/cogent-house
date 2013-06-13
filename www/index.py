@@ -40,6 +40,7 @@ from cogent.sip.sipsim import (
     PartSplineReconstruct,
     SipPhenom,
     )
+from cogent.sip.calc_yield import calc_yield
 
 from sqlalchemy import create_engine, and_, distinct, func
 from sqlalchemy.orm import aliased
@@ -901,17 +902,11 @@ def yield24():
         #                         ).join(Node,Location,House,Room).order_by(House.address, Room.name).all()
 
         for (node_id, maxseq, minseq, seqcnt, last_heard,
-             house_name, room_name) in yield_q.all():
+            house_name, room_name) in yield_q.all():
 
-             #missed = (maxseq - minseq + 257) % 256 - seqcnt
-            if maxseq < minseq:
-                seq_diff = minseq - maxseq + 0xffffffff + 1
-            else:
-                seq_diff = maxseq - minseq + 1
-             
-            y = (seqcnt * 100.) / seq_diff
-
-            values = [node_id, house_name, room_name, seqcnt, minseq, maxseq, str(last_heard), y]
+            values = [node_id, house_name, room_name, seqcnt, minseq, maxseq,
+                      str(last_heard),
+                      calc_yield(seqcnt, minseq, maxseq)]
             fmt = ['%d', '%s', '%s', '%d', '%d', '%d', '%s', '%8.2f']
             s.append("<tr>")
             s.extend([("<td>" + f + "</td>") % v for (f,v) in zip(fmt, values)])
@@ -919,6 +914,7 @@ def yield24():
 
 
         s.append("</table>")
+        s.append("<p>The yield estimate may be an overestimate if the most recent packets have been lost or if more than 256 packets have been lost.</p>")
         return _page('Yield for last day', ''.join(s))
     finally:
         session.close()
