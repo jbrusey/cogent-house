@@ -17,7 +17,9 @@ case "$1" in
     start)
 	log_daemon_msg "Starting cogent-house serial forwarder" "ch-sf" || true
 	. /opt/tinyos-main-read-only/tinyos.sh>/dev/null
-	if start-stop-daemon --start --background --make-pidfile --chuid chuser --oknodo --pidfile /var/run/ch-sf.pid --exec /usr/bin/java -- net.tinyos.sf.SerialForwarder -comm serial@/dev/ttyTelos:telosb -no-output; then
+
+	PORT="/dev/ttyTelos"
+	if start-stop-daemon --start --background --make-pidfile --chuid chuser --oknodo --pidfile /var/run/ch-sf.pid --exec /usr/bin/java -- net.tinyos.sf.SerialForwarder -comm serial@$PORT:telosb -no-output; then
 	    log_end_msg 0 || true
 	else
 	    log_end_msg 1 || true

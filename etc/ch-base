@@ -16,6 +16,11 @@
 case "$1" in
     start)
 	log_daemon_msg "Starting cogent-house base logger" "ch-base" || true
+
+	while ! lsof -i :9002 >/dev/null; do
+	    sleep 1
+	done
+
 	. /opt/tinyos-main-read-only/tinyos.sh>/dev/null
 	if start-stop-daemon --start --quiet --background --make-pidfile --chuid chuser --oknodo --pidfile /var/run/ch-base.pid --exec /usr/bin/python -- -m cogent.base.BaseLogger --log-level debug; then
 	    log_end_msg 0 || true
