@@ -221,7 +221,7 @@ class Pusher(object):
         """
 
         self.log = logging.getLogger("Pusher")
-        #self.log.setLevel(
+        self.log.setLevel(logging.DEBUG)
         #self.log.setLevel(logging.INFO)
         #self.log.setLevel(logging.WARNING)
         log = self.log
@@ -519,7 +519,7 @@ class Pusher(object):
         """Function to synchronise Sensor types between the two databases.
         This is a bi-directional sync method as Sensor Types should EXACTLY match in ALL databases.
         """
-        
+
         #First we need to map room Types
         log = self.log
         log.debug("Mapping Sensors between databases")
@@ -528,32 +528,33 @@ class Pusher(object):
 
         #Fetch the sensor types from the remote Database
         theUrl = "{0}{1}".format(self.restUrl,"sensortype/")
-        
-        #print theUrl
 
-        
+        #print theUrl
         remoteTypes = {}
         localTypes = {}
-
 
         #remoteQry = restSession.request_get(theUrl)
         remoteQry = requests.get(theUrl)
         #print remoteQry
         jsonBody=remoteQry.json()
-        
+
         #jsonBody = json.loads(remoteQry['body'])
         restItems = self.unpackJSON(jsonBody)
-
         #log.debug("---- SENSOR TYPES FROM REMOTE SERVER ---")
         for item in restItems:
             #log.debug("--> {0}".format(item))
             remoteTypes[item.id] = item
+
+        #log.debug(remoteTypes)
 
         itemTypes = session.query(self.SensorType)
         #log.debug("---- SENSOR TYPES FROM LOCAL SERVER ----")
         for item in itemTypes:
             #log.debug(item)
             localTypes[item.id] = item
+
+        #log.debug(localTypes)
+        #log.debug("--> {0}".format(localTypes[1000]))
 
         theDiff = DictDiff(remoteTypes,localTypes)
 
@@ -564,12 +565,12 @@ class Pusher(object):
         #"Changed" items,  Items that are not the same
         changedItems = theDiff.changed()
 
-        log.debug( "--> NEW")
-        log.debug( newItems)
-        log.debug( "--> Removed")
-        log.debug( removedItems)
-        log.debug( "--> Changed")
-        log.debug( changedItems)
+        # log.debug( "--> NEW")
+        # log.debug( newItems)
+        # log.debug( "--> Removed")
+        # log.debug( removedItems)
+        # log.debug( "--> Changed")
+        # log.debug( changedItems)
         #return
 
 
