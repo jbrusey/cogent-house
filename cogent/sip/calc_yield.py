@@ -3,7 +3,7 @@
 #
 # calculate yield for sip nodes
 #
-
+import math
 
 # at the moment, the sequence numbers wrap at 256,
 # therefore the following equations show what we have to
