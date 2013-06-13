@@ -30,7 +30,7 @@ fh.setFormatter(fmt)
 
 #Python Std Imports
 import time
-from datetime import timedelta
+from datetime import datetime,timedelta
 import os.path
 import configobj
 import zlib
@@ -309,7 +309,7 @@ class Pusher(object):
 
         #BOOKMAER
         #Moved here for the Sampson Version
-        self.syncNodes()  
+        self.syncNodes()  #Tst
 
         session = self.localSession()
         houses = session.query(self.House)   
@@ -936,7 +936,10 @@ class Pusher(object):
         if uploadDates:
             print uploadDates
             lastUpdate = uploadDates.get(str(theHouse.id),None)
-            if lastUpdate and lastUpdate != 'None':
+            log.info("LAST UPDATE {0} {1}".format(lastUpdate,type(lastUpdate)))
+            if type(lastUpdate) == datetime:
+                pass
+            elif lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
             else:
                 lastUpdate = None
@@ -992,9 +995,9 @@ class Pusher(object):
         rdgCount = origCount
         transferCount = 0
                           
-        for x in range(2):
+        #for x in range(2):
         #while rdgCount > 0:
-        #while True:
+        while True:
             #Add some timings
             stTime = time.time()
             theReadings = session.query(models.Reading).filter(models.Reading.locationId.in_(theLocations))
