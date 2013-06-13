@@ -307,8 +307,9 @@ class Pusher(object):
         self.loadMappings()
         self.saveMappings()
 
+        #BOOKMAER
         #Moved here for the Sampson Version
-        self.syncNodes()
+        self.syncNodes()  
 
         session = self.localSession()
         houses = session.query(self.House)   
