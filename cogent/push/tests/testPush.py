@@ -235,7 +235,7 @@ class TestPush(unittest.TestCase):
         sink.commit()
 
 
-    #@unittest.skip
+    @unittest.skip
     def testRoom(self):
         """And Syncing room types"""
         
@@ -298,8 +298,8 @@ class TestPush(unittest.TestCase):
         self.assertEqual(theQry,remoteItem)
 
         self.log.debug("--> Cleaning up")
-        source_data = source.query(models.RoomType).filter(models.RoomType.id>=13).delete()
-        sink_data = sink.query(models.RoomType).filter(models.RoomType.id>=13).delete()
+        source_data = source.query(models.Room).filter(models.Room.id>=13).delete()
+        sink_data = sink.query(models.Room).filter(models.Room.id>=13).delete()
 
         #Final Flush and commit
         source.flush()
@@ -307,127 +307,70 @@ class TestPush(unittest.TestCase):
         sink.flush()
         sink.commit()
 
-#     @unittest.skip
-#     def testSyncRooms(self):
-#         #Sync Rooms
-#         out = self.thePusher.syncRoomTypes()
-
-#         source = sourcesession()
-#         sink = sinksession()
+    def testDeployment(self):
+        """And Syncing room types"""
         
-#         source_data = source.query(models.Room).filter(models.Room.id>13).delete()
-#         sink_data = sink.query(models.Room).filter(models.Room.id>13).delete()
+        #We need to sync room types so the Ids work properly
 
-#         source_data = source.query(models.Room).order_by(models.Room.id).all()
-#         sink_data = sink.query(models.Room).order_by(models.Room.id).all()
-#         self.assertEqual(source_data,sink_data)
+        source = self.sourcesession()
+        sink = self.sinksession()
 
-#         #Add a new room to the Remote DB
-#         newRoom = models.Room(id=15,name="TEST ROOM",roomTypeId=1)
-#         source.add(newRoom)
-#         source.flush()
-#         source.commit()
-#         sink.flush()
-#         sink.commit()
-#         out = self.thePusher.syncRooms()
+        source_data = source.query(models.Deployment).delete()
+        sink_data = sink.query(models.Deployment).delete()
 
-#         source_data = source.query(models.Room.name).order_by(models.Room.name).all()
-#         sink_data = sink.query(models.Room.name).order_by(models.Room.name).all()
-#         self.assertEqual(source_data,sink_data)
+        #Final Flush and commit
+        source.flush()
+        source.commit()
+        sink.flush()
+        sink.commit()
 
-#         newRoom = models.Room(id=15,name="TEST TWO",roomTypeId=2)
-#         sink.add(newRoom)
-#         source.flush()
-#         source.commit()
-#         sink.flush()
-#         sink.commit()
-#         out = self.thePusher.syncRooms()
+        source = self.sourcesession()
+        sink = self.sinksession()
 
-#         source_data = source.query(models.Room.name).order_by(models.Room.name).all()
-#         sink_data = sink.query(models.Room.name).order_by(models.Room.name).all()
-#         self.assertEqual(source_data,sink_data)
+        #There should be no deployments to begin with
+        source_data = source.query(models.Deployment).all()
+        sink_data = sink.query(models.Deployment).all()
 
-#         raw_input("Press Any Key to remove added items")
-#         source_data = source.query(models.Room).filter(models.Room.id>13).delete()
-#         sink_data = sink.query(models.Room).filter(models.Room.id>13).delete()
-#         source.flush()
-#         source.commit()
-#         sink.flush()
-#         sink.commit()
+        self.assertEqual(source_data, [])
+        self.assertEqual(source_data, sink_data)
 
+    
+        localItem = models.Deployment(name="TEST")
+        source.add(localItem)
+        source.flush()
+        source.commit()
 
-#     def testSyncDeployments(self):
-#         """Syncronise Deployments"""
+        self.log.debug("== Local Item is {0}".format(localItem))
+        out = self.thePusher.syncDeployments()
 
-#         #We need to do the original sync
-#         out = self.thePusher.syncDeployments()
-
-#         source = sourcesession()
-#         sink = sinksession()
-
-#         source_data = source.query(models.Deployment).filter(models.Deployment.id>1).delete()
-#         sink_data = sink.query(models.Deployment).filter(models.Deployment.id>1).delete()
-#         source.flush()
-#         sink.flush()
-
-
-#         #Add a new deployment to the Source
-#         newDep = models.Deployment(id=2,name="TEST")
-#         source.add(newDep)
-#         source.flush()
+        source = self.sourcesession()
+        sink = self.sinksession()
         
-#         source.commit()
-#         sink.commit()
+        #Check this is in the sink
+        theQry = sink.query(models.Deployment).filter_by(name="TEST").first()
+        self.log.debug("-- Local, {0} Remote {1}".format(localItem,theQry))
+        self.assertEqual(theQry,localItem)
 
-#         out = self.thePusher.syncDeployments()
+        #Now Add a new Sensor to the Remote DB
+        remoteItem = models.Deployment(name="TEST_TWO")
+        sink.add(remoteItem)
+        sink.flush()
+        sink.commit()
 
-#         #Check it exists
-#         source_data = source.query(models.Deployment.name).order_by(models.Deployment.name).all()
-#         sink_data = sink.query(models.Deployment.name).order_by(models.Deployment.name).all()
-        
-#         self.assertEqual(source_data,sink_data)
-        
+        out = self.thePusher.syncDeployments()
 
-#         #And do the same the other way
-#         newDep = models.Deployment(id=5,name="TEST2")
-#         sink.add(newDep)
-#         sink.flush()
+        source = self.sourcesession()
+        sink = self.sinksession()
 
-#         source.commit()
-#         sink.commit()
+        theQry = source.query(models.Deployment).filter_by(name="TEST_TWO").first()
+        self.assertEqual(theQry,remoteItem)
 
-#         out = self.thePusher.syncDeployments()
+        self.log.debug("--> Cleaning up")
+        source_data = source.query(models.Deployment).delete()
+        sink_data = sink.query(models.Deployment).delete()
 
-#         #Check it exists
-#         source_data = source.query(models.Deployment.name).order_by(models.Deployment.name).all()
-#         sink_data = sink.query(models.Deployment.name).order_by(models.Deployment.name).all()
-        
-#         self.assertEqual(source_data,sink_data)
-
-#         #And a two way Sync
-#         newDep = models.Deployment(name="TEST3")
-#         source.add(newDep)
-#         newDep = models.Deployment(name="TEST4")
-#         sink.add(newDep)
-
-#         source.flush()
-#         sink.flush()
-#         source.commit()
-#         sink.commit()
-
-#         out = self.thePusher.syncDeployments()
-
-#         #Check it exists
-#         source_data = source.query(models.Deployment.name).order_by(models.Deployment.name).all()
-#         sink_data = sink.query(models.Deployment.name).order_by(models.Deployment.name).all()
-        
-#         self.assertEqual(source_data,sink_data)
-
-
-#         raw_input("Press abny key to reset")
-#         source_data = source.query(models.Deployment).filter(models.Deployment.id>1).delete()
-#         sink_data = sink.query(models.Deployment).filter(models.Deployment.id>1).delete()
-#         source.flush()
-#         sink.flush()
-#         source.commit()
-#         sink.commit()
+        #Final Flush and commit
+        source.flush()
+        source.commit()
+        sink.flush()
+        sink.commit()

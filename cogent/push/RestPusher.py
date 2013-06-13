@@ -300,16 +300,15 @@ class Pusher(object):
         log.debug("Performing sync")
         #Load our Stored Mappings
         #TODO: update the Load Mappings Script
-        self.syncSensorTypes()       
-        self.syncRoomTypes()
-        self.syncRooms() 
-        self.syncDeployments()
+        self.syncSensorTypes() #TST
+        self.syncRoomTypes() #TST 
+        self.syncRooms()  #TST
+        self.syncDeployments() #TST
         self.loadMappings()
         self.saveMappings()
 
         #Moved here for the Sampson Version
         self.syncNodes()
-        
 
         session = self.localSession()
         houses = session.query(self.House)   
