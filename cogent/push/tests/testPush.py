@@ -307,6 +307,7 @@ class TestPush(unittest.TestCase):
         sink.flush()
         sink.commit()
 
+    @unittest.skip
     def testDeployment(self):
         """And Syncing room types"""
         
@@ -368,6 +369,72 @@ class TestPush(unittest.TestCase):
         self.log.debug("--> Cleaning up")
         source_data = source.query(models.Deployment).delete()
         sink_data = sink.query(models.Deployment).delete()
+
+        #Final Flush and commit
+        source.flush()
+        source.commit()
+        sink.flush()
+        sink.commit()
+
+
+    def testSyncNodes(self):
+        """Test that the node synch code works correctly"""
+        source = self.sourcesession()
+        sink = self.sinksession()
+
+        source_data = source.query(models.Node).delete()
+        sink_data = sink.query(models.Node).delete()
+
+        #Final Flush and commit
+        source.flush()
+        source.commit()
+        sink.flush()
+        sink.commit()
+
+        source = self.sourcesession()
+        sink = self.sinksession()
+
+        #There should be no Nodes to begin with
+        source_data = source.query(models.Node).all()
+        sink_data = sink.query(models.Node).all()
+
+        self.assertEqual(source_data, [])
+        self.assertEqual(source_data, sink_data)
+
+    
+        localItem = models.Node(id=101, nodeTypeId=0)
+        source.add(localItem)
+        source.flush()
+        source.commit()
+
+        self.log.debug("== Local Item is {0}".format(localItem))
+        out = self.thePusher.syncNodes()
+
+        source = self.sourcesession()
+        sink = self.sinksession()
+        
+        #Check this is in the sink
+        theQry = sink.query(models.Node).filter_by(id=101).first()
+        self.log.debug("-- Local, {0} Remote {1}".format(localItem, theQry))
+        self.assertEqual(theQry, localItem)
+
+        #Now Add a new Sensor to the Remote DB
+        remoteItem = models.Node(id=102, nodeTypeId=2)
+        sink.add(remoteItem)
+        sink.flush()
+        sink.commit()
+
+        out = self.thePusher.syncNodes()
+
+        source = self.sourcesession()
+        sink = self.sinksession()
+
+        theQry = source.query(models.Node).filter_by(id=102).first()
+        self.assertEqual(theQry,remoteItem)
+
+        self.log.debug("--> Cleaning up")
+        source_data = source.query(models.Node).delete()
+        sink_data = sink.query(models.Node).delete()
 
         #Final Flush and commit
         source.flush()
