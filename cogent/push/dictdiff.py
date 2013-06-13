@@ -21,9 +21,16 @@ Example Use
 
 >>> basedict = {1:"foo", 2:"bar", 3:"baz"}
 >>> otherdict = {1:"foo", 2:"bar", 3:"baz"}
-
-#Compare for Equality
 >>> dd = DictDiff(basedict, otherdict)
+>>> dd.added()
+set([])
+>>> dd.removed()
+set([])
+>>> dd.changed()
+set([])
+>>> dd.unchanged()
+set([1, 2, 3])
+>>> 
 
 
 """
@@ -40,6 +47,8 @@ class DictDiff(object):
 
         ..param mine::  The base dictionary
         ..param other:: Dictionary to compare to
+
+
         """
 
         self.mine, self.other = mine, other
@@ -50,22 +59,37 @@ class DictDiff(object):
         self.intersect = self.set_mine.intersection(self.set_other)
 
     def added(self):
-        """Find items added to the second dictionary.
+        """Find items added to the base dictionary.
 
-        This will return a set of items that are in "other",
-        that are not in "mine"
+        This will return a set of keys for items that are in "mine",
+        that are not in "other"
 
         :return: set of new items
+
+        >>> basedict = {1:"foo", 2:"bar", 3:"baz"}
+        >>> otherdict = {1:"foo", 2:"bar"}
+        >>> dd = DictDiff(basedict,otherdict)
+        >>> dd.added()
+        set([3])
+
+
         """
         return self.set_mine - self.intersect
 
 
     def removed(self):
-        """Return items that have been removed from the dictionary.
+        """Return items that have been removed from the dictionary base dictionary.
 
-        Will return a set of items that are in "mine" but not in "other"
+        This will return a set of keys for items that are in "other",
+        that are not in "mine"
 
-        :return: set of removed items
+        :return: set of removed keys for items
+
+        >>> basedict = {1:"foo", 2:"bar"}
+        >>> otherdict = {1:"foo", 2:"bar", 3:"baz"}
+        >>> dd = DictDiff(basedict,otherdict)
+        >>> dd.removed()
+        set([3])
         """
         return self.set_other - self.intersect
 
@@ -73,6 +97,24 @@ class DictDiff(object):
         """Return items that have changed between dictionarys
 
         :return: Set of items where the key,value pairs differ.
+
+        >>> basedict = {1:"foo", 2:"bar", 3:"baz"}
+        >>> otherdict = {1:"foo", 2:"bar", 3:"bleh"}
+        >>> dd = DictDiff(basedict,otherdict)
+
+        >>> #Added will not show any values as the set of keys match
+        >>> dd.added()
+        set([])
+
+        >>> # Neither will removed
+        >>> dd.removed()
+        set([])
+        
+        >>> #However Changed will show where the values have changed
+        >>> dd.changed()
+        set([3])
+
+
         """
         changed = [x for x in self.intersect if self.other[x] != self.mine[x]]
         return set(changed)
@@ -84,3 +126,8 @@ class DictDiff(object):
         """
         unchanged = [x for x in self.intersect if self.other[x] == self.mine[x]]
         return set(unchanged)
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
