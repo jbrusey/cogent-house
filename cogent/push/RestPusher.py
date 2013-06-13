@@ -61,12 +61,12 @@ class MappingError(Exception):
         msg  -- explanation of the error
     """
 
-    def __init__(self, expr,msg):
+    def __init__(self, expr, msg):
         self.expr = expr
         self.msg = msg
 
     def __str__(self):
-        return "\n{0}\n{1}".format(self.msg,self.expr)
+        return "\n{0}\n{1}".format(self.msg, self.expr)
 
 class PushServer(object):
     """
@@ -102,14 +102,15 @@ class PushServer(object):
         configParser = configobj.ConfigObj("synchronise.conf")
         self.configParser = configParser
 
-        #Process General Configuration Options and Initialise Local Database connection.
+        #Process General Configuration Options and
+        #Initialise Local Database connection.
         log.info("Processing Global Configuration options")
         generalOptions = configParser["general"]
-        
+
         #Local Database Connection
         if not localURL:
             localURL = generalOptions["localUrl"]
-        
+
         log.debug("Connecting to local database at {0}".format(localURL))
 
         #Initialise the local database connection
@@ -133,9 +134,6 @@ class PushServer(object):
                                          ""]
 
         #Next we want to queue up all the remote URLS we wish to push to.
-
-        
-
         self.QueueLocations(configParser,mappingConfig,pushLimit)
 
     def QueueLocations(self,configParser,mappingConfig,pushLimit):
