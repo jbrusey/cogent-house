@@ -395,7 +395,7 @@ class Pusher(object):
 
         log.debug("Performing sync")
 
-        if ! self.checkConnection():
+        if not self.checkConnection():
             return False
 
 
@@ -1148,4 +1148,4 @@ if __name__ == "__main__":
     logging.debug("Testing Push Classes")
 
     server = PushServer()
-    exit(! server.sync()) # exit with 1 if false
+    exit(not server.sync()) # exit with 1 if false
