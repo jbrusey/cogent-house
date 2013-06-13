@@ -377,7 +377,9 @@ def init_data(session=False):
     if not session:
         session = meta.Session()
     
+    LOG.debug("Populate Sensor Types")
     populateSensorTypes(session = session)
+    LOG.debug("Populate Room Types")
     populateRoomTypes(session = session)
     populateCalibration(session = session)
     LOG.debug("Database Population Complete")
