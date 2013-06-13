@@ -13,27 +13,6 @@ This expects two databases to be available.
 import unittest
 from datetime import datetime, timedelta
 
-import sqlalchemy
-import cogent
-import cogent.base.model as models
-import cogent.base.model.meta as meta
-
-import RestPusher
-
-#ENGINE URLS
-#SINKURL = "mysql://chuser@localhost/pushSink"
-#SOURCEURL = "mysql://chuser@localhost/pushSource"
-SINKURL = "sqlite://"
-SOURCEURL = "sqlite://"
-
-#Create our engines
-sinkengine = sqlalchemy.create_engine(SINKURL)
-sinksession = sqlalchemy.orm.sessionmaker(bind=sinkengine)
-
-sourceengine = sqlalchemy.create_engine(SOURCEURL)
-sourcesession = sqlalchemy.orm.sessionmaker(bind=sourceengine)
-
-
 import logging
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
@@ -41,22 +20,71 @@ logging.basicConfig(level=logging.DEBUG,
                     )
 
 
+import sqlalchemy
 
-class TestPush(unittest.TestCase):
+import cogent
+import cogent.base.model as models
+import cogent.base.model.meta as meta
+import cogent.base.model.populateData as populateData
+import cogent.push.RestPusher
+
+BASE = meta.Base
+
+
+#ENGINE URLS
+#SINKURL = "mysql://chuser@localhost/pushSink"
+#SOURCEURL = "mysql://chuser@localhost/pushSource"
+
+logging.debug("Creating Engines")
+SINKURL = "sqlite:///sink_test.db"
+SOURCEURL = "sqlite:///source_test.db"
+
+#Create our engines
+logging.debug("-> Sink Engine")
+
+sinkengine = sqlalchemy.create_engine(SINKURL)
+sinksession = sqlalchemy.orm.sessionmaker(bind=sinkengine)
+models.init_model(sinkengine)
+#Create Tables
+logging.debug("--> Creating Tables")
+BASE.metadata.create_all(sinkengine)
+logging.debug("--> Initialising Data")
+session = sinksession()
+populateData.init_data(session)
+session.commit()
+
+logging.debug("-> Source Engine")
+sourceengine = sqlalchemy.create_engine(SOURCEURL)
+sourcesession = sqlalchemy.orm.sessionmaker(bind=sourceengine)
+models.init_model(sourceengine)
+#Create Tables
+logging.debug("--> Creating Tables")
+BASE.metadata.create_all(sourceengine)
+logging.debug("--> Initialising Data")
+session = sourcesession()
+populateData.init_data(session)
+session.commit()
+
+logging.debug("Engines Created")
+
+
+
+
+# class TestPush(unittest.TestCase):
     
-    @classmethod
-    def setUpClass(self):
-        """Check the setup works and that everything is how we expect it to be"""
+#     @classmethod
+#     def setUpClass(self):
+#         """Check the setup works and that everything is how we expect it to be"""
 
-        #Create a Push Server
+#         #Create a Push Server
 
-        theServer = RestPusher.PushServer()
-        print theServer
+#         theServer = RestPusher.PushServer()
+#         print theServer
 
-        #Hack to get the Pusher Object
-        thePusher = theServer.syncList[0]
-        print thePusher
-        self.thePusher = thePusher
+#         #Hack to get the Pusher Object
+#         thePusher = theServer.syncList[0]
+#         print thePusher
+#         self.thePusher = thePusher
         
 #     @unittest.skip
 #     def test_sensortypes(self):
