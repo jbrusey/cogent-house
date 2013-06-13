@@ -1,122 +1,57 @@
 """
-Modified version of the push script that will fetch all items,
-convert to JSON and (eventually) transfer across REST
+Script to push data to a remote server using REST
 
-This replaces the ssh tunnel database access currently used to transfer samples.
+.. codeauthor:: Daniel Goldsmith <djgoldsmith@googlemail.com>
 
-    .. note::
-
-        I currently add 1 second to the time the last sample was transmitted,
-        this means that there is no chance that the query to get readings will
-        return an item that has all ready been synced, leading to an integrity
-        error.
-
-        I have tried lower values (0.5 seconds) but this pulls the last synced
-        item out, this is possibly a error induced by mySQL's datetime not
-        holding microseconds.
-
-    .. since 0.1.0::
-
-       Moved ssh port forwarding to paramiko (see sshclient class) This should
-       stop the errors when there is a connection problem.
-
-    .. since 0.1.1::
-
-       * Better error handling
-       * Pagination for sync results, transfer at most PUSH_LIMIT items at a
-         time.
-
-    .. since 0.1.2::
-
-       Moved Nodestate Sync into the main readings sync class, this should stop
-       duplicate nodestates turning up if there is a failure
-
-    .. since 0.2.0::
-
-       Overhaul of the system to make use of REST to upload samples rather than
-       transfer data across directly.
-
-    .. since 0.2.1::
-
-       Make use of an .ini style config file to set everything up
-
-       Split functionality into a Daemon, and Upload classes.  This should
-       make maintenance of any local mappings a little easier to deal with.
-
-   .. since 0.2.2::
-       
-       New Functionality to manually sync a database from scratch
-       Some Changes to logging functionality
-
-   .. since 0.3.0::
-   
-      Changed to upload readings by house.
-      Modified initialisation to be a little more same
-   
-   .. since 0.3.1::
-   
-      Mapping configuration file added
-      0.7.1  Update so logging also goes to file
-      0.7.2  Bigfix for Null items in HouseId etc
-   
-   .. since 0.3.2::
-
-      Some Code broken into seperate functions, to make interitance for the Samson Pusher class a little easier.
-      Examples of this include Pusher.CreateEngine() and Pusher.Queue()
-
-   .. since 0.3.3::
-   
-      Moved from rest_client to requests,  This should avoid the "broken pipe" error.
-
-   .. since 0.3.4::
-   
-      Now use GZIP compression for bulk uploads
-   
+.. version:: 0.3.5
 """
 
+__version__ = "0.3.5"
+
+#Setup Logging
 import logging
+import logging.handlers
+
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
                     datefmt = "%m-%d-%Y %H:%M",
                     )
-#Add a File hander
-#fh = logging.FileHandler("push_out.log")
-logsize = (1024*1024) * 5 #5Mb Logs
 
-import logging.handlers
-fh = logging.handlers.RotatingFileHandler("push_test.log",maxBytes=logsize,backupCount = 5)
+#Add a File hander (Max of 5 * 5MB Logfiles)
+logsize = (1024*1024) * 5 #5Mb Logs
+fh = logging.handlers.RotatingFileHandler("push.log",
+                                          maxBytes=logsize,
+                                          backupCount = 5)
 fh.setLevel(logging.INFO)
 
+#Formatter
 fmt = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
 fh.setFormatter(fmt)
 
-__version__ = "0.3.4"
-
-import sqlalchemy
-
-import cogent
-
-import cogent.base.model as models
-
-import cogent.base.model.meta as meta
-from datetime import timedelta
-
+#Python Std Imports
 import time
-
+from datetime import timedelta
 import os.path
 import configobj
 import zlib
+import sys
 
+#Library Imports
+import sqlalchemy
 import dateutil.parser
 import json
 import urllib
-
 import requests
+
+#Local Imports
+import cogent
+import cogent.base.model as models
+import cogent.base.model.meta as meta
+
+
 #Disable Requests Logging
 requests_log = logging.getLogger("requests")
 requests_log.setLevel(logging.WARNING)
-
-import sys
 
 #Class to compare dictionary obejcts
 class DictDiff(object):
