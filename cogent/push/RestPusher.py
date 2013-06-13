@@ -93,37 +93,24 @@ fh.setFormatter(fmt)
 __version__ = "0.3.4"
 
 import sqlalchemy
-
-import cogent
-
 import cogent.base.model as models
-
-import cogent.base.model.meta as meta
-from datetime import timedelta
-
 import time
-
-import os.path
 import configobj
 import zlib
-
 import dateutil.parser
 import json
 import urllib
-
 import requests
 #Disable Requests Logging
 requests_log = logging.getLogger("requests")
 requests_log.setLevel(logging.WARNING)
 
-import sys
-
 #Class to compare dictionary obejcts
 class DictDiff(object):
     """
-    Check two dictionarys and calculate differences between them
+    Check two dictionaries and calculate the differences between them
     """
-    def __init__(self,mine,other):
+    def __init__(self, mine, other):
         self.mine, self.other = mine,other 
         #Set of keys in each dict
         self.set_mine = set(mine.keys())
@@ -149,13 +136,13 @@ class DictDiff(object):
         return self.set_other - self.intersect
    
     def changed(self):
-        """Return items that have changed between dictionarys"""
+        """Return items that have changed between dictionaries"""
         changed = [x for x in self.intersect if self.other[x] != self.mine[x]]
         #print changed
         return set(changed)
 
     def unchanged(self):
-        """Return items that are the same between dictionarys"""
+        """Return items that are the same between dictionaries"""
         unchanged = [x for x in self.intersect if self.other[x] == self.mine[x]]
         return set(unchanged)
         
@@ -168,6 +155,7 @@ class MappingError(Exception):
     """
 
     def __init__(self, expr,msg):
+        Exception.__init__(msg)
         self.expr = expr
         self.msg = msg
 
@@ -197,55 +185,53 @@ class PushServer(object):
                         This can be used to overwrite the url in the config file
         """
 
+        self.syncList = None
+        self.localSession = None
         #Create Logging
         self.log = logging.getLogger("Push Server")
         log = self.log
         log.addHandler(fh)
-        log.info("="*70)
-        log.info("Initialising Push Server")
+        #log.info("="*70)
+        log.info("Initialising push server")
 
         #Load and Read the Configuration files
         configParser = configobj.ConfigObj("synchronise.conf")
         self.configParser = configParser
 
         #Process General Configuration Options and Initialise Local Database connection.
-        log.info("Processing Global Configuration options")
+        log.info("Processing global configuration options")
         generalOptions = configParser["general"]
         
         #Local Database Connection
         if not localURL:
             localURL = generalOptions["localUrl"]
         
-        log.debug("Connecting to local database at {0}".format(localURL))
+        log.debug("Connecting to local database at {}".format(localURL))
 
         #Initialise the local database connection
         self.createEngine(localURL)
 
-        localSession = self.localSession
         #We also need to know the "Limit" on items to push
         pushLimit = generalOptions["pushlimit"]
-        log.debug("Push Limit is {0}".format(pushLimit))
+        log.debug("Push limit is {}".format(pushLimit))
 
         #Open / Build a config object to store mappings for this location
-        mappingName = "{0}_Map.conf".format(localURL.split("@")[-1])
+        mappingName = "{}_Map.conf".format(localURL.split("@")[-1])
         mappingName = mappingName.replace("/","-")
-        log.debug("Open Config Object for {0}".format(mappingName))
+        log.debug("Open config object for {}".format(mappingName))
         mappingConfig = configobj.ConfigObj(mappingName)
         #mappingConfig.filename = mappingName
         #Append a warning to the start of the config file
-        mappingConfig.initial_comment = ["This file holds details of mappings between local and remote objects",
-                                         "It is strongly recommended that you do not edit!!",
-                                         "I take no responsibility for Bad Things(TM) happening if changes are made",
+        mappingConfig.initial_comment = ["This file holds details of mappings between local and remote objects.",
+                                         "It is strongly recommended that you do not edit it.",
                                          ""]
 
         #Next we want to queue up all the remote URLS we wish to push to.
-
-        
         self.QueueLocations(configParser,mappingConfig,pushLimit)
 
     def QueueLocations(self,configParser,mappingConfig,pushLimit):
         """
-        Function to enque a set of locations that the push server is to push to
+        Function to enqueue a set of locations that the push server is to push to
 
         :param configParser: Config parser object we are reading from
         :param mappingConfig: Config parser object we are writing to
@@ -325,7 +311,7 @@ class Pusher(object):
         :param dbConfig: Config Parser that holds details of mappings for the DB we are synching
         :param pushLimit: Number of samples to transfer in each "Push"
         """
-
+        self.firstUpload = None
         self.log = logging.getLogger("Pusher")
         #self.log.setLevel(logging.INFO)
         self.log.setLevel(logging.WARNING)
@@ -379,18 +365,18 @@ class Pusher(object):
         self.Node = models.Node
         self.Location = models.Location
 
+    # NOTE: this code removed as it is not used
+    # def checkConnection(self):
+    #     #Do we have a connection to the server
+    #     log = self.log
 
-    def checkConnection(self):
-        #Do we have a connection to the server
-        log = self.log
-
-        restSession = self.restSession
-        restQry = restSession.request_get("/deployment/0")
-        if restQry["headers"]["status"] == "503":
-            log.warning("No Connection to server available")
-            return False
-        log.debug("Connection to rest server OK")
-        return True
+    #     restSession = self.restSession
+    #     restQry = restSession.request_get("/deployment/0")
+    #     if restQry["headers"]["status"] == "503":
+    #         log.warning("No Connection to server available")
+    #         return False
+    #     log.debug("Connection to rest server OK")
+    #     return True
 
 
     def sync(self):
@@ -418,13 +404,12 @@ class Pusher(object):
 
         session = self.localSession()
         houses = session.query(self.House)   
-        mappingConfig = self.mappingConfig
 
         ##FIXME
         for item in houses:
-           log.info("Synchronising Readings for House {0}".format(item))
-           #Look for the Last update
-           self.uploadReadings(item)
+            log.info("Synchronising Readings for House {0}".format(item))
+            #Look for the Last update
+            self.uploadReadings(item)
 
         #Then upload the node Sttes
         self.uploadNodeStates()
@@ -529,15 +514,15 @@ class Pusher(object):
         log.debug("Added, {0}".format(added))
 
         for item in added:
-           thisItem = remoteTypes[item]
-           origId = thisItem.id
-           log.info("Item {0} Not on local Database".format(thisItem))
-           #We need to remove the Id so that we do not overwrite anything in the DB 
-           thisItem.id = None
-           session.add(thisItem)
-           session.flush()
-           log.info("New Id {0}".format(thisItem))
-           mergedItems[origId] = thisItem.id
+            thisItem = remoteTypes[item]
+            origId = thisItem.id
+            log.info("Item {0} Not on local Database".format(thisItem))
+            #We need to remove the Id so that we do not overwrite anything in the DB 
+            thisItem.id = None
+            session.add(thisItem)
+            session.flush()
+            log.info("New Id {0}".format(thisItem))
+            mergedItems[origId] = thisItem.id
 
         session.commit()
         
@@ -604,7 +589,6 @@ class Pusher(object):
 
         localQry = session.query(self.Room)
         #Dictionary of local Types
-        localTypes = dict([(x.name,x) for x in localQry])
 
         tmpTypes = {}
         for item in localQry:
@@ -699,7 +683,7 @@ class Pusher(object):
             #print theUrl
             dictItem = theItem.toDict()
             #We then Post the New Item to the Remote DBString
-            r= requests.post(theUrl,data=json.dumps(dictItem))
+            requests.post(theUrl,data=json.dumps(dictItem))
             #log.debug(r)
             #print dictItem
 
@@ -798,7 +782,6 @@ class Pusher(object):
         lSess = self.localSession()
 
         #log.debug("Loading Known Houses from config file")
-        mappingConfig = self.mappingConfig
         #configHouses = mappingConfig.get("house",{})
         #mappedHouses.update(dict([(int(k),v) for k,v in configHouses.iteritems()]))
 
@@ -1163,8 +1146,6 @@ class Pusher(object):
   
 
 if __name__ == "__main__":
-    import datetime
-    import pickle
     logging.debug("Testing Push Classes")
 
     server = PushServer()
