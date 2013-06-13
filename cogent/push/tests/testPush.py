@@ -107,7 +107,7 @@ class TestPush(unittest.TestCase):
         log.info("Test Server is {0}".format(theServer))
 
         #Hack to get the Pusher Object
-        thePusher = theServer.syncList[0]
+        thePusher = theServer.synclist[0]
         log.info("Test Pusher is {0}".format(thePusher))
         self.thePusher = thePusher
 
@@ -127,7 +127,7 @@ class TestPush(unittest.TestCase):
         self.assertEqual(source_data,sink_data)
         
         #What we want to to is test the syncList
-        out = self.thePusher.syncSensorTypes()
+        out = self.thePusher.sync_sensortypes()
         log.info("-- OUT {0}".format(out))
 
         self.assertTrue(out)
@@ -151,7 +151,7 @@ class TestPush(unittest.TestCase):
 
         #What we want to to is test the syncList
         log.debug("---> Synchronising Data")
-        out = self.thePusher.syncSensorTypes()
+        out = self.thePusher.sync_sensortypes()
         log.info("-- OUT {0}".format(out))
 
         #And Also fetch that particular sensor
@@ -169,7 +169,7 @@ class TestPush(unittest.TestCase):
         sink.commit()
 
         #What we want to to is test the syncList
-        out = self.thePusher.syncSensorTypes()
+        out = self.thePusher.sync_sensortypes()
         #print "-- OUT {0}".format(out)
 
         source = self.sourcesession()
@@ -200,7 +200,7 @@ class TestPush(unittest.TestCase):
         sink_data = sink.query(models.RoomType).all()
 
         self.assertEqual(source_data, sink_data)
-        out = self.thePusher.syncRoomTypes()        
+        out = self.thePusher.sync_roomtypes()        
        
         #Now Add a new Sensor to the Local DB
         localItem = models.RoomType(id=1000,name="TEST")
@@ -208,7 +208,7 @@ class TestPush(unittest.TestCase):
         source.flush()
         source.commit()
 
-        out = self.thePusher.syncRoomTypes()
+        out = self.thePusher.sync_roomtypes()
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -223,7 +223,7 @@ class TestPush(unittest.TestCase):
         sink.flush()
         sink.commit()
 
-        out = self.thePusher.syncRoomTypes()
+        out = self.thePusher.sync_roomtypes()
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -247,7 +247,7 @@ class TestPush(unittest.TestCase):
         """And Syncing room types"""
         
         #We need to sync room types so the Ids work properly
-        self.thePusher.syncRoomTypes()    
+        self.thePusher.sync_roomtypes() # 
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -271,7 +271,7 @@ class TestPush(unittest.TestCase):
 
         self.assertEqual(source_data, sink_data)
 
-        out = self.thePusher.syncRooms()        
+        out = self.thePusher.sync_rooms()        
         
         #Now Add a new Sensor to the Local DB
         localItem = models.Room(id=1000, roomTypeId = 1, name="TEST")
@@ -280,7 +280,7 @@ class TestPush(unittest.TestCase):
         source.commit()
 
         self.log.debug("== Local Item is {0}".format(localItem))
-        out = self.thePusher.syncRooms()
+        out = self.thePusher.sync_rooms()
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -296,7 +296,7 @@ class TestPush(unittest.TestCase):
         sink.flush()
         sink.commit()
 
-        out = self.thePusher.syncRooms()
+        out = self.thePusher.sync_rooms()
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -349,7 +349,7 @@ class TestPush(unittest.TestCase):
         source.commit()
 
         self.log.debug("== Local Item is {0}".format(localItem))
-        out = self.thePusher.syncDeployments()
+        out = self.thePusher.sync_deployments()
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -365,7 +365,7 @@ class TestPush(unittest.TestCase):
         sink.flush()
         sink.commit()
 
-        out = self.thePusher.syncDeployments()
+        out = self.thePusher.sync_deployments()
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -415,7 +415,7 @@ class TestPush(unittest.TestCase):
         source.commit()
 
         self.log.debug("== Local Item is {0}".format(localItem))
-        out = self.thePusher.syncNodes()
+        out = self.thePusher.sync_nodes()
 
         source = self.sourcesession()
         sink = self.sinksession()
@@ -432,7 +432,7 @@ class TestPush(unittest.TestCase):
         sink.flush()
         sink.commit()
         
-        out = self.thePusher.syncNodes()
+        out = self.thePusher.sync_nodes()
     
         source = self.sourcesession()
         sink = self.sinksession()
@@ -519,15 +519,15 @@ class TestPush(unittest.TestCase):
         #Then Do the Preliminary Sync
         pusher = self.thePusher
 
-        pusher.syncSensorTypes() #TST
-        pusher.syncRoomTypes() #TST 
-        pusher.syncRooms()  #TST
-        pusher.syncDeployments() #TST
-        pusher.syncNodes()
-        pusher.loadMappings()
+        pusher.sync_sensortypes() #TST
+        pusher.sync_roomtypes() #TST 
+        pusher.sync_rooms()     #TST
+        pusher.sync_deployments() #TST
+        pusher.sync_nodes()
+        pusher.load_mappings()
 
         #And upload the Readings
-        pusher.uploadReadings(theHouse)
+        pusher.upload_readings(theHouse)
 
         #Now we need to check all the items arrived as expected
         source = self.sourcesession()
@@ -544,7 +544,7 @@ class TestPush(unittest.TestCase):
         startDate = datetime.datetime.now()
 
         ITEMS = 50
-        for x in range(5):
+        for x in range(1):
             session = self.sourcesession()
             log.debug("Repeating {0} ".format(x))
             for x in range(ITEMS):
@@ -561,8 +561,8 @@ class TestPush(unittest.TestCase):
                 session.commit() 
 
             #And upload the Readings
-            pusher.loadMappings()
-            pusher.uploadReadings(theHouse)
+            pusher.load_mappings()
+            pusher.upload_readings(theHouse)
 
             #Now we need to check all the items arrived as expected
             source = self.sourcesession()
