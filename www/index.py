@@ -709,16 +709,19 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
         ed = ed + timedelta(days=1)
 
         #construct query
-        exportData = session.query(Reading.nodeId,Reading.time,Reading.value * Sensor.calibrationSlope + Sensor.calibrationOffset).join(
-            Sensor, and_(Sensor.nodeId == Reading.nodeId,
-                         Sensor.sensorTypeId == Reading.typeId)).filter(
-            and_(Reading.typeId == st,
-                 Reading.time >= sd,
-                 Reading.time < ed)).order_by(Reading.nodeId,Reading.time).all()
+        exportData = (session.query(Reading.nodeId,Reading.time,Reading.value)
+                      .filter(and_(Reading.typeId == st,
+                                   Reading.time >= sd,
+                                   Reading.time < ed))
+                      .order_by(Reading.nodeId,Reading.time).all())
         if len(exportData) == 0:
             return _redirect(_url("exportDataForm", [('err', 'nodata')]))
         req.content_type = "text/csv"
-        return "".join(['%d,"%s",%s\n' % (n, t, v) for n, t, v in exportData])
+        csv_file = ['# cogent-house export of {} from {} to {}\n'
+                    .format(_get_y_label(st, session=session),
+                            sd, ed)]
+        csv_file.extend(['%d,"%s",%s\n' % (n, t, v) for n, t, v in exportData])
+        return "".join(csv_file)
         # csvStr=""
         # for rn,rt,rv in exportData:
         #     csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
@@ -1348,17 +1351,14 @@ def _calibrate(session,v,node,typ):
         return v
 
 
-def _get_y_label(reading_type):
+def _get_y_label(reading_type, session=None):
     try:
-        session = Session()
         thistype = (session.query(SensorType.name, SensorType.units)
                     .filter(SensorType.id==int(reading_type))
             .one())
-        return "{0[0]} {0[1]}".format(thistype)
+        return "{0[0]} ({0[1]})".format(thistype)
     except NoResultFound:
         return "unknown"
-    finally:
-        session.close()
 
 
 def _plot(typ, t, v, startts, endts, debug, fmt):
@@ -1452,6 +1452,7 @@ def _plot_splines(node_id,
                   start_time,
                   end_time,
                   debug,
+                  y_label,
                   fmt):
     """ plot splines using PartSplineReconstruct generator.  Rather
     than using matplotlib splines, a series of LINETO path elements
@@ -1523,7 +1524,7 @@ def _plot_splines(node_id,
     fig.autofmt_xdate()
     ax.set_xlabel("Date")
 
-    ax.set_ylabel(_get_y_label(reading_type))
+    ax.set_ylabel(y_label)
 
     image = cStringIO.StringIO()
     fig.savefig(image, **_SAVEFIG_ARGS)
@@ -1587,6 +1588,7 @@ def graph(req,
                                startts,
                                endts,
                                debug,
+                               _get_y_label(type_id, session),
                                fmt)
 
         req.content_type = res[0]
@@ -1680,7 +1682,7 @@ def bathElecImg(req,
 
             fig.autofmt_xdate()
             ax.set_xlabel("Date")
-            ax.set_ylabel(_get_y_label(11))
+            ax.set_ylabel("Electricity")
 
             if len(t2) > 0:
                 ax2 = ax.twinx()
