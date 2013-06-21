@@ -231,7 +231,7 @@ class Pusher(object):
 
         log.debug("Initialising Push Object")
         #Save the Parameters
-        self.localSession = localSession
+        self.localsession = localSession
         self.pushLimit = pushLimit
 
         log.debug("Starting REST connection for {0}".format(restUrl))
@@ -299,9 +299,10 @@ class Pusher(object):
         #Moved here for the Sampson Version
         self.sync_nodes()
 
+        return
         session = self.localsession()
         houses = session.query(self.House)
-        mappingconfig = self.mappingconfig
+        mappingconfig = self.mappingConfig
 
         for item in houses:
             log.info("Synchronising Readings for House {0}".format(item))
@@ -312,7 +313,7 @@ class Pusher(object):
         self.upload_nodestate()
         self.save_mappings()
 
-    def loadMappings(self):
+    def load_mappings(self):
         """Load known mappings from the config file,
         then update with new mappings"""
         log = self.log
@@ -402,7 +403,7 @@ class Pusher(object):
                  Local and Remote DB
         """
         log = self.log
-        session = self.localSession()
+        session = self.localsession()
 
         theDiff = DictDiff(remoteTypes, localTypes)
 
@@ -461,7 +462,7 @@ class Pusher(object):
     def sync_roomtypes(self):
         """Synchronise Room Types"""
         log = self.log
-        session = self.localSession()
+        session = self.localsession()
         log.debug("--> Synchronising Room Types")
         #First we need to map room Types
 
@@ -493,7 +494,7 @@ class Pusher(object):
         abailable in every database.
         """
         log = self.log
-        session = self.localSession()
+        session = self.localsession()
         log.info("--> Synching Rooms")
         mappedRoomTypes = self.mappedRoomTypes
 
@@ -533,7 +534,7 @@ class Pusher(object):
         #First we need to map room Types
         log = self.log
         log.debug("Mapping Sensors between databases")
-        session = self.localSession()
+        session = self.localsession()
 
         #Fetch the sensor types from the remote Database
         theUrl = "{0}{1}".format(self.restUrl, "sensortype/")
@@ -604,7 +605,7 @@ class Pusher(object):
         log = self.log
         log.debug("----- Mapping Deployments ------")
         mappedDeployments = self.mappedDeployments
-        session = self.localSession()
+        session = self.localsession()
 
         #Fetch the room types from the remote Database
         theUrl = "{0}deployment/".format(self.restUrl)
@@ -627,7 +628,7 @@ class Pusher(object):
         log.debug("----- Mapping Houses ------")
         mappedDeployments = self.mappedDeployments
         mappedHouses = self.mappedHouses
-        lSess = self.localSession()
+        lSess = self.localsession()
 
         #log.debug("Loading Known Houses from config file")
         mappingConfig = self.mappingConfig
@@ -666,7 +667,7 @@ class Pusher(object):
         #Synchronise Locations
         log = self.log
         log.debug("----- Syncing Locations ------")
-        lSess = self.localSession()
+        lSess = self.localsession()
 
         #Get the list of deployments that may need updating
         #Deployment = models.Deployment
@@ -727,7 +728,7 @@ class Pusher(object):
         log = self.log
 
         log.debug("----- Syncing Nodes ------")
-        session = self.localSession()
+        session = self.localsession()
 
         #Get Local Nodes
         theQry = session.query(self.Node)
@@ -768,6 +769,9 @@ class Pusher(object):
             theUrl = "{0}node/".format(self.restUrl)
             log.info("Node {0} Not in Remote Db, Uploading".format(item))
             dictItem= thisItem.toDict()
+            dictItem["locationId"] = None
+            dictItem["nodeTypeId"] = None
+            log.debug("--> New Node is {0}".format(dictItem))
             r = requests.post(theUrl,data=json.dumps(dictItem))
             log.debug(r)
 
@@ -779,7 +783,7 @@ class Pusher(object):
         log = self.log
         log.info("---- Upload Node States ----")
 
-        session = self.localSession()
+        session = self.localsession()
 
         #Get the last state upload
         mappingConfig = self.mappingConfig
@@ -894,7 +898,7 @@ class Pusher(object):
         self.firstUpload = lastUpdate
 
         #Get the last reading for this House
-        session = self.localSession()
+        session = self.localsession()
 
         #As we should be able to trust the last update field of the config file.
         #Only request the last sample from the remote DB if this does not exist.
