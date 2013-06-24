@@ -64,15 +64,15 @@ class SensorType(meta.Base, meta.InnoDBMix):
     def __eq__(self, other):
         """Test for equality"""
         return self.id == other.id and \
-            self.name == other.name and \
-            self.code == other.code and \
-            self.units == other.units
+            self.name == other.name #and \
+            #self.code == other.code and \
+            #self.units == other.units
 
     def __ne__(self, other):
         return not(self.id == other.id and \
-                       self.name == other.name and \
-                       self.code == other.code and \
-                       self.units == other.units)
+                       self.name == other.name) #and \
+                       #self.code == other.code and \
+                       #self.units == other.units)
 
     def __lt__(self, other):
         if self.id == other.id:

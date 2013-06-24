@@ -37,6 +37,9 @@ set([1, 2, 3])
 
 __version__ = "0.0.2"
 
+import logging
+log = logging.getLogger("DiffDict")
+
 class DictDiff(object):
     """
     Check two dictionarys and calculate differences between them.
@@ -50,13 +53,16 @@ class DictDiff(object):
 
 
         """
-
+        #log.debug("==== DiffDict Created ====")
         self.mine, self.other = mine, other
         #Set of keys in each dict
         self.set_mine = set(mine.keys())
         self.set_other = set(other.keys())
         #Intersection between keys
         self.intersect = self.set_mine.intersection(self.set_other)
+        #log.debug("===SET Mine {0}".format(self.set_mine))
+        #log.debug("===SET Other {0}".format(self.set_other))
+        #log.debug("===Intersect {0}".format(self.intersect))
 
     def added(self):
         """Find items added to the base dictionary.
@@ -116,7 +122,15 @@ class DictDiff(object):
 
 
         """
+        #Lets do this bit by bit:
+        changed = []
+        #for x in self.intersect:
+        #    match = not self.other[x] == self.mine[x]
+        #    log.debug("Compare {0} == {1} # {2}".format(self.other[x],self.mine[x],match))
+        #    if match:
+        #        changed.append(x)
         changed = [x for x in self.intersect if self.other[x] != self.mine[x]]
+        #log.debug("CHANGED ==== {0}".format(changed))
         return set(changed)
 
     def unchanged(self):
