@@ -53,12 +53,14 @@ class House(meta.Base, meta.InnoDBMix):
 
     def __eq__(self, other):
 
-        return (self.address == other.address and
+        return (#self.id == other.id and 
+                self.address == other.address and
                 self.startDate == other.startDate and
                 self.endDate == other.endDate)
 
     def __ne__(self, other):
-        return not(self.address == other.address and
+        return not(#self.id == other.id and 
+                   self.address == other.address and
                    self.startDate == other.startDate and
                    self.endDate == other.endDate)
 

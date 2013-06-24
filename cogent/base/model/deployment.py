@@ -76,14 +76,14 @@ class Deployment(meta.Base, meta.InnoDBMix):
         Given that Deployment Names should be Unique,
         equality is given if the names match
         """
-        return self.name == other.name
-        #return (self.id == other.id) and (self.name == other.name)
+        #return self.name == other.name
+        return ((self.id == other.id) and (self.name == other.name))
 
 
     def __ne__(self, other):
         """Check for Inequality"""
-        return not(self.name == other.name)
-        #return not(self.id == other.id and self.name == other.name)
+        #return not(self.name == other.name)
+        return not(self.id == other.id and self.name == other.name)
 
     def __lt__(self, other):
         """Order Objects,

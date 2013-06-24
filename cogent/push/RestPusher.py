@@ -299,18 +299,19 @@ class Pusher(object):
         #Moved here for the Sampson Version
         self.sync_nodes()
 
-        return
+
         session = self.localsession()
         houses = session.query(self.House)
         mappingconfig = self.mappingConfig
 
+        #sys.exit(0)
         for item in houses:
             log.info("Synchronising Readings for House {0}".format(item))
             #Look for the Last update
             self.upload_readings(item)
 
         #Then upload the node Sttes
-        self.upload_nodestate()
+        #self.upload_nodestate()
         self.save_mappings()
 
     def load_mappings(self):
@@ -564,6 +565,8 @@ class Pusher(object):
         if changedItems:
             log.warning("Sensor Types with mathching Id's but different Names")
             log.warning(changedItems)
+            #log.warning("Remote is {0}".format(remoteTypes[changedItems[0]]))
+            #log.warning("local is {0}".format(localTypes[changedItems[1]]))
             raise(MappingError(changedItems,
                                "Diffrent Sensor Types with Same ID"))
 
@@ -613,13 +616,24 @@ class Pusher(object):
         remoteQry = requests.get(theUrl)
         jsonBody = remoteQry.json()
         restItems = self.unpackJSON(jsonBody)
+        #remoteTypes = dict([(x.name, x) for x in restItems])
         remoteTypes = dict([(x.name, x) for x in restItems])
 
         #Fetch Local Version of room types
         localQry = session.query(self.Deployment)
         localTypes = dict([(x.name, x) for x in localQry])
 
+        # log.debug("------ REMOTE ------")
+        # for key,item in remoteTypes.iteritems():
+        #     log.debug("--> '{0}' {1}".format(key,item))
+        
+        # log.debug("------ LOCAL -------")
+        # for key,item in localTypes.iteritems():
+        #     log.debug("--> '{0}' {1}".format(key,item))
+
         mappedDeployments = self._syncItems(localTypes,remoteTypes,theUrl)
+        log.debug("Mapped Deployments are {0}".format(mappedDeployments))
+
         self.mappedDeployments = mappedDeployments
 
     def mapHouses(self):
@@ -835,7 +849,11 @@ class Pusher(object):
                     origCount))
 
             #Convert to REST
-            jsonList = [x.toDict() for x in theState]
+            jsonList = []
+            for x in theState:
+                theItem = x.toDict() 
+                theItem["id"] = None
+                jsonList.append(theItem)
             lastSample = theState[-1].time
             log.debug("Last State in List {0}".format(lastSample))
 
@@ -905,6 +923,7 @@ class Pusher(object):
 
         if lastUpdate is None:
             log.info("--> Requesting date of last reading in Remote DB")
+            log.info("The House is {0}".format(theHouse))
             params = {"house":theHouse.address,
                       "lastUpdate":lastUpdate}
             theUrl = "{0}lastSync/".format(self.restUrl)
@@ -922,6 +941,7 @@ class Pusher(object):
 
             lastUpdate = lastDate
 
+        #sys.exit(0)
         #Then Save
         uploadDates[str(theHouse.id)] = lastUpdate
         mappingConfig["lastupdate"] = uploadDates
@@ -947,8 +967,9 @@ class Pusher(object):
             if lastUpdate:
                 theReadings = theReadings.filter(models.Reading.time > lastUpdate)
             theReadings = theReadings.order_by(models.Reading.time)
-            theReadings = theReadings.limit(self.pushLimit)
-            #theReadings = theReadings.limit(10000)
+            #---theReadings = theReadings.limit(self.pushLimit)
+            #theReadings = theReadings.limit(10)
+            theReadings = theReadings.limit(10000)
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
@@ -968,7 +989,7 @@ class Pusher(object):
                 #log.debug("==> {0}".format(dictReading))
                 dictReading['locationId'] = mappedLocations[reading.locationId]
                 dictReading['typeId'] = mappedTypes[reading.typeId]
-
+                #log.debug("==> Converted {0}".format(dictReading))
                 jsonList.append(dictReading)
                 lastSample = reading.time
 
@@ -985,7 +1006,9 @@ class Pusher(object):
             if restQry.status_code == 500:
                 log.warning("Upload Fails")
                 log.warning(restQry)
+                sys.exit(0)
                 raise Exception ("Upload Fails")
+            
 
             log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
             log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
