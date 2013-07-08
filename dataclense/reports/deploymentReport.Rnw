@@ -177,6 +177,7 @@ calib$calibValue <- calib$value
 dataStart <- min(theData$ts)
 dataEnd <- max(theData$ts)
 dateRange <- interval(dataStart,dataEnd)
+expectedSamples <- dateRange %/% minutes(5)
 @ 
 
 \title{Deployment Report: \Sexpr{thisHouse[['address']]}}
@@ -197,10 +198,19 @@ dateRange <- interval(dataStart,dataEnd)
 \end{description}
 
 \subsection{Node Summary}
+<<sumTable,echo=FALSE,results='asis'>>=
+nodeSum <- ddply(calib,
+                 .(nodeId,location,name),
+                 summarise,
+                 count = length(ts))
 
+xtable(nodeSum)
+@ 
 
 
 \subsection{Yield Summary}
+
+
 
 \section{Data Summaries}
 \subsection{Temperature Data}
