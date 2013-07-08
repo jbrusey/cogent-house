@@ -14,56 +14,87 @@
 configuration CogentHouseC {}
 implementation
 {
-  components CogentHouseP, ActiveMessageC, MainC, LedsC, ActiveMessageC as Radio;
-#ifdef DEBUG
-  components PrintfC;
-  components SerialStartC;
-#endif
-	
-  //import timers
-  components new TimerMilliC() as SenseTimer;
-  components new TimerMilliC() as SendTimeoutTimer;
-  components new TimerMilliC() as BlinkTimer;
-  components new TimerMilliC() as WarmUpTimer;   
-  components new TimerMilliC() as TimeOut;
 
-  CogentHouseP.Boot -> MainC.Boot;
-  CogentHouseP.SenseTimer -> SenseTimer;
-  CogentHouseP.SendTimeoutTimer -> SendTimeoutTimer;
-  CogentHouseP.BlinkTimer -> BlinkTimer;
+  /************* MAIN COMPONENTS ***********/
+  
+  components MainC, CogentHouseP, LedsC, HilTimerMilliC;
+#ifdef DEBUG
+  components PrintfC, SerialStartC;
+#endif
+
+  CogentHouseP.Boot -> MainC.Boot; 
   CogentHouseP.Leds -> LedsC;
+  CogentHouseP.LocalTime -> HilTimerMilliC;
+  
+  //Timers
+  components new TimerMilliC() as SenseTimer;
+  components new TimerMilliC() as BlinkTimer;
+  components new TimerMilliC() as WarmUpTimer;
+  components new TimerMilliC() as SendTimeOutTimer;
+
+  CogentHouseP.SenseTimer -> SenseTimer;
+  CogentHouseP.BlinkTimer -> BlinkTimer;
+  CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
+
+  // Instantiate and wire our collection service
+  components CollectionC, ActiveMessageC;
+  components new CollectionSenderC(AM_STATEMSG) as StateSender;
+
   CogentHouseP.RadioControl -> ActiveMessageC;
-  CogentHouseP.LowPowerListening -> Radio;
+  CogentHouseP.CollectionControl -> CollectionC;
+  CogentHouseP.CtpInfo -> CollectionC;
+  CogentHouseP.StateSender -> StateSender;
+
+
+  /*********** ACK CONFIG *************/
+
+  components DisseminationC;
+  components new DisseminatorC(AckMsg, AM_ACKMSG);
+  components CrcC;
+
+  CogentHouseP.DisseminationControl -> DisseminationC;
+  CogentHouseP.AckValue -> DisseminatorC;
+  CogentHouseP.CRCCalc -> CrcC;
+
+  
+  //LPL
+  CogentHouseP.LowPowerListening -> ActiveMessageC;
+
+  //Configured
+  components new AccessibleBitVectorC(RS_SIZE) as Configured;
+  CogentHouseP.Configured -> Configured.AccessibleBitVector;
+
+  //expectReadDone
+  components new BitVectorC(RS_SIZE) as ExpectReadDone;
+  CogentHouseP.ExpectReadDone -> ExpectReadDone.BitVector;
+
+  //PackState
+  components new PackStateC(SC_SIZE) as PackState;
+  components new AccessibleBitVectorC(SC_SIZE) as ABV;
+
+  PackState.Mask -> ABV;
+  CogentHouseP.PackState -> PackState;
 
   //sensing interfaces
   components new SensirionSht11C();
-  components new HamamatsuS1087ParC() as PAR;
-  components new HamamatsuS10871TsrC() as TSR;
   components new VoltageC() as Volt;
   components new CarbonDioxideC() as CarbonDioxide;
   components new VOCC() as VOC;
   components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
-  
-  //import sensing modules
-  components ThermalSensingM;
-  components LightSensingM;
-  components AirQualityM;
-  components HeatMeterM;
-  components OptiSmartM;
 
-  //sensor readings
+
+  //Sensing Modules
+  components ThermalSensingM, AirQualityM, BatterySensingM, HeatMeterM, OptiSmartM;
+
+  //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
-
+  BatterySensingM.GetVoltage -> Volt;
   OptiSmartM.Leds -> LedsC;
   OptiSmartM.EnergyInput -> GIO.Port26;
   OptiSmartM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
-
-  LightSensingM.GetPAR -> PAR;
-  LightSensingM.GetTSR -> TSR;
-  
   AirQualityM.GetCO2 -> CarbonDioxide;
   AirQualityM.GetVOC -> VOC;
   AirQualityM.GetAQ -> AQ;
@@ -78,9 +109,7 @@ implementation
   //link modules to main file
   CogentHouseP.ReadTemp->ThermalSensingM.ReadTemp;
   CogentHouseP.ReadHum->ThermalSensingM.ReadHum;
-  CogentHouseP.ReadPAR->LightSensingM.ReadPAR;
-  CogentHouseP.ReadTSR->LightSensingM.ReadTSR;
-  CogentHouseP.ReadVolt->Volt;
+  CogentHouseP.ReadBattery->BatterySensingM.ReadBattery;
   CogentHouseP.ReadCO2->AirQualityM.ReadCO2;
   CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
   CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
@@ -89,17 +118,6 @@ implementation
 
   CogentHouseP.ReadHeatMeter->HeatMeterM.ReadHeatMeter;
   CogentHouseP.HeatMeterControl -> HeatMeterM.HeatMeterControl;
-
-  // Instantiate and wire our collection service
-  components CollectionC;
-  components new CollectionSenderC(AM_STATEMSG) as StateSender;
-  components HilTimerMilliC;
-
-  CogentHouseP.CollectionControl -> CollectionC;
-  CogentHouseP.CtpInfo -> CollectionC;
-  CogentHouseP.StateSender -> StateSender;
-	
-  CogentHouseP.LocalTime -> HilTimerMilliC;
 
   // current cost
   components CurrentCostM,CurrentCostSerialC;
@@ -117,25 +135,4 @@ implementation
   
   CogentHouseP.ReadWattage->CurrentCostM.ReadWattage;
   CogentHouseP.CurrentCostControl -> CurrentCostM.CurrentCostControl;
-
-
-  //Configured
-  //Need to define right size
-  components new AccessibleBitVectorC(RS_SIZE) as Configured;
-  CogentHouseP.Configured -> Configured.AccessibleBitVector;
-
-  //expectReadDone
-  components new BitVectorC(RS_SIZE) as ExpectReadDone;
-  CogentHouseP.ExpectReadDone -> ExpectReadDone.BitVector;
-
-
-  //PackState
-  components new PackStateC(SC_SIZE) as PackState;
-  components new AccessibleBitVectorC(SC_SIZE) as ABV;
-
-  PackState.Mask -> ABV;
-  CogentHouseP.PackState -> PackState;
-
-  //components new LogStorageC(VOLUME_DEBUGLOG, TRUE);
-  //CogentHouseP.DebugLog -> LogStorageC;
 }

@@ -3,35 +3,42 @@
 module CogentHouseP
 {
   uses {
-    //low-level stuff
-    interface Timer<TMilli> as SenseTimer;
-    interface Timer<TMilli> as SendTimeoutTimer;
-    interface Timer<TMilli> as BlinkTimer;
-    interface Leds;
+    //Basic Interfaces
     interface Boot;
-    
-    //radio
+    interface Leds;
+    interface LocalTime<TMilli>;
+
+    //Timers
+    interface Timer<TMilli> as SenseTimer;
+    interface Timer<TMilli> as BlinkTimer;
+    interface Timer<TMilli> as SendTimeOutTimer;
+
+    //Radio + CTP
     interface SplitControl as RadioControl;
-    interface LowPowerListening;
-    
-    //ctp
+    interface Send as StateSender;
     interface StdControl as CollectionControl;
     interface CtpInfo;
-	
-    //sending interfaces
-    interface Send as StateSender;
-    
+    interface Packet;
+    interface LowPowerListening;    
+
+    // ack interfaces
+    interface Crc as CRCCalc;
+    interface StdControl as DisseminationControl;
+    interface DisseminationValue<AckMsg> as AckValue;
+
     //Sensing
     interface Read<float> as ReadTemp;
     interface Read<float> as ReadHum;
     interface Read<uint16_t> as ReadPAR;
     interface Read<uint16_t> as ReadTSR;
-    interface Read<uint16_t> as ReadVolt;
+    interface Read<float> as ReadBattery;
     interface Read<float> as ReadCO2;
     interface Read<float> as ReadVOC;
     interface Read<float> as ReadAQ;
+
     interface SplitControl as OptiControl;
     interface Read<float> as ReadOpti;
+
     interface SplitControl as CurrentCostControl;
     interface Read<ccStruct *> as ReadWattage;
     interface SplitControl as HeatMeterControl;
@@ -41,55 +48,82 @@ module CogentHouseP
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
     interface PackState;
-    
-    //Time
-    interface LocalTime<TMilli>;
-
-    // Logging
-    /* interface LogWrite as DebugLog; */
   }
 }
 implementation
 {
-  /* error codes should be prime. As each error occurs during a sense
-     cycle, it is multiplied into last_errno. Factorising the
-     resulting value gives both the number of occurences and the type.
-   */
-  enum {
-    ERR_SEND_CANCEL_FAIL = 2,
-    ERR_SEND_TIMEOUT = 3,
-    ERR_SEND_FAILED = 5,
-    ERR_SEND_WHILE_PACKET_PENDING = 7,
-    ERR_SEND_WHILE_SENDING = 11,
-  };
-
-  //variables
-  float last_duty = 0.;
-
-  float last_errno = 1.;
-  uint8_t msgSeq = 0;
-  uint8_t expSeq = 255;
-  float last_transmitted_errno;
-  
-  uint32_t sense_start_time;
-
-  bool phase_two_sensing = FALSE;
-	
   ConfigMsg settings;
   ConfigPerType * ONE my_settings;
 
-  /* default node type is determined by top 4 bits of node_id */
-  uint8_t nodeType;
-
+  uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
-
-  bool packet_pending = FALSE;
-
+  bool shutdown = FALSE;
   message_t dataMsg;
   uint16_t message_size;
+  uint8_t msgSeq = 0;
+  uint8_t expSeq = 255;
+  uint32_t sense_start_time;
+  uint32_t send_start_time;  
+  uint8_t missedPKT = 0;
 
-  struct nodeType nt;
-	
+  bool packet_pending = FALSE;
+  float last_duty = 0.;
+  float last_errno = 1.;
+  float last_transmitted_errno;
+
+  task void powerDown(){
+    call SenseTimer.stop();
+    call CollectionControl.stop();
+    call DisseminationControl.stop();
+    call RadioControl.stop();
+  }
+
+  /** Restart the sense timer as a one shot. Using a one shot here
+      rather than periodic removes the possibility of re-entering the
+      sense loop before the last one has finished. The only slight
+      problem here is that this may induce a slight drift in when the
+      timer fires.
+
+      This method is called both when the send completes (sendDone)
+      and when the send times out.
+   */
+  void restartSenseTimer() {
+    uint32_t stop_time = call LocalTime.get();
+    uint32_t send_time, next_interval;
+    if (!shutdown){
+      sending = FALSE;
+
+#ifdef DEBUG
+      printf("restartSenseTimer at %lu\n", call LocalTime.get());
+      printfflush();
+#endif
+
+      if (call Configured.get(RS_POWER))
+	call CurrentCostControl.start();
+
+    //Calculate the next interval
+      if (stop_time < sense_start_time) // deal with overflow
+	send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
+      else
+	send_time = (stop_time - sense_start_time);
+    
+      if (my_settings->samplePeriod < send_time)
+	next_interval = 0;
+      else
+	next_interval = my_settings->samplePeriod - send_time;
+
+#ifdef DEBUG
+      printf("startOneShot at %lu\n", call LocalTime.get());
+      printf("interval of %lu\n", next_interval);
+      printfflush();
+#endif
+      call SenseTimer.startOneShot(next_interval);
+      
+      if (my_settings->blink)
+	call Leds.led1Off();
+    }
+  }
+
 
   /** reportError records a code to be sent on the next transmission. 
    * @param errno error code
@@ -103,17 +137,22 @@ implementation
   }
 
 
-  ////////////////////////////////////////////////////////////
-  //sending methods
+  /********* Data Send Methods **********/
 
+  void packstate_add(int key, float value) {
+      if (call PackState.add(key, value) == FAIL)
+	reportError(ERR_PACK_STATE_OVERFLOW);
+  }
 
   void sendState()
   {
     packed_state_t ps;
     StateMsg *newData;
+
     int pslen;
     int i;
     am_addr_t parent;
+    
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
@@ -128,35 +167,36 @@ implementation
     }
 
     if (call Configured.get(RS_DUTY))
-      call PackState.add(SC_DUTY_TIME, last_duty);
-    if (last_errno != 1.) {
-    }
-    last_transmitted_errno = last_errno;
+      packstate_add(SC_DUTY_TIME, last_duty);
+
     pslen = call PackState.pack(&ps);
-			
-    message_size = sizeof (StateMsg) - (SC_SIZE - pslen) * sizeof (float);
+    message_size = sizeof (StateMsg) - sizeof newData->packed_state + pslen * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
-      //newData->tos_node_id = TOS_NODE_ID;
-      newData->special = 0xc7;
-      newData->ctp_parent_id = -1;
+      //we're going do a send so pack the msg count and then increment
       newData->timestamp = call LocalTime.get();
-      
+      newData->special = 0xc7;
+
       //increment and pack seq
       expSeq = msgSeq;
       msgSeq++;
       newData->seq = expSeq;
       newData->rssi = 0.;
-      
+
+      newData->ctp_parent_id = -1;
       if (call CtpInfo.getParent(&parent) == SUCCESS) { 
-      	newData->ctp_parent_id = parent;
+	newData->ctp_parent_id = parent;
       }
+     
       for (i = 0; i < sizeof newData->packed_state_mask; i++) { 
 	newData->packed_state_mask[i] = ps.mask[i];
       }
       for (i = 0; i < pslen; i++) {
 	newData->packed_state[i] = ps.p[i];
       }
+      send_start_time = call LocalTime.get();
+      call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
+
       /* UART0 must be released before the radio can work */
       if (call Configured.get(RS_POWER)) {
 	packet_pending = TRUE;
@@ -172,69 +212,24 @@ implementation
 	}
       }
     }
-  }	
-  
-  ////////////////////////////////////////////////////////////
-	
-  event void Boot.booted() {
-    // initial config
-#ifdef DEBUG
-    printf("Booted %lu\n", call LocalTime.get());
-    printfflush();
-#endif
-
-    nodeType = TOS_NODE_ID >> 12;
-    my_settings = &settings.byType[nodeType];
-    my_settings->samplePeriod = DEF_SENSE_PERIOD;
-    my_settings->blink = FALSE;
-		
-    call Configured.clearAll();
-    if (nodeType == 0) { 
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_VOLTAGE);
-      call Configured.set(RS_DUTY);
-    }
-    else if (nodeType == 1) { /* current cost */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_DUTY);
-      call Configured.set(RS_POWER);
-      //powered so set to always be awake
-      call LowPowerListening.setLocalWakeupInterval(0);
-    } 
-    else if (nodeType == 2) { /* co2 */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_DUTY);
-      //powered so set to always be awake      
-      call LowPowerListening.setLocalWakeupInterval(0);
-    }
-    else if (nodeType == 3) { /* air quality */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_AQ);
-      call Configured.set(RS_VOC);
-      call Configured.set(RS_DUTY);
-      //powered so set to always be awake      
-      call LowPowerListening.setLocalWakeupInterval(0);
-    }
-    else if (nodeType == 4) { /* heat meter */
-      call Configured.set(RS_HEATMETER);
-      call Configured.set(RS_VOLTAGE);
-    }
-    else if (nodeType == 5) { /* opti smart */
-      call Configured.set(RS_OPTI);
-      call Configured.set(RS_VOLTAGE);
-      call OptiControl.start();
-    }
-      call RadioControl.start();
-    
-    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
   }
 
+
+  event void StateSender.sendDone(message_t *msg, error_t ok) {
+#ifdef DEBUG
+    printf("sending done at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+    if (ok != SUCCESS) {
+#ifdef BLINKY
+      call Leds.led0Toggle(); 
+#endif
+      reportError(ERR_SEND_FAILED);
+    }
+  }
+
+
+  bool phase_two_sensing = FALSE;  
   task void phaseTwoSensing();
 
   /* checkDataGathered
@@ -250,11 +245,11 @@ implementation
 	break;
       }
     }
-		
+
     if (allDone) {
       if (phase_two_sensing) {
 #ifdef DEBUG
-	printf("allDone %lu\n", call LocalTime.get());
+    	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
 #endif
 	sendState();
@@ -266,27 +261,86 @@ implementation
     }
   }
 
+  event void SendTimeOutTimer.fired() {
+    //reset errors - need to avoid getting inf --Check with JB
+    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
+      last_errno = last_errno / last_transmitted_errno;
+    else
+      last_errno = 1.;
+
+    reportError(ERR_NO_ACK);
+    my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
+
+    //if packet not through after 3 times get through recompute routes
+    if (missedPKT >= 2){
+      call CtpInfo.recomputeRoutes();
+      missedPKT = 0;
+    }
+    else
+      missedPKT += 1;
+
+#ifdef DEBUG
+    printf("ack receving failed %lu\n", call LocalTime.get());
+    printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
+    printfflush();
+#endif
+    restartSenseTimer();
+  }
+
+
+  /********* Main Loop Methods **********/
+  
+  event void Boot.booted(){
+#ifdef DEBUG
+    printf("Booted %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+    call RadioControl.start();
+
+    nodeType = TOS_NODE_ID >> 12;
+    my_settings = &settings.byType[nodeType];
+    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+    my_settings->blink = FALSE;
+
+    call Configured.clearAll();
+    if (nodeType == 1) { 
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_DUTY);
+      call Configured.set(RS_POWER);
+      //powered so set to always be awake
+      call LowPowerListening.setLocalWakeupInterval(0); //probably not needed
+    }
+    
+    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+
+    sending = FALSE;
+    call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
+  }
+
   /* SenseTimer.fired
    *
    * - begin sensing cycle by requesting, in parallel, for all active
-       sensors to start reading.
+   * sensors to start reading.
    */
   event void SenseTimer.fired() {
     int i;
+#ifdef BLINKY
+    call Leds.led0Toggle();
+#endif
 
     sense_start_time = call LocalTime.get();
-
-    call SendTimeoutTimer.startOneShot(30L*1024L); // 30 sec sense/send timeout
-    if (my_settings->blink)
-      call Leds.led1On();
-
     if (! sending) { 
 #ifdef DEBUG
-      printf("sensing begun at %lu\n", sense_start_time);
+      printf("\n\nsensing begun at %lu\n", sense_start_time);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
       call PackState.clear();
+      if (last_errno != 1.)
+	packstate_add(SC_ERRNO, last_errno);
+      last_transmitted_errno = last_errno;
+
       phase_two_sensing = FALSE;
 
       // only include phase one sensing here
@@ -297,16 +351,10 @@ implementation
 	    call ReadTemp.read();
 	  else if (i == RS_HUMIDITY)
 	    call ReadHum.read();
-	  else if (i == RS_PAR)
-	    call ReadPAR.read();
-	  else if (i == RS_TSR)
-	    call ReadTSR.read();
 	  else if (i == RS_VOLTAGE)
-	    call ReadVolt.read();
+	    call ReadBattery.read();
 	  else if (i == RS_POWER)
 	    call ReadWattage.read();
-	  else if (i == RS_HEATMETER)
-	    call ReadHeatMeter.read();
 	  else if (i == RS_OPTI)
 	    call ReadOpti.read();
 	  else
@@ -341,10 +389,11 @@ implementation
   }
 
 
-  void do_readDone(error_t result, float data, uint raw_sensor, uint state_code) 
-  {
+  /*********** Sensing Methods *****************/  
+
+  void do_readDone(error_t result, float data, uint raw_sensor, uint state_code){
     if (result == SUCCESS)
-      call PackState.add(state_code, data);
+      packstate_add(state_code, data);
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
@@ -379,8 +428,10 @@ implementation
     do_readDone(result, data, RS_VOC, SC_VOC);
   }
 
-  event void ReadVolt.readDone(error_t result, uint16_t data) {	
-    do_readDone(result,((data/4096.)*3), RS_VOLTAGE, SC_VOLTAGE);
+  event void ReadBattery.readDone(error_t result, float data) {	
+    do_readDone(result, data, RS_VOLTAGE, SC_VOLTAGE);
+    if (data < LOW_VOLTAGE)
+      post powerDown();
   }
   
  event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
@@ -409,98 +460,97 @@ implementation
     post checkDataGathered();
   }
 
+  /*********** Radio Control *****************/
 
- /* Once the radio starts, start the collection protocol. */
   event void RadioControl.startDone(error_t ok) {
-    if (ok == SUCCESS)
-      {
+    if (ok == SUCCESS){
+      call CollectionControl.start();
+      call DisseminationControl.start();
 #ifdef DEBUG
-        printf("Radio On\n");
-        printfflush();
+      printf("Radio On %lu\n", call LocalTime.get());
+      printfflush();
 #endif
-	sending = FALSE;
-	call CollectionControl.start();
-	call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
-	if (call Configured.get(RS_POWER)) 
-	  call CurrentCostControl.start();
-	if (call Configured.get(RS_HEATMETER)) 
-	  call HeatMeterControl.start();
-      }
+
+      if (call Configured.get(RS_POWER))
+	call CurrentCostControl.start();
+
+    }
     else
       call RadioControl.start();
   }
 
-
-  //Empty methods
-  event void RadioControl.stopDone(error_t ok) { }
-
-  /** Restart the sense timer as a one shot. Using a one shot here
-      rather than periodic removes the possibility of re-entering the
-      sense loop before the last one has finished. The only slight
-      problem here is that this may induce a slight drift in when the
-      timer fires.
-
-      This method is called both when the send completes (sendDone)
-      and when the send times out.
-   */
-  void restartSenseTimer() {
-    uint32_t stop_time = call LocalTime.get();
-    uint32_t send_time, next_interval;
+  event void RadioControl.stopDone(error_t ok) { 
+    call DisseminationControl.stop();
 #ifdef DEBUG
-    printf("restartSenseTimer at %lu\n", call LocalTime.get());
+    printf("Radio Off %lu\n", call LocalTime.get());
     printfflush();
 #endif
-    if (stop_time < sense_start_time) // deal with overflow
-      send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
+#ifdef BLINKY
+    call Leds.led1Toggle(); 
+#endif
+  }
+
+  /*********** ACK Methods  *****************/
+  //updates SIP models and restarts sense timers and calculate duty time
+  void ackReceived(){
+    uint32_t stop_time;
+    uint32_t send_time;
+#ifdef BLINKY
+    call Leds.led2Toggle();
+#endif
+
+    call SendTimeOutTimer.stop();
+    stop_time = call LocalTime.get();
+    //Calculate the next interval
+    if (stop_time < send_start_time) // deal with overflow
+      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
     else
-      send_time = (stop_time - sense_start_time);
+      send_time = (stop_time - send_start_time);
     last_duty = (float) send_time;
     
-    if (my_settings->samplePeriod < send_time)
-      next_interval = 0;
-    else
-      next_interval = my_settings->samplePeriod - send_time;
-
-    call SenseTimer.startOneShot(next_interval);
-
-    if (my_settings->blink)
-      call Leds.led1Off();
+    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+    
+    restartSenseTimer();   
   }
 
-  /** When a message has been successfully transmitted, this event is
-      triggered. At this point, we stop the timeout timer, restart the
-      sense timer and restart the current-cost if it is needed.
-  */
-  event void StateSender.sendDone(message_t *msg, error_t ok) {
-    sending = FALSE;
 
-    call SendTimeoutTimer.stop();
-
-    if (ok != SUCCESS) 
-      reportError(ERR_SEND_FAILED);    
-    else {
-      if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-	last_errno = last_errno / last_transmitted_errno;
-      else
-	last_errno = 1.;
-    }
-
-    restartSenseTimer();
-
-    if (call Configured.get(RS_POWER))
-      call CurrentCostControl.start();
-  }
-
-  /** sending has taken too long and so we should stop trying
+  /** AckValue.changed
+   *
+   * - triggered when ack messgaes are disseminated
+   * - checks if this ack message is for the packet
    */
-  event void SendTimeoutTimer.fired() {
-    if (call StateSender.cancel(&dataMsg) == SUCCESS) 
-      sending = FALSE;
-    else {
-      reportError(ERR_SEND_CANCEL_FAIL);
-    }
-    reportError(ERR_SEND_TIMEOUT);
-    restartSenseTimer();
+
+
+  event void AckValue.changed() { 
+    const AckMsg *ackMsg = call AckValue.get();
+    CRCStruct crs;
+    uint16_t crc;
+#ifdef DEBUG
+    printf("ack packet rec at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+
+    crs.node_id = ackMsg->node_id;
+    crs.seq = ackMsg->seq;
+    crc = (nx_uint16_t)call CRCCalc.crc16(&crs, sizeof crs);
+
+#ifdef DEBUG
+    printf("exp seq %u\n", expSeq);
+    printf("rec seq %u\n", ackMsg->seq);
+    printf("exp nid %u\n", TOS_NODE_ID);
+    printf("rec nid %u\n", ackMsg->node_id);
+    printf("exp CRC %u\n", crc);
+    printf("rec CRC %u\n", ackMsg->crc);
+    printfflush();
+#endif 
+    
+    //check crc's, nid and seq match
+    if (crc == ackMsg->crc)
+      if (TOS_NODE_ID == ackMsg->node_id)
+	if (expSeq == ackMsg->seq){
+    	  ackReceived();
+    	}
+    return;
   }
 
 
@@ -521,27 +571,38 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
-    
+  
 
 
   event void HeatMeterControl.startDone(error_t error) {}
 
   event void HeatMeterControl.stopDone(error_t error) {}
 
-  event void CurrentCostControl.startDone(error_t error) {}
+  event void CurrentCostControl.startDone(error_t error) {
+#ifdef DEBUG
+    printf("Current cost start at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+  }
 
   event void CurrentCostControl.stopDone(error_t error) { 
+#ifdef DEBUG
+    printf("Current cost stop at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+
     if (packet_pending) { 
       packet_pending = FALSE;
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 	sending = TRUE;
       }
     }
-
+      
   }
 
   event void OptiControl.startDone(error_t error) { }
-  
+ 
   event void OptiControl.stopDone(error_t error) {}  
   
 }
+

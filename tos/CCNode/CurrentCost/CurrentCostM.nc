@@ -317,7 +317,7 @@ implementation
   {
     /* no bytes received for at least 1 second */
 #ifdef DEBUG
-    printf("timeout %u %u %d %u %u %d %u %u %d\n", 
+   /* printf("timeout %u %u %d %u %u %d %u %u %d\n", 
 	   ch1.stag_i,
 	   ch1.etag_i,
 	   ch1.in_tag,
@@ -327,7 +327,7 @@ implementation
 	   msg.stag_i,
 	   msg.etag_i,
 	   msg.in_tag);
-    atomic printf("totalWatts=%lu, lastImpCount=%lu\n", totalWatts, lastImpCount);
+    //atomic printf("totalWatts=%lu, lastImpCount=%lu\n", totalWatts, lastImpCount);*/
 #endif
 
     if (receiving_bytes) { 

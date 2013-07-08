@@ -11,16 +11,22 @@ generic module PackStateC(uint8_t max_keys) @safe()
 implementation
 {
   unpacked_state_t ups;
+  int count = 0;
 
   command void PackState.clear(){
     call Mask.clearAll();
+    count = 0;
   }
 
-  command void PackState.add(int key, float value){
-    if (key < max_keys) {
+  command int PackState.add(int key, float value){
+    if (key < max_keys && count < SC_PACKED_SIZE) {
       call Mask.set(key);
       ups.u[key] = value;
+      count++;
+      return SUCCESS;
     }
+    else
+      return FAIL;
   }
 		
   command int PackState.pack(packed_state_t *ps) {
@@ -43,9 +49,11 @@ implementation
     memcpy(call Mask.getArray(), ps->mask, call Mask.getArrayLength());
 
     j = 0;
+    count = 0;
     for (i = 0; i < max_keys; i++) { 
       if (call Mask.get(i)) { 
 	ups.u[i] = ps->p[j++];
+	count++;
       }
     }
   }
