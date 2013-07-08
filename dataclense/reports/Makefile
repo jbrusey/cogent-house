@@ -1,5 +1,5 @@
 output = .output
-rnwfile = YieldReport
+rnwfile = deploymentReport
 backup = .backup
 
 SWEAVE = R CMD Sweave

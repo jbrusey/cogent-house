@@ -1,0 +1,240 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[OT1]{fontenc}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{include/tabu/tabu}
+
+<<setup,include=FALSE>>=
+
+opts_chunk$set(           
+   dev="pdf", 
+   fig.path="figure/manual-",
+   fig.lp = "",
+   out.width=".9\\textwidth",
+   fig.keep="high",
+   fig.show="hold",
+   fig.align="center",
+   comment=NA)
+
+
+
+## opts_knit$set(aliases=c(h='fig.height', w='fig.width',
+##                 cap='fig.cap', scap='fig.scap'))
+## opts_knit$set(eval.after = c('fig.cap','fig.scap'))
+## opts_chunk$set(out.width = NULL)
+
+## #opts_chunk$set(fig.align='center', w=4.5, h=3.5, fig.show='hold', fig.pos='htbp', par=TRUE, tidy=FALSE)   
+opts_chunk$set(fig.align='center', w=6.5, h=3.5, fig.show='hold', fig.pos='tb', par=TRUE, tidy=FALSE)   
+
+## # this allows for code formatting inline.  
+## knit_hooks$set(inline = function(x) {
+##    if (is.numeric(x)) return(knitr:::format_sci(x, 'latex'))
+##    x = as.character(x)
+##    h = knitr:::hilight_source(x, 'latex', list(prompt=FALSE, size='normalsize', highlight=FALSE))
+## #   h = gsub("([_#$%&])", "\\\\\\1", h)
+## #   h = gsub('(["\'])', '\\1{}', h)
+##    gsub('^\\\\begin\\{alltt\\}\\s*|\\\\end\\{alltt\\}\\s*$', '', h)})
+## par(las = 1)
+## options(width = 90, scipen = 6, digits = 3)
+
+@ 
+
+<<initR, include=FALSE>>=
+require(lubridate)
+require(reshape)
+require(plyr)
+require(RMySQL)
+require(ggplot2)
+require(RColorBrewer)
+require(scales) 
+require(xtable)
+@ 
+
+<<initdb, include=FALSE>>=
+#Setup Database Connection
+THEDB <- "transferTest"
+drv <- dbDriver("MySQL")
+#con <- dbConnect(drv,dbname="mainStore",user="chuser")
+con <- dbConnect(drv,dbname=THEDB,user="chuser")
+
+# ========================================
+#
+# Deal with the house itself
+#
+# ========================================
+
+houses <- dbReadTable(con,"House")
+hId <- 5
+thisHouse <- houses[hId,]
+print(thisHouse)
+hAdd <- thisHouse$address
+
+
+thisHouse$sd <- tryCatch({as.POSIXlt(thisHouse$startDate,tz="GMT")},
+                        error=function(e){
+                          NA
+                        }
+                        )
+
+thisHouse$ed <- tryCatch({as.POSIXlt(thisHouse$endDate,tz="GMT")},
+                        error=function(e){
+                          NA
+                        }
+                        )
+@ 
+
+<<calib, include=FALSE, cache=TRUE>>=
+# ========================
+#
+#  FETCH CALIBRATION STUFF
+#
+# ========================
+
+##Get Calibration and other such stuff
+calibrationData <- dbReadTable(con,"Sensor")
+
+sensorType <- dbReadTable(con,"SensorType")
+sensorType <- subset(sensorType,select=c(id,name,units))
+
+##Sensors we are interested in (For Yield Calculateions)
+sensorTypeList <- subset(sensorType,
+                         name=="Temperature" |
+                         name=="Humidity" |
+                         name=="Light PAR" |
+                         name=="Light TSR" |
+                         name=="CO2" |
+                         name=="Air Quality" |
+                         name=="VOC" |                        
+                         name=="Power" |
+                         name=="Power pulses"
+                         )
+
+
+@ 
+
+<<fetchData, cache=TRUE, include=FALSE>>=
+# ===========================================
+#
+# Locations for the house we are working with
+#
+# ============================================
+
+#Fetch Locations Associated with this house
+locQry <- paste(" SELECT * FROM Location as L ",
+                " LEFT OUTER JOIN Room as R ",
+                " ON L.roomId = R.id ",
+                " WHERE houseId = ",
+                thisHouse$id,
+                sep="")
+
+locations <- dbGetQuery(con,statement=locQry)
+
+locIds <-  paste(locations$id,collapse=",")
+
+# ============================================
+#
+# Data
+#
+# =============================================
+
+dataQry <- paste("SELECT * from Reading ",
+                 " WHERE locationId IN (",
+                 locIds,
+                 ")",
+                 " AND type IN (",
+                 paste(sensorTypeList$id,collapse=","),
+                 ")",
+                 " ORDER BY time",
+                 sep="")
+
+theData <- dbGetQuery(con,statement=dataQry)
+theData$ts <- as.POSIXct(theData$time,tz="GMT")
+theData$Date <- as.Date(theData$ts)
+@ 
+
+<<calibrateAndLocs, cache=TRUE, include=FALSE>>=
+# ==============================================
+#
+# Calibrate and update locations
+#
+# ==============================================
+
+#Merge to get the sensors types
+tmp <- merge(theData,sensorType,by.x=c("type"),by.y=c("id"),all.x=TRUE)
+
+#And Locations
+locList <- subset(locations,select=c(id,name))
+names(locList) <- c("id","location")
+
+tmp <- merge(tmp,locList,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
+
+#and calibrate
+calib <- merge(tmp,calibrationData,by.x=c("nodeId","type"),by.y=c("nodeId","sensorTypeId"),all.x=TRUE)
+
+#Where no value is available
+calib$calibValue <- calib$value
+
+dataStart <- min(theData$ts)
+dataEnd <- max(theData$ts)
+dateRange <- interval(dataStart,dataEnd)
+@ 
+
+\title{Deployment Report: \Sexpr{thisHouse[['address']]}}
+
+\begin{document}
+\maketitle
+\section{Deployment Overview}
+%First we need to gather all the data
+
+\subsection{Data Summary}
+\begin{description}
+\item[Deployment Id:] \Sexpr{thisHouse[['id']]}
+\item[DB Start Date] \Sexpr{thisHouse[['startDate']]}
+\item[DB End Date] \Sexpr{thisHouse[['endDate']]}
+\item[Data Start Date] \Sexpr{dataStart}
+\item[Data End Date] \Sexpr{dataEnd}
+\item[Deployment Length] \Sexpr{as.period(dateRange)}
+\end{description}
+
+\subsection{Node Summary}
+
+
+
+\subsection{Yield Summary}
+
+\section{Data Summaries}
+\subsection{Temperature Data}
+
+<<tempTable,include=FALSE>>=
+ss <- subset(calib,type==0)
+summary <-  ddply(subset(ss),
+                  .(nodeId,location),
+                  summarise,
+                  avgvalue = mean(calibValue),
+                  minvalue = min(calibValue),
+                  maxvalue = max(calibValue)
+                  )
+
+degC <- expression(paste(" ",degree,"C"))
+names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
+@ 
+
+<<displayTable,tab.cap="Temperature Data Summary",echo=FALSE,results='asis'>>=
+xtable(summary)
+@ 
+
+
+<<tempGraph,fig.cap="Temperature Data Summary",echo=FALSE>>=
+
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_point()
+plt <- plt+xlab("Date") + ylab("Temperature")
+plt <- plt + theme_bw(base_size=8)
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd)))
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed)))
+plt + facet_grid(location~.)
+@ 
+
+
+
+\end{document}
