@@ -1,0 +1,11 @@
+base
+DBI
+ggplot2
+knitr
+lubridate
+plyr
+RColorBrewer
+reshape
+RMySQL
+scales
+xtable
