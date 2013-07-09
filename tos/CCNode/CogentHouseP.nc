@@ -436,8 +436,8 @@ implementation
   
  event void ReadHeatMeter.readDone(error_t result, hmStruct *data) {
     if (result == SUCCESS) {
-      call PackState.add(SC_HEAT_ENERGY, data->energy);
-      call PackState.add(SC_HEAT_VOLUME, data->volume);
+      packstate_add(SC_HEAT_ENERGY, data->energy);
+      packstate_add(SC_HEAT_VOLUME, data->volume);
     }
     call ExpectReadDone.clear(RS_HEATMETER);
     post checkDataGathered();
@@ -449,12 +449,9 @@ implementation
 
   event void ReadWattage.readDone(error_t result, ccStruct* data) {
     if (result == SUCCESS) {
-      call PackState.add(SC_POWER_MIN, data->min);
-      call PackState.add(SC_POWER, data->average);
-      call PackState.add(SC_POWER_MAX, data->max);
-    }
-    if (data->kwh > 0){
-      call PackState.add(SC_POWER_KWH, data->kwh);
+      packstate_add(SC_POWER_MIN, data->min);
+      packstate_add(SC_POWER, data->average);
+      packstate_add(SC_POWER_MAX, data->max);
     }
     call ExpectReadDone.clear(RS_POWER);
     post checkDataGathered();
@@ -590,10 +587,13 @@ implementation
     printf("Current cost stop at %lu\n", call LocalTime.get());
     printfflush();
 #endif
-
     if (packet_pending) { 
       packet_pending = FALSE;
       if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+#ifdef DEBUG
+        printf("sending begun at %lu\n", call LocalTime.get());
+        printfflush();
+#endif
 	sending = TRUE;
       }
     }
