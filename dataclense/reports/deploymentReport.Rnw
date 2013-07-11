@@ -14,17 +14,18 @@ opts_chunk$set(
    fig.keep="high",
    fig.show="hold",
    fig.align="center",
+   fig.width=6.5,
+   fig.height=3.5,
    comment=NA)
 
 
 
-## opts_knit$set(aliases=c(h='fig.height', w='fig.width',
-##                 cap='fig.cap', scap='fig.scap'))
-## opts_knit$set(eval.after = c('fig.cap','fig.scap'))
-## opts_chunk$set(out.width = NULL)
+opts_chunk$set(aliases=c(h='fig.height', w='fig.width',
+                 cap='fig.cap', scap='fig.scap'))
+
 
 ## #opts_chunk$set(fig.align='center', w=4.5, h=3.5, fig.show='hold', fig.pos='htbp', par=TRUE, tidy=FALSE)   
-opts_chunk$set(fig.align='center', w=6.5, h=3.5, fig.show='hold', fig.pos='tb', par=TRUE, tidy=FALSE)   
+#opts_chunk$set(fig.align='center', fig.width=6.5, fig.height=3.5, fig.show='hold', fig.pos='tb', par=TRUE, tidy=FALSE)   
 
 ## # this allows for code formatting inline.  
 ## knit_hooks$set(inline = function(x) {
@@ -185,6 +186,11 @@ expectedSamples <- dateRange %/% minutes(5)
 \begin{document}
 \maketitle
 \section{Deployment Overview}
+This section gives an overview of the deployment.
+First  a summary of the deployment is given, the next section gives details of
+the nodes included in the deployment and the location these nodes were
+placed. Finally the section concludes with a summary of node yield.
+
 %First we need to gather all the data
 
 \subsection{Data Summary}
@@ -194,26 +200,111 @@ expectedSamples <- dateRange %/% minutes(5)
 \item[DB End Date] \Sexpr{thisHouse[['endDate']]}
 \item[Data Start Date] \Sexpr{dataStart}
 \item[Data End Date] \Sexpr{dataEnd}
-\item[Deployment Length] \Sexpr{as.period(dateRange)}
+\item[Data Length] \Sexpr{as.period(dateRange)} Days
 \end{description}
 
+\clearpage
 \subsection{Node Summary}
+Table \ref{tab:nodeLoc} gives details of all deployed nodes and their locations.
+
 <<sumTable,echo=FALSE,results='asis'>>=
 nodeSum <- ddply(calib,
-                 .(nodeId,location,name),
+                 .(nodeId,location),
                  summarise,
-                 count = length(ts))
+                 count = length(unique(type)))
 
-xtable(nodeSum)
+names(nodeSum) <- c("Node Id","Location","Sensors")
+print(xtable(nodeSum,align="lXXX",caption="Summary of Node Locations",label="tab:nodeLoc"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+\clearpage
+\subsection{Yield Summary}
+This next section gives details of the node yield. 
+This is expressed as a percentage of the total expected samples per node
+received and stored at the base station. 
+
+<<yieldCalcs,include=FALSE>>=
+nodeSum <- ddply(calib,
+                 .(nodeId,location,type),
+                 summarise,
+                 count = length(ts),
+                 numsensors = length(unique(type)))
+
+#Yield
+nodeSum$yield = (nodeSum$count / expectedSamples) * 100.0
+avgYield = mean(nodeSum$yield)
+
+#Table of outputs
+yieldTable <- ddply(nodeSum,
+                    .(nodeId,location),
+                    summarise,
+                    Yield = mean(yield))
+
+#Heatmap
+yieldHeatmap <- ddply(calib,
+                    .(nodeId,location,Date),
+                    summarise,
+                    count = length(ts),
+                    numsensors = length(unique(type)))
+
+yieldHeatmap$yield <- yieldHeatmap$count / (288 * yieldHeatmap$numsensors) * 100
+
+#Days with > 90% yield
+yieldDays <- ddply(yieldHeatmap,
+                   .(Date),
+                   summarise,
+                   count = sum(count),
+                   numsensors = sum(numsensors),
+                   avgYield = mean(yield))
+
+yieldDays$yield <- yieldDays$count / (288* yieldDays$numsensors) * 100
+totDays <- nrow(yieldDays)
+yldDays <- nrow(subset(yieldDays,yield>=90))
 @ 
 
 
-\subsection{Yield Summary}
+Table \ref{tab:nodeYield} gives an overview of the per node yield. The average
+yield for the deployment is \textbf{\Sexpr{avgYield}}. There were
+\Sexpr{yldDays} of \Sexpr{totDays} where the yield was above 90\%.
 
+<<yieldTable,echo=FALSE,results='asis'>>=
+#Lets format that so its how expected
 
+names(yieldTable) <- c("Node Id","Location","Yield")
+print(xtable(yieldTable,align="lXXX",caption="Node Yield Summary",label="tab:nodeYield"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+Figure \ref{fig:nodeYield} shows the overall percentage of data collected by
+each node.  
+
+<<nodeYield, fig.caption="Per Node Yield", echo=FALSE>>=
+#And an Overview Graph
+plt <- ggplot(yieldTable,aes(Location,Yield))
+plt <- plt+geom_bar(stat="identity",fill="white",color="darkgreen")
+plt <- plt+geom_hline(yintercept=90)
+plt <- plt+theme_bw()
+plt <- plt + opts(axis.text.x=element_text(angle=90))
+plt
+@ 
+
+Figure \ref{fig:yieldHeatmap} shows the heat map of the daily node yield. The
+heatmap can be useful in identifying nodes or periods of low yield.
+
+<<yieldHeatmap, fig.caption="Yield Heatmap", echo=FALSE>>=
+#Graph of Yield by Expected vs 
+
+plt <- ggplot(yieldHeatmap,aes(Date,location,fill=yield))
+plt <- plt+geom_tile(color="white")
+plt
+@ 
+
+\cleardoublepage
 
 \section{Data Summaries}
+This next section summarises the data collected during the deployment
+
 \subsection{Temperature Data}
+Table \ref{tab:tempOverview} gives an overview of temperature data.
 
 <<tempTable,include=FALSE>>=
 ss <- subset(calib,type==0)
@@ -227,15 +318,11 @@ summary <-  ddply(subset(ss),
 
 degC <- expression(paste(" ",degree,"C"))
 names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
+
+print(xtable(summary,align="lXXXXX",caption="Temperature Data Overview",label="tab:tempOverview"),tabular.environment="tabu",include.rownames=FALSE)
 @ 
 
-<<displayTable,tab.cap="Temperature Data Summary",echo=FALSE,results='asis'>>=
-xtable(summary)
-@ 
-
-
-<<tempGraph,fig.cap="Temperature Data Summary",echo=FALSE>>=
-
+<<tempGraph,fig.cap="Temperature Data Summary",echo=FALSE,fig.label="fig:tempOverview">>=
 plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
 plt <- plt+geom_point()
 plt <- plt+xlab("Date") + ylab("Temperature")
@@ -245,6 +332,60 @@ plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed)))
 plt + facet_grid(location~.)
 @ 
 
+%Comfort Exposure
+<<comfortCalcs>>=
+ss <- subset(calib,type==0)
 
+#Table of values that we are using
+summary <-  ddply(subset(calib,type==0),
+                  .(nodeId,location),
+                  summarise,
+                  avg = mean(calibValue),
+                  mode = Mode(calibValue),
+                  min = min(calibValue),
+                  max = max(calibValue))
+
+#Testing Plot
+#plt <- ggplot(ss)
+#plt <- plt + geom_line(aes(ts,calibValue,color=nodeId))
+
+tempLabels = c("Health Risk","Cold","Comfortable","Warm","Overheating")
+
+ss$comfort <- cut(ss$calibValue,breaks=c(0,16,18,22,27,100),
+           labels=c("Health Risk <16","Cold 16-18","Comfortable 18-22","Warm 22-27","Overheating 27+"))
+
+#ss$locationLab <- paste(ss$nodeId,"_",ss$location)
+ss$locationLab <- ss$location
+
+#Freq for all
+foo <- count(ss,vars=c('comfort'))
+foo$pc <- foo$freq / sum(foo$freq) * 100.0
+
+
+## #Give PlyR a go.
+## #Count Values
+foo <- count(ss,vars=c('locationLab','comfort'))
+#Calc Percentages
+foo <- ddply(foo,.(locationLab),transform,p=freq/sum(freq))
+foo<- ddply(foo,.(locationLab),transform,tpos = cumsum(p) - 0.5*p)
+
+fooLab <- subset(foo,comfort=="Comfortable 18-22")
+fooLab$label <- paste(round(fooLab$p * 100 ,digits=2),"%",sep="")
+@ 
+
+<<tempComfortGraph,fig.caption="Temperature Exposure Graph">>=
+plt <- ggplot(foo,aes(locationLab,p,fill=comfort))
+#plt <- ggplot(foo,aes(location,p,fill=comfort))
+plt <- plt+geom_bar(stat="identity")
+plt <- plt+geom_text(data=fooLab,aes(locationLab,tpos,label=label))
+#plt <- plt+geom_text(aes(label=comfort,y=count),size=3,position="stack")
+#plt <- plt+geom_text(aes(label=p,y=freq),size=3,position="stack")
+plt <- plt+scale_fill_manual("Comfort Level",values=rev(brewer.pal(n=6, "RdYlBu")))
+plt <- plt+xlab("Room")
+plt <- plt+ylab("Percentage of samples at this level")
+plt <- plt+theme_bw()
+plt <- plt+coord_flip()
+plt
+@ 
 
 \end{document}
