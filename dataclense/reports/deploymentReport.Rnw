@@ -3,13 +3,14 @@
 \usepackage{fullpage}
 \usepackage{amsmath}
 \usepackage{include/tabu/tabu}
+\usepackage{rotating}
 
 <<setup,include=FALSE>>=
 
 opts_chunk$set(           
    dev="pdf", 
    fig.path="figure/manual-",
-   fig.lp = "",
+   fig.lp = "fig:",
    out.width=".9\\textwidth",
    fig.keep="high",
    fig.show="hold",
@@ -265,7 +266,7 @@ yldDays <- nrow(subset(yieldDays,yield>=90))
 
 Table \ref{tab:nodeYield} gives an overview of the per node yield. The average
 yield for the deployment is \textbf{\Sexpr{avgYield}}. There were
-\Sexpr{yldDays} of \Sexpr{totDays} where the yield was above 90\%.
+\Sexpr{yldDays}/ \Sexpr{totDays} days where the yield was above 90\%.
 
 <<yieldTable,echo=FALSE,results='asis'>>=
 #Lets format that so its how expected
@@ -277,20 +278,21 @@ print(xtable(yieldTable,align="lXXX",caption="Node Yield Summary",label="tab:nod
 Figure \ref{fig:nodeYield} shows the overall percentage of data collected by
 each node.  
 
-<<nodeYield, fig.caption="Per Node Yield", echo=FALSE>>=
+<<nodeYield, fig.cap="Per Node Yield", echo=FALSE>>=
 #And an Overview Graph
 plt <- ggplot(yieldTable,aes(Location,Yield))
 plt <- plt+geom_bar(stat="identity",fill="white",color="darkgreen")
 plt <- plt+geom_hline(yintercept=90)
 plt <- plt+theme_bw()
-plt <- plt + opts(axis.text.x=element_text(angle=90))
+plt <- plt+theme(axis.text.x=element_text(angle=90))
+#plt <- plt + opts(axis.text.x=element_text(angle=90))
 plt
 @ 
 
 Figure \ref{fig:yieldHeatmap} shows the heat map of the daily node yield. The
 heatmap can be useful in identifying nodes or periods of low yield.
 
-<<yieldHeatmap, fig.caption="Yield Heatmap", echo=FALSE>>=
+<<yieldHeatmap, fig.cap="Yield Heatmap", echo=FALSE>>=
 #Graph of Yield by Expected vs 
 
 plt <- ggplot(yieldHeatmap,aes(Date,location,fill=yield))
@@ -306,7 +308,7 @@ This next section summarises the data collected during the deployment
 \subsection{Temperature Data}
 Table \ref{tab:tempOverview} gives an overview of temperature data.
 
-<<tempTable,include=FALSE>>=
+<<tempData,include=FALSE,output='asis'>>=
 ss <- subset(calib,type==0)
 summary <-  ddply(subset(ss),
                   .(nodeId,location),
@@ -319,36 +321,7 @@ summary <-  ddply(subset(ss),
 degC <- expression(paste(" ",degree,"C"))
 names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
 
-print(xtable(summary,align="lXXXXX",caption="Temperature Data Overview",label="tab:tempOverview"),tabular.environment="tabu",include.rownames=FALSE)
-@ 
-
-<<tempGraph,fig.cap="Temperature Data Summary",echo=FALSE,fig.label="fig:tempOverview">>=
-plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
-plt <- plt+geom_point()
-plt <- plt+xlab("Date") + ylab("Temperature")
-plt <- plt + theme_bw(base_size=8)
-plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd)))
-plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed)))
-plt + facet_grid(location~.)
-@ 
-
-%Comfort Exposure
-<<comfortCalcs>>=
-ss <- subset(calib,type==0)
-
-#Table of values that we are using
-summary <-  ddply(subset(calib,type==0),
-                  .(nodeId,location),
-                  summarise,
-                  avg = mean(calibValue),
-                  mode = Mode(calibValue),
-                  min = min(calibValue),
-                  max = max(calibValue))
-
-#Testing Plot
-#plt <- ggplot(ss)
-#plt <- plt + geom_line(aes(ts,calibValue,color=nodeId))
-
+#And Calculate Comfort
 tempLabels = c("Health Risk","Cold","Comfortable","Warm","Overheating")
 
 ss$comfort <- cut(ss$calibValue,breaks=c(0,16,18,22,27,100),
@@ -371,21 +344,261 @@ foo<- ddply(foo,.(locationLab),transform,tpos = cumsum(p) - 0.5*p)
 
 fooLab <- subset(foo,comfort=="Comfortable 18-22")
 fooLab$label <- paste(round(fooLab$p * 100 ,digits=2),"%",sep="")
+
 @ 
 
-<<tempComfortGraph,fig.caption="Temperature Exposure Graph">>=
+<<tempTable,echo=FALSE,results='asis'>>=
+print(xtable(summary,align="lXXXXX",caption="Temperature Data Overview",label="tab:tempOverview"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+
+<<tempGraph,fig.cap="Temperature Data Summary",echo=FALSE,fig.label="fig:tempOverview",fig.height=6>>=
+#,fig.env="sidewaysfigure",fig.width=8,fig.height=6.5
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_line()
+plt <- plt+xlab("Date") + ylab("Temperature")
+plt <- plt + theme_bw()
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd)))
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed)))
+plt <- plt + facet_grid(location~.)
+#plt <- plt + opts(strip.text.x = element_text(size = 8, colour = "red", angle = 90)
+plt <- plt + theme(strip.text.y = element_text(angle=0),legend.position="none")
+plt
+@ 
+
+\clearpage
+\subsection{Temperature Exposure}
+
+Temperature exposure is defined as the percentage of samples that fall into each
+comfort band (as defined by the ASHRE standard). Figure
+\ref{fig:tempExposeGraph} shows the comfort levels for each room in the property. 
+
+<<comfortTempCalcs,echo=FALSE,results='asis'>>=
+melted <- subset(melt(foo,id=c("locationLab","comfort")),variable=="p")
+melted$value <- melted$value * 100.0
+flat <- cast(melted,locationLab~comfort)
+print(xtable(flat,align="llXXXXX",caption="Temperature Exposure",label="tab:tempExposrue"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+<<tempExposeGraph,echo=FALSE, fig.cap="Temperature Exposure Graph",fig.height=6>>=
+#tempExposeGraph,echo=FALSE, fig.cap="Temperature Exposure Graph",fig.env="sidewaysfigure",fig.width=12,fig.height=6.5
 plt <- ggplot(foo,aes(locationLab,p,fill=comfort))
 #plt <- ggplot(foo,aes(location,p,fill=comfort))
 plt <- plt+geom_bar(stat="identity")
-plt <- plt+geom_text(data=fooLab,aes(locationLab,tpos,label=label))
+plt <- plt+geom_text(data=fooLab,aes(locationLab,tpos,label=label,size=8))
 #plt <- plt+geom_text(aes(label=comfort,y=count),size=3,position="stack")
 #plt <- plt+geom_text(aes(label=p,y=freq),size=3,position="stack")
 plt <- plt+scale_fill_manual("Comfort Level",values=rev(brewer.pal(n=6, "RdYlBu")))
 plt <- plt+xlab("Room")
 plt <- plt+ylab("Percentage of samples at this level")
+plt <- plt+guides(size=FALSE)
 plt <- plt+theme_bw()
-plt <- plt+coord_flip()
+plt <- plt+theme(legend.position="top",axis.text.x=element_text(angle=90),legend.title=element_blank())
 plt
 @ 
 
+\cleardoublepage
+\subsection{Humidity Data}
+Table \ref{tab:humOverview} gives an overview of the humidity values recorded during the deployment
+
+<<humTable,echo=FALSE,results='asis'>>=
+ss <- subset(calib,type==2)
+summary <-  ddply(subset(ss),
+                  .(nodeId,location),
+                  summarise,
+                  avgvalue = mean(calibValue),
+                  minvalue = min(calibValue),
+                  maxvalue = max(calibValue)
+                  )
+
+degC <- expression(paste(" ",degree,"C"))
+names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
+
+print(xtable(summary,align="lXXXXX",caption="Humidity Data Overview",label="tab:humOverview"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+<<humGraph,fig.cap="Humidity Data Summary",echo=FALSE,fig.caption="Humidity Data Overview",fig.height=6>>=
+#,fig.env="sidewaysfigure",fig.width=8,fig.height=6.5
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_line()
+plt <- plt+xlab("Date") + ylab("Humidity")
+plt <- plt + theme_bw()
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd)))
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed)))
+plt <- plt + facet_grid(location~.)
+#plt <- plt + opts(strip.text.x = element_text(size = 8, colour = "red", angle = 90)
+plt <- plt + theme(strip.text.y = element_text(angle=0),legend.position="none")
+plt
+@ 
+
+
+<<comfortHumCalcs,include=FALSE>>=
+ss$comfort <- cut(ss$calibValue,breaks=c(0,45,65,85,100),
+                  labels=c("Dry","Comfort","Damp","Risk"))
+#ss$locationLab <- paste(ss$nodeId,"_",ss$location)
+ss$locationLab <- ss$location
+
+foo <- count(ss,vars=c('locationLab','comfort'))
+#Calc Percentages
+foo <- ddply(foo,.(locationLab),transform,p=freq/sum(freq))
+foo<- ddply(foo,.(locationLab),transform,tpos = cumsum(p) - 0.5*p)
+#foo <- ddply(foo,.(locationLab),transform,p=freq/sum(freq),tpos = cumsum(p) - 0.5*p)
+
+fooLab <- subset(foo,comfort=="Comfort")
+fooLab$label <- paste(round(fooLab$p * 100 ,digits=2),"%",sep="")
+@ 
+
+<<humExposeGraph,echo=FALSE, fig.cap="Humidity Exposure Graph",fig.height=6>>=
+#fig.env="sidewaysfigure",fig.width=12,
+plt <- ggplot(foo,aes(locationLab,p,fill=comfort))
+#plt <- ggplot(foo,aes(location,p,fill=comfort))
+plt <- plt+geom_bar(stat="identity")
+plt <- plt+geom_text(data=fooLab,aes(locationLab,tpos,label=label,size=8))
+#plt <- plt+geom_text(aes(label=comfort,y=count),size=3,position="stack")
+#plt <- plt+geom_text(aes(label=p,y=freq),size=3,position="stack")
+plt <- plt+scale_fill_manual("Comfort Level",values=rev(brewer.pal(n=6, "RdYlBu")))
+plt <- plt+xlab("Room")
+plt <- plt+ylab("Percentage of samples at this level")
+plt <- plt+guides(size=FALSE) #Remove Legend for Size
+plt <- plt+theme_bw() #Change Base Size
+plt <- plt+theme(legend.position="top",axis.text.x=element_text(angle=90),legend.title=element_blank())
+plt
+@ 
+
+\section{Co2 / VOC}
+<<co2Table,echo=FALSE,results='asis'>>=
+ss <- subset(calib,type>=8 & type <= 10)
+summary <-  ddply(subset(ss),
+                  .(nodeId,location,name),
+                  summarise,
+                  avgvalue = mean(calibValue),
+                  minvalue = min(calibValue),
+                  maxvalue = max(calibValue)
+                  )
+
+degC <- expression(paste(" ",degree,"C"))
+names(summary) <- c("Node Id","Location","SensorType","Average","Minimum","Maximum")
+
+print(xtable(summary,align="llXXXXX",caption="Other Data Overview",label="tab:otherOverview"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+<<otherGraph,fig.cap="Other Data Summary",echo=FALSE,fig.height=6>>=
+#,fig.env="sidewaysfigure",fig.width=8,fig.height=6.5
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_line()
+plt <- plt+xlab("Date") + ylab("Reading")
+plt <- plt + theme_bw()
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd))) #Average Line
+plt <- plt + facet_grid(location~name)
+#plt <- plt + opts(strip.text.x = element_text(size = 8, colour = "red", angle = 90)
+plt <- plt + theme(strip.text.y = element_text(angle=0),legend.position="none")
+plt
+@ 
+
+\section{Electricity Use}
+<<getElecData,include=FALSE>>=
+ss <- subset(calib,type==11)
+@ 
+
+Figure \ref{fig:rawElec} shows the measured current draw for this property.
+
+<<rawElec, echo=FALSE,fig.cap="Electricity use Trace">>=
+#Plot everything
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_line()
+plt <- plt+xlab("Date") + ylab("Reading (W)")
+plt <- plt + theme_bw()
+#plt <- plt + facet_grid(location~.)
+#plt <- plt + opts(strip.text.x = element_text(size = 8, colour = "red", angle = 90)
+plt <- plt + theme(strip.text.y = element_text(angle=0),legend.position="none")
+plt
+@ 
+
+<<dailyElec>>=
+#But thats a little bit shit so lets have a hourly summary
+
+#Calculate kWh
+elecData <- ss[with(ss,order(ts)),] #Order
+#elecData$Delta <- c(NA,diff(elecData$ts)/60) #Calc Delta
+#elecData$Delta <-  c(NA,diff(elecData$ts))#)# / hours(1)
+
+#elecData$Delta <- c(NA,difftime(elecData$ts[1:(length(elecData$ts)-1)] , elecData$ts[2:length(elecData$ts)]))
+#The above code doesnt give consistant units,  hopefully the next one always
+#gives seconds
+elecData$Delta <- c(NA,interval(elecData$ts[1:(length(elecData$ts)-1)] ,
+                                elecData$ts[2:length(elecData$ts)]))
+elecData[which(elecData$Delta > 30*60),]$Delta <- NA
+#plt <- ggplot(subset(elecData,period=="PRE"),aes(ts,value))
+
+elecData$kWh <- (elecData$Delta/60/60)* (elecData$calibValue / 1000)
+
+
+
+tmp <- subset(elecData,Date == as.Date("2011-04-14"))
+
+
+plt <- ggplot(tmp,aes(ts,calibValue))
+plt <- plt+geom_line(aes(ts,kWh))
+#plt <- plt+ geom_point()
+#plt <- plt+geom_line()
+plt
+#Then we can start to aggregate that into something sensible
+
+dailyWatts <- ddply(elecData,
+                    .(Date),
+                    summarise,
+                    avgW = mean(value),
+                    minW = min(value),
+                    maxW = max(value),
+                    kWh = sum(kWh)
+                    )
+
+#Thus we can plot average daily current draw
+plt <- ggplot(dailyWatts,aes(Date,avgW))
+plt <- plt+geom_point(stat="identity")
+plt <- plt+geom_errorbar(aes(ymin=minW,ymax=maxW))
+plt <- plt+xlab("Date") + ylab("Current Draw (W)")
+plt <- plt+theme_bw()
+plt
+
+
+plt <- ggplot(dailyWatts,aes(Date,kWh))
+plt <- plt+geom_bar(stat="identity")
+plt <- plt+xlab("Date") + ylab("Electricity Use (kWh)")
+plt <- plt+theme_bw()
+plt
+            
+@ 
+
+<<hourlyElec>>=
+#Calculate Hourly Electricty
+
+elecData$hStr <- as.POSIXct(format(elecData$ts,"%Y-%m-%d %H:00:00"))
+
+
+hourlyWatts <- ddply(elecData,
+                    .(hStr),
+                    summarise,
+                    avgW = mean(value),
+                    minW = min(value),
+                    maxW = max(value),
+                    kWh = sum(kWh)
+                    )
+
+plt <- ggplot(hourlyWatts,aes(hStr,kWh))
+plt <- plt+geom_step()
+plt
+
+#And the Awesome heatmap
+hourlyWatts$day <- day(hourlyWatts$hStr)
+hourlyWatts$hour <- hour(hourlyWatts$hStr)
+hourlyWatts$wday <- wday(hourlyWatts$hStr)
+hourlyWatts$week <- week(hourlyWatts$hStr)
+
+plt <- ggplot(hourlyWatts)
+plt <- plt+geom_tile(aes(wday,hour,fill=kWh))
+plt + facet_grid(week~.)
+
+@ 
 \end{document}
+
