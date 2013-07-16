@@ -1,4 +1,6 @@
-PFLAGS += -I../ -I ../../FilterWrapper  -I ../../SIPController
+PFLAGS += -I../ -I ../../FilterWrapper\
+	-I ../../SIPController\
+	-I../../../Util
 
 COMPONENT=PassTestC
 CFLAGS += -I$(TOSDIR)/lib/printf -Wall 
