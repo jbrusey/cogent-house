@@ -63,11 +63,11 @@ implementation
  */
  command void Filter.init[uint8_t id](float a, float b){
    count[id] = 0;
-   old_time[id] = 0;
    alpha[id] = a;
    beta[id] = b;
    xhat[id].x = 0.;
    xhat[id].dx = 0.;
+   xhat[id].time = 0;
  }
 
 }

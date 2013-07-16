@@ -25,7 +25,7 @@ implementation
     for (i = 1.; i < 2001.; i++) { 
       z = i;
       call Pass.filter(z, i * 1024, &xnew);
-      mu_assert("Filtered wrong", xnew.x == z && xnew.dx == 0.f);
+      mu_assert("Filtered wrong", xnew.x == z && xnew.dx == 1.f);
     }
 
 
