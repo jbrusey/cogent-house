@@ -1,5 +1,6 @@
 // -*- c -*- 
 #include "Filter.h"
+#include "subtracttime.h"
 
 module DEWMAC @safe()
 {
@@ -10,18 +11,8 @@ implementation
   float alpha[RS_SIZE];
   float beta[RS_SIZE];
   uint32_t count[RS_SIZE];
-  uint32_t old_time[RS_SIZE];
   FilterState xhat[RS_SIZE];
 
-
-  //Subtract time method to find time between now and the last reading deals with the overflow issue
-  uint32_t subtract_time(uint32_t current_time, uint32_t prev_time)
-  {
-    if (current_time < prev_time) // deal with overflow
-      return ((UINT32_MAX - prev_time) + current_time + 1);
-    else
-      return (current_time - prev_time);
-  }
 
 
   /* run filter step
@@ -42,7 +33,7 @@ implementation
       count[id]++;
     }
     else{
-      delta_t = subtract_time(current, old_time[id]);
+      delta_t = subtract_time(current, xhat[id].time);
       xnew->x = alpha[id] * z + (1-alpha[id]) * (xhat[id].x + (xhat[id].dx * delta_t / 1024.f));
       if (delta_t == 0) {
 	xnew->dx = xhat[id].dx;
@@ -58,7 +49,6 @@ implementation
 	/* } */
       }
     }
-    old_time[id] = current;
     xhat[id] = *xnew;
   }
 
