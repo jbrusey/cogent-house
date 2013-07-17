@@ -75,7 +75,8 @@ enum {
   SC_TEMPADC1 = 41,
   SC_D_TEMPADC1 = 42,
   SC_GAS = 43,
-  SC_SIZE = 44, // SC_SIZE must be 1 greater than last entry
+  SC_D_OPTI = 44,
+  SC_SIZE = 45, // SC_SIZE must be 1 greater than last entry
 
   /* procedure for increasing SC_SIZE:
    *
