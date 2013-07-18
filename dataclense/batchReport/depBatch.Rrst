@@ -1,0 +1,90 @@
+.. {r setup, include=FALSE}
+
+   #fig.path = paste("figure/", houseStr, sep = ""),
+   #House Id to fetch data for
+   hId = 7
+
+   opts_chunk$set(           
+   dev="pdf", 
+   fig.lp = "fig:",
+   out.width=".9\\textwidth",
+   fig.keep="high",
+   fig.show="hold",
+   fig.align="center",
+   fig.width=6.5,
+   fig.height=3.5,
+   comment=NA)
+
+
+
+   opts_chunk$set(aliases=c(h='fig.height',
+			    w='fig.width',
+   			    cap='fig.cap',
+			    scap='fig.scap'))
+
+.. .. 
+
+.. {r external-code, cache=FALSE, include=FALSE}
+    read_chunk('getDeploymentData.R')
+.. ..
+
+.. Load our dependiencies
+
+.. .. {r loaddeps, include=FALSE}
+.. #Load our R dependencies
+.. .. .. 
+
+
+.. .. {r fetchData, include=FALSE}
+.. # Fetch Data, Calibrate and Remove Data
+.. .. ..
+
+
+#########################################
+Deployment Report :r:`thisHouse$address`
+#########################################
+
+********************
+Deployment Overview
+********************
+
+.. {r houseSummary, include=FALSE}
+.. ..
+
+Deployment Details
+===================
+
+This section gives an overview of the deployment details
+
+* Deployment Id: :r:`thisHouse$id`
+* Deployment Start Date: :r:`as.character(thisHouse$sd)`
+* Deployment End: :r:`as.character(thisHouse$ed)`
+* Deployment Length: :r:`as.period(deployRange) %/% days(1)` Days
+* Data Start: :r:`as.character(dataStart)`
+* Data End: :r:`as.character(dataEnd)`
+* Data Length :r:`as.period(dateRange) %/% days(1)` Days
+
+.. {r dateBlock, echo=FALSE}
+    if (abs(deployRange %/% days(1) - dateRange %/% days(1)) > 1) {
+        warning("Date Ranges do not match please check your data")
+       }
+.. ..
+
+Node Summary
+=============
+
+This section gives an overview of the nodes used in the deployment.
+In total there were **:r:`numNodes`** deployed in **:r:`numLocs`** locations.
+
+.. {r nodeTable, results='asis', echo=FALSE}
+   pandoc.table(nodeSum,style="grid")
+.. ..
+
+######################
+Yield Summary
+######################
+
+
+
+
+
