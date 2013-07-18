@@ -11,7 +11,7 @@ require(RColorBrewer)
 require(scales) 
 require(xtable)
 require(knitr)
-require(ascii)
+require(pander)
 
 THEDB <- "transferTest"
 drv <- dbDriver("MySQL")
@@ -38,8 +38,7 @@ sensorTypeList <- subset(sensorType,
                          name=="Air Quality" |
                          name=="VOC" |                        
                          name=="Power" |
-                         name=="Power pulses" |
-                         name=="Battery Voltage"
+                         name=="Power pulses"                        
                          )
 
 
@@ -95,7 +94,7 @@ dataQry <- paste("SELECT * from Reading ",
                  sep="")
 
 # Uncomment this to actaully fetch data
-#theData <- dbGetQuery(con,statement=dataQry)
+theData <- dbGetQuery(con,statement=dataQry)
 theData$ts <- as.POSIXct(theData$time,tz="GMT")
 theData$Date <- as.Date(theData$ts)
 
@@ -167,4 +166,52 @@ numLocs <- length(unique(nodeSum$location))
 #And format colums  for printing
 names(nodeSum) <- c("Node Id","Location","Location Id","Sensors")
 
+
+## ===================================
+## Yield Calculations
+## ===================================
+
+## @knitr yieldCalcs
+
+
+#Strip out flow and return shizzle from the yield table
+yieldData <- subset(calib,location!="Flow" & location!="Return" & location!="HotWater" & location!="ColdWater" & location!="Hot Water" & location!= "Cold Water" & location!="Cold" & location!="Hot")
+
+#nodeSum <- ddply(calib,
+nodeSum <- ddply(yieldData,
+                 .(nodeId,location,type),
+                 summarise,
+                 count = length(ts),
+                 numsensors = length(unique(type)))
+
+#Yield
+nodeSum$yield = (nodeSum$count / expectedSamples) * 100.0
+avgYield = mean(nodeSum$yield)
+
+#Table of outputs
+yieldTable <- ddply(nodeSum,
+                    .(nodeId,location),
+                    summarise,
+                    Yield = mean(yield))
+
+#Heatmap
+yieldHeatmap <- ddply(yieldData,
+                    .(nodeId,location,Date),
+                    summarise,
+                    count = length(ts),
+                    numsensors = length(unique(type)))
+
+yieldHeatmap$yield <- yieldHeatmap$count / (288 * yieldHeatmap$numsensors) * 100
+
+#Days with > 90% yield
+yieldDays <- ddply(yieldHeatmap,
+                   .(Date),
+                   summarise,
+                   count = sum(count),
+                   numsensors = sum(numsensors),
+                   avgYield = mean(yield))
+
+yieldDays$yield <- yieldDays$count / (288* yieldDays$numsensors) * 100
+totDays <- nrow(yieldDays)
+yldDays <- nrow(subset(yieldDays,yield>=90))
 
