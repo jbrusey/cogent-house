@@ -4,23 +4,27 @@
    #House Id to fetch data for
    hId = 7
 
+   #out.width=".9\\textwidth",
    opts_chunk$set(           
-   dev="pdf", 
-   fig.lp = "fig:",
-   out.width=".9\\textwidth",
-   fig.keep="high",
-   fig.show="hold",
-   fig.align="center",
-   fig.width=6.5,
-   fig.height=3.5,
-   comment=NA)
+      dev="svg", 
+      fig.lp = "fig:",
+      fig.path = "fig-",
+      fig.keep="high",
+      fig.show="hold",
+      fig.align="center",
+      fig.width=6.5,
+      fig.height=3.5,
+      comment=NA)
 
-
+   
 
    opts_chunk$set(aliases=c(h='fig.height',
 			    w='fig.width',
    			    cap='fig.cap',
 			    scap='fig.scap'))
+
+   ##options(width = 75)
+   ##opts_chunk$set(cache=TRUE, fig.width=5, fig.height=5)
 
 .. .. 
 
@@ -28,7 +32,7 @@
     read_chunk('getDeploymentData.R')
 .. ..
 
-.. Load our dependiencies
+.. .. Load our dependiencies
 
 .. .. {r loaddeps, include=FALSE}
 .. #Load our R dependencies
@@ -84,7 +88,33 @@ In total there were **:r:`numNodes`** deployed in **:r:`numLocs`** locations.
 Yield Summary
 ######################
 
+This section gives details of the node yield. 
 
+Yield is shown as a percentage of the total expected samples per node received
+and stored at the base station.
+
+Given the standard 5 minute sampling period it is expected that the base station
+will receive *288* samples per node per day. The daily yield per sensor is
+calculated through *received samples \ 288 100*
+
+When examining daily yield it is important to note that the first and last days
+of the deployment will show yield below 100%, this is due to the equipment being
+installed or removed on these days, and thus a incomplete data set for that day
+being available.
+
+.. {r yieldCalcs}
+.. ..
+
+.. {r yieldGraph, fig.cap="Per Node Yield Overview"}
+#Our first graph
+#And an Overview Graph
+plt <- ggplot(yieldTable,aes(location,Yield))
+plt <- plt+geom_bar(stat="identity",fill="white",color="darkgreen")
+plt <- plt+geom_hline(yintercept=90)
+plt <- plt+theme_bw()
+plt <- plt+theme(axis.text.x=element_text(angle=90))
+plt
+.. ..
 
 
 
