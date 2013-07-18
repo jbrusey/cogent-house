@@ -86,6 +86,7 @@ thisHouse$sd <- tryCatch({as.POSIXlt(thisHouse$startDate,tz="GMT")},
 
 thisHouse$ed <- tryCatch({as.POSIXlt(thisHouse$endDate,tz="GMT")},
                         error=function(e){
+                          
                           NA
                         }
                         )

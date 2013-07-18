@@ -37,8 +37,8 @@ sensorTypeList <- subset(sensorType,
 
 
 
-#for (i in 1:nrow(houses)){
-for (i in 10:16){
+for (i in 1:nrow(houses)){
+#for (i in 10:16){
   thisHouse <- houses[i,]
   houseStr <- gsub("\\s","",thisHouse$address)
   print(houseStr)
@@ -47,5 +47,6 @@ for (i in 10:16){
 
 
 thisHouse = houses[7,]
+#thisHouse = houses[8,]
 houseStr <- gsub("\\s","",thisHouse$address)
 knit("deploymentReport.Rnw", output = paste(houseStr,".tex",sep=""))
