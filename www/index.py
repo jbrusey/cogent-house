@@ -67,7 +67,8 @@ thresholds = {
     0 : 0.5,
     2 : 2,
     8 : 100,
-    6 : 0.1
+    6 : 0.1,
+    40 : 10,
     }
 
 sensor_types= {
@@ -81,7 +82,8 @@ type_delta = {
     0 : 1,
     2 : 3,
     8 : 20,
-    6 : 7
+    6 : 7,
+    40 : 44
 }
 
 _deltaDict={
@@ -113,7 +115,7 @@ _sidebars = [
     ("CO<sub>2</sub>", "allGraphs?typ=8", "Show CO2 graphs for all nodes"),
     ("AQ", "allGraphs?typ=9", "Show air quality graphs for all nodes"),
     ("VOC", "allGraphs?typ=10", "Show volatile organic compound (VOC) graphs for all nodes"),
-    ("Electricity", "allGraphs?typ=11", "Show electricity usage for all nodes"),
+    ("Electricity", "allGraphs?typ=40", "Show electricity usage for all nodes"),
     ("Battery", "allGraphs?typ=6", "Show node battery voltage"),
     ("Duty cycle", "allGraphs?typ=13", "Show transmission delay graphs"),
     ("Bathroom v. Elec.", "bathElec", "Show bathroom versus electricity"),
@@ -201,36 +203,41 @@ def _mins(s, default=60):
     else:
         return default
 
-def tree(req, period='hour'):
+def tree(req, period='day', debug=''):
     mins = _mins(period)
     try:
         session = Session()
         from subprocess import Popen, PIPE
-        req.content_type = _CONTENT_SVG
-#        req.content_type = _CONTENT_TEXT
+        if debug != 'y':
+            req.content_type = _CONTENT_SVG
+            cmd = 'dot -Tsvg'
+        else:
+            req.content_type = _CONTENT_TEXT
+            cmd = 'cat'
 
         t = datetime.utcnow() - timedelta(minutes=mins)
 
-        p = Popen("dot -Tsvg", shell=True, bufsize=4096,
-#        p = Popen("cat", shell=True, bufsize=4096,
+        p = Popen(cmd, shell=True, bufsize=4096,
               stdin=PIPE, stdout=PIPE, close_fds=True)
         
         with p.stdin as dotfile:
             dotfile.write("digraph {")
-            for (ni,pa) in session.query(NodeState.nodeId,
-                                            NodeState.parent
+            for (ni,pa,rssi) in session.query(NodeState.nodeId,
+                                            NodeState.parent,
+                                            func.avg(NodeState.rssi)
                                             ).group_by(NodeState.nodeId, NodeState.parent).filter(NodeState.time > t):
                 
-                dotfile.write("%d->%d;" % (ni, pa))
+                dotfile.write('{}->{} [label="{}"];'.format(ni, pa, float(rssi)))
             dotfile.write("}")
 
         return p.stdout.read()
 
     finally:
         session.close()
+        p.stdout.close()
 
 
-def treePage(period='hour'):
+def treePage(period='day'):
     s = ['<p>']
     for k in sorted(_periods, key=lambda k: _periods[k]):
         if k == period:
@@ -1361,7 +1368,7 @@ def _get_y_label(reading_type, session=None):
         return "unknown"
 
 
-def _plot(typ, t, v, startts, endts, debug, fmt):
+def _plot(typ, t, v, startts, endts, debug, fmt, type_label=None):
     if not debug:
         fig = plt.figure()
         fig.set_size_inches(7,4)
@@ -1374,7 +1381,9 @@ def _plot(typ, t, v, startts, endts, debug, fmt):
             ax.plot_date(t, v, fmt)
             fig.autofmt_xdate()
             ax.set_xlabel("Date")
-            ax.set_ylabel(int(typ))
+            if type_label is None:
+                type_label = str(typ)
+            ax.set_ylabel(type_label)
 
 
         image = cStringIO.StringIO()
@@ -1580,7 +1589,8 @@ def graph(req,
                 #last_value=float(qv)
 
             v = _calibrate(session, v, node, typ)
-            res = _plot(typ, t, v, startts, endts, debug, fmt)
+            res = _plot(typ, t, v, startts, endts, debug, fmt,
+                        type_label=_get_y_label(typ, session))
         else:
             res = _plot_splines(int(node),
                                type_id,
