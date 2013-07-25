@@ -335,3 +335,110 @@ summary <-  ddply(subset(ss),
 names(summary) <- c("Node Id","Location","SensorType","Average","Minimum","Maximum")
 
 
+## @knitr ElectricityData
+
+ss <- subset(calib,type==11)
+
+#Calculate kWh
+elecData <- ss[with(ss,order(ts)),] #Order
+#The above code doesnt give consistant units,  hopefully the next one always
+#gives seconds
+elecData$Delta <- c(NA,interval(elecData$ts[1:(length(elecData$ts)-1)] ,
+                                elecData$ts[2:length(elecData$ts)]))
+#elecData[which(elecData$Delta > 30*60),]$Delta <- NA
+#plt <- ggplot(subset(elecData,period=="PRE"),aes(ts,value))
+
+elecData$kWh <- (elecData$Delta/60/60)* (elecData$calibValue / 1000)
+
+#We could just show the measured current draw but thats a little shit
+#So lets aggregate that into something a little more sensible (Daily Use)
+
+dailyWatts <- ddply(elecData,
+                    .(Date),
+                    summarise,
+                    avgW = mean(value,na.rm=TRUE),
+                    minW = min(value,na.rm=TRUE),
+                    maxW = max(value,na.rm=TRUE),
+                    kWh = sum(kWh)
+                    )
+
+#Calculate Hourly Electricty
+
+elecData$hStr <- as.POSIXct(format(elecData$ts,"%Y-%m-%d %H:00:00"))
+
+hourlyWatts <- ddply(elecData,
+                    .(hStr),
+                    summarise,
+                    avgW = mean(value,na.rm=TRUE),
+                    minW = min(value,na.rm=TRUE),
+                    maxW = max(value,na.rm=TRUE),
+                    kWh = sum(kWh)
+                    )
+
+elecPerUnit = 0.15
+
+#For the Heatmap
+hourlyWatts$day <- day(hourlyWatts$hStr)
+hourlyWatts$hour <- hour(hourlyWatts$hStr)
+hourlyWatts$wday <- wday(hourlyWatts$hStr,label=TRUE)
+hourlyWatts$week <- week(hourlyWatts$hStr)
+
+
+#And Rosses Codes
+dd <- elecData
+dd[1,]$kWh <-  0.0 #Stop values of zero leading to null results
+dd[1,]$Delta <- 0.0
+
+#Calcluate out Baseline
+eBase <- 0
+eBaseline <-  min(dd$calibValue) + 20
+eBaselineKWH <- elecData[which(elecData$calibValue == minVal),]$kWh
+#As Base is just minimum Val * number of rows
+eBase <- eBaselineKWH * nrow(dd)
+
+
+#And setup the rest of the values
+eCt <-  500
+prevRow <-  dd[1,]
+eConsumer <-  0
+ePeak <-  0
+
+
+#(elecData$Delta/60/60)* (elecData$calibValue / 1000)
+
+for (i in seq(along=dd[,1])){
+  theRow = dd[i,]
+  cv <-  theRow$calibValue
+  ckw <- theRow$kWh
+ 
+  eApp <- cv - eBaseline
+  if (eApp > eCt){
+    pApp <- prevRow$calibValue - eBaseline
+    eConsumer <- eConsumer + ((prevRow$Delta/60/60) * (pApp / 1000))
+    ePeak <- ePeak + ((theRow$Delta/60/60) * ((eApp - pApp ) / 1000))
+    }
+  else{
+    print(theRow$kWh)
+    eConsumer <- eConsumer + theRow$kWh
+    prevRow <- theRow
+  }
+}
+
+outFrame <- data.frame(var=c("Base","Mid","Peak"),value=c(eBase,eConsumer,ePeak))
+outFrame$percent <- outFrame$value / sum(outFrame$value)
+
+plt <- ggplot(outFrame,aes(1,value,fill=factor(var)))
+plt <- plt+geom_bar(stat="identity",position="stack")#
+plt <- plt+xlab("") + ylab("kWh")
+plt <- plt+theme_bw()
+plt <- plt+theme(axis.text.x=element_blank())
+#plt <- plt+scale_x_discrete(breaks=NULL)
+plt
+
+
+plt <- ggplot(hourlyWatts)
+plt <- plt+geom_tile(aes(hour,wday,fill=avgW),color="white")
+plt <- plt+scale_fill_gradient("Average Current Draw")
+plt <- plt+scale_y_discrete(limits=rev(levels(hourlyWatts$wday)))
+plt <- plt+xlab("Hour of Day") + ylab("Day of Week")
+plt + facet_grid(week~.)
