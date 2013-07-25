@@ -276,7 +276,7 @@ This section examines other envionmental data collected during the deployment.
 pandoc.table(summary,style="grid", caption="Other Data Summary")
 .. .. 
 
-.. {r otherGraph, echo=FALSE}
+.. {r otherGraph, echo=FALSE, fig.cap="Data trace of other environmental parameters"}
 plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
 plt <- plt+geom_line()
 plt <- plt+xlab("Date") + ylab("Reading")
@@ -293,6 +293,17 @@ Electricity Data
 *****************
 
 This section gives details of electricity use.
+
+.. {r doElectric, include=FALSE}
+ss <- subset(calib,type==11)
+doelec = FALSE
+if (nrow(ss) > 0){
+  doelec = TRUE
+}
+.. .. 
+
+.. {r doelec, child = if(doelec==TRUE)'electric.Rrst' else 'noElectric.Rnw'}
+.. .. 
 
 
 
