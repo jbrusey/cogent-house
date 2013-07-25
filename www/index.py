@@ -1377,13 +1377,15 @@ def _plot(typ, t, v, startts, endts, debug, fmt, type_label=None):
         ax.set_xlim((matplotlib.dates.date2num(startts),
                      matplotlib.dates.date2num(endts)))
 
-        if len(t) > 0:                            
-            ax.plot_date(t, v, fmt)
-            fig.autofmt_xdate()
-            ax.set_xlabel("Date")
-            if type_label is None:
-                type_label = str(typ)
-            ax.set_ylabel(type_label)
+        if len(t) == 0:
+            return _no_data_plot()
+        
+        ax.plot_date(t, v, fmt)
+        fig.autofmt_xdate()
+        ax.set_xlabel("Date")
+        if type_label is None:
+            type_label = str(typ)
+        ax.set_ylabel(type_label)
 
 
         image = cStringIO.StringIO()
@@ -1455,6 +1457,21 @@ def _adjust_deltas(x):
     the default interval is 5 minutes. """
     return [(a,b,c*300.,d) for (a,b,c,d) in x]
 
+def _no_data_plot():
+    """ return a plot with "no data" in the centre of it.
+    """
+    fig = plt.figure()
+    fig.set_size_inches(7,4)
+    ax = fig.add_subplot(111)
+    ax.text(0.5, 0.5, 'No data',transform=ax.transAxes,
+            ha='center',
+            fontsize=12, va='center')
+    image = cStringIO.StringIO()
+    fig.savefig(image, **_SAVEFIG_ARGS)
+
+    return  [_CONTENT_PLOT, image.getvalue()]
+
+
 def _plot_splines(node_id,
                   reading_type,
                   delta_type,
@@ -1498,6 +1515,9 @@ def _plot_splines(node_id,
             (last_dt, last_s, last_t) = (pt.dt, pt.s, pt.t) 
 
         first = False
+
+    if first:
+        return _no_data_plot()
 
     path = Path(coords, codes)
 
