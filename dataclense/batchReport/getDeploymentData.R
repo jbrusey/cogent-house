@@ -173,7 +173,6 @@ names(nodeSum) <- c("Node Id","Location","Location Id","Sensors")
 
 ## @knitr yieldCalcs
 
-
 #Strip out flow and return shizzle from the yield table
 yieldData <- subset(calib,location!="Flow" & location!="Return" & location!="HotWater" & location!="ColdWater" & location!="Hot Water" & location!= "Cold Water" & location!="Cold" & location!="Hot")
 
@@ -214,4 +213,125 @@ yieldDays <- ddply(yieldHeatmap,
 yieldDays$yield <- yieldDays$count / (288* yieldDays$numsensors) * 100
 totDays <- nrow(yieldDays)
 yldDays <- nrow(subset(yieldDays,yield>=90))
+
+#########################
+## Temperture Data
+#########################
+
+## @knitr tempData
+
+ss <- subset(calib,type==0)
+summary <- ddply(ss,
+                 .(nodeId,location),
+                 summarise,
+                 average = mean(calibValue),
+                 minimum = min(calibValue),
+                 maximum = max(calibValue)
+                 )
+#
+names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
+
+#And Calculate Comfort
+tempLabels = c("Health Risk","Cold","Comfortable","Warm","Overheating")
+
+ss$comfort <- cut(ss$calibValue,breaks=c(0,16,18,22,27,100),
+           labels=c("Health Risk <16","Cold 16-18","Comfortable 18-22","Warm 22-27","Overheating 27+"))
+
+#Freq for all
+expose <- count(ss,vars=c('comfort'))
+expose$pc <- expose$freq / sum(expose$freq) * 100.0
+
+## #Give PlyR a go.
+## #Count Values
+expose <- count(ss,vars=c('location','comfort'))
+#Calc Percentages
+expose <- ddply(expose,.(location),transform,p=freq/sum(freq))
+expose<- ddply(expose,.(location),transform,tpos = cumsum(p) - 0.5*p)
+
+exposeLab <- subset(expose,comfort=="Comfortable 18-22")
+exposeLab$label <- paste(round(exposeLab$p * 100 ,digits=2),"%",sep="")
+
+melted <- subset(melt(expose,id=c("location","comfort")),variable=="p")
+melted$value <- melted$value * 100.0
+exposeFlat <- cast(melted,location~comfort)
+
+## ## ## And Exposure Heatmap
+## ss$hStr <- as.POSIXct(format(ss$ts,"%Y-%m-%d %H:00:00"))
+
+## hourlyData <- ddply(ss,
+##                     .(hStr,location),
+##                     summarise,
+##                     avg = mean(calibValue)
+##                     )
+
+## hourlyData$hour <- hour(hourlyData$hStr)
+## hourlyData$wday <- wday(hourlyData$hStr,label=TRUE)
+## hourlyData$week <- week(hourlyData$hStr)
+## hourlyData$comfort <- cut(hourlyData$avg,breaks=c(0,16,18,22,27,100),
+##                           labels=c("Health Risk <16","Cold 16-18","Comfortable 18-22","Warm 22-27","Overheating 27+"))
+
+## plt <- ggplot(hourlyData,aes(wday,hour,fill=comfort))
+## plt <- plt+geom_tile(color="white")
+## plt+facet_grid(location~week)
+
+##################
+## Humidity Data
+## ###############
+
+
+## @knitr humData
+
+ss <- subset(calib,type==2)
+summary <- ddply(ss,
+                 .(nodeId,location),
+                 summarise,
+                 average = mean(calibValue),
+                 minimum = min(calibValue),
+                 maximum = max(calibValue)
+                 )
+
+names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
+
+#And Calculate Comfort
+#tempLabels = c("Health Risk","Cold","Comfortable","Warm","Overheating")
+
+
+ss$comfort <- cut(ss$calibValue,breaks=c(0,45,65,85,100),
+                  labels=c("Dry","Comfortable","Damp","Risk"))
+
+## ss$comfort <- cut(ss$calibValue,breaks=c(0,16,18,22,27,100),
+##            labels=c("Health Risk <16","Cold 16-18","Comfortable 18-22","Warm 22-27","Overheating 27+"))
+
+#Freq for all
+expose <- count(ss,vars=c('comfort'))
+expose$pc <- expose$freq / sum(expose$freq) * 100.0
+
+## #Give PlyR a go.
+## #Count Values
+expose <- count(ss,vars=c('location','comfort'))
+#Calc Percentages
+expose <- ddply(expose,.(location),transform,p=freq/sum(freq))
+expose<- ddply(expose,.(location),transform,tpos = cumsum(p) - 0.5*p)
+
+exposeLab <- subset(expose,comfort=="Comfortable")
+exposeLab$label <- paste(round(exposeLab$p * 100 ,digits=2),"%",sep="")
+
+melted <- subset(melt(expose,id=c("location","comfort")),variable=="p")
+melted$value <- melted$value * 100.0
+exposeFlat <- cast(melted,location~comfort)
+
+
+## @knitr otherData
+
+ss <- subset(calib,type>=8 & type <= 10)
+summary <-  ddply(subset(ss),
+                  .(nodeId,location,name),
+                  summarise,
+                  avgvalue = mean(calibValue),
+                  minvalue = min(calibValue),
+                  maxvalue = max(calibValue)
+                  )
+
+names(summary) <- c("Node Id","Location","SensorType","Average","Minimum","Maximum")
+
 
