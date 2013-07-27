@@ -674,11 +674,13 @@ def exportDataForm(err=None):
         s.append("</select></p>")
 
         s.append("<table border=\"0\" width=\"650\" cellpadding=\"5\"><tr><td>")
-        s.append("Start Date: <input type=\"text\" name=\"StartDate\" value=\"\" />")
-        s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('StartDate');\"></td><td>") 
+        s.append("Start Date: <input type=\"text\" name=\"StartDate\" value=\"\" onfocus=\"displayDatePicker('StartDate');\"/>")
+        #s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('StartDate');\"></td><td>")
+        s.append("</td><td>") 
 
-        s.append("End Date: <input type=\"text\" name=\"EndDate\" value=\""+(datetime.utcnow()).strftime("%d/%m/%Y")+"\" />")
-        s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('EndDate');\"><br/></td><tr></table>") 
+        s.append("End Date: <input type=\"text\" name=\"EndDate\" value=\""+(datetime.utcnow()).strftime("%d/%m/%Y")+"\"  onfocus=\"displayDatePicker('EndDate');\"/>")
+        #s.append("<input type=button value=\"select\" onclick=\"displayDatePicker('EndDate');\"><br/></td><tr></table>") 
+        s.append("</td><tr></table>") 
 
         s.append("<p><input type=\"submit\" value=\"Get Data\"></p>")
 
@@ -716,7 +718,8 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
         ed = ed + timedelta(days=1)
 
         #construct query
-        exportData = (session.query(Reading.nodeId,Reading.time,Reading.value)
+        exportData = (session.query(Reading.nodeId,Reading.time,Reading.value,House.address, Room.name)
+                      .join(Location, House, Room)
                       .filter(and_(Reading.typeId == st,
                                    Reading.time >= sd,
                                    Reading.time < ed))
@@ -726,13 +729,10 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
         req.content_type = "text/csv"
         csv_file = ['# cogent-house export of {} from {} to {}\n'
                     .format(_get_y_label(st, session=session),
-                            sd, ed)]
-        csv_file.extend(['%d,"%s",%s\n' % (n, t, v) for n, t, v in exportData])
+                            sd, ed),
+                            '#node id, house, room, time, value\n']
+        csv_file.extend(['{},"{}","{}",{},{}\n'.format(n, ha, rn, t, v) for n, t, v, ha, rn in exportData])
         return "".join(csv_file)
-        # csvStr=""
-        # for rn,rt,rv in exportData:
-        #     csvStr+=str(rn)+","+str(rt)+","+str(rv)+"\n"
-        # return csvStr
     finally:
         session.close()
 
