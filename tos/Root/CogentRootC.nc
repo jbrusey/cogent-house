@@ -45,4 +45,12 @@ implementation
 	
   components new TimerMilliC() as BlinkTimer;
   CogentRootP.BlinkTimer -> BlinkTimer;
+
+  /* error display */
+  components new TimerMilliC() as ErrorDisplayTimer;
+  components ErrorDisplayM;
+  ErrorDisplayM.ErrorDisplayTimer -> ErrorDisplayTimer;
+  ErrorDisplayM.Leds -> LedsC;
+  CogentRootP.ErrorDisplayControl -> ErrorDisplayM.ErrorDisplayControl;
+  CogentRootP.ErrorDisplay -> ErrorDisplayM.ErrorDisplay;
 }

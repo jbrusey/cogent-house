@@ -293,11 +293,6 @@ class Reconstruct(object):
             if pt.ev:
                 if self.last is not None:
                     # reconstruct spline between last and current
-                    
-                    # spline = CubicSpline(self.last[0], self.last[1], s, t, len(self.stack))
-                    # print "#spline: ", (self.last[0], self.last[1], s, t, len(self.stack))
-                    # for v in spline:
-                    #     print "#", v
                     spline = CubicSpline(self.last[0],
                                          self.last[1],
                         pt.s,
@@ -386,18 +381,6 @@ class PartSplineReconstruct(object):
                 self.last = (pt.s, pt.t)
 
 
-# class LinearReconstruct(object):
-#     def __init__(self, src=None):
-#         self.src = src
-#         self.last = None
-
-#     def __iter__(self):
-#         for r in self.src:
-#             (ev, l, s, t, xn, x, v) = r
-#             if ev:
-                
-
-
 class QuarticSpline(Spline):
     def __init__(self,
                  a,b,c,d,e,s, steps):
@@ -461,14 +444,6 @@ class ReconstructQuartic(object):
                         e = None
 
                     if e is not None:
-                        # print "#QuarticSpline{0}".format(repr((self.last[0],
-                        #                                          self.last[1],
-                        #                        s,
-                        #                        t,
-                        #                        e,
-                        #                        xk1,
-                        #                        steps)))
-
                         spline = QuarticSpline(self.last[0],
                                                self.last[1],
                                                pt.s,

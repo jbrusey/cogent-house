@@ -147,6 +147,12 @@ enum {
 };
 
 
+
+enum {
+  ERR_QUEUE_FULL = 1,
+  ERR_UART_FAIL = 2,
+}; //root errors (only in range 1-7)
+
 enum {
   NODE_TYPE_MAX = 10
 };
