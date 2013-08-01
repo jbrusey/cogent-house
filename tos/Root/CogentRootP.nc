@@ -32,6 +32,10 @@ module CogentRootP @safe() {
       interface Queue<message_t *>;
       interface Pool<message_t>;
 
+      //errors
+      interface StdControl as ErrorDisplayControl;
+      interface ErrorDisplay;
+
       interface Timer<TMilli> as BlinkTimer;
       interface Leds;
     }
@@ -88,6 +92,7 @@ implementation
 	    fwdBusy = TRUE;
 	  }
 	  else { 
+	    //ERROR!!!!!!
 #ifdef BLINKY
 	    call Leds.led0On();
 #endif
@@ -119,6 +124,7 @@ implementation
   }
 
   event void UartSend.sendDone[am_id_t id](message_t *msg, error_t error) {
+    //ERROR CHECK NEEDED
     fwdBusy = FALSE;
     call Pool.put(msg);
     if (! call Queue.empty())
@@ -146,12 +152,15 @@ implementation
   }
 
   event void SerialControl.startDone(error_t error) {
+    //ERROR CHECK NEEDED
     fwdBusy = FALSE;
     if (error == FAIL)
       call SerialControl.start();
   }
 
-  event void SerialControl.stopDone(error_t error) { }
+  event void SerialControl.stopDone(error_t error) { 
+    //ERROR CHECK NEEDED
+  }
 
   uint8_t blink_state = 0;
 
@@ -160,6 +169,7 @@ implementation
   event void BlinkTimer.fired() { 
     if (blink_state >= 60) { /* 30 seconds */
       call Leds.set(0);
+      call ErrorDisplayControl.start();
     }
     else { 
       blink_state++;
