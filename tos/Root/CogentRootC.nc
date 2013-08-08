@@ -46,6 +46,9 @@ implementation
   components new TimerMilliC() as BlinkTimer;
   CogentRootP.BlinkTimer -> BlinkTimer;
 
+  components new TimerMilliC() as AckTimeoutTimer;
+  CogentRootP.AckTimeoutTimer ->  AckTimeoutTimer;
+
   /* error display */
   components new TimerMilliC() as ErrorDisplayTimer;
   components ErrorDisplayM;

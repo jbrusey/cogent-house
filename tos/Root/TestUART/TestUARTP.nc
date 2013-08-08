@@ -19,9 +19,6 @@ module TestUARTP @safe() {
       interface Queue<message_t *>;
       interface Pool<message_t>;
 
-      //Send Timer
-      interface Timer<TMilli> as SendTimer;
-
       //errors
       interface StdControl as ErrorDisplayControl;
       interface ErrorDisplay;
@@ -42,11 +39,10 @@ implementation
   event void Boot.booted()
   {
     call SerialControl.start();
-    call SendTimer.startPeriodic(128);
   }
 
 
-  event void SendTimer.fired() { 
+  task void sendIt() { 
     //send packet
 
     uint8_t id = 5;
@@ -61,7 +57,6 @@ implementation
 	return;
       }
       
-      rcm->counter = counter;
       if (call UartSend.send[id](AM_BROADCAST_ADDR, &packet, sizeof(test_serial_msg_t)) == SUCCESS) {
 	locked = TRUE;
       }
@@ -74,14 +69,17 @@ implementation
   event void UartSend.sendDone[am_id_t id](message_t *msg, error_t error) {
     if (error == SUCCESS)
       call Leds.led1Toggle();
-    if (&packet == msg)
+    if (&packet == msg){
       locked = FALSE;
+      post sendIt();
+    }
   }
 
 
   event void SerialControl.startDone(error_t error) {
     if (error == FAIL)
       call SerialControl.start();
+    post sendIt();
   }
 
   event void SerialControl.stopDone(error_t error) {}

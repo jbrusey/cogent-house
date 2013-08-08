@@ -3,7 +3,7 @@
 #define TEST_SERIAL_H
 
 typedef nx_struct test_serial_msg {
-  nx_uint16_t counter;
+  nx_uint8_t counter[70];
 } test_serial_msg_t;
 
 enum {
