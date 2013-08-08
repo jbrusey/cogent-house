@@ -16,14 +16,6 @@ implementation
 
   TestUARTP.Leds -> LedsC;
   
-  components new QueueC(message_t*, SERIAL_QUEUE_SIZE);
-  components new PoolC(message_t, SERIAL_QUEUE_SIZE);
-  TestUARTP.Queue -> QueueC;
-  TestUARTP.Pool -> PoolC;
-  
-  components new TimerMilliC() as SendTimer;
-  TestUARTP.SendTimer -> SendTimer;
-
   /* error display */
   components new TimerMilliC() as ErrorDisplayTimer;
   components ErrorDisplayM;

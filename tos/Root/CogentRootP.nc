@@ -37,6 +37,7 @@ module CogentRootP @safe() {
       interface ErrorDisplay;
 
       interface Timer<TMilli> as BlinkTimer;
+      interface Timer<TMilli> as AckTimeoutTimer;
       interface Leds;
     }
     
@@ -47,7 +48,9 @@ implementation
 {
   message_t fwdMsg;
   bool fwdBusy;
+  bool bouncing = FALSE;
   message_t uartmsg;
+  
 
   event void Boot.booted()
   {
@@ -87,7 +90,8 @@ implementation
 	uart_payload = call UartPacket.getPayload(msg, len);
 	if (uart_payload != NULL) { 
 	  memcpy(uart_payload, &uartmsg, len);
-      
+
+	  call AckTimeoutTimer.startOneShot(ACK_TIMEOUT_TIME);      
 	  if (call UartSend.send[id](AM_BROADCAST_ADDR, msg, len) == SUCCESS) { 
 	    fwdBusy = TRUE;
 	  }
@@ -137,6 +141,8 @@ implementation
     CRCStruct crs;
     uint16_t crc;
 
+    call AckTimeoutTimer.stop();
+
 #ifdef BLINKY 
     call Leds.led1Toggle();
 #endif
@@ -151,15 +157,29 @@ implementation
     return msg;
   }
 
+
+
+  // ACK has not been recieved from the SP bounce
+  event void AckTimeoutTimer.fired() { 
+    bouncing = TRUE;
+    fwdBusy = TRUE;
+
+    call SerialControl.stop();
+  }
+
   event void SerialControl.startDone(error_t error) {
-    //ERROR CHECK NEEDED
     fwdBusy = FALSE;
+
+    if (bouncing && !call Queue.empty())
+      post serialForwardTask();
+    bouncing=FALSE;
     if (error == FAIL)
       call SerialControl.start();
   }
 
   event void SerialControl.stopDone(error_t error) { 
-    //ERROR CHECK NEEDED
+    if (bouncing)
+      call SerialControl.start();
   }
 
   uint8_t blink_state = 0;
