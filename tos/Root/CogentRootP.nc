@@ -46,6 +46,16 @@ module CogentRootP @safe() {
 
 implementation
 {
+
+  enum {
+    ERR_SERIAL_SEND_FAILED = 1,
+    ERR_SERIAL_START = 2,
+    ERR_RADIO_START = 3,
+    ERR_ACK_TIMEOUT = 4
+  };
+
+
+
   message_t fwdMsg;
   bool fwdBusy;
   bool bouncing = FALSE;
@@ -60,8 +70,10 @@ implementation
   }
 
   event void RadioControl.startDone(error_t error) {
-    if (error == FAIL)
+    if (error == FAIL){
+      call ErrorDisplay.add(ERR_RADIO_START);
       call RadioControl.start();
+    }
     else {
       call CollectionControl.start();
       call DisseminationControl.start();
@@ -95,12 +107,6 @@ implementation
 	  if (call UartSend.send[id](AM_BROADCAST_ADDR, msg, len) == SUCCESS) { 
 	    fwdBusy = TRUE;
 	  }
-	  else { 
-	    //ERROR!!!!!!
-#ifdef BLINKY
-	    call Leds.led0On();
-#endif
-	  }
 	}
       }
     }
@@ -128,8 +134,10 @@ implementation
   }
 
   event void UartSend.sendDone[am_id_t id](message_t *msg, error_t error) {
-    //ERROR CHECK NEEDED
     fwdBusy = FALSE;
+    if (error != SUCCESS) {
+      call ErrorDisplay.add(ERR_SERIAL_SEND_FAILED);
+    }
     call Pool.put(msg);
     if (! call Queue.empty())
       post serialForwardTask();
@@ -164,17 +172,22 @@ implementation
     bouncing = TRUE;
     fwdBusy = TRUE;
 
+    call ErrorDisplay.add(ERR_ACK_TIMEOUT);
     call SerialControl.stop();
   }
 
   event void SerialControl.startDone(error_t error) {
     fwdBusy = FALSE;
 
-    if (bouncing && !call Queue.empty())
-      post serialForwardTask();
-    bouncing=FALSE;
-    if (error == FAIL)
+    if (error == FAIL){
+      call ErrorDisplay.add(ERR_SERIAL_START);
       call SerialControl.start();
+    }
+    else {
+      if (bouncing && !call Queue.empty())
+	post serialForwardTask();
+      bouncing=FALSE;
+    }
   }
 
   event void SerialControl.stopDone(error_t error) { 
