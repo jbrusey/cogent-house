@@ -117,9 +117,6 @@ implementation
 						    void* payload, 
 						    uint8_t len)
   {
-#ifdef BLINKY
-    call Leds.led2Toggle();
-#endif
     if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) { 
       message_t *tmp = call Pool.get();
       if (!signal RadioIntercept.forward[id](msg,payload,len))
