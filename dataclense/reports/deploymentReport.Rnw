@@ -19,8 +19,6 @@ opts_chunk$set(
    fig.height=3.5,
    comment=NA)
 
-
-
 opts_chunk$set(aliases=c(h='fig.height', w='fig.width',
                  cap='fig.cap', scap='fig.scap'))
 
