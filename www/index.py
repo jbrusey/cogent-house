@@ -1467,7 +1467,9 @@ def _plot_splines(node_id,
     thresh = thresholds[reading_type]
     for pt in (PartSplineReconstruct(threshold=thresh,
                                      src=SipPhenom
-               (src=_get_value_and_delta
+               (interval=timedelta(seconds=2),
+                duplicate_interval=timedelta(milliseconds=100),
+                src=_get_value_and_delta
                 (node_id,
                  reading_type,
                  delta_type,
