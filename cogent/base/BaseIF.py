@@ -22,7 +22,12 @@ class BaseIF(object):
         self.mif.addListener(self, StateMsg)
         self.mif.addListener(self, StateV1Msg)
         self.queue = Queue()
-		
+
+    def get(self, wait=True, timeout=30):
+        if self.source.isDone():
+            raise Exception("source is no longer connected")
+        return self.queue.get(wait, timeout)
+
     def receive(self, src, msg):
         self.queue.put(msg)
 
