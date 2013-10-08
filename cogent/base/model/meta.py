@@ -105,6 +105,17 @@ class InnoDBMix(object):
 
         return out
 
+#    def fromDict(self,theDict):
+#        """Update the object given a dictionary of <key>,<value> pairs
+#        """
+
+    def from_dict(self,jsonList):
+        return self.fromJSON(jsonList)
+
+    def from_json(self,jsonList):
+        return self.fromJSON(jsonList)
+
+
     def fromJSON(self,jsonDict):
         """Update the object using a JSON string
 
