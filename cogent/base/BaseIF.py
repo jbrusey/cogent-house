@@ -24,8 +24,10 @@ class BaseIF(object):
         self.queue = Queue()
 
     def get(self, wait=True, timeout=30):
+        #This goes into an infinate loop
         if self.source.isDone():
             raise Exception("source is no longer connected")
+
         return self.queue.get(wait, timeout)
 
     def receive(self, src, msg):
