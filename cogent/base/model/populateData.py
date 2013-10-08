@@ -30,6 +30,7 @@ from roomtype import *
 from node import *
 from sensor import *
 from room import *
+from nodetype import *
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -221,6 +222,52 @@ def populateSensorTypes(session = False):
     #session.commit()
     #session.close()
 
+
+def populateNodeTypes(session = False):
+    """Populate the database with default node types,
+    if they do not already exist.
+
+    (Added due to alembic revision 1f9a02a1b28
+    """
+
+    LOG.debug("Populating SensorTypes")
+
+    if not session:
+        session = meta.Session()
+
+    # nodelist = []
+    
+    nodelist = [{'id': 0, 'name': "Base",
+                 'time': "2011-07-10 00:00:00",
+                 'seq': 1,
+                 'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},            
+                {'id': 1, 'name': "Current Cost",
+                 'time': "2011-07-10 00:00:00",
+                 'seq': 1,
+                 'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,5'},
+                {'id': 2, 'name': "CO2",
+                 'time': "2011-07-10 00:00:00",
+                 'seq': 1,
+                 'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '63,4'},
+                {'id': 3, 'name': "Air Quality",
+                 'time': "2011-07-10 00:00:00",
+                 'seq': 1,
+                 'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '255,4'},
+                ]
+
+    with transaction.manager:
+        for item in nodelist:
+            thisNode = NodeType()
+            thisNode.from_dict(item) #Dict based update
+            print "Adding node  type  {0}".format(thisNode)
+            session.merge(thisNode)
+        
+    # with transaction.manager:
+    #     for item in nodelist:
+    #         LOG.debug("Adding NodeType {0}".format(item.name))
+    #         session.merge(item)
+
+    session.flush()
 
 def _parseCalibration(filename, sensorcode, session=False):
     """Helper method to Parse a sensor calibration file
@@ -415,6 +462,7 @@ def init_data(session=False):
         session = meta.Session()
     
     populateSensorTypes(session = session)
+    populateNodeTypes(session= session)
     populateRoomTypes(session = session)
     populateCalibration(session = session)
     LOG.debug("Database Population Complete")

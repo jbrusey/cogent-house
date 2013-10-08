@@ -114,3 +114,9 @@ def main(argv=sys.argv):
     logging.debug("Populating Data")
     populateData.init_data(DBSession)
     #populateUser()
+    logging.debug("Populated")
+    DBSession.flush()
+    DBSession.commit()
+    DBSession.close()
+    
+                  
