@@ -25,6 +25,12 @@ from cogent.base.model import meta as meta
 Base = meta.Base
 #DBSession = meta.Session()
 
+
+from alembic.config import Config
+from alembic import command
+
+
+
 from cogent.base.model import populateData as populateData
 import cogent.base.model as models
 
@@ -109,6 +115,11 @@ def main(argv=sys.argv):
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
     
+    #We also want any alembic scripts to be executed (or not if we build the DB
+    #properly)
+    alembic_cfg = Config("alembic.ini") #TODO: WARNING RELATIVE PATH
+    command.stamp(alembic_cfg,"head")
+
     DBSession = meta.Session()
     #DBSession.configure(bind=engine)
     logging.debug("Populating Data")
