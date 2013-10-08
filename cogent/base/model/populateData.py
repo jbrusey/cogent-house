@@ -12,6 +12,10 @@ import logging
 
 import os
 import csv
+import sys
+import os
+
+
 
 import transaction
 #DB Relevant imports
@@ -31,9 +35,6 @@ LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
 
 #Globals to hold potential locations of Calibration files
-CALIB_LOCS = [["cogent", "base", "Calibration"],
-              ["cogentviewer", "calibration"],
-              ]
 
 def populateSensorTypes(session = False):
     """Populate the database with default sensing types,
@@ -204,8 +205,13 @@ def populateSensorTypes(session = False):
                   SensorType(id=113, name="Absolute Pressure",
                              code="ws_abs_pressure",
                              units="hpa",
-                             c0=0., c1=1., c2=0., c3=0.)]
+                             c0=0., c1=1., c2=0., c3=0.),
+                  SensorType(id=5000,
+                             name="Daily Count",
+                             )
+                  ]
     
+
     with transaction.manager:
         for item in sensorList:        
             LOG.debug("Adding Sensor {0}".format(item.name))
@@ -227,25 +233,57 @@ def _parseCalibration(filename, sensorcode, session=False):
     LOG.debug("Updating Coefficients from {0}".format(filename))
 
     theFile = "{0}.csv".format(filename)
-    basePath = None
-    for item in CALIB_LOCS:
-        thePath = os.path.join(*item)
-        if os.path.exists(thePath):
-            basePath = thePath
-            LOG.debug("Base Path is {0}".format(basePath))
-            break
+    LOG.debug("Checking for file {0}".format(theFile))
 
-    if basePath is None:
-        LOG.warning("** Unable to locate calibration file {0}".format(theFile))
+    #We then want to look relitive to the current path (ie if we are runing in development mode)
+
+    LOG.debug("--> Current Working path is {0}".format(os.getcwd()))
+
+    #There are two places the calibration configuration files should be
+    #1) <prefered>  /<base systems path>/share/cogent-viewer/calibration/ 
+    #2) <develop>   <basedir>/calibration
+    #Where base systems python path path is likely to be /usr on a linux box
+    
+    sysprefix = sys.prefix
+    basepath = os.path.join(sysprefix,"share","cogent-house","calibration",theFile)
+    LOG.debug("Looking for Path {0} >{1}<".format(basepath,os.path.exists(basepath)))
+
+    thepath = None
+
+    if os.path.exists(basepath):
+        thepath = basepath
+    else:
+        #Check if we are in the development directory and make use of that instead
+        basepath = ("calibration",theFile)
+        if os.path.exists(basepath):
+            thepath = basepath
+
+    if thepath is None:
+        LOG.warning("** Unable to locate calibration file {0}".format(thepath))
         return False
+                   
+
+    LOG.debug("Fetching calibration from {0}".format(thepath))
+    # basePath = None
+    # for item in CALIB_LOCS:
+    #     thePath = os.path.join(*item)
+    #     LOG.debug("Looking in path {0}".format(thePath))
+    #     if os.path.exists(thePath):
+    #         basePath = thePath
+    #         LOG.debug("Base Path is {0}".format(basePath))
+    #         break
+
+    # if basePath is None:
+    #     LOG.warning("** Unable to locate calibration file {0}".format(theFile))
+    #     return False
         
-    thePath = os.path.join(basePath,theFile)
+    # thePath = os.path.join(basePath,theFile)
 
     #Find the relevant sensor type
     sensorType = session.query(SensorType).filter_by(code=sensorcode).first()
 
     try:
-        reader = csv.reader(open(thePath,"r"),delimiter=",")
+        reader = csv.reader(open(thepath,"r"),delimiter=",")
     except IOError,e:
         LOG.warning("Unable to parse calibration {0}".format(e))
         return False
@@ -376,9 +414,7 @@ def init_data(session=False):
     if not session:
         session = meta.Session()
     
-    LOG.debug("Populate Sensor Types")
     populateSensorTypes(session = session)
-    LOG.debug("Populate Room Types")
     populateRoomTypes(session = session)
     populateCalibration(session = session)
     LOG.debug("Database Population Complete")
