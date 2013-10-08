@@ -1,5 +1,8 @@
 #from distutils.core import setup
 from setuptools import setup
+import os
+import sys
+
 
 REQUIRES = ['SQLAlchemy',
             "MySQL-python",
@@ -27,12 +30,17 @@ setup(name='ch-base',
                 'cogent.node',
                 'cogent.scripts'],
       package_data={'cogent.base' : ['Calibration/*.csv']},
-      data_files=[('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
-                  ('/etc/cron.daily', ['etc/ch-daily-email']),
-                  ('/etc/apache2/sites-available', ['etc/cogent-house']),
-                  ('/var/www/cogent-house', ['www/index.py']),
-                  ('/var/www/scripts', ['www/scripts/datePicker.js']),
-                  ('/var/www/style', ['www/style/ccarc.css'])
+      data_files=[#('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
+                  #('/etc/cron.daily', ['etc/ch-daily-email']),
+                  #('/etc/apache2/sites-available', ['etc/cogent-house']),
+                  #('/var/www/cogent-house', ['www/index.py']),
+                  #('/var/www/scripts', ['www/scripts/datePicker.js']),
+                  #('/var/www/style', ['www/style/ccarc.css']),
+                  ("{0}/share/cogent-house/calibration".format(sys.prefix),["cogent/base/Calibration/aq_coeffs.csv",
+                                                                            "cogent/base/Calibration/co2_coeffs.csv",
+                                                                            "cogent/base/Calibration/hum_coeffs.csv",
+                                                                            "cogent/base/Calibration/temp_coeffs.csv",
+                                                                            "cogent/base/Calibration/voc_coeffs.csv"]),
                   ],
       entry_points = """\
       [console_scripts]
