@@ -93,14 +93,16 @@ def populateUser():
 
 
 def main(argv=sys.argv):
+    import logging
 
+    logging.basicConfig(level=logging.DEBUG)
     # if len(argv) != 2:
     #     usage(argv)
     # config_uri = argv[1]
     # setup_logging(config_uri)
     # settings = get_appsettings(config_uri)
     # engine = engine_from_config(settings, 'sqlalchemy.')
-    print "Initialise Engine"
+    logging.debug("Initialise Engine")
     engine = sqlalchemy.create_engine(DBFILE, echo=False)
     
     meta.Session.configure(bind=engine)
@@ -109,6 +111,6 @@ def main(argv=sys.argv):
     
     DBSession = meta.Session()
     #DBSession.configure(bind=engine)
-    print "Populating Data"
+    logging.debug("Populating Data")
     populateData.init_data(DBSession)
     #populateUser()
