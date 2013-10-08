@@ -15,7 +15,7 @@ REQUIRES = ['SQLAlchemy',
             ]
     
 setup(name='ch-base',
-      version='1.1',
+      version='1.1.1',
       description='CogentHouse base station logger',
       author='James Brusey, Ross Wilkins',
       author_email='james.brusey@gmail.com',
@@ -24,7 +24,8 @@ setup(name='ch-base',
                 'cogent.base.model',
                 'cogent.push',
                 'cogent.report',
-                'cogent.node'],
+                'cogent.node',
+                'cogent.scripts'],
       package_data={'cogent.base' : ['Calibration/*.csv']},
       data_files=[('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
                   ('/etc/cron.daily', ['etc/ch-daily-email']),
@@ -33,5 +34,9 @@ setup(name='ch-base',
                   ('/var/www/scripts', ['www/scripts/datePicker.js']),
                   ('/var/www/style', ['www/style/ccarc.css'])
                   ],
+      entry_points = """\
+      [console_scripts]
+      initialize_cogent_db = cogent.scripts.initializedb:main
+      """,
       install_requires = REQUIRES,
       )
