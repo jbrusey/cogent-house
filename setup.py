@@ -15,7 +15,7 @@ REQUIRES = ['SQLAlchemy',
             ]
     
 setup(name='ch-base',
-      version='1.0',
+      version='1.1',
       description='CogentHouse base station logger',
       author='James Brusey, Ross Wilkins',
       author_email='james.brusey@gmail.com',

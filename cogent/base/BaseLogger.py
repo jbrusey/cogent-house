@@ -37,7 +37,7 @@ import time
 from cogent.base.model import *
 import cogent.base.model.populateData as populateData
 
-logger = logging.getLogger("ch.base")
+#logger = logging.getLogger("ch.base")
 
 F="/home/james/sa.db"
 #DBFILE = "sqlite:///" 
@@ -59,9 +59,16 @@ class BaseLogger(object):
         self.metadata = Base.metadata
 
         if bif is None:
+#            try:
             self.bif = BaseIF("sf@localhost:9002")
+#            except KeyboardInterrupt:
+#                print "Thread Based Madness"
+#                self.running = False
         else:
             self.bif = bif
+
+        self.log = logging.getLogger("baselogger")
+        self.running = True
 
     def create_tables(self):
         self.metadata.create_all(self.engine)
@@ -91,33 +98,33 @@ class BaseLogger(object):
                 nid % 32,
                 nid / 4096)
     
-    def store_rrd(self, n, i, t, v, locId = 1000):
-        """Store the latest reading in a RRD file
+    # def store_rrd(self, n, i, t, v, locId = 1000):
+    #     """Store the latest reading in a RRD file
         
-        :param n: Node Id
-        :param i: Node Type
-        :param t: Time
-        :param v: Value
+    #     :param n: Node Id
+    #     :param i: Node Type
+    #     :param t: Time
+    #     :param v: Value
 
-        .. note::
+    #     .. note::
         
-            Currently this does not take account of the location Id.  This may be an option in the future
-        """
-        #Store in a RRD Database
+    #         Currently this does not take account of the location Id.  This may be an option in the future
+    #     """
+    #     #Store in a RRD Database
         
-        t1 = time.time()
-        theRRD = RRDLIST.get((n,i,locId),None)
-        if theRRD is None:
-            try:
-                theRRD = rrdstore.RRDStore(n,i,locId)
-                RRDLIST[(n,i,locId)] = theRRD
+    #     t1 = time.time()
+    #     theRRD = RRDLIST.get((n,i,locId),None)
+    #     if theRRD is None:
+    #         try:
+    #             theRRD = rrdstore.RRDStore(n,i,locId)
+    #             RRDLIST[(n,i,locId)] = theRRD
 
-                theRRD.update(t,v)
-                t2 = time.time()
-                log.debug("Time Taken to update RRD {0}".format(t2-t1))        
-            except Exception,e:
-                log.warning("Problem updating RRD")
-                log.warning(e)
+    #             theRRD.update(t,v)
+    #             t2 = time.time()
+    #             log.debug("Time Taken to update RRD {0}".format(t2-t1))        
+    #         except Exception,e:
+    #             log.warning("Problem updating RRD")
+    #             log.warning(e)
 	
     def store_state(self, msg):
         if msg.get_special() != Packets.SPECIAL:
@@ -144,7 +151,7 @@ class BaseLogger(object):
                     session.commit()
                 except:
                     session.rollback()
-                    logger.exception("can't add node %d" % n)
+                    self.log.exception("can't add node %d" % n)
             else:
                 locId = node.locationId
 
@@ -152,7 +159,7 @@ class BaseLogger(object):
                                      time=t,
                                      nodeId=n,
                                      localtime=localtime):
-                logger.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
+                self.log.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
                 return
                 #raise Exception("duplicate packet: %s, %s" % (str(msg), msg.data))
 
@@ -163,7 +170,7 @@ class BaseLogger(object):
             session.add(ns)
 
 
-            log.debug("Message from {0}".format(n))
+            self.log.debug("Message from {0}".format(n))
 
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
@@ -172,10 +179,10 @@ class BaseLogger(object):
                 if mask[i]:
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
-                    log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
+                    self.log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
                     
                     #Store in RRD
-                    self.store_rrd(n, i, t, v):
+                    #self.store_rrd(n, i, t, v)
                     t1 = time.time()
                     try:
                         r = Reading(time=t,
@@ -186,14 +193,14 @@ class BaseLogger(object):
                         session.add(r)
                         session.flush()
                     except sqlalchemy.exc.IntegrityError:
-                        logger.error("Unable to store, checking if node type exists")
+                        self.log.error("Unable to store, checking if node type exists")
                         session.rollback()
                         
                         s = session.query(SensorType).filter_by(id=i).first()
                         if s is None:
                             s = SensorType(id=i,name="UNKNOWN")
                             session.add(s)
-                            log.info("Adding new sensortype")
+                            self.log.info("Adding new sensortype")
                             session.flush()
                             r = Reading(time=t,
                                         nodeId=n,
@@ -203,35 +210,74 @@ class BaseLogger(object):
                             session.add(r)
                             session.flush()                            
                         else:
-                            logger.error("Sensor type exists")
+                            self.log.error("Sensor type exists")
                         
                     t2 = time.time()
-                    log.debug("Time taken to update DB {0}".format(t2-t1))
+                    self.log.debug("Time taken to update DB {0}".format(t2-t1))
                     j += 1
 
             session.commit()
-            logger.debug("reading: %s, %s, %s" % (ns,mask,state))
+            self.log.debug("reading: %s, %s, %s" % (ns,mask,state))
         except Exception as e:
             session.rollback()
-            logger.exception("during storing: " + str(e))
+            self.log.exception("during storing: " + str(e))
         finally:
             session.close()
 
     def run(self):
-        LOG.info("Stating Baselogger Daemon")
-        try:
-            while True:
-                # wait up to 30 seconds for a message
-                try:
-                    msg = self.bif.queue.get(True, 30)
-                    self.store_state(msg)
-                except Empty:
-                    pass
-                except Exception as e:
-                    logger.exception("during receiving or storing msg: " + str(e))
+        self.log.info("Stating Baselogger Daemon")
+        while self.running:
+            try:
+                msg = self.bif.queue.get(True,10)
+                #msg = self.bif.get(True, 10) #Avoid using this for the moment
+                self.store_state(msg)
+                self.bif.queue.task_done()  #Signal the queue that we have finished processing
+            except Empty:
+                self.log.debug("Empty Queue")
+            except KeyboardInterrupt:
+                print "KEYB IRR"
+                self.running = False
+            except Exception as e:
+                self.log.exception("during receiving or storing msg: " + str(e))
 
-        except KeyboardInterrupt:
-            self.bif.finishAll()
+        # try:
+        #     while self.running:
+        #         print "LOOPING"
+                # wait up to 30 seconds for a message
+                # try:
+                #     print "Attempting to get MSG"
+                #     #msg = self.bif.get(True, 5)
+                #     msg = self.bif.queue.get(True,10)
+                #     print "STORING MSG"
+                #     #self.store_state(msg)
+                #     #self.bif.queue.task_done()
+                # except SystemExit:
+                #     print "System Exit Called"
+                # except KeyboardInterrupt:
+                #     #Try to catch a keybaord interrupt a little earlier
+                #     print "Keybord in Fecth" 
+                #     self.running = False
+                #     raise
+                # except Empty:
+                #     print "EMPTY"
+                #     pass        
+                # except AttributeError:
+                #     print "Attrivute Error"
+                #     self.running = False
+                # except Exception as e:
+                #     print "OTHER EXCEPTION"
+                #     self.log.exception("during receiving or storing msg: " + str(e))
+                #     time.sleep(30)
+        # finally:
+        #     print "All Done"
+        # except KeyboardInterrupt:
+        #     #This is a little bit strange, half the time we exit properly, the other half this gets swallowed up by another exception handler
+        #     print "-----> EXIT VIA KEYBD"
+        #     raise
+        #     self.log.debug("Exiting via KeyboardInterrupt")
+        print "SHUTDOWN"
+        self.bif.finishAll()
+        print "---> Done"
 
                 
 if __name__ == '__main__':
@@ -242,8 +288,8 @@ if __name__ == '__main__':
                       metavar="LEVEL")
 
     parser.add_option("-f", "--log-file",
-                      help="Log file to use (Default /var/log/ch/Baselogger.log",
-                      default="/var/log/ch/BaseLogger.log")
+                      help="Log file to use (Default /var/log/ch/Baselogging.log",
+                      default="/var/log/ch/BaseLogging.log")
 
     parser.add_option("-t", "--log-terminal",
                       help="Echo Logging output to terminal",
@@ -266,7 +312,7 @@ if __name__ == '__main__':
 
     logfile = options.log_file
 
-    #logging.basicConfig(filename="/var/log/ch/BaseLogger.log"
+    #logging.basicConfig(filename="/var/log/ch/BaseLogging.log"
     logging.basicConfig(filename=logfile,
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
@@ -283,8 +329,8 @@ if __name__ == '__main__':
 
         
 
-    logger.info("Starting BaseLogger with log-level %s" % (options.log_level))
+    logging.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
-    lm.create_tables()
+    #lm.create_tables()
     lm.run()
 		
