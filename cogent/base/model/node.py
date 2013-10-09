@@ -118,8 +118,8 @@ class Node(meta.Base, meta.InnoDBMix):
 
     def fromJSON(self, jsondict):
         super(Node,self).fromJSON(jsondict)
-        LOG.debug("DEALING WITH NODE")
 
+        session = meta.Session()
         if type(jsondict) == str:
             jsondict = json.loads(jsondict)
         if type(jsondict) == list:
@@ -132,14 +132,16 @@ class Node(meta.Base, meta.InnoDBMix):
         if locId is None:
             return
 
-        return
-        session = meta.Session()
-        newLocation = session.query(location.Location).filter_by(id=locId).first()
-
-        if self.locationId is None:
+        
+        newLocation = session.query(location.Location).filter_by(id = locId).first()
+        
+        if self.location is None:
             #Force an Update
             LOG.debug("Forcing Location Update to {0}".format(locId))
             self.locationId = locId
+            
+            LOG.debug("NEW LOCATION IS {0} {1}".format(self.location,newLocation))
+            
             self.all_locs.append(newLocation)
             LOG.debug("New Loc {0} {1}".format(self.locationId,self.location))
 
