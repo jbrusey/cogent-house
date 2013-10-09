@@ -153,8 +153,11 @@ class Reading(meta.Base, meta.InnoDBMix):
         theSensor = session.query(sensor.Sensor).filter_by(sensorTypeId = self.typeId,
                                                            nodeId = self.nodeId).first()
 
-        value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
+        if theSensor is None:
+            return self.time, self.value
 
+        #Otherwise Calibrate
+        value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
         return (self.time, value)
 
     def toDict(self):
@@ -292,6 +295,41 @@ def calibJSON(theQuery):
 
         yield cReading
 
+
+def calibPandas(theQuery):
+    """Generator object to calibate all readings,
+    hopefully this gathers all calibration based readings into one 
+    area
+
+    :param theQuery: SQLA query object containing Reading values"""
+
+    #Dictionary to hold all sensor paramters
+    session = meta.Session()
+    sensorParams = {}
+
+    for reading in theQuery:
+
+        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
+        #LOG.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        if not theSensor:
+            #theSensor = "FOO"
+            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
+            if theSensor is None:
+                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
+            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+
+
+        #Then add the offset etc
+        cReading = {"time":reading.time,
+                    "nodeId" : reading.nodeId,
+                    "typeId" : reading.typeId,
+                    "locationId" : reading.locationId,
+                    "locationStr": reading.location.room.name,
+                    "value" : theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
+                    "location" : "Node {0}: {1} {2}".format(reading.nodeId,reading.location.room.name,reading.sensorType.name),
+                    }
+
+        yield cReading
 
 def calibratePairs(theQuery):
     """Generator object to calibrate readings and return in JSON
