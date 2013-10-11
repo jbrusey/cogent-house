@@ -28,13 +28,6 @@ def upgrade():
                        column('c3', Float))
                        
     op.bulk_insert(sensortype,
-    
-
-
-
-
-
-
                    [{'id': 0, 'name': "Temperature",
                      'code': "T",
                      'units': "deg.C",
