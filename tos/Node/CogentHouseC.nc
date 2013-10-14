@@ -103,22 +103,27 @@ implementation
   CurrentCostM.Leds -> LedsC;
   CurrentCostM.LocalTime -> HilTimerMilliC;
   
-  
+  //Opti Reader
   components new PulseReaderM() as OptiReader;
-
   OptiReader.Leds -> LedsC;
   OptiReader.EnergyInput -> GIO.Port26;
   OptiReader.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
-  
-  components new PulseReaderM() as GasReader;
 
+  //Gas Reader  
+  components new PulseReaderM() as GasReader;
   GasReader.Leds -> LedsC;
   GasReader.EnergyInput -> GIO.Port26;
   GasReader.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
   
+  //ADC Temp
   components TempADCM;
   components new Temp_ADC1C() as Temp_ADC1;
   TempADCM.GetTempADC1 -> Temp_ADC1;
+
+  //Window Sensor
+  components new WindowC() as Window;
+  components WindowM;
+  WindowM.GetWindow  -> Window;
 #endif
   /*********** ACK CONFIG *************/
 
@@ -204,11 +209,18 @@ implementation
   FilterM.GetSensorValue[RS_GAS]  -> GasReader.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_GAS]  -> FilterM.EstimateCurrentState[RS_GAS] ;
   CogentHouseP.ReadGas -> SIPControllerC.SIPController[RS_GAS] ;  
-  
+
+  //Temp ADC  
   FilterM.Filter[RS_TEMPADC1]  -> DEWMAC.Filter[RS_TEMPADC1];
   FilterM.GetSensorValue[RS_TEMPADC1]  -> TempADCM.ReadTempADC1;
   SIPControllerC.EstimateCurrentState[RS_TEMPADC1]  -> FilterM.EstimateCurrentState[RS_TEMPADC1];
   CogentHouseP.ReadTempADC1 -> SIPControllerC.SIPController[RS_TEMPADC1];
+
+  //Window Wiring
+  FilterM.Filter[RS_WINDOW]  -> Pass.Filter[RS_WINDOW];
+  FilterM.GetSensorValue[RS_WINDOW]  -> WindowM.ReadWindow;
+  SIPControllerC.EstimateCurrentState[RS_WINDOW]  -> FilterM.EstimateCurrentState[RS_WINDOW];
+  CogentHouseP.ReadWindow -> SIPControllerC.SIPController[RS_WINDOW];
 
   //Transmission Control
   CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;
