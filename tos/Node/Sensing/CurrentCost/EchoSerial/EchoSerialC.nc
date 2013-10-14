@@ -120,8 +120,8 @@ implementation
   uint32_t impulses = 0;
 
   async event void CurrentCostUartStream.receivedByte(uint8_t byte) { 
-    //call ByteQueue.enqueue(byte);
-    // post printBytes();
+    call ByteQueue.enqueue(byte);
+    post printBytes();
     if (inTag(byte, &msg)) {  
       if (inTag(byte, &ch1)) { 
      	if (inNumber(byte, &watts) == NUM_END) {

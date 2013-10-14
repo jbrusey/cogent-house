@@ -22,6 +22,7 @@ implementation
   
   event void Boot.booted()
   {
+    printf("Boot\n");
     call SensingTimer.startOneShot(PERIOD);
     call PulseControl.start();
   }

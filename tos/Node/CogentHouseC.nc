@@ -88,6 +88,22 @@ implementation
   AirQualityM.WarmUpTimer -> WarmUpTimer;
   
 #ifdef SIP
+
+  // CC Wiring
+  components CurrentCostM,CurrentCostSerialC;
+  components new TimerMilliC() as TimeoutTimer;
+  components new TimerMilliC() as ResumeTimer;
+  components new TimerMilliC() as FirstByteTimer;
+
+  CurrentCostM.CurrentCostUartStream -> CurrentCostSerialC;
+  CurrentCostM.UartControl -> CurrentCostSerialC;
+  CurrentCostM.TimeoutTimer -> TimeoutTimer;
+  CurrentCostM.ResumeTimer -> ResumeTimer;
+  CurrentCostM.FirstByteTimer -> FirstByteTimer;
+  CurrentCostM.Leds -> LedsC;
+  CurrentCostM.LocalTime -> HilTimerMilliC;
+  
+  
   components new PulseReaderM() as OptiReader;
 
   OptiReader.Leds -> LedsC;
@@ -166,6 +182,13 @@ implementation
   FilterM.GetSensorValue[RS_VOC]  -> AirQualityM.ReadVOC;
   SIPControllerC.EstimateCurrentState[RS_VOC]  -> FilterM.EstimateCurrentState[RS_VOC] ;
   CogentHouseP.ReadVOC -> SIPControllerC.SIPController[RS_VOC] ;
+  
+  //CC Wiring 
+  FilterM.Filter[RS_POWER]  -> Pass.Filter[RS_POWER];
+  FilterM.GetSensorValue[RS_POWER]  -> CurrentCostM.ReadWattage;
+  SIPControllerC.EstimateCurrentState[RS_POWER]  -> FilterM.EstimateCurrentState[RS_POWER] ;
+  CogentHouseP.ReadCC -> SIPControllerC.SIPController[RS_POWER] ;
+  CogentHouseP.CurrentCostControl -> CurrentCostM.CurrentCostControl;
   
 
   //Opti Smart Wiring

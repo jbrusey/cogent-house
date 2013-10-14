@@ -31,6 +31,7 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadTemp;
     interface SIPController<FilterState *> as ReadHum;
     interface SIPController<FilterState *> as ReadVolt;
+    interface SIPController<FilterState *> as ReadCC;
     interface SIPController<FilterState *> as ReadCO2;
     interface SIPController<FilterState *> as ReadVOC;
     interface SIPController<FilterState *> as ReadAQ;
@@ -39,8 +40,8 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadTempADC1;
     interface TransmissionControl;
     interface SplitControl as OptiControl;
-    interface SplitControl as GasControl;    
-
+    interface SplitControl as GasControl;
+    interface SplitControl as CurrentCostControl;
 #endif
 
 #ifdef BN
@@ -106,6 +107,14 @@ implementation
       printf("restartSenseTimer at %lu\n", call LocalTime.get());
       printfflush();
 #endif
+
+
+      if (call Configured.get(RS_POWER)){
+#ifdef SIP
+        call CurrentCostControl.start();
+#endif
+      }
+
 
     //Calculate the next interval
       if (stop_time < sense_start_time) // deal with overflow
@@ -203,12 +212,21 @@ implementation
       send_start_time = call LocalTime.get();
       call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
 
-      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
-#ifdef DEBUG
-	printf("sending begun at %lu\n", call LocalTime.get());
-	printfflush();
+      /* UART0 must be released before the radio can work */
+      if (call Configured.get(RS_POWER)) {
+	packet_pending = TRUE;
+#ifdef SIP
+	call CurrentCostControl.stop();
 #endif
-	sending = TRUE;
+      }
+      else {
+        if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+#ifdef DEBUG
+	  printf("sending begun at %lu\n", call LocalTime.get());
+	  printfflush();
+#endif
+	  sending = TRUE;
+        }
       }
     }
   }
@@ -359,6 +377,7 @@ implementation
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_ALPHA, SIP_AQ_BETA);
     call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
     call ReadGas.init(SIP_GAS_THRESH, SIP_GAS_MASK, SIP_GAS_ALPHA, SIP_GAS_BETA);
+    call ReadCC.init(SIP_CC_THRESH, SIP_CC_MASK, SIP_CC_ALPHA, SIP_CC_BETA);
     call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
 #endif
 
@@ -368,12 +387,19 @@ implementation
     my_settings->blink = FALSE;
 
     call Configured.clearAll();
-    if (nodeType == 0) { 
+    if (nodeType == 0) { /*base node*/
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_DUTY);
       call Configured.set(RS_VOLTAGE);
     }
+#ifdef SIP   
+    else if (nodeType == 1) { /* current cost */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_POWER);
+    }
+#endif
     else if (nodeType == 2) { /* co2 */
      call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -462,6 +488,8 @@ implementation
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
 #ifdef SIP
+   	  else if (i == RS_POWER)
+	    call ReadCC.read();
    	  else if (i == RS_OPTI)
 	    call ReadOpti.read();
    	  else if (i == RS_GAS)
@@ -546,6 +574,10 @@ implementation
       post powerDown();
   }
 
+  event void ReadCC.readDone(error_t result, FilterState* data){
+    do_readDone_pass(result, data, RS_POWER, SC_POWER);
+  }
+  
   event void ReadCO2.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
   }
@@ -629,6 +661,12 @@ implementation
       printf("Radio On %lu\n", call LocalTime.get());
       printfflush();
 #endif
+
+      if (call Configured.get(RS_POWER)){
+#ifdef SIP
+	call CurrentCostControl.start();
+#endif
+      }
       if (!CLUSTER_HEAD)
 	sendState();
     }
@@ -749,6 +787,33 @@ implementation
   }
 
 
+#ifdef SIP
+  event void CurrentCostControl.startDone(error_t error) {
+#ifdef DEBUG
+    printf("Current cost start at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+  }
+
+  event void CurrentCostControl.stopDone(error_t error) { 
+#ifdef DEBUG
+    printf("Current cost stop at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+    if (packet_pending) { 
+      packet_pending = FALSE;
+      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+#ifdef DEBUG
+        printf("sending begun at %lu\n", call LocalTime.get());
+        printfflush();
+#endif
+	sending = TRUE;
+      }
+    }
+      
+  }
+  
+#endif
 
   ////////////////////////////////////////////////////////////
   // Produce a nice pattern on start-up

@@ -46,7 +46,7 @@ module CurrentCostM @safe()
 {
   provides 
     {
-      interface Read<ccStruct *> as ReadWattage;
+      interface Read<float> as ReadWattage;
       interface SplitControl as CurrentCostControl;
     }
   uses
@@ -187,7 +187,7 @@ implementation
     uint16_t sc;
     uint16_t ma, mi;
     uint32_t lic;
-    ccStruct results;
+    //ccStruct results;
     
     atomic {
       tw = totalWatts;
@@ -203,14 +203,14 @@ implementation
     }
 
     if (sc != 0) {
-      results.average = ((float) tw) / sc;
-      results.max = (float) ma;
-      results.min = (float) mi;
-      results.kwh = lic / 1000.;
-      signal ReadWattage.readDone(SUCCESS, &results);
+      //results.average = ((float) tw) / sc;
+      //results.max = (float) ma;
+      //results.min = (float) mi;
+      //results.kwh = lic / 1000.;
+      signal ReadWattage.readDone(SUCCESS, ((float) tw) / sc);
     }
     else 
-      signal ReadWattage.readDone(FAIL, NULL);
+      signal ReadWattage.readDone(FAIL, 0);
 
 #ifdef DEBUG
     printf("total = %lu, count = %u\n", tw, sc);

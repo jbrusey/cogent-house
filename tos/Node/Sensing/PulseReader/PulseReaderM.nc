@@ -68,8 +68,6 @@ implementation
     call EnergyInterrupt.clear();
 #ifdef DEBUG
     call Leds.led2Toggle();
-    call Leds.led1Toggle();
-    call Leds.led0Toggle();
 #endif
     energyCount++;
   }
