@@ -24,13 +24,11 @@ import platform
 import smtplib
 import time
 
-host=platform.node()
-me = "yield@"+host
-_DBURL = "mysql://chuser@localhost/ch?connect_timeout=1"
-you="chuser@localhost"
+DBURL = "mysql://{user}@localhost/{database}?connect_timeout=1"
 
-
-def header():
+def header(you=None, 
+           me=None, 
+           host=None):
     return """From: """+host+"""<"""+me+""">
 To: """+you+"""
 MIME-Version: 1.0
@@ -41,7 +39,12 @@ Subject: cogent-house status for """+host+"""
 def footer():
     return "</body></html>"
 
-def run_reports(dry_run=False, time_queries=False):
+def run_reports(dry_run=False, 
+                time_queries=False,
+                you="nobody@localhost", 
+                me="yield@"+platform.node(), 
+                host=platform.node()
+           ):
 
     try:
         session = Session()
@@ -62,7 +65,7 @@ def run_reports(dry_run=False, time_queries=False):
     finally:
         session.close()    
 
-    message = header() + "".join(html) + footer()
+    message = header(you=you, me=me, host=host) + "".join(html) + footer()
 
     if dry_run:
         print message
@@ -84,11 +87,22 @@ if __name__ == "__main__":
                       action="store_true",
                       default=False,
                       help="time how long each query takes")
+    parser.add_option("-d", "--database", 
+                      default="ch",
+                      help="mysql database to use")
+    parser.add_option("-u", "--user", 
+                      default="chuser",
+                      help="mysql user to login to database with")
 
     (options, args) = parser.parse_args()
     
-    engine = create_engine(_DBURL, echo=False)
+    engine = create_engine(DBURL.format(user=options.user,
+                                        database=options.database), 
+                                        echo=False)
     Base.metadata.create_all(engine)
     init_model(engine)
 
-    run_reports(dry_run=options.dry_run, time_queries=options.time_queries)
+    run_reports(dry_run=options.dry_run, 
+                time_queries=options.time_queries,
+                you="{user}@localhost".format(user=options.user)
+        )
