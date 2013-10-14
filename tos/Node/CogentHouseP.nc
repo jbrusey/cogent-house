@@ -37,6 +37,7 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadAQ;
     interface SIPController<FilterState *> as ReadOpti;
     interface SIPController<FilterState *> as ReadGas;
+    interface SIPController<FilterState *> as ReadWindow;
     interface SIPController<FilterState *> as ReadTempADC1;
     interface TransmissionControl;
     interface SplitControl as OptiControl;
@@ -377,6 +378,7 @@ implementation
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_ALPHA, SIP_AQ_BETA);
     call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
     call ReadGas.init(SIP_GAS_THRESH, SIP_GAS_MASK, SIP_GAS_ALPHA, SIP_GAS_BETA);
+    call ReadGas.init(SIP_WINDOW_THRESH, SIP_WINDOW_MASK, SIP_WINDOW_ALPHA, SIP_WINDOW_BETA);
     call ReadCC.init(SIP_CC_THRESH, SIP_CC_MASK, SIP_CC_ALPHA, SIP_CC_BETA);
     call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
 #endif
@@ -428,9 +430,17 @@ implementation
       call Configured.set(RS_DUTY);
     }
     else if (nodeType == 7) { /* gas board */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_GAS);
       call Configured.set(RS_VOLTAGE);
       call GasControl.start();
+    }
+    else if (nodeType == 7) { /* window board */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_WINDOW);
+      call Configured.set(RS_VOLTAGE);
     }
 #endif
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
@@ -494,6 +504,8 @@ implementation
 	    call ReadOpti.read();
    	  else if (i == RS_GAS)
 	    call ReadGas.read();
+   	  else if (i == RS_WINDOW)
+	    call ReadWindow.read();
 #endif
 	  else
 	    call ExpectReadDone.clear(i);
@@ -600,6 +612,10 @@ implementation
   
   event void ReadGas.readDone(error_t result, FilterState* data) {
     do_readDone_pass(result, data, RS_GAS, SC_GAS);
+  }
+
+  event void ReadWindow.readDone(error_t result, FilterState* data) {
+    do_readDone_pass(result, data, RS_WINDOW, SC_WINDOW);
   }
   
   event void OptiControl.startDone(error_t error) {}
