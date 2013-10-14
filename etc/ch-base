@@ -1,0 +1,51 @@
+#! /bin/sh
+# /etc/init.d/ch-base
+
+### BEGIN INIT INFO
+# Provides:          ch-base
+# Required-Start:    $remote_fs $syslog mysql ch-sf
+# Required-Stop:     $remote_fs $syslog mysql ch-sf
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Base Logger
+# Description:       A simple script from www.stuffaboutcode.com which will start / stop cogent-house at boot / shutdown.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "$1" in
+    start)
+	log_daemon_msg "Starting cogent-house base logger" "ch-base" || true
+
+	while ! lsof -i :9002 >/dev/null; do
+	    sleep 1
+	done
+
+	. /opt/tinyos-main-read-only/tinyos.sh>/dev/null
+	if start-stop-daemon --start --quiet --background --make-pidfile --chuid chuser --oknodo --pidfile /var/run/ch-base.pid --exec /usr/bin/python -- -m cogent.base.BaseLogger --log-level debug; then
+	    log_end_msg 0 || true
+	else
+	    log_end_msg 1 || true
+	fi
+	;;
+    stop)
+	log_daemon_msg "Stopping cogent-house base logger" "ch-base" || true
+    # kill application you want to stop
+	if start-stop-daemon --stop --quiet --oknodo --pidfile /var/run/ch-base.pid && \
+	    pkill -f BaseLogger; then
+	    log_end_msg 0 || true
+	else
+	    log_end_msg 1 || true
+	fi
+	;;
+    status)
+	status_of_proc -p /var/run/ch-base.pid /usr/bin/python ch-base && exit 0 || exit $?
+	;;
+    
+    *)
+	log_action_msg "Usage: /etc/init.d/ch-base {start|stop}" || true
+	exit 1
+	;;
+esac
+
+exit 0

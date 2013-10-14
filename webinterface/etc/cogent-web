@@ -1,0 +1,12 @@
+ProxyRequests Off
+ProxyPreserveHost On
+
+<Proxy *>
+    Order allow,deny
+    Allow from All
+</Proxy>
+
+ProxyPass /webInterface/ http://localhost:5543/
+ProxyPassReverse /webInterface/ http://localhost:5543/
+
+
