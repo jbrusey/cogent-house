@@ -35,6 +35,8 @@ Header file containing all packet formats sent/received
 #ifndef _PACKETS_H
 #define _PACKETS_H
 
+#define CLUSTER_HEAD (TOS_NODE_ID >= CLUSTER_HEAD_MIN_TYPE)
+
 
 // state codes
 enum {
@@ -196,6 +198,5 @@ typedef nx_struct AckMsg {
   nx_uint8_t seq;
   nx_uint16_t crc;
 } AckMsg;
-
 
 #endif
