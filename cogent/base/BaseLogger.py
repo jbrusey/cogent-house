@@ -164,11 +164,29 @@ class BaseLogger(object):
             for i, value in pack_state.d.iteritems():
                 type_id = i
 
-                session.add(Reading(time=current_time,
-                                    nodeId=node_id,
-                                    typeId=type_id,
-                                    locationId=loc_id,
-                    value=value))
+                r = Reading(time=current_time,
+                            nodeId=node_id,
+                            typeId=type_id,
+                            locationId=loc_id,
+                            value=value)
+                try:
+                    session.add(r)
+                    session.flush()
+
+                except sqlalchemy.exc.IntegrityError:
+                    self.log.error("Unable to store, checking if node type exists")
+                    session.rollback()
+                    s = session.query(SensorType).filter_by(id=i).first()
+                    if s is None:
+                        s = SensorType(id=type_id,name="UNKNOWN")
+                        session.add(s)
+                        self.log.info("Adding new sensortype")
+                        session.flush()
+                        session.add(r)
+                        session.flush()                            
+                    else:
+                        self.log.error("Sensor type exists")
+
 
             session.commit()
 
