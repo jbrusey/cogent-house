@@ -128,6 +128,7 @@ enum {
   MAX_HOPS = 4,
   CLUSTER_HEAD_CO2_TYPE = 10,
   CLUSTER_HEAD_VOC_TYPE = 11,
+  CLUSTER_HEAD_CC_TYPE = 12,
   CLUSTER_HEAD_MIN_TYPE = 10 //min cluster head type
 };
 

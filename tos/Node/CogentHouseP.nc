@@ -395,13 +395,6 @@ implementation
       call Configured.set(RS_DUTY);
       call Configured.set(RS_VOLTAGE);
     }
-#ifdef SIP   
-    else if (nodeType == 1) { /* current cost */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_POWER);
-    }
-#endif
     else if (nodeType == 2) { /* co2 */
      call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
@@ -436,7 +429,7 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call GasControl.start();
     }
-    else if (nodeType == 7) { /* window board */
+    else if (nodeType == 8) { /* window board */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_WINDOW);
@@ -455,6 +448,13 @@ implementation
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
     }
+#ifdef SIP
+    else if (nodeType == CLUSTER_HEAD_CC_TYPE) { /* current cost */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_POWER);
+    }
+#endif
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
