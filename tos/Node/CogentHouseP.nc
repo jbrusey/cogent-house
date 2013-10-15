@@ -1,5 +1,4 @@
 // -*- c -*-
-
 module CogentHouseP
 {
   uses {
@@ -172,6 +171,7 @@ implementation
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
+Send a message...History is off
 #endif
     if (sending) {
       reportError(ERR_SEND_WHILE_SENDING);
@@ -368,8 +368,8 @@ implementation
     call Heartbeat.init();
 #endif
 
-    //Inititalise filters -- Configured in the makefile
 #ifdef SIP
+    //Inititalise filters -- Configured in the makefile
     call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
     call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_ALPHA, SIP_HUM_BETA);
     call ReadVolt.init(SIP_BATTERY_THRESH, SIP_BATTERY_MASK, SIP_BATTERY_ALPHA, SIP_BATTERY_BETA);
@@ -415,7 +415,7 @@ implementation
       call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
     }
-    if (nodeType == 6) {
+    if (nodeType == 6) { /* Temp ADC0 */
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_TEMPADC1);
