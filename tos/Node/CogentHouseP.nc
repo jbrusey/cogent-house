@@ -53,6 +53,9 @@ module CogentHouseP
     interface BNController<float *> as ReadVOC;
     interface BNController<float *> as ReadAQ;
 #endif
+   
+    interface Read<bool> as ReadAC;
+    interface SplitControl as ACControl;
     
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -172,7 +175,6 @@ implementation
 #ifdef DEBUG
     printf("sendState %lu\n", call LocalTime.get());
     printfflush();
-Send a message...History is off
 #endif
     if (sending) {
       reportError(ERR_SEND_WHILE_SENDING);
@@ -397,18 +399,22 @@ Send a message...History is off
       call Configured.set(RS_VOLTAGE);
     }
     else if (nodeType == 2) { /* co2 */
-     call Configured.set(RS_TEMPERATURE);
+      call ACControl.start();
+      call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_DUTY);
+      call Configured.set(RS_AC);
     }
     else if (nodeType == 3) { /* air quality */
+      call ACControl.start();
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
       call Configured.set(RS_DUTY);
+      call Configured.set(RS_AC);
     }
 #ifdef SIP
     else if (nodeType == 5) { /* energy board */
@@ -498,6 +504,8 @@ Send a message...History is off
 	    call ReadHum.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
+	  else if (i == RS_AC)
+	    call ReadAC.read();
 #ifdef SIP
    	  else if (i == RS_POWER)
 	    call ReadCC.read();
@@ -552,6 +560,14 @@ Send a message...History is off
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
+  
+  event void ReadAC.readDone(error_t result, bool data) {
+    leafMode=!data;
+    if (leafMode)
+      call RadioControl.stop();
+    else
+      call RadioControl.start();
+  }
 
 #ifdef SIP
 
@@ -592,8 +608,6 @@ Send a message...History is off
   }
   
   event void ReadCO2.readDone(error_t result, FilterState* data){
-    if (result==FAIL)
-      leafMode=TRUE;
     do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
   }
 
@@ -832,6 +846,11 @@ Send a message...History is off
   
 #endif
 
+
+  event void ACControl.startDone(error_t error) {}
+  
+  event void ACControl.stopDone(error_t error) {}
+  
   ////////////////////////////////////////////////////////////
   // Produce a nice pattern on start-up
   //

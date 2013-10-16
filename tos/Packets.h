@@ -115,7 +115,8 @@ enum {
   RS_TEMPADC1 = 13,
   RS_GAS= 14,
   RS_WINDOW= 16,
-  RS_SIZE = 17 // must be 1 greater than last entry
+  RS_AC= 17,
+  RS_SIZE = 18 // must be 1 greater than last entry
 };
 
 //separate packets structure for mote type
