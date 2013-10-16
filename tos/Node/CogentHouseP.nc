@@ -68,6 +68,7 @@ implementation
   uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
   bool shutdown = FALSE;
+  bool leafMode = FALSE;
   message_t dataMsg;
   uint16_t message_size;
   uint8_t msgSeq = 0;
@@ -276,7 +277,7 @@ Send a message...History is off
 	
 #ifdef SIP
     	if (call TransmissionControl.hasEvent()){
-          if (!CLUSTER_HEAD)
+          if (!CLUSTER_HEAD || leafMode)
 	    call RadioControl.start();
 	  else
 	    sendState();
@@ -308,7 +309,7 @@ Send a message...History is off
 	  }
 	}
 	if  (toSend || call Heartbeat.triggered()){
-          if (!CLUSTER_HEAD)
+          if (!CLUSTER_HEAD || leafMode)
 	    call RadioControl.start();
 	  else
 	    sendState();
@@ -348,7 +349,7 @@ Send a message...History is off
     printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
     printfflush();
 #endif
-    if (!CLUSTER_HEAD)
+    if (!CLUSTER_HEAD || leafMode)
       call RadioControl.stop();
     restartSenseTimer();
   }
@@ -591,6 +592,8 @@ Send a message...History is off
   }
   
   event void ReadCO2.readDone(error_t result, FilterState* data){
+    if (result==FAIL)
+      leafMode=TRUE;
     do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
   }
 
@@ -683,7 +686,7 @@ Send a message...History is off
 	call CurrentCostControl.start();
 #endif
       }
-      if (!CLUSTER_HEAD)
+      if (!CLUSTER_HEAD || leafMode)
 	sendState();
     }
     else
@@ -713,7 +716,7 @@ Send a message...History is off
     call Leds.led2Toggle();
 #endif
 
-    if (!CLUSTER_HEAD)
+    if (!CLUSTER_HEAD || leafMode)
       call RadioControl.stop();
     
     
@@ -766,8 +769,6 @@ Send a message...History is off
    * - triggered when ack messgaes are disseminated
    * - checks if this ack message is for the packet
    */
-
-
   event void AckValue.changed() { 
     const AckMsg *ackMsg = call AckValue.get();
     CRCStruct crs;
@@ -795,7 +796,7 @@ Send a message...History is off
     if (crc == ackMsg->crc)
       if (TOS_NODE_ID == ackMsg->node_id)
 	if (expSeq == ackMsg->seq){
-	  if (!CLUSTER_HEAD)
+	  if (!CLUSTER_HEAD || leafMode)
            call RadioControl.stop();
     	  ackReceived();
     	}

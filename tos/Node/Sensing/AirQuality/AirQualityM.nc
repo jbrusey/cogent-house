@@ -144,7 +144,11 @@ implementation
 		printfflush();
 		#endif
 		CO2 = horner(sizeof(co2Coeffs)/sizeof(float)-1, co2Coeffs, (float)voltage);
-		signal ReadCO2.readDone(SUCCESS, CO2);
+		if (CO2 > 0)
+		  signal ReadCO2.readDone(SUCCESS, CO2);
+		else
+		  signal ReadCO2.readDone(FAIL, CO2);
+		  
 	}
 
 	//Convert raw adc to temp
