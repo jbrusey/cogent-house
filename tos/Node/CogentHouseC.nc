@@ -76,6 +76,7 @@ implementation
 
   //Sensing Modules
   components ThermalSensingM, AirQualityM, BatterySensingM;
+  components new ACStatusM() as ACStatusM;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -86,6 +87,10 @@ implementation
   AirQualityM.GetAQ -> AQ;
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
+
+  ACStatusM.ACInput -> GIO.Port26;
+  CogentHouseP.ACControl -> ACStatusM.ACControl;
+  CogentHouseP.ReadAC->ACStatusM.ReadAC;
   
 #ifdef SIP
 
