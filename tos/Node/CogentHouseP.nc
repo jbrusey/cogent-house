@@ -364,8 +364,6 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
-    if (CLUSTER_HEAD)
-      call RadioControl.start();
 
 #ifdef BN
     call Heartbeat.init();
@@ -466,6 +464,10 @@ implementation
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
+
+    if (CLUSTER_HEAD)
+      call RadioControl.start();
+
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
 
