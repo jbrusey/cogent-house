@@ -35,7 +35,7 @@ Header file containing all packet formats sent/received
 #ifndef _PACKETS_H
 #define _PACKETS_H
 
-#define CLUSTER_HEAD (TOS_NODE_ID >= CLUSTER_HEAD_MIN_TYPE)
+#define CLUSTER_HEAD (TOS_NODE_ID >= CLUSTER_HEAD_MIN_ID)
 
 
 // state codes
@@ -132,7 +132,7 @@ enum {
   CLUSTER_HEAD_CO2_TYPE = 10,
   CLUSTER_HEAD_VOC_TYPE = 11,
   CLUSTER_HEAD_CC_TYPE = 12,
-  CLUSTER_HEAD_MIN_TYPE = 10 //min cluster head type
+  CLUSTER_HEAD_MIN_ID = 10 << 12 //min cluster head type
 };
 
 

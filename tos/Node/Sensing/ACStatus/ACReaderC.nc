@@ -16,7 +16,7 @@ implementation
   
   ACReaderP.Boot -> MainC.Boot;
   ACReaderP.Leds -> LedsC;
-  ACStatusM.EnergyInput -> GIO.Port26;
+  ACStatusM.ACInput -> GIO.Port26;
   
   
   ACReaderP.LocalTime -> HilTimerMilliC;
