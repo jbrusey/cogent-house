@@ -371,7 +371,8 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
-    //call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+    
+    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
 #ifdef BN
     call Heartbeat.init();
@@ -432,20 +433,20 @@ implementation
     }
 #endif
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
-      call ACControl.start();
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_AC);
+      call ACControl.start();
     }
     else if (nodeType == CLUSTER_HEAD_VOC_TYPE) { /* clustered VOC */
-      call ACControl.start();
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
       call Configured.set(RS_AC);
+      call ACControl.start();
     }
 #ifdef SIP
     else if (nodeType == CLUSTER_HEAD_CC_TYPE) { /* current cost */
