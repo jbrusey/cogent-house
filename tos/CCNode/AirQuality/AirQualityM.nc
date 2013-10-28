@@ -106,43 +106,12 @@ implementation
 		return SUCCESS;
 	}
 
-
-	#ifdef DEBUG
-	void printfFloat(float toBePrinted) {
-		uint32_t fi, f0, f1, f2;
-		char c;
-		float f = toBePrinted;
-
-		if (f<0){
-			c = '-'; f = -f;
-		} else {
-			c = ' ';
-		}
-
-		// integer portion.
-		fi = (uint32_t) f;
-
-		// decimal portion...get index for up to 3 decimal places.
-		f = f - ((float) fi);
-		f0 = f*10;   f0 %= 10;
-		f1 = f*100;  f1 %= 10;
-		f2 = f*1000; f2 %= 10;
-		printf("%c%ld.%d%d%d\n", c, fi, (uint8_t) f0, (uint8_t) f1, (uint8_t) f2);
-	}
-	#endif
-
 	//Convert raw adc to temp
 	event void GetCO2.readDone(error_t result, uint16_t data) {
 		float voltage;
 		float CO2;
 		call CO2On.clr();
 		voltage=(data/maxAdc)*vref;
-		#ifdef DEBUG
-		printf("Co2 voltage: ");
-		printfFloat(voltage);
-		printf("\n");
-		printfflush();
-		#endif
 		CO2 = horner(sizeof(co2Coeffs)/sizeof(float)-1, co2Coeffs, (float)voltage);
 		signal ReadCO2.readDone(SUCCESS, CO2);
 	}
@@ -152,13 +121,6 @@ implementation
 		float voltage;
 		float voc;
 		voltage=(data/maxAdc)*vref;
-		#ifdef DEBUG
-		printf("VOC voltage: ");
-		printf("%u",data);
-		printfFloat(voltage);
-		printf("\n");
-		printfflush();
-		#endif
 		voc = horner(sizeof(vocCoeffs)/sizeof(float)-1, vocCoeffs, (float)voltage);
 		signal ReadVOC.readDone(SUCCESS, voc);
 	}
@@ -167,12 +129,6 @@ implementation
 	event void GetAQ.readDone(error_t result, uint16_t data) {
 		float AQV;
 		AQV=(data/maxAdc)*vref;
-		#ifdef DEBUG
-		printf("AQ voltage: ");
-		printfFloat(AQV);
-		printf("\n");
-		printfflush();
-		#endif
 		signal ReadAQ.readDone(SUCCESS, AQV);
 	}
 

@@ -257,6 +257,7 @@ implementation
    * - only transmit data once all sensors have been read
    */
   task void checkDataGathered() {
+    error_t radio_status;
 #ifdef BN
     bool toSend = FALSE;
 #endif
@@ -279,8 +280,11 @@ implementation
 	
 #ifdef SIP
     	if (call TransmissionControl.hasEvent()){
-          if (!CLUSTER_HEAD || leafMode)
-	    call RadioControl.start();
+          if (!CLUSTER_HEAD || leafMode){
+	    radio_status = call RadioControl.start();
+	    if (radio_status == EALREADY)
+	      sendState();
+	  }
 	  else
 	    sendState();
 	}
@@ -311,8 +315,11 @@ implementation
 	  }
 	}
 	if  (toSend || call Heartbeat.triggered()){
-          if (!CLUSTER_HEAD || leafMode)
-	    call RadioControl.start();
+          if (!CLUSTER_HEAD || leafMode){
+	    radio_status = call RadioControl.start();
+	    if (radio_status == EALREADY)
+	      sendState();
+	  }
 	  else
 	    sendState();
 	}
@@ -339,7 +346,7 @@ implementation
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
 
     //if packet not through after 3 times get through recompute routes
-    if (missedPKT >= 2){
+    if (missedPKT >= 5){
       call CtpInfo.recomputeRoutes();
       missedPKT = 0;
     }
@@ -364,6 +371,7 @@ implementation
     printf("Booted %lu\n", call LocalTime.get());
     printfflush();
 #endif
+    //call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
 #ifdef BN
     call Heartbeat.init();
@@ -396,24 +404,6 @@ implementation
       call Configured.set(RS_DUTY);
       call Configured.set(RS_VOLTAGE);
     }
-    else if (nodeType == 2) { /* co2 */
-      call ACControl.start();
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_DUTY);
-      call Configured.set(RS_AC);
-    }
-    else if (nodeType == 3) { /* air quality */
-      call ACControl.start();
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_AQ);
-      call Configured.set(RS_VOC);
-      call Configured.set(RS_DUTY);
-      call Configured.set(RS_AC);
-    }
 #ifdef SIP
     else if (nodeType == 5) { /* energy board */
       call Configured.set(RS_OPTI);
@@ -442,16 +432,20 @@ implementation
     }
 #endif
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
+      call ACControl.start();
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
+      call Configured.set(RS_AC);
     }
     else if (nodeType == CLUSTER_HEAD_VOC_TYPE) { /* clustered VOC */
+      call ACControl.start();
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
+      call Configured.set(RS_AC);
     }
 #ifdef SIP
     else if (nodeType == CLUSTER_HEAD_CC_TYPE) { /* current cost */
@@ -460,13 +454,20 @@ implementation
       call Configured.set(RS_POWER);
     }
 #endif
-    
-    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
     sending = FALSE;
 
-    if (CLUSTER_HEAD)
+#ifdef DEBUG
+    printf("CLUSTER HEAD %u\n", CLUSTER_HEAD);
+    printfflush();
+#endif
+    
+    if (CLUSTER_HEAD==TRUE){
+      leafMode=FALSE;
       call RadioControl.start();
+    }
+    else
+      leafMode=TRUE;
 
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
@@ -565,10 +566,10 @@ implementation
   
   event void ReadAC.readDone(error_t result, bool data) {
     leafMode=!data;
-    if (leafMode)
-      call RadioControl.stop();
-    else
+    if(!leafMode)
       call RadioControl.start();
+    call ExpectReadDone.clear(RS_AC);
+    post checkDataGathered();
   }
 
 #ifdef SIP
@@ -703,7 +704,7 @@ implementation
 #endif
       }
       if (!CLUSTER_HEAD || leafMode)
-	sendState();
+	  sendState();
     }
     else
       call RadioControl.start();
@@ -734,12 +735,9 @@ implementation
 
     if (!CLUSTER_HEAD || leafMode)
       call RadioControl.stop();
-    
-    
+ 
     call SendTimeOutTimer.stop();
 
-    
-    
     stop_time = call LocalTime.get();
     //Calculate the next interval
     if (stop_time < send_start_time) // deal with overflow
@@ -747,7 +745,7 @@ implementation
     else
       send_time = (stop_time - send_start_time);
     last_duty = (float) send_time;
-    
+   
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     
 
