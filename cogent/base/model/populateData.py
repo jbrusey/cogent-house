@@ -432,8 +432,13 @@ def _parseCalibration(filename, sensorcode, session=False):
     #2) <develop>   <basedir>/calibration
     #Where base systems python path path is likely to be /usr on a linux box
     
-    sysprefix = sys.prefix
-    basepath = os.path.join(sysprefix,"share","cogent-house","calibration",theFile)
+
+    if sys.prefix  == "/usr":
+        conf_prefix = "/etc" #If its a standard "global" instalation
+    else :
+        conf_prefix = os.path.join(sys.prefix, "etc")
+
+    basepath = os.path.join(conf_prefix,"cogent-house","calibration",theFile)
     LOG.debug("Looking for Path {0} >{1}<".format(basepath,os.path.exists(basepath)))
 
     thepath = None
@@ -442,7 +447,7 @@ def _parseCalibration(filename, sensorcode, session=False):
         thepath = basepath
     else:
         #Check if we are in the development directory and make use of that instead
-        basepath = ("calibration",theFile)
+        basepath = os.path.join("calibration",theFile)
         if os.path.exists(basepath):
             thepath = basepath
 
