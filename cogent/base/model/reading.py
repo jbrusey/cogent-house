@@ -9,7 +9,7 @@ import time
 
 import dateutil
 
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Index
 #from sqlalchemy.orm import relationship, backref
 
 import meta
@@ -42,20 +42,26 @@ class Reading(meta.Base, meta.InnoDBMix):
                     ForeignKey('Node.id'),
                     primary_key=True,
                     nullable=False,
-                    autoincrement=False)
-
+                    autoincrement=False,
+                    index=True)
     typeId = Column('type',
                     Integer,
                     ForeignKey('SensorType.id'),
                     primary_key=True,
                     nullable=False,
-                    autoincrement=False)
+                    autoincrement=False,
+                    index=True)
 
     locationId = Column(Integer,
                         ForeignKey('Location.id'),
-                        autoincrement=False)
+                        autoincrement=False,
+                        index=True)
 
     value = Column(Float)
+    #Add a compoite Index
+    __table_args__ = (Index('r_1','nodeId','type','locationId'),
+                      )
+
 
     def __eq__(self, other):
         #Ignore the location Id as it may be mapped.  (Node + Time + Type)

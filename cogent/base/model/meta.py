@@ -39,6 +39,11 @@ import warnings
   
 class SerialiseMixin(object):
 
+    def dict(self):
+        """place holder before we move across to the RestALCHEMY version
+        """
+        return self.toDict()
+
     def json(self):
         return json.dumps(self.dict())
 
@@ -83,6 +88,7 @@ class SerialiseMixin(object):
             out[col.name] = value
 
         return out
+
 
 #    def fromDict(self,theDict):
 #        """Update the object given a dictionary of <key>,<value> pairs
@@ -163,7 +169,6 @@ class InnoDBMix(SerialiseMixin):
     def toDict(self):
         """
         Helper Method to convert an object to a dictionary.
-
         This will return a dictionary object, representing this object.
 
         .. note::  As this is intended to simplify conversion to and from JSON,
@@ -187,7 +192,7 @@ class InnoDBMix(SerialiseMixin):
             try:
                 value = getattr(self, col.name)
             except AttributeError, e:
-                log.warning("Conversion Error {0}".format(e))
+                LOG.warning("Conversion Error {0}".format(e))
 
             #Conversion code for datetime
             if isinstance(col.type, sqlalchemy.DateTime) and value:
@@ -222,12 +227,12 @@ class InnoDBMix(SerialiseMixin):
 
         #Check if we have a string or dictonary
         
-        #log.debug("FROMJSON Demung {0}".format(jsonDict))
+        #LOG.debug("FROMJSON Demung {0}".format(jsonDict))
 
         if type(jsonDict) == str:
             jsonDict = json.loads(jsonDict)
         if type(jsonDict) == list:
-            log.warning("WARNING LIST SUPPLIED {0}".format(jsonDict))
+            LOG.warning("WARNING LIST SUPPLIED {0}".format(jsonDict))
             jsonDict = jsonDict[0]
         #For each column in the table
         for col in self.__table__.columns:
@@ -242,8 +247,37 @@ class InnoDBMix(SerialiseMixin):
             else:
                 #Convert if it is a datetime object
                 if isinstance(col.type, sqlalchemy.DateTime) and newValue:
-                    log.debug("{0} CASTING DATE {0}".format("-="*15))
+                    LOG.debug("{0} CASTING DATE {0}".format("-="*15))
                     newValue = dateutil.parser.parse(newValue,ignoretz=True)
-                    log.debug("New Time {0}".format(newValue))
+                    LOG.debug("New Time {0}".format(newValue))
                 #And set our variable
                 setattr(self, col.name, newValue)
+
+import user
+
+
+class RootFactory(object):
+    """New Root Factory Object to assign permissions
+    And control the ACL
+    """
+
+    __acl__ = [(Allow,Everyone,"logout"),
+               (Allow,"group:user","view"),
+               (Allow,"group:root","view")]
+    
+    def __init__(self,request):
+        pass
+
+def groupfinder(userid,request):
+    LOG.debug("-----> Group Finder Called {0}".format(userid))
+    session = Session()
+    theUser = session.query(user.User).filter_by(id=userid).first()
+    if theUser is None:
+        return ["group:none"]
+
+    if theUser.level == "root":
+        return["group:root"]
+    elif theUser.level == "user":
+        return ["group:user"]
+
+    return ["group:none"]
