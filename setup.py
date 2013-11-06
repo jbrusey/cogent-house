@@ -16,7 +16,8 @@ REQUIRES = ['SQLAlchemy',
             "pyrrd",
             "transaction",
             "python-daemon",
-            "alembic"
+            "alembic",
+            "scipy",
             ]
     
 setup(name='ch-base',
