@@ -26,7 +26,7 @@ class TestRoom(testmeta.BaseTestCase):
 
         :TODO: This also needs fixing to take acocunt of the Updated DB Structure
         """
-        
+        pass
         # session = self.session
         
         # #Can we link back to the relevant House

@@ -39,6 +39,7 @@ class BaseTestCase(unittest.TestCase):
         This means that we can Init the testing database once per testsuite
         """
         
+        pass
         #Parse the Config File
         try:
             confFile = open("setup.conf")
@@ -74,10 +75,13 @@ class BaseTestCase(unittest.TestCase):
 
         This means there should be no unexpected items in the DB."""
         #Pyramid Version
+
+        
         try:
             self.config = testing.setUp()
         except:
             pass
+        pass
         connection = self.engine.connect()
         self.transaction = connection.begin()
         self.session = self.Session()
@@ -90,6 +94,7 @@ class BaseTestCase(unittest.TestCase):
         """
         
         #Pyramid
+        pass
         try:
             self.transaction.abort()
             testing.tearDown()

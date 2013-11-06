@@ -24,106 +24,111 @@ class TestLocation(testmeta.BaseTestCase):
         theLocation = models.Location()
         self.assertIsInstance(theLocation,models.Location)
 
-    #@unittest.expectedFailure
-    def testBackrefs(self):
-        """We should fail if more than one location for the same place exists"""
+    # #@unittest.expectedFailure
+    # def testBackrefs(self):
+    #     """We should fail if more than one location for the same place exists"""
 
-        session = self.session
+    #     session = self.session
         
 
-        theHouse = models.House(address="theAddress")
-        theRoom = models.Room(name="roomName")
-        secondRoom = models.Room(name="secondRoom")
-        session.add(theHouse)
-        session.add(theRoom)
-        session.add(secondRoom)
-        session.flush()
+    #     theHouse = models.House(address="theAddress")
+    #     theRoom = models.Room(name="roomName")
+    #     secondRoom = models.Room(name="secondRoom")
+    #     session.add(theHouse)
+    #     session.add(theRoom)
+    #     session.add(secondRoom)
+    #     session.flush()
         
-        theLocation = models.Location()
-        theLocation.houseId = theHouse.id
-        theLocation.roomId = theRoom.id
+    #     theLocation = models.Location()
+    #     theLocation.houseId = theHouse.id
+    #     theLocation.roomId = theRoom.id
 
-        secLocation = models.Location()
-        secLocation.houseId = theHouse.id
-        secLocation.roomId = secondRoom.id
+    #     secLocation = models.Location()
+    #     secLocation.houseId = theHouse.id
+    #     secLocation.roomId = secondRoom.id
 
-        session.add(theLocation)
-        session.add(secLocation)
-        session.flush()
+    #     session.add(theLocation)
+    #     session.add(secLocation)
+    #     session.flush()
         
-        #Now lets get the objects vai the Backrefs
-        hLoc = theHouse.locations
-        self.assertEqual(len(hLoc),2) #There should be two locations for this house
+    #     #Now lets get the objects vai the Backrefs
+    #     hLoc = theHouse.locations
+    #     self.assertEqual(len(hLoc),2) #There should be two locations for this house
 
         
-        #expected locations
-        expLoc = [theLocation,secLocation]
-        self.assertEqual(hLoc,expLoc)
+    #     #expected locations
+    #     expLoc = [theLocation,secLocation]
+    #     self.assertEqual(hLoc,expLoc)
 
-        #We can then get the rooms for each Location
+    #     #We can then get the rooms for each Location
 
-        self.assertEqual(theLocation.room,theRoom)
+    #     self.assertEqual(theLocation.room,theRoom)
 
-        #So the full code to link the two should begin
-        self.assertEqual(theHouse.locations[0].room,theRoom)
+    #     #So the full code to link the two should begin
+    #     self.assertEqual(theHouse.locations[0].room,theRoom)
 
-    def testGlobal(self):
-        """ Test Against the Global Database """
+    # def testGlobal(self):
+    #     """ Test Against the Global Database """
 
-        session = self.session
+    #     session = self.session
         
-        #Check we get the expected Location
-        theQry = session.query(models.Location).filter_by(id=1).first()
+    #     #Check we get the expected Location
+    #     theQry = session.query(models.Location).filter_by(id=1).first()
         
-        self.assertEqual(theQry.houseId, 1)
-        self.assertEqual(theQry.roomId, 1)
+    #     self.assertEqual(theQry.houseId, 1)
+    #     self.assertEqual(theQry.roomId, 1)
         
-        self.assertEqual(theQry.house.address, "add1")
-        self.assertEqual(theQry.room.name, "Master Bedroom")
+    #     self.assertEqual(theQry.house.address, "add1")
+    #     self.assertEqual(theQry.room.name, "Master Bedroom")
 
-    def testJSON(self):
-        """Does converting to JSON work as Expected"""
-        session = self.session
-        theQry = session.query(models.Location).filter_by(id=1).first()
+    # def testJSON(self):
+    #     """Does converting to JSON work as Expected"""
 
-        #Expected JSON String should be
-        expected = {"id":"L_1",
-                   "name":"Master Bedroom",
-                   "label":"Master Bedroom",
-                   "type":"location",
-                   "parent": "H_1",
-                   "children":[]
-                   }
+    #     #theQry = session.query(models.Location).filter_by(id=1).first()
+    #     theQry = models.Location("id":1,
+    #                              "name":"Master Bedroom",
+    #                              "label":"Master Bedroom",
+    #                              )
+                                 
+
+    #     #Expected JSON String should be
+    #     expected = {"id":"L_1",
+    #                "name":"Master Bedroom",
+    #                "label":"Master Bedroom",
+    #                "type":"location",
+    #                "parent": "H_1",
+    #                "children":[]
+    #                }
 
 
-        out = theQry.asJSON()
+    #     out = theQry.asJSON()
 
-        self.assertEqual(out,expected)
+    #     self.assertEqual(out,expected)
 
-    def testGetReadings(self):
-        """Do We Return the Exepected Number of Readings"""
-        session = self.session
-        theQry = session.query(models.Location).filter_by(id=1).first()
+    # def testGetReadings(self):
+    #     """Do We Return the Exepected Number of Readings"""
+    #     session = self.session
+    #     theQry = session.query(models.Location).filter_by(id=1).first()
 
-        readings = theQry.readings
-        self.assertEqual(len(readings),72)
+    #     readings = theQry.readings
+    #     self.assertEqual(len(readings),72)
 
-    def testGetTypeReadings(self):
-        session = self.session
-        theQry = session.query(models.Location).filter_by(id=1).first()
-        #raw_input("Start Get Readings")
+    # def testGetTypeReadings(self):
+    #     session = self.session
+    #     theQry = session.query(models.Location).filter_by(id=1).first()
+    #     #raw_input("Start Get Readings")
 
-        #Temperature (72)
-        out = theQry.getReadings(0)
-        self.assertEqual(len(out),72)
+    #     #Temperature (72)
+    #     out = theQry.getReadings(0)
+    #     self.assertEqual(len(out),72)
         
-        #Delta Temperautre (None)
-        out = theQry.getReadings(1)
-        self.assertEqual(len(out),0)
+    #     #Delta Temperautre (None)
+    #     out = theQry.getReadings(1)
+    #     self.assertEqual(len(out),0)
 
-        #Everything (72)
-        out = theQry.getReadings()
-        self.assertEqual(len(out),72)
+    #     #Everything (72)
+    #     out = theQry.getReadings()
+    #     self.assertEqual(len(out),72)
     
 
 if __name__ == "__main__":

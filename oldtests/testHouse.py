@@ -56,67 +56,67 @@ class TestHouse(testmeta.BaseTestCase):
         self.assertIsInstance(thisMeta,models.HouseMetadata)
         self.assertTrue(thisMeta.description,"Test")
 
-    def testHouseFK(self):
-        """Test if Houses Foreign Keys and Backrefs work correctly"""
+    # def testHouseFK(self):
+    #     """Test if Houses Foreign Keys and Backrefs work correctly"""
     
-        session = self.session
+    #     session = self.session
 
-        theHouse = models.House(address="house")
-        session.add(theHouse)
-        session.flush()
+    #     theHouse = models.House(address="house")
+    #     session.add(theHouse)
+    #     session.flush()
 
-        houseMeta = models.HouseMetadata(houseId=theHouse.id,name="meta")
+    #     houseMeta = models.HouseMetadata(houseId=theHouse.id,name="meta")
 
-        session.add(houseMeta)
+    #     session.add(houseMeta)
 
-        session.flush()
+    #     session.flush()
 
-        #And does it come back 
-        houseQry = session.query(models.House).filter_by(address="house").first()
+    #     #And does it come back 
+    #     houseQry = session.query(models.House).filter_by(address="house").first()
 
-        self.assertEqual(houseQry.meta[0].name,"meta")
-        self.assertEqual(houseMeta.house.id,theHouse.id)
+    #     self.assertEqual(houseQry.meta[0].name,"meta")
+    #     self.assertEqual(houseMeta.house.id,theHouse.id)
 
-        #And Occupiers
-        theOccupier = models.Occupier(name="Fred",houseId=theHouse.id)
-        session.add(theOccupier)
-        session.flush()
-        self.assertEqual(theOccupier.house,theHouse)
-        self.assertEqual(theHouse.occupiers[0].id,theOccupier.id)
+    #     #And Occupiers
+    #     theOccupier = models.Occupier(name="Fred",houseId=theHouse.id)
+    #     session.add(theOccupier)
+    #     session.flush()
+    #     self.assertEqual(theOccupier.house,theHouse)
+    #     self.assertEqual(theHouse.occupiers[0].id,theOccupier.id)
 
 
-    def testGlobals(self):
-        """Test against the 'Global Database
+    # def testGlobals(self):
+    #     """Test against the 'Global Database
 
-        To Be honest I am not massivly worried about metadata or Occupiers
-        As I am very unlikely to use them.
+    #     To Be honest I am not massivly worried about metadata or Occupiers
+    #     As I am very unlikely to use them.
 
-        If we do, Make sure a testcase or two goes here.
-        """
-        session = self.session
-        houses = session.query(models.House).all()
-        self.assertEqual(len(houses),2)
+    #     If we do, Make sure a testcase or two goes here.
+    #     """
+    #     session = self.session
+    #     houses = session.query(models.House).all()
+    #     self.assertEqual(len(houses),2)
 
-        theDeployment = session.query(models.Deployment).first()
-        for item in houses:
-            #Is the the Right Deployment
-            self.assertEqual(item.deployment,theDeployment)
-            #And Do we have some locations
-            self.assertGreater(len(item.locations),1)
+    #     theDeployment = session.query(models.Deployment).first()
+    #     for item in houses:
+    #         #Is the the Right Deployment
+    #         self.assertEqual(item.deployment,theDeployment)
+    #         #And Do we have some locations
+    #         self.assertGreater(len(item.locations),1)
 
-        #And Test the Locations we have for each house are as expected
-        theHouse = session.query(models.House).filter_by(address="add1").first()
-        roomNames = [x.name for x in theHouse.getRooms()]
+    #     #And Test the Locations we have for each house are as expected
+    #     theHouse = session.query(models.House).filter_by(address="add1").first()
+    #     roomNames = [x.name for x in theHouse.getRooms()]
 
-        #Make sure these are as expected
-        expectedNames = ["Master Bedroom","Second Bedroom","Living Room"]
-        self.assertItemsEqual(roomNames,expectedNames)
+    #     #Make sure these are as expected
+    #     expectedNames = ["Master Bedroom","Second Bedroom","Living Room"]
+    #     self.assertItemsEqual(roomNames,expectedNames)
 
-        #Try it a second way
-        theHouse = session.query(models.House).filter_by(address="add2").first()
-        roomNames = [x.room.name for x in theHouse.locations]
-        expectedNames = ["Master Bedroom","Living Room"]
-        self.assertItemsEqual(roomNames,expectedNames)
+    #     #Try it a second way
+    #     theHouse = session.query(models.House).filter_by(address="add2").first()
+    #     roomNames = [x.room.name for x in theHouse.locations]
+    #     expectedNames = ["Master Bedroom","Living Room"]
+    #     self.assertItemsEqual(roomNames,expectedNames)
 
 
 if __name__ == "__main__":

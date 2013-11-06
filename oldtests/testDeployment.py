@@ -69,94 +69,94 @@ class TestDeployment(testmeta.BaseTestCase):
         thisMeta = models.DeploymentMetadata()
         self.assertIsInstance(thisMeta, models.DeploymentMetadata)
 
-    def testFk(self):
-        """Test if deployment foreign keys are stored correctly"""
-        session = self.session
+    # def testFk(self):
+    #     """Test if deployment foreign keys are stored correctly"""
+    #     session = self.session
 
-        theDeployment = models.Deployment(name="TestDeployment",
-                                          description="A Test Deployment")
+    #     theDeployment = models.Deployment(name="TestDeployment",
+    #                                       description="A Test Deployment")
 
-        session.add(theDeployment)
-        session.flush()
+    #     session.add(theDeployment)
+    #     session.flush()
 
-        metaData = models.DeploymentMetadata(deploymentId = theDeployment.id,
-                                             name="Test Metadata",
-                                             description="A Bit more MetaData",
-                                             units="Units",
-                                             value = 12.0)
-
-
-        session.add(metaData)
-
-        theHouse = models.House(deploymentId = theDeployment.id,
-                                address="10 Greenhill st")
-        session.add(theHouse)
+    #     metaData = models.DeploymentMetadata(deploymentId = theDeployment.id,
+    #                                          name="Test Metadata",
+    #                                          description="A Bit more MetaData",
+    #                                          units="Units",
+    #                                          value = 12.0)
 
 
-        #Now see if we can get the stuff back
+    #     session.add(metaData)
 
-        session = self.session
-        depQuery = session.query(models.Deployment)
-        depQuery=depQuery.filter_by(name="TestDeployment").first()
-
-        #Now try and find the metaData
-        depMeta = depQuery.meta
-
-        self.assertEqual(depMeta[0].name, "Test Metadata")
-
-        houses = depQuery.houses
-        self.assertEqual(houses[0].address, "10 Greenhill st")
-
-        #Similarly we should also get the parent object back when we query
-        self.assertEqual(depMeta[0].deployment.id, theDeployment.id)
-        self.assertEqual(houses[0].deployment.id, theDeployment.id)
+    #     theHouse = models.House(deploymentId = theDeployment.id,
+    #                             address="10 Greenhill st")
+    #     session.add(theHouse)
 
 
-    def testMetaInsert(self):
-        """Trial Function, can we insert metadata straight into the deployment
-        object.
+    #     #Now see if we can get the stuff back
 
-        Turns out we can which is pretty frickin cool.
-        """
-        session = self.session
+    #     session = self.session
+    #     depQuery = session.query(models.Deployment)
+    #     depQuery=depQuery.filter_by(name="TestDeployment").first()
 
-        theDeployment = models.Deployment(name="TestDeployment",
-                                          description="A Test Deployment")
+    #     #Now try and find the metaData
+    #     depMeta = depQuery.meta
 
-        metaData = models.DeploymentMetadata(name="Test Metadata",
-                                             description="A Bit more MetaData",
-                                             units="Units",
-                                             value = 12.0)
-        session.add(theDeployment)
-        #Dont bother adding the metadata to the session, just append to backref
-        theDeployment.meta.append(metaData)
+    #     self.assertEqual(depMeta[0].name, "Test Metadata")
 
-        theHouse = models.House()
-        theDeployment.houses.append(theHouse)
-        session.flush()
+    #     houses = depQuery.houses
+    #     self.assertEqual(houses[0].address, "10 Greenhill st")
 
-        self.assertEqual(theDeployment.id, metaData.deploymentId)
-        self.assertEqual(theHouse.deploymentId, theDeployment.id)
-
-        #And References back to parent
-        self.assertEqual(metaData.deployment.id, theDeployment.id)
-        self.assertEqual(theHouse.deployment.id, theDeployment.id)
+    #     #Similarly we should also get the parent object back when we query
+    #     self.assertEqual(depMeta[0].deployment.id, theDeployment.id)
+    #     self.assertEqual(houses[0].deployment.id, theDeployment.id)
 
 
-    def testGlobals(self):
-        """Test the 'Global' Version works correctly"""
-        session = self.session
+    # def testMetaInsert(self):
+    #     """Trial Function, can we insert metadata straight into the deployment
+    #     object.
 
-        theDeployment = session.query(models.Deployment).first()
+    #     Turns out we can which is pretty frickin cool.
+    #     """
+    #     session = self.session
 
-        self.assertIsInstance(theDeployment, models.Deployment)
-        #And Fetch Houses
-        theHouses = session.query(models.House).all()
+    #     theDeployment = models.Deployment(name="TestDeployment",
+    #                                       description="A Test Deployment")
 
-        self.assertEqual(theHouses, theDeployment.houses)
+    #     metaData = models.DeploymentMetadata(name="Test Metadata",
+    #                                          description="A Bit more MetaData",
+    #                                          units="Units",
+    #                                          value = 12.0)
+    #     session.add(theDeployment)
+    #     #Dont bother adding the metadata to the session, just append to backref
+    #     theDeployment.meta.append(metaData)
 
-        for item in theDeployment.houses:
-            self.assertEqual(item.deployment, theDeployment)
+    #     theHouse = models.House()
+    #     theDeployment.houses.append(theHouse)
+    #     session.flush()
+
+    #     self.assertEqual(theDeployment.id, metaData.deploymentId)
+    #     self.assertEqual(theHouse.deploymentId, theDeployment.id)
+
+    #     #And References back to parent
+    #     self.assertEqual(metaData.deployment.id, theDeployment.id)
+    #     self.assertEqual(theHouse.deployment.id, theDeployment.id)
+
+
+    # def testGlobals(self):
+    #     """Test the 'Global' Version works correctly"""
+    #     session = self.session
+
+    #     theDeployment = session.query(models.Deployment).first()
+
+    #     self.assertIsInstance(theDeployment, models.Deployment)
+    #     #And Fetch Houses
+    #     theHouses = session.query(models.House).all()
+
+    #     self.assertEqual(theHouses, theDeployment.houses)
+
+    #     for item in theDeployment.houses:
+    #         self.assertEqual(item.deployment, theDeployment)
 
     def testJSON(self):
         theDeployment = models.Deployment(name="Foo",
