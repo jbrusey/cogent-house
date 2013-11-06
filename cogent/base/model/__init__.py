@@ -61,7 +61,6 @@ def init_model(engine):
     DO NOT REMOVE ON MERGE
     """
     Session.configure(bind=engine)
-
  
 
 def initialise_sql(engine, dropTables=False):
@@ -87,7 +86,6 @@ def initialise_sql(engine, dropTables=False):
         Base.metadata.drop_all(engine)
 
     Base.metadata.create_all(engine)  
-
     
 
 def findClass(tableName):

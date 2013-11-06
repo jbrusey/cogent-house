@@ -62,4 +62,15 @@ Update database to take account of Clustered version.
 .. WARNING:
    For some reason the unique id's for sensor types were modified in mercurial revisions 586c28147430, 21e95e1f54d1 etc. this is very bad thing(TM).
    I have added a new alembic revision <...> to makes sure that unique ID's are always unique and don't refer to different things in different versions of the code.
-    
+
+Version 1.1.3
+---------------
+
+Merge Models with base webinterface and fix unittests
+
+* Add index to Reading
+* Sequence No / RSSI to Nodestate
+* dict() method added to meta.py
+* update populate data with the "new" constants for SensorTypeId
+* Merge "fixed" alembic scripts
+

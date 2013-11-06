@@ -12,5 +12,10 @@ build/
 cogent/push/.cache
 cogent/push/.coverage
 cogent/push/testcover/
+cogent/push/*_map.conf
 *.egg-info/*
 dataclense/*
+*.log
+*.html
+*.db
+dist
