@@ -256,28 +256,28 @@ class InnoDBMix(SerialiseMixin):
 import user
 
 
-class RootFactory(object):
-    """New Root Factory Object to assign permissions
-    And control the ACL
-    """
+# class RootFactory(object):
+#     """New Root Factory Object to assign permissions
+#     And control the ACL
+#     """
 
-    __acl__ = [(Allow,Everyone,"logout"),
-               (Allow,"group:user","view"),
-               (Allow,"group:root","view")]
+#     __acl__ = [(Allow,Everyone,"logout"),
+#                (Allow,"group:user","view"),
+#                (Allow,"group:root","view")]
     
-    def __init__(self,request):
-        pass
+#     def __init__(self,request):
+#         pass
 
-def groupfinder(userid,request):
-    LOG.debug("-----> Group Finder Called {0}".format(userid))
-    session = Session()
-    theUser = session.query(user.User).filter_by(id=userid).first()
-    if theUser is None:
-        return ["group:none"]
+# def groupfinder(userid,request):
+#     LOG.debug("-----> Group Finder Called {0}".format(userid))
+#     session = Session()
+#     theUser = session.query(user.User).filter_by(id=userid).first()
+#     if theUser is None:
+#         return ["group:none"]
 
-    if theUser.level == "root":
-        return["group:root"]
-    elif theUser.level == "user":
-        return ["group:user"]
+#     if theUser.level == "root":
+#         return["group:root"]
+#     elif theUser.level == "user":
+#         return ["group:user"]
 
-    return ["group:none"]
+#     return ["group:none"]
