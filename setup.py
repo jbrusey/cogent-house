@@ -9,13 +9,14 @@ REQUIRES = ['SQLAlchemy',
             'configobj',
             "python-dateutil==1.5",
             "python-rest-client",
-#            "numpy",
-#            "matplotlib",
+            "numpy",
+            "matplotlib",
             "pyserial",
             "requests",
             "pyrrd",
             "transaction",
-            "python-daemon"
+            "python-daemon",
+            "alembic"
             ]
     
 setup(name='ch-base',
