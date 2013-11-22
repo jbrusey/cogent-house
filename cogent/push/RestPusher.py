@@ -81,16 +81,19 @@ logging.basicConfig(level=logging.INFO,
                     )
 #Add a File hander
 #fh = logging.FileHandler("push_out.log")
-logsize = (1024*1024) * 5 #5Mb Logs
+logsize = (1024*1024) * 1 #5Mb Logs
 
 import logging.handlers
 fh = logging.handlers.RotatingFileHandler("push.log",maxBytes=logsize,backupCount = 5)
-fh.setLevel(logging.INFO)
+fh.setLevel(logging.DEBUG)
 
 fmt = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
 fh.setFormatter(fmt)
 
 __version__ = "0.3.4"
+
+import os
+import subprocess
 
 import sqlalchemy
 import cogent.base.model as models
@@ -285,10 +288,12 @@ class PushServer(object):
         loopStart = time.time()
         avgTime = None
         log.info("Running Full Syncronise Cycle")
-
         for item in self.syncList:
-            log.debug("Synchronising {0}".format(item))
-            item.sync()
+            log.info("Synchronising {0}".format(item))
+            item.checkRPC()
+            #TODO Uncomment this after testing
+            #item.sync()
+            
 
         loopEnd = time.time()
         log.info("Total Time Taken {0} Avg {1}".format(loopEnd-loopStart,avgTime))
@@ -312,8 +317,8 @@ class Pusher(object):
         """
         self.firstUpload = None
         self.log = logging.getLogger("Pusher")
-        #self.log.setLevel(logging.INFO)
-        self.log.setLevel(logging.WARNING)
+        self.log.setLevel(logging.DEBUG)
+        #self.log.setLevel(logging.WARNING)
         log = self.log
         log.addHandler(fh)
 
@@ -383,6 +388,62 @@ class Pusher(object):
         log.debug("Connection to rest server OK")
         return True
 
+    def checkRPC(self):
+        """Check for a set of remote procedure calls"""
+        log = self.log
+        log.info("Checking for RPC")
+
+        theUrl = "{0}rpc/".format(self.restUrl)
+
+        #Work out my hostname
+        hostname = os.uname()[1]
+        log.debug("Hostname {0}".format(hostname))
+        #hostname = "salford21"
+        try:
+            #Quick and simple for the moment
+            theport = int(hostname[-2:])
+        except ValueError:
+            log.warning("Unable to get port from hostname {0}".format(hostname))
+            theport = 0
+
+        #sys.exit(0)
+
+        #Fetch All room Types the Remote Database knows about        
+        log.debug("Fetching data from {0}".format(theUrl))
+        try:
+            remoteqry = requests.get(theUrl,timeout=60)    
+        except requests.exceptions.Timeout:
+            log.warning("Timeout on connection to cogentee")
+            sys.exit(-1)
+            
+        jsonbody = remoteqry.json()
+        log.debug(jsonbody)
+        
+        log.debug("Processing RPC")
+        #Go through the JSON and see if we have any RPC
+        for item in jsonbody:
+            log.debug(item)
+            host, command = item
+            if host.lower() == hostname.lower():
+                log.info("RPC COMMAND {0}".format(command))
+                if command == "tunnel":
+                    log.debug("Attempting to start SSH Process on port {0}".format(theport))
+                    #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
+                    proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh", "start" ,"{0}".format(theport)],
+                                            stderr=subprocess.PIPE)
+
+                    # for line in iter(proc.stdout.readline, ''):
+                        
+                    #     log.debug("--> {0}".format(line.strip()))
+
+                    for line in iter(proc.stderr.readline, ''):
+                        log.debug("E-> {0}".format(line.strip()))
+
+                    print proc.returncode
+                    log.debug("Killing existing SSH Process")
+                    #Wait for Exit then Kill
+                    subprocess.check_output(["./ch-ssh stop"],shell=True)
+        
 
     def sync(self):
         """
