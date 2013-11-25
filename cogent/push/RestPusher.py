@@ -3,6 +3,8 @@ Script to push data to a remote server using REST
 
 .. codeauthor:: Daniel Goldsmith <djgoldsmith@googlemail.com>
 
+For Changes see CHANGES.txt
+
 .. version:: 0.3.5
 """
 
@@ -28,11 +30,7 @@ FH.setLevel(logging.INFO)
 FMT = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
 FH.setFormatter(FMT)
 
-#Python Std Imports
-import time
-from datetime import datetime
-import configobj
-import zlib
+__version__ = "0.3.4"
 
 
 #Library Imports
@@ -41,7 +39,8 @@ import dateutil.parser
 import json
 import urllib
 import requests
-
+import configobj 
+import time
 #Local Imports
 import cogent.base.model as models
 
@@ -81,7 +80,7 @@ class PushServer(object):
     local DB's
     """
 
-    def __init__(self, localURL=None):
+    def __init__(self, localURL=None, configfile="synchronise.conf"):
         """Initialise the push server object
 
         This should:
@@ -93,8 +92,12 @@ class PushServer(object):
 
         :var localURL:  The DBString used to connect to the local database.
                         This can be used to overwrite the url in the config file
+                        
+        :configfile:  Name of configfile to use
         """
 
+        self.synclist = None
+        self.localsession = None
         #Create Logging
         self.log = logging.getLogger("Push Server")
         log = self.log
@@ -103,19 +106,19 @@ class PushServer(object):
         log.info("Initialising Push Server")
 
         #Load and Read the Configuration files
-        configparser = configobj.ConfigObj("synchronise.conf")
+        configparser = configobj.ConfigObj(configfile)
         self.configparser = configparser
 
         #Process General Configuration Options and
         #Initialise Local Database connection.
-        log.info("Processing Global Configuration options")
+        log.debug("Processing Global Configuration options")
         generaloptions = configparser["general"]
 
         #Local Database Connection
         if not localURL:
             localURL = generaloptions["localurl"]
 
-        log.debug("connecting to local database at {0}".format(localURL))
+        log.info("connecting to local database at {0}".format(localURL))
 
         #initialise the local database connection
         self.create_engine(localURL)
@@ -135,6 +138,9 @@ class PushServer(object):
 
         #next we want to queue up all the remote urls we wish to push to.
         self.queuelocations(configparser, mappingconfig, pushlimit)
+        log.debug("List of Locations to Sync:")
+        for item in self.synclist:
+            log.debug("--> {0}".format(item))
         #self.synclist = [] #List of locations to sync
         #self.localsession = None #pointer to local session
 
@@ -196,10 +202,12 @@ class PushServer(object):
         loopstart = time.time()
         avgtime = None
         log.info("Running Full Syncronise Cycle")
-
         for item in self.synclist:
-            log.debug("Synchronising {0}".format(item))
+            log.info("Synchronising {0}".format(item))
+            item.checkRPC()
+            #TODO Uncomment this after testing
             item.sync()
+            
 
         loopend = time.time()
         log.info("Total Time Taken {0} Avg {1}".format(loopend-loopstart,
@@ -277,6 +285,82 @@ class Pusher(object):
         self.Node = models.Node
         self.Location = models.Location
 
+    # NOTE: this code removed as it is not used
+    # def checkConnection(self):
+    #     #Do we have a connection to the server
+    #     log = self.log
+
+    def checkConnection(self):
+        #Do we have a connection to the server
+        log = self.log
+
+        #Fetch the room types from the remote Database                                                                                                      
+        theUrl = "{0}deployment/".format(self.restUrl)
+        # #Fetch All Deployments the Remote Database knows about                                                                                            
+        restQry = requests.get(theUrl)
+        if restQry.status_code == 503:
+            log.warning("No Connection to server available")
+            return False
+        log.debug("Connection to rest server OK")
+        return True
+
+    def checkRPC(self):
+        """Check for a set of remote procedure calls"""
+        log = self.log
+        log.info("Checking for RPC")
+
+        theUrl = "{0}rpc/".format(self.restUrl)
+
+        #Work out my hostname
+        hostname = os.uname()[1]
+        log.debug("Hostname {0}".format(hostname))
+        #hostname = "salford21"
+        try:
+            #Quick and simple for the moment
+            theport = int(hostname[-2:])
+        except ValueError:
+            log.warning("Unable to get port from hostname {0}".format(hostname))
+            theport = 0
+
+        #sys.exit(0)
+
+        #Fetch All room Types the Remote Database knows about        
+        log.debug("Fetching data from {0}".format(theUrl))
+        try:
+            remoteqry = requests.get(theUrl,timeout=60)    
+        except requests.exceptions.Timeout:
+            log.warning("Timeout on connection to cogentee")
+            sys.exit(-1)
+            
+        jsonbody = remoteqry.json()
+        log.debug(jsonbody)
+        
+        log.debug("Processing RPC")
+        #Go through the JSON and see if we have any RPC
+        for item in jsonbody:
+            log.debug(item)
+            host, command = item
+            if host.lower() == hostname.lower():
+                log.info("RPC COMMAND {0}".format(command))
+                if command == "tunnel":
+                    log.debug("Attempting to start SSH Process on port {0}".format(theport))
+                    #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
+                    proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh", "start" ,"{0}".format(theport)],
+                                            stderr=subprocess.PIPE)
+
+                    # for line in iter(proc.stdout.readline, ''):
+                        
+                    #     log.debug("--> {0}".format(line.strip()))
+
+                    for line in iter(proc.stderr.readline, ''):
+                        log.debug("E-> {0}".format(line.strip()))
+
+                    print proc.returncode
+                    log.debug("Killing existing SSH Process")
+                    #Wait for Exit then Kill
+                    subprocess.check_output(["./ch-ssh stop"],shell=True)
+        
+
     def sync(self):
         """
         Perform one synchronisation step for this Pusher object
@@ -287,6 +371,7 @@ class Pusher(object):
         log = self.log
 
         log.debug("Performing sync")
+        sys.exit(0)
         #Load our Stored Mappings
         #.. TODO:: update the Load Mappings Script
         self.sync_sensortypes()
