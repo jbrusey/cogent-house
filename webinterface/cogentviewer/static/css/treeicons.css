@@ -1,0 +1,32 @@
+/* Modified for HMTL5 */
+
+
+.deployIcon
+{
+    /*background-image: url(${request.static_url('cogentviewer:static/icons/dark/16_structure.png')});*/
+    background-image: url('../icons/dark/16_structure.png');
+    background-repeat: no-repeat; 
+    background-position: center center; 
+    width: 16px; 
+    height: 16px;
+}
+
+.houseDarkIcon
+{
+    /*background-image: url(${request.static_url('cogentviewer:static/icons/dark/16_home.png')});*/
+    background-image: url('../icons/dark/16_home.png');
+    background-repeat: no-repeat; 
+    background-position: center center; 
+    width: 16px; 
+    height: 16px;
+}
+
+  .locDarkIcon
+  {
+      /*background-image: url(${request.static_url('cogentviewer:static/icons/dark/16_statistics.png')});*/
+      background-image: url('../icons/dark/16_statistics.png');
+      background-repeat: no-repeat; 
+      background-position: center center; 
+      width: 16px; 
+      height: 16px;
+  }
