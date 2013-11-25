@@ -36,12 +36,16 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadAQ;
     interface SIPController<FilterState *> as ReadOpti;
     interface SIPController<FilterState *> as ReadGas;
+    interface SIPController<FilterState *> as ReadHMEnergy;
+    interface SIPController<FilterState *> as ReadHMVolume;
     interface SIPController<FilterState *> as ReadWindow;
     interface SIPController<FilterState *> as ReadTempADC1;
     interface TransmissionControl;
     interface SplitControl as OptiControl;
     interface SplitControl as GasControl;
     interface SplitControl as CurrentCostControl;
+    interface SplitControl as HMEnergyControl;
+    interface SplitControl as HMVolumeControl;
 #endif
 
 #ifdef BN
@@ -388,7 +392,9 @@ implementation
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_ALPHA, SIP_AQ_BETA);
     call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
     call ReadGas.init(SIP_GAS_THRESH, SIP_GAS_MASK, SIP_GAS_ALPHA, SIP_GAS_BETA);
-    call ReadGas.init(SIP_WINDOW_THRESH, SIP_WINDOW_MASK, SIP_WINDOW_ALPHA, SIP_WINDOW_BETA);
+    call ReadHMEnergy.init(SIP_HME_THRESH, SIP_HME_MASK, SIP_HME_ALPHA, SIP_HME_BETA);
+    call ReadHMVolume.init(SIP_HMV_THRESH, SIP_HMV_MASK, SIP_HMV_ALPHA, SIP_HMV_BETA);
+    call ReadWindow.init(SIP_WINDOW_THRESH, SIP_WINDOW_MASK, SIP_WINDOW_ALPHA, SIP_WINDOW_BETA);
     call ReadCC.init(SIP_CC_THRESH, SIP_CC_MASK, SIP_CC_ALPHA, SIP_CC_BETA);
     call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
 #endif
@@ -406,7 +412,22 @@ implementation
       call Configured.set(RS_VOLTAGE);
     }
 #ifdef SIP
+    else if (nodeType == 4) { /* heat meter */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_DUTY);
+      call Configured.set(RS_VOLTAGE);
+      call Configured.set(RS_OPTI);
+      call Configured.set(RS_HM_ENERGY);
+      call Configured.set(RS_HM_VOLUME);
+      call HMEnergyControl.start();
+      call HMVolumeControl.start();
+    }
     else if (nodeType == 5) { /* energy board */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_DUTY);
+      call Configured.set(RS_VOLTAGE);
       call Configured.set(RS_OPTI);
       call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
@@ -515,6 +536,10 @@ implementation
 	    call ReadCC.read();
    	  else if (i == RS_OPTI)
 	    call ReadOpti.read();
+	  else if (i == RS_HM_ENERGY)
+	    call ReadHMEnergy.read();
+	  else if (i == RS_HM_VOLUME)
+	    call ReadHMEnergy.read();
    	  else if (i == RS_GAS)
 	    call ReadGas.read();
    	  else if (i == RS_WINDOW)
@@ -626,11 +651,19 @@ implementation
   event void ReadTempADC1.readDone(error_t result, FilterState* data) {
     do_readDone_filterstate(result, data, RS_TEMPADC1, SC_TEMPADC1, SC_D_TEMPADC1);
   }
-  
+
   event void ReadOpti.readDone(error_t result, FilterState* data) {
-    do_readDone_filterstate(result, data, RS_OPTI, SC_OPTI, SC_D_OPTI);
+    do_readDone_pass(result, data, RS_OPTI, SC_OPTI);
   }
   
+  event void ReadHMEnergy.readDone(error_t result, FilterState* data) {
+    do_readDone_pass(result, data, RS_HM_ENERGY, SC_HEAT_ENERGY);
+  }
+
+  event void ReadHMVolume.readDone(error_t result, FilterState* data) {
+    do_readDone_pass(result, data, RS_HM_VOLUME, SC_HEAT_VOLUME);
+  }
+
   event void ReadGas.readDone(error_t result, FilterState* data) {
     do_readDone_pass(result, data, RS_GAS, SC_GAS);
   }
@@ -643,6 +676,11 @@ implementation
   event void OptiControl.stopDone(error_t error) {} 
   event void GasControl.startDone(error_t error) {}
   event void GasControl.stopDone(error_t error) {}  
+  event void HMEnergyControl.startDone(error_t error) {}
+  event void HMEnergyControl.stopDone(error_t error) {}  
+  event void HMVolumeControl.startDone(error_t error) {}
+  event void HMVolumeControl.stopDone(error_t error) {}  
+
 
 #endif
 

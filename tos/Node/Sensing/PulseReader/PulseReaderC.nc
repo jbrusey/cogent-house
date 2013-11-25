@@ -17,8 +17,8 @@ implementation
   
   PulseReaderP.Boot -> MainC.Boot;
   PulseReaderM.Leds -> LedsC;
-  PulseReaderM.EnergyInput -> GIO.Port26;
-  PulseReaderM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
+  PulseReaderM.Input -> GIO.Port26;
+  PulseReaderM.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
   
   PulseReaderP.LocalTime -> HilTimerMilliC;
   PulseReaderP.ReadPulse->PulseReaderM.ReadPulse;

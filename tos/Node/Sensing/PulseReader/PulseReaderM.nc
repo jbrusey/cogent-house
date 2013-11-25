@@ -40,19 +40,19 @@ generic module PulseReaderM()
     interface SplitControl as PulseControl;
   }
   uses {	
-    interface HplMsp430GeneralIO as EnergyInput;
-    interface HplMsp430Interrupt as EnergyInterrupt;	
+    interface HplMsp430GeneralIO as Input;
+    interface HplMsp430Interrupt as Interrupt;	
     interface Leds;
   }
 }
 implementation
 {
-  uint32_t energyCount = 0;
+  uint32_t Count = 0;
   
   task void readTask() {
     float te;
     atomic {
-      te = (float) energyCount;
+      te = (float) Count;
     }
 
     signal ReadPulse.readDone(SUCCESS, te);
@@ -63,23 +63,23 @@ implementation
     return SUCCESS;
   }
 
-  async event void EnergyInterrupt.fired() {
+  async event void Interrupt.fired() {
     //clear the interrupt pending flag then increment the count
-    call EnergyInterrupt.clear();
+    call Interrupt.clear();
 #ifdef DEBUG
     call Leds.led2Toggle();
 #endif
-    energyCount++;
+    Count++;
   }
   
   command error_t PulseControl.start() {
-    //Set up energy pulse
+    //Set up pulse
     atomic{
-      call EnergyInterrupt.clear();
-      call EnergyInterrupt.enable();
+      call Interrupt.clear();
+      call Interrupt.enable();
     }
-    call EnergyInterrupt.edge(FALSE);
-    call EnergyInput.makeInput();
+    call Interrupt.edge(FALSE);
+    call Input.makeInput();
     signal PulseControl.startDone(SUCCESS);
     return SUCCESS;
   }
