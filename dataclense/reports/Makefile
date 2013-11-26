@@ -1,5 +1,5 @@
 output = .output
-rnwfile = YieldReport
+rnwfile = deploymentReport
 backup = .backup
 
 SWEAVE = R CMD Sweave
@@ -10,6 +10,8 @@ all: $(rnwfile).pdf
 pdf: $(rnwfile).pdf
 
 $(rnwfile).pdf: $(rnwfile).tex
+	pdflatex $(rnwfile).tex
+	pdflatex $(rnwfile).tex
 	pdflatex $(rnwfile).tex
 
 $(rnwfile).tex: $(rnwfile).Rnw

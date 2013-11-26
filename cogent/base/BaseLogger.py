@@ -1,14 +1,25 @@
+#rrdtool graph test.png DEF:x1=32768_None_6.rrd:reading:AVERAGE LINE1:x1#FF0000
+#rrdtool fetch 32768_None_6.rrd AVERAGE -s -1h
+#python BaseLogger.py -l debug -f testLog.log -t
+#
+# Node IDS
+#20480 is the nodeId you want
+##basically look at CogentHouseP from line 183 to get the node type then * that by 4096
+
+
 #
 # BaseLogger
 #
 # log data from mote to a database and also print out 
 #
 # J. Brusey, R. Wilkins, April 2011
+# D. Goldsmith, May 2013
 
 import logging
 import sys
 import os
 from optparse import OptionParser
+
 
 if "TOSROOT" not in os.environ:
     raise Exception("Please source the Tiny OS environment script first")
@@ -24,15 +35,20 @@ from datetime import datetime, timedelta
 import time
 
 from cogent.base.model import *
+import cogent.base.model.populateData as populateData
 
-logger = logging.getLogger("ch.base")
+#logger = logging.getLogger("ch.base")
 
 F="/home/james/sa.db"
 #DBFILE = "sqlite:///" 
 DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
+import sqlalchemy.exc
 
+#New RRD stuff
+import rrdstore
+RRDLIST = {}
 
 class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
@@ -43,207 +59,25 @@ class BaseLogger(object):
         self.metadata = Base.metadata
 
         if bif is None:
+#            try:
             self.bif = BaseIF("sf@localhost:9002")
+#            except KeyboardInterrupt:
+#                print "Thread Based Madness"
+#                self.running = False
         else:
             self.bif = bif
+
+        self.log = logging.getLogger("baselogger")
+        self.running = True
 
     def create_tables(self):
         self.metadata.create_all(self.engine)
 
         session = Session()
 
-        #Fix this so if we happen to add a new sensor type things will work
-        if session.query(SensorType).get(0) is None:
-            logger.debug("adding sensor types")
-            # assume no sensor types have been added
-            session.add_all(
-                [SensorType(id=0,name="Temperature",
-                            code="T",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=1,name="Delta Temperature",
-                            code="dT",
-                            units="deg.C/s",
-                            c0=0., c1=1., c2=0., c3=0.),                              
-                 SensorType(id=2,name="Humidity",
-                            code="RH",
-                            units="%",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=3,name="Delta Humidity",
-                            code="dRH",
-                            units="%/s",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=4,name="Light PAR",
-                            code="PAR",
-                            units="Lux",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=5,name="Light TSR",
-                            code="TSR",
-                            units="Lux",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=6,name="Battery Voltage",
-                            code="BAT",
-                            units="V",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=7,name="Delta Battery Voltage",
-                            code="dBT",
-                            units="V/s",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=8,name="CO2",
-                            code="CO2",
-                            units="ppm",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=9,name="Air Quality",
-                            code="AQ",
-                            units="ppm",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=10,name="VOC",
-                            code="VOC",
-                            units="ppm",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=11,name="Power",
-                            code="POW",
-                            units="W",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=12,name="Heat",
-                            code="HET",
-                            units="W",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=13,name="Duty cycle",
-                            code="DUT",
-                            units="ms",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=14,name="Error",
-                            code="ERR",
-                            units="",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=15,name="Power Min",
-                            code="PMI",
-                            units="w",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=16,name="Power Max",
-                            code="PMA",
-                            units="w",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=17,name="Power Consumption",
-                            code="CON",
-                            units="kWh",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=18,name="Heat Energy",
-                            code="HEN",
-                            units="kWh",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=19,name="Heat Volume",
-                            code="HVO",
-                            units="L",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=20,name="Power pulses",
-                            code="POP",
-                            units="p",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=21,name="Window Temperature 1",
-                            code="WT1",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=22,name="Window Temperature 2",
-                            code="WT2",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=23,name="Black Bulb",
-                            code="BBT",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=24,name="Gas Pulse",
-                            code="GPL",
-                            units="p",
-                            c0=0., c1=1., c2=0., c3=0.),
-		 SensorType(id=99,name="Gas Consumption",
-                            code="Gas",
-                            units="kWh",
-                            c0=0., c1=1., c2=0., c3=0.),
-		SensorType(id=102,name="Outside Temperature",
-                            code="ws_temp_out",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),   
-		SensorType(id=103,name="Outside Humidity",
-                            code="ws_hum_out",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),    
-		SensorType(id=104,name="WS Inside Temperature",
-                            code="ws_temp_in",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),   
-		SensorType(id=105,name="WS Inside Humidity",
-                            code="ws_hum_in",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),    
-                 SensorType(id=106,name="Dew Point",
-                            code="ws_dew",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=107,name="Apparent Temperature",
-                            code="ws_apparent_temp",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=108,name="Wind Gust",
-                            code="ws_wind_gust",
-                            units="mph",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=109,name="Average Wind Speed",
-                            code="ws_wind_ave",
-                            units="mph",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=110,name="Wind Direction",
-                            code="ws_wind_dir",
-                            units="",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=111,name="Wind Chill",
-                            code="ws_wind_chill",
-                            units="deg.C",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=112,name="Rain Fall",
-                            code="ws_rain",
-                            units="mm",
-                            c0=0., c1=1., c2=0., c3=0.),
-                 SensorType(id=113,name="Absolute Pressure",
-                            code="ws_abs_pressure",
-                            units="hpa",
-                            c0=0., c1=1., c2=0., c3=0.)])
-            session.commit()
-        session.close()    
-                             
-    # def update_settings(self):
-
-    #     x = self.setting_session.query(NodeType).filter(NodeType.seq != NodeType.updated_seq).first()
-    #     if x is not None:
-    #         cm = ConfigMsg()
-    #         max_nodetype = self.setting_session.query(func.max(NodeType.id)).one()[0] + 1
-    #         max_nodetype = min(max_nodetype, Packets.NODE_TYPE_MAX)
-    #         cm.set_typeCount(max_nodetype)
-    #         for i in range(max_nodetype):
-    #             nt = self.setting_session.query(NodeType).filter(NodeType.id==i).first()
-    #             if nt is not None:
-    #                 cm.setElement_byType_samplePeriod(i, nt.period)
-    #                 if nt.blink:
-    #                     cm.setElement_byType_blink(i, 1)
-    #                 else:
-    #                     cm.setElement_byType_blink(i, 0)
-                    
-    #                 for j in range(len(nt.configured.a)):
-    #                     cm.setElement_byType_configured(i, j, nt.configured.a[j])
-    #                 nt.updated_seq = nt.seq
-    #             else:
-    #                 logger.warning("no NodeType record for type %d - setting some default values" % (i))
-    #                 cm.setElement_byType_samplePeriod(i, 300 * 1024) # 300 seconds
-    #                 cm.setElement_byType_blink(i,1)
-    #                 for j in range(cm.numElements_byType_configured(1)):
-    #                     cm.setElement_byType_configured(i, j, 0)
-
-    #         cm.set_special(Packets.SPECIAL)
-    #         self.bif.sendMsg(cm)
-    #         logger.debug("sending config: %s" % cm)
-
-    #         self.setting_session.commit()
+        #Moved this so it calls the models.populate data version of this code
+        populateData.init_data(session)
+        return
 
     def duplicate_packet(self, session, time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
@@ -263,7 +97,35 @@ class BaseLogger(object):
         return ((nid % 4096) / 32,
                 nid % 32,
                 nid / 4096)
-    	
+    
+    # def store_rrd(self, n, i, t, v, locId = 1000):
+    #     """Store the latest reading in a RRD file
+        
+    #     :param n: Node Id
+    #     :param i: Node Type
+    #     :param t: Time
+    #     :param v: Value
+
+    #     .. note::
+        
+    #         Currently this does not take account of the location Id.  This may be an option in the future
+    #     """
+    #     #Store in a RRD Database
+        
+    #     t1 = time.time()
+    #     theRRD = RRDLIST.get((n,i,locId),None)
+    #     if theRRD is None:
+    #         try:
+    #             theRRD = rrdstore.RRDStore(n,i,locId)
+    #             RRDLIST[(n,i,locId)] = theRRD
+
+    #             theRRD.update(t,v)
+    #             t2 = time.time()
+    #             log.debug("Time Taken to update RRD {0}".format(t2-t1))        
+    #         except Exception,e:
+    #             log.warning("Problem updating RRD")
+    #             log.warning(e)
+	
     def store_state(self, msg):
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
@@ -289,7 +151,7 @@ class BaseLogger(object):
                     session.commit()
                 except:
                     session.rollback()
-                    logger.exception("can't add node %d" % n)
+                    self.log.exception("can't add node %d" % n)
             else:
                 locId = node.locationId
 
@@ -297,7 +159,7 @@ class BaseLogger(object):
                                      time=t,
                                      nodeId=n,
                                      localtime=localtime):
-                logger.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
+                self.log.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
                 return
                 #raise Exception("duplicate packet: %s, %s" % (str(msg), msg.data))
 
@@ -307,6 +169,9 @@ class BaseLogger(object):
                            localtime=msg.get_timestamp())
             session.add(ns)
 
+
+            self.log.debug("Message from {0}".format(n))
+
             j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
             state = []
@@ -314,45 +179,123 @@ class BaseLogger(object):
                 if mask[i]:
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
-                    r = Reading(time=t,
-                                nodeId=n,
-                                typeId=i,
-                                locationId=locId,
-                                value=v)
-                    session.add(r)
+                    self.log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
+                    
+                    #Store in RRD
+                    #self.store_rrd(n, i, t, v)
+                    t1 = time.time()
+                    try:
+                        r = Reading(time=t,
+                                    nodeId=n,
+                                    typeId=i,
+                                    locationId=locId,
+                                    value=v)
+                        session.add(r)
+                        session.flush()
+                    except sqlalchemy.exc.IntegrityError:
+                        self.log.error("Unable to store, checking if node type exists")
+                        session.rollback()
+                        
+                        s = session.query(SensorType).filter_by(id=i).first()
+                        if s is None:
+                            s = SensorType(id=i,name="UNKNOWN")
+                            session.add(s)
+                            self.log.info("Adding new sensortype")
+                            session.flush()
+                            r = Reading(time=t,
+                                        nodeId=n,
+                                        typeId=i,
+                                        locationId=locId,
+                                        value=v)
+                            session.add(r)
+                            session.flush()                            
+                        else:
+                            self.log.error("Sensor type exists")
+                        
+                    t2 = time.time()
+                    self.log.debug("Time taken to update DB {0}".format(t2-t1))
                     j += 1
 
             session.commit()
-            logger.debug("reading: %s, %s, %s" % (ns,mask,state))
+            self.log.debug("reading: %s, %s, %s" % (ns,mask,state))
         except Exception as e:
             session.rollback()
-            logger.exception("during storing: " + str(e))
+            self.log.exception("during storing: " + str(e))
         finally:
             session.close()
 
     def run(self):
+        self.log.info("Stating Baselogger Daemon")
+        while self.running:
+            try:
+                msg = self.bif.queue.get(True,10)
+                #msg = self.bif.get(True, 10) #Avoid using this for the moment
+                self.store_state(msg)
+                self.bif.queue.task_done()  #Signal the queue that we have finished processing
+            except Empty:
+                self.log.debug("Empty Queue")
+            except KeyboardInterrupt:
+                print "KEYB IRR"
+                self.running = False
+            except Exception as e:
+                self.log.exception("during receiving or storing msg: " + str(e))
 
-        try:
-            while True:
+        # try:
+        #     while self.running:
+        #         print "LOOPING"
                 # wait up to 30 seconds for a message
-                try:
-                    msg = self.bif.queue.get(True, 30)
-                    self.store_state(msg)
-                except Empty:
-                    pass
-                except Exception as e:
-                    logger.exception("during receiving or storing msg: " + str(e))
-
-        except KeyboardInterrupt:
-            self.bif.finishAll()
+                # try:
+                #     print "Attempting to get MSG"
+                #     #msg = self.bif.get(True, 5)
+                #     msg = self.bif.queue.get(True,10)
+                #     print "STORING MSG"
+                #     #self.store_state(msg)
+                #     #self.bif.queue.task_done()
+                # except SystemExit:
+                #     print "System Exit Called"
+                # except KeyboardInterrupt:
+                #     #Try to catch a keybaord interrupt a little earlier
+                #     print "Keybord in Fecth" 
+                #     self.running = False
+                #     raise
+                # except Empty:
+                #     print "EMPTY"
+                #     pass        
+                # except AttributeError:
+                #     print "Attrivute Error"
+                #     self.running = False
+                # except Exception as e:
+                #     print "OTHER EXCEPTION"
+                #     self.log.exception("during receiving or storing msg: " + str(e))
+                #     time.sleep(30)
+        # finally:
+        #     print "All Done"
+        # except KeyboardInterrupt:
+        #     #This is a little bit strange, half the time we exit properly, the other half this gets swallowed up by another exception handler
+        #     print "-----> EXIT VIA KEYBD"
+        #     raise
+        #     self.log.debug("Exiting via KeyboardInterrupt")
+        print "SHUTDOWN"
+        self.bif.finishAll()
+        print "---> Done"
 
                 
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error, [default: info]",
-                      default="debug",
+                      default="info",
                       metavar="LEVEL")
+
+    parser.add_option("-f", "--log-file",
+                      help="Log file to use (Default /var/log/ch/Baselogging.log",
+                      default="/var/log/ch/BaseLogging.log")
+
+    parser.add_option("-t", "--log-terminal",
+                      help="Echo Logging output to terminal",
+                      action="store_true",                      
+                      default=False)
+    
 
     (options, args) = parser.parse_args()
     if len(args) != 0:
@@ -366,19 +309,28 @@ if __name__ == '__main__':
 
     if options.log_level not in lvlmap:
         parser.error("invalid LEVEL: " + options.log_level)
-      
-    # logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
-    #                     filemode="a",
-    #                     format="%(asctime)s %(levelname)s %(message)s",
-    #                     level=lvlmap[options.log_level])
 
-    logging.basicConfig(filename="BaseLogger.log",
+    logfile = options.log_file
+
+    #logging.basicConfig(filename="/var/log/ch/BaseLogging.log"
+    logging.basicConfig(filename=logfile,
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=lvlmap[options.log_level])
-    logger.info("Starting BaseLogger with log-level %s" % (options.log_level))
+
+    #And if we want to echo the output on the terminal
+    logterm = options.log_terminal
+    if logterm:
+        console = logging.StreamHandler()
+        console.setLevel(lvlmap[options.log_level])
+        formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+        console.setFormatter(formatter)
+        logging.getLogger('').addHandler(console)
+
+        
+
+    logging.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
-    lm.create_tables()
-    
+    #lm.create_tables()
     lm.run()
 		

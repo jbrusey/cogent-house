@@ -1,37 +1,33 @@
 """
-.. codeauthor::  Ross Wiklins 
+.. codeauthor::  Ross Wiklins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 """
 
-
-import sqlalchemy
 import logging
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
-import meta
-Base = meta.Base
-
-
-# from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, Integer, ForeignKey, DateTime, Float, Boolean
-from sqlalchemy.orm import relationship, backref
-
 import time
 
-#To allow Calibration
-import sensor 
 import dateutil
 
-class Reading(Base,meta.InnoDBMix):
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Index
+#from sqlalchemy.orm import relationship, backref
+
+import meta
+import sensor
+
+LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.INFO)
+
+
+class Reading(meta.Base, meta.InnoDBMix):
     """Table to hold detils of readings,
 
     Reading has a composite primary key consisiting of time,nodeId,typeId
 
     :var DateTime time: Time reading was taken
-    :var Integer nodeId: Id of :class:`cogentviewer.models.node.Node` that took this sample
-    :var Integer typeId: Id of :class:`cogentviwer.models.sensortype.SensorType` that this reading came from
-    :var Integer locationId: Id of :class:`cogentviewer.models.location.Location` that this reading came from
+    :var Integer nodeId: Id of `Node` that took this sample
+    :var Integer typeId: Id of `SensorType` that this reading came from
+    :var Integer locationId: Id of `Location` that this reading came from
 
     :var float value: The sensor reading itself
     """
@@ -46,97 +42,129 @@ class Reading(Base,meta.InnoDBMix):
                     ForeignKey('Node.id'),
                     primary_key=True,
                     nullable=False,
-                    autoincrement=False)
-
-    typeId = Column('type', 
-                    Integer, 
+                    autoincrement=False,
+                    index=True)
+    typeId = Column('type',
+                    Integer,
                     ForeignKey('SensorType.id'),
                     primary_key=True,
                     nullable=False,
-                    autoincrement=False)
+                    autoincrement=False,
+                    index=True)
 
     locationId = Column(Integer,
                         ForeignKey('Location.id'),
-                        autoincrement=False)
+                        autoincrement=False,
+                        index=True)
 
-    value = Column(Float)    
+    value = Column(Float)
+    #Add a compoite Index
+    __table_args__ = (Index('r_1','nodeId','type','locationId'),
+                      )
+
+
+    def __eq__(self, other):
+        #Ignore the location Id as it may be mapped.  (Node + Time + Type)
+        #Should be enugh
+        return (self.time == other.time and
+                self.nodeId == other.nodeId and
+                self.typeId == other.typeId and
+                self.value == other.value)
+
+    def __ne__(self, other):
+        return not (self.time == other.time and
+                    self.nodeId == other.nodeId and
+                    self.typeId == other.typeId and
+                    self.value == other.value)
+
+    def __lt__(self, other):
+        """Order by time,node, type, value"""
+        if self.time == other.time:
+            if self.nodeId == other.nodeId:
+                if self.typeId == other.typeId:
+                    return self.value < other.value
+                return self.typeId < other.typeId
+            return self.nodeId < other.nodeId
+        return self.time < other.time
+
+
+    def __str__(self):
+        return "Rdg t:{0}\tn:{1}\tt:{2}\tl:{3} = {4}".format(self.time,
+                                                             self.nodeId,
+                                                             self.typeId,
+                                                             self.locationId,
+                                                             self.value)
 
     def __repr__(self):
-        return "Reading(" + str(self.time) + "," + str(self.nodeId) + "," + str(self.typeId) + "," + str(self.value) + ")"
-        
-    
-    #def __eq__(self,other):
-    #    return self.value == other.value
-    
-    def __cmp__(self,other):
-        #log.debug("Self {0}".format(self))
-        #log.debug("Other {0}".format(other))
-                  
-        diffs = (self.time - other.time).seconds
-        diffs += (self.nodeId - other.nodeId)
-        diffs += (self.typeId - other.typeId)
-        diffs += (self.locationId - other.locationId)
-        diffs += (self.value - other.value)
-        return 0
-        
-    def asJSON(self,slope=1,offset=0):
+        return "Reading({0},{1},{2},{3},{4}".format(self.time,
+                                                    self.nodeId,
+                                                    self.typeId,
+                                                    self.locationId,
+                                                    self.value)
+
+
+    def asJSON(self, slope=1, offset=0):
         """Return this reading as a JSON relevant tuple
-        
+
         This should format the sample so it is parseable by JSON / Javascript
         That will allow it to be graphed using either DOJO or Highcharts
 
         The format is (time,value) where time is Unixtime in miliseconds
-        
+
         .. warning::
-        
-            The original timestamp is multipled by 1000, to shift from seconds to miliseconds.
+
+            The original timestamp is multipled by 1000, to shift from
+            seconds to miliseconds.
             As per the JSON / Javascript Standard.
 
         """
-
-        return (time.mktime(self.time.timetuple()) * 1000,(self.value*slope)+offset)
-        
+        return (time.mktime(self.time.timetuple()) * 1000,
+                (self.value*slope)+offset)
 
     def getRawValues(self):
         """
         Return the Reading as a Tuple of (time,value)
-        
-        Unlike other methods this does no data processing, returning the Raw (rather than calibrated)
-        sensor reading.
+
+        Unlike other methods this does no data processing, returning the Raw
+        (rather than calibrated) sensor reading.
 
         :return DateTime time: Time that this reading was taken
         :return Float value: Value of the reading at this Time
 
         """
 
-        return (self.time,self.value)
+        return (self.time, self.value)
 
     def getCalibValues(self):
         """
         Return the Reading as a tuple of (time,calibratedValue)
-        
-        This returns the same as GetRawValues but will calibrate the data against stored values
-        
+
+        This returns the same as GetRawValues but will calibrate the data
+        against stored values
+
         .. warning:
-        
-            This will issue an SQL statement for each reading we call the function on,
-            Therefore it is only useful as a shortcut when dealing with a limited amount of readings
-            
-        
-        
+
+            This will issue an SQL statement for each reading we call the
+            function on, Therefore it is only useful as a shortcut when dealing
+            with a limited amount of readings
+
         :return DateTime time: Time that this reading was taken
-        :return Float value: Value of the reading at this Time Calibrated against the sensor values
+
+        :return Float value: Value of the reading at this Time Calibrated
+        against the sensor values
         """
         #pass
         #Find the Sensor
         session = meta.Session()
         theSensor = session.query(sensor.Sensor).filter_by(sensorTypeId = self.typeId,
                                                            nodeId = self.nodeId).first()
-        #print theSensor
-        
-        value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
 
-        return (self.time,value)
+        if theSensor is None:
+            return self.time, self.value
+
+        #Otherwise Calibrate
+        value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
+        return (self.time, value)
 
     def toDict(self):
         """
@@ -164,10 +192,10 @@ class Reading(Base,meta.InnoDBMix):
                 else:
                     value = getattr(self, col.name)
             except AttributeError, e:
-                log.warning(e)
+                LOG.warning(e)
 
             #Conversion code for datetime
-            if isinstance(col.type, sqlalchemy.DateTime) and value:
+            if isinstance(col.type, DateTime) and value:
                 value = value.isoformat()
             #Append to the dictionary
             out[col.name] = value
@@ -195,7 +223,7 @@ class Reading(Base,meta.InnoDBMix):
                 pass
             else:
                 #Convert if it is a datetime object
-                if isinstance(col.type, sqlalchemy.DateTime) and newValue:
+                if isinstance(col.type, DateTime) and newValue:
                     newValue = dateutil.parser.parse(newValue)
 
                 #And set our variable
@@ -210,7 +238,7 @@ class Reading(Base,meta.InnoDBMix):
 
 def calibrateReadings(theQuery):
     """Generator object to calibate all readings,
-    hopefully this gathers all calibration based readings into one 
+    hopefully this gathers all calibration based readings into one
     area
 
     :param theQuery: SQLA query object containing Reading values"""
@@ -222,7 +250,7 @@ def calibrateReadings(theQuery):
     for reading in theQuery:
 
         theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
-        log.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        LOG.debug("Orig Reading {0} Sensor is {1}".format(reading,theSensor))
         if not theSensor:
             theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
             if theSensor is None:
@@ -237,9 +265,9 @@ def calibrateReadings(theQuery):
                            locationId = reading.locationId,
                            value = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
                            )
-    
+
         yield cReading
-                                  
+
 def calibJSON(theQuery):
     """Generator object to calibate all readings,
     hopefully this gathers all calibration based readings into one 
@@ -254,7 +282,7 @@ def calibJSON(theQuery):
     for reading in theQuery:
 
         theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
-        #log.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        #LOG.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
         if not theSensor:
             #theSensor = "FOO"
             theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
@@ -270,16 +298,16 @@ def calibJSON(theQuery):
                     "locationId" : reading.locationId,
                     "value" : theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
                     }
-    
-        yield cReading
-    
 
-def calibratePairs(theQuery):
-    """Generator object to calibrate readings and return in JSON 
-    friendly format
-    
-    :param theQuery: SQLA query object containing readings
-    """
+        yield cReading
+
+
+def calibPandas(theQuery):
+    """Generator object to calibate all readings,
+    hopefully this gathers all calibration based readings into one 
+    area
+
+    :param theQuery: SQLA query object containing Reading values"""
 
     #Dictionary to hold all sensor paramters
     session = meta.Session()
@@ -288,17 +316,53 @@ def calibratePairs(theQuery):
     for reading in theQuery:
 
         theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
-        log.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        #LOG.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
         if not theSensor:
+            #theSensor = "FOO"
             theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
             if theSensor is None:
                 theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
+            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+
+
+        #Then add the offset etc
+        cReading = {"time":reading.time,
+                    "nodeId" : reading.nodeId,
+                    "typeId" : reading.typeId,
+                    "locationId" : reading.locationId,
+                    "locationStr": reading.location.room.name,
+                    "value" : theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
+                    "location" : "Node {0}: {1} {2}".format(reading.nodeId,reading.location.room.name,reading.sensorType.name),
+                    }
+
+        yield cReading
+
+def calibratePairs(theQuery):
+    """Generator object to calibrate readings and return in JSON
+    friendly format
+
+    :param theQuery: SQLA query object containing readings
+    """
+
+    #Dictionary to hold all sensor paramters
+    session = meta.Session()
+    sensorParams = {}
+
+    for reading in theQuery:
+        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
+        LOG.debug("Original Reading {0} Sensor is {1}".format(reading,
+                                                              theSensor))
+        if not theSensor:
+            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,
+                                                               sensorTypeId = reading.typeId).first()
+            if theSensor is None:
+                theSensor = sensor.Sensor(calibrationSlope = 1.0,
+                                          calibrationOffset = 0.0)
             sensorParams[(reading.nodeId,reading.typeId)] = theSensor
 
         theTime = time.mktime(reading.time.timetuple())*1000.0
         #theTime = reading.time.isoformat()
         theValue = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value)
         #theValue = reading.value
-    
-    
+
         yield (theTime,theValue)

@@ -26,15 +26,8 @@ def upgrade():
                        column('c1', Float),
                        column('c2', Float),
                        column('c3', Float))
-                       
+
     op.bulk_insert(sensortype,
-    
-
-
-
-
-
-
                    [{'id': 0, 'name': "Temperature",
                      'code': "T",
                      'units': "deg.C",
@@ -122,19 +115,19 @@ def upgrade():
                     {'id': 21, 'name': "Temp ADC1",
                      'code': "TA1",
                      'units': "deg.C",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.}, 
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 22, 'name': "Temp ADC2",
                      'code': "TA2",
                      'units': "deg.C",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.}, 
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 23, 'name': "Black Bulb",
                      'code': "BB",
                      'units': "deg.C",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},               
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 24, 'name': "Gas Pulse",
                      'code': "GP",
                      'units': "P",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.}, 
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 99, 'name': "Gas Consumption",
                      'code': "Gas",
                      'units': "kWh",
@@ -142,19 +135,19 @@ def upgrade():
                     {'id': 102, 'name': "Outside Temperature",
                      'code': "ws_temp_out",
                      'units': "deg.C",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},   
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 103, 'name': "Outside Humidity",
                      'code': "ws_hum_out",
                      'units': "deg.C",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},    
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 104, 'name': "WS Inside Temperature",
                      'code': "ws_temp_in",
                      'units': "deg.C",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},   
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 105, 'name': "WS Inside Humidity",
                      'code': "ws_hum_in",
                      'units': "deg.C",
-                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},    
+                     'c0': 0., 'c1': 1., 'c2': 0., 'c3': 0.},
                     {'id': 106, 'name': "Dew Point",
                      'code': "ws_dew",
                      'units': "deg.C",

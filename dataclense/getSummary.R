@@ -2,8 +2,12 @@ library(RMySQL)
 library(ggplot2)
 
 #Setup Database Connection
+THEDB <- "transferTest"
+
+
 drv <- dbDriver("MySQL")
-con <- dbConnect(drv,dbname="mainStore",user="chuser")
+#con <- dbConnect(drv,dbname="mainStore",user="chuser")
+con <- dbConnect(drv,dbname=THEDB,user="chuser")
 
 allHouses <-  dbGetQuery(con,statement="SELECT * FROM House WHERE address != 'ERROR-DATA'")
 summaryData <- dbReadTable(con,"SummaryType")

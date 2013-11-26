@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 import meta
 Base = meta.Base
 
-from sqlalchemy import Table, Column, Integer, ForeignKey,String,DateTime,Boolean,BigInteger
+from sqlalchemy import Table, Column, Integer, ForeignKey,String,DateTime,Boolean,BigInteger, Index
 from sqlalchemy.orm import relationship, backref
 
 import sqlalchemy.types as types
@@ -42,11 +42,18 @@ class NodeState(Base,meta.InnoDBMix):
     __tablename__ = "NodeState"
 
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, 
+                primary_key=True)
     time = Column(DateTime)
-    nodeId = Column(Integer, ForeignKey('Node.id'))
+    nodeId = Column(Integer, 
+                    ForeignKey('Node.id'))
     parent = Column(Integer)
     localtime = Column(BigInteger)
+    seq_num = Column(Integer)
+    rssi = Column(Integer)
+
+    __table_args__ = (Index('ns_1','time','nodeId','localtime'),
+                      )
 
     def __repr__(self):
         return ("NodeState(" +

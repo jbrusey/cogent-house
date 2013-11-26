@@ -13,6 +13,7 @@ con <- dbConnect(drv,dbname="SampsonClose",user="root",password="adm3csva",host=
 
 allHouses <-  dbGetQuery(con,statement="SELECT * FROM House WHERE address != 'ERROR-DATA'")
 summaryData <- dbReadTable(con,"SummaryType")
+
 calibrationData <- dbReadTable(con,"Sensor")
 sensorType <- dbReadTable(con,"SensorType")
 
