@@ -4,18 +4,14 @@
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 """
 
-import sqlalchemy
-import logging
-log = logging.getLogger(__name__)
-
 import meta
-Base = meta.Base
-
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime,Float
-from sqlalchemy.orm import relationship, backref
 
 
-class HouseMetadata(Base,meta.InnoDBMix):
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
+#from sqlalchemy.orm import relationship
+
+
+class HouseMetadata(meta.Base, meta.InnoDBMix):
     """Table to hold Metadata about houses
 
     :var Integer id: id
@@ -35,6 +31,3 @@ class HouseMetadata(Base,meta.InnoDBMix):
     units = Column(String(20))
     value = Column(Float)
 
-    def update(self,**kwargs):
-        for key,value in kwargs.iteritems():
-            setattr(self,key,value)
