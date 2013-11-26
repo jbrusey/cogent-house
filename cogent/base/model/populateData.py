@@ -274,7 +274,16 @@ def populateSensorTypes(session = False):
                              code="imp",
                              units="imp",
                              c0=0., c1=1., c2=0., c3=0.),
-                  ##- 
+                  SensorType(id=44,
+                             name= "Delta Opti",
+                             code= "imp",
+                             units= "imp",
+                             c0= 0., c1= 1., c2= 0., c3= 0),
+                  SensorType(id= 45, 
+                             name= "Window State",
+                             code= "ste",
+                             units= "ste",
+                             c0= 0., c1= 1., c2= 0., c3= 0.),
                   SensorType(id=99, name="Gas Consumption",
                              code="Gas",
                              units="kWh",
@@ -327,9 +336,6 @@ def populateSensorTypes(session = False):
                              code="ws_abs_pressure",
                              units="hpa",
                              c0=0., c1=1., c2=0., c3=0.),
-                  SensorType(id=5000,
-                             name="Daily Count",
-                             )
                   ]
     
 
@@ -385,6 +391,10 @@ def populateNodeTypes(session = False):
                  'time': "2011-07-10 00:00:00",
                  'seq': 1,
                  'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
+                {'id': 8, 'name': "Window Sensor",
+                   'time': "2011-07-10 00:00:00",
+                   'seq': 1,
+                   'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
                 {'id': 10, 'name': "ClusterHead CO2",
                  'time': "2011-07-10 00:00:00",
                  'seq': 1,
@@ -393,6 +403,10 @@ def populateNodeTypes(session = False):
                  'time': "2011-07-10 00:00:00",
                  'seq': 1,
                  'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
+                  {'id': 12, 'name': "ClusterHead CC",
+                   'time': "2011-07-10 00:00:00",
+                   'seq': 1,
+                   'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'}      
                 ]
                 
 
