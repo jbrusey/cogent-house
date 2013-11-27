@@ -345,7 +345,7 @@ def populateSensorTypes(session = False):
             session.merge(item)
 
     session.flush()
-    #session.commit()
+    session.commit()
     #session.close()
 
 
@@ -621,8 +621,10 @@ def init_data(session=False):
     if not session:
         session = meta.Session()
     
+    print "Populating Sensor Types"
     populateSensorTypes(session = session)
     populateNodeTypes(session= session)
     populateRoomTypes(session = session)
     populateCalibration(session = session)
+    session.commit()
     LOG.debug("Database Population Complete")

@@ -130,6 +130,7 @@ class PushServer(object):
         #open / build a config object to store mappings for this location
         mappingname = "{0}_map.conf".format(localURL.split("@")[-1])
         mappingname = mappingname.replace("/","-")
+
         log.debug("open config object for {0}".format(mappingname))
         mappingconfig = configobj.ConfigObj(mappingname)
 
@@ -481,6 +482,16 @@ class Pusher(object):
         """
         Helper Function to syncronise two sets of items between databases
 
+        .. NOTE::
+
+           The accuracy of this function depends on the output of the models.__eq__ function
+
+        #This function has three things that could happen.
+
+        1) Items are Equal therefore no synchonisation takes place
+        2) A Local Item doesn't exist on the remote DB Thus a new item is created and mapped
+        3) A Local Item is created and mapped
+
         :var localTypes: Dictionary of <id>:<item> representing local DB
         :var remoteTypes: Dictionay of <id>:<item> representing remote DB
         :var theUrl: Url to push to
@@ -546,7 +557,18 @@ class Pusher(object):
         return mergedItems
 
     def sync_roomtypes(self):
-        """Synchronise Room Types"""
+        """Synchronise Room Types
+
+        Room types should be global to all databases, as it is likely that
+        a given room type may be needed in several deployments.  
+
+        Thus this method does a two way sync between the local and remote database
+        While room types will be the same between databases.  The ID's may differ 
+        betweeen instances.  Therefore this function also maps the local roomtypeId
+        to the remote roomtypeId
+
+        :return: True if this was successfull
+        """
         log = self.log
         session = self.localsession()
         log.debug("--> Synchronising Room Types")
@@ -570,6 +592,8 @@ class Pusher(object):
 
         mappedRoomTypes = self._syncItems(localTypes, remoteTypes, theUrl)
         self.mappedRoomTypes = mappedRoomTypes
+
+        return True
 
     def sync_rooms(self):
         """Function to map Rooms and Room types between the two databases.
@@ -611,10 +635,15 @@ class Pusher(object):
         mappedRooms = self._syncItems(tmpTypes, remoteTypes, theUrl)
         self.mappedRooms = mappedRooms
 
+        return True
+
     def sync_sensortypes(self):
         """Function to synchronise Sensor types between the two databases.
         This is a bi-directional sync method.
         Sensor Types should EXACTLY match in ALL databases.
+
+        :return: True on Success
+        :raises: MappingError if sensor types do not match
         """
 
         #First we need to map room Types
@@ -649,7 +678,8 @@ class Pusher(object):
 
         if changedItems:
             log.warning("Sensor Types with mathching Id's but different Names")
-            log.warning(changedItems)
+            for item in changedItems:
+                log.warning("--> {0}".format(item))
             #log.warning("Remote is {0}".format(remoteTypes[changedItems[0]]))
             #log.warning("local is {0}".format(localTypes[changedItems[1]]))
             raise(MappingError(changedItems,

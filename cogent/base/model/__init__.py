@@ -61,7 +61,6 @@ def init_model(engine):
     DO NOT REMOVE ON MERGE
     """
     Session.configure(bind=engine)
- 
 
 def initialise_sql(engine, dropTables=False):
     """Initialise the database
@@ -70,8 +69,7 @@ def initialise_sql(engine, dropTables=False):
     :param dropTables: Do we want to clean the database out or not
     :param session: Use a session other than the global DB session
 
-    .. warning:: 
-    
+    .. warning::
         Previously this function called the populateData function. I
         have removed this functionality Any function that calls
         initialise_sql will have to call the init_data method if
@@ -85,8 +83,7 @@ def initialise_sql(engine, dropTables=False):
     if dropTables:
         Base.metadata.drop_all(engine)
 
-    Base.metadata.create_all(engine)  
-    
+    Base.metadata.create_all(engine)
 
 def findClass(tableName):
     """Helper method that attempts to find a SQLA class given a tablename
@@ -136,18 +133,15 @@ def newClsFromJSON(jsonItem):
     log.debug("Updated Model {0}".format(theModel))
     return theModel
 
-
 def clsFromJSON(theList):
     """Generator object to convert JSON strings from a rest object
     into database objects"""
     #Convert from JSON encoded string
     if type(theList) == str:
         theList = json.loads(theList)
-    
     #Make the list object iterable
     if not type(theList) == list:
         theList = [theList]
-
 
     typeMap = {"deployment":Deployment,
                "house":House,
@@ -161,7 +155,6 @@ def clsFromJSON(theList):
                "location":Location,
                }
 
-        
     for item in theList:
         #print "--> {0}".format(item)
         #Convert to the correct type of object
@@ -171,5 +164,3 @@ def clsFromJSON(theList):
         
         theModel.fromJSON(item)
         yield theModel
-            
-    
