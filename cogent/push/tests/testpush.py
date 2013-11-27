@@ -427,17 +427,21 @@ class TestClient(unittest.TestCase):
         
         self.pusher.save_mappings()
 
-        #Now remove everything we have just set and reload
-        self.pusher.mappedDeployments = None
-        self.pusher.mappedHouses = None
-        self.pusher.mappedLocations = None
-        self.pusher.mappedRooms = None
+        #For this version we need to do a forced restart of the push server
+        server = RestPusher.PushServer(configfile="test.conf")
+        pusher = server.synclist[0]
 
-        self.pusher.load_mappings()
-        self.assertEqual(self.pusher.mappedDeployments, deployments)
-        self.assertEqual(self.pusher.mappedHouses, houses)
-        self.assertEqual(self.pusher.mappedLocations, locations)
-        self.assertEqual(self.pusher.mappedRooms, rooms)
+        #Now remove everything we have just set and reload
+        pusher.mappedDeployments = None
+        pusher.mappedHouses = None
+        pusher.mappedLocations = None
+        pusher.mappedRooms = None
+
+        pusher.load_mappings()
+        self.assertEqual(pusher.mappedDeployments, deployments)
+        self.assertEqual(pusher.mappedHouses, houses)
+        self.assertEqual(pusher.mappedLocations, locations)
+        self.assertEqual(pusher.mappedRooms, rooms)
         #self.Fail()
 
     @unittest.skip
