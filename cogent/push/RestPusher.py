@@ -372,7 +372,6 @@ class Pusher(object):
         log = self.log
 
         log.debug("Performing sync")
-        sys.exit(0)
         #Load our Stored Mappings
         #.. TODO:: update the Load Mappings Script
         self.sync_sensortypes()
@@ -719,7 +718,10 @@ class Pusher(object):
         return True
 
     def sync_deployments(self):
-        """Synchronise Deployments between the local and remote Databaess"""
+        """Synchronise Deployments between the local and remote Databaess
+        Another bi-directional sync that will pull the relevant deployments
+        between database
+        """
         log = self.log
         log.debug("----- Mapping Deployments ------")
         mappedDeployments = self.mappedDeployments

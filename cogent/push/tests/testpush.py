@@ -78,6 +78,7 @@ class TestServer(unittest.TestCase):
 class TestClient(unittest.TestCase):
     """ Code to test the rest client """
 
+
     @classmethod
     def setUpClass(cls):
         """Create just one instance of the push server to test"""
@@ -113,12 +114,6 @@ class TestClient(unittest.TestCase):
         self.assertTrue(self.pusher.checkConnection(),
                         msg="No Connection to the test server... Is it running?")
         
-        # self.sync_roomtypes()
-        # self.sync_rooms()
-        # self.sync_deployments()
-        # self.load_mappings()
-        # self.save_mappings()
-
     #@unittest.skip
     def test_sensortypes_remote(self):
         """Does Synching of sensortypes work as expected"""
@@ -353,7 +348,100 @@ class TestClient(unittest.TestCase):
         self.assertEqual(thedict, self.pusher.mappedRooms)
 
 
+    def test_syncDeployments(self):
+        """Another Bi-Directional Sync"""
+
+        rurl = "{0}deployment/".format(RESTURL)
+
+        session = self.Session()
+        qry = session.query(models.Deployment)
+        self.assertEqual(qry.count(), 1)
+
+        qry = requests.get(rurl)
+        self.assertEqual(len(qry.json()), 1)
+
+        #Add a local deployment
+        theDeployment = models.Deployment(id=2,
+                                          name="Test Deployment",
+                                          desctiption="Test")
+        session.add(theDeployment)
+        session.flush()
+        session.commit()
+        session.close()
+
+        self.pusher.sync_deployments()
+
+        #We should now have two at each end
+        session = self.Session()
+        qry = session.query(models.Deployment)
+        self.assertEqual(qry.count(), 2)
+
+        qry = requests.get(rurl)
+        self.assertEqual(len(qry.json()), 2)
+        session.close()
         
+        #Check Mappings
+        thedict = {1:1,2:2}
+        self.assertEqual(thedict, self.pusher.mappedDeployments)
+
+        #And add a remote version
+        theHouse = models.House(id=10,
+                                name="Foobar",
+                                )
+
+        requests.post(rurl, theHouse.json())
+
+        #We should now have three at each end
+        session = self.Session()
+        qry = session.query(models.Deployment)
+        self.assertEqual(qry.count(), 3)
+
+        qry = requests.get(rurl)
+        self.assertEqual(len(qry.json()), 3)
+        session.close()
         
+        #Check Mappings
+        thedict = {1:1, 2:2, 10:3}
+        self.assertEqual(thedict, self.pusher.mappedDeployments)
         
+    def test_loadsavemappings(self):
+        """Test the Load / Save mappings function
+
+        Code based on what is saved in the save mappings function.
+        IE we should get back what we saved
+        """
+
+        #First up lets test the save mappings
+        #deployment / house / location / room
+
+        #Create some fake mappings
+        deployments = {1:1}
+        houses = {1:1, 2:2, 5:3}
+        locations = {1:1, 2:2, 3:3, 4:6, 5:5, 6:4}
+        rooms = {1:1, 2:2}
+
+        self.pusher.mappedDeployments = deployments
+        self.pusher.mappedHouses = houses
+        self.pusher.mappedLocations = locations
+        self.pusher.mappedRooms = rooms
+        
+        self.pusher.save_mappings()
+
+        #Now remove everything we have just set and reload
+        self.pusher.mappedDeployments = None
+        self.pusher.mappedHouses = None
+        self.pusher.mappedLocations = None
+        self.pusher.mappedRooms = None
+
+        self.pusher.load_mappings()
+        self.assertEqual(self.pusher.mappedDeployments, deployments)
+        self.assertEqual(self.pusher.mappedHouses, houses)
+        self.assertEqual(self.pusher.mappedLocations, locations)
+        self.assertEqual(self.pusher.mappedRooms, rooms)
+        #self.Fail()
+
+    @unittest.skip
+    def test_syncnodes(self):
+        """Test the syncNodes function"""
+        self.Fail()
         
