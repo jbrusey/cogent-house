@@ -14,6 +14,9 @@ __version__ = "0.3.5"
 import logging
 import logging.handlers
 
+import os
+import datetime
+
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
                     datefmt = "%m-%d-%Y %H:%M",
@@ -261,7 +264,7 @@ class Pusher(object):
 
         #Load the relevant sections from the config file
         #self.mappedDeployments = mappingConfig.get("deployment",{})
-        #for item in deployments:
+       #for item in deployments:
         #    log.debug(item)
 
         # Storage for mappings between local -> Remote
@@ -348,7 +351,7 @@ class Pusher(object):
                     #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
                     proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh", "start" ,"{0}".format(theport)],
                                             stderr=subprocess.PIPE)
-
+                    
                     # for line in iter(proc.stdout.readline, ''):
                         
                     #     log.debug("--> {0}".format(line.strip()))
@@ -403,8 +406,25 @@ class Pusher(object):
         """Load known mappings from the config file,
         then update with new mappings"""
         log = self.log
+        log.debug("=-"*40)
         log.info("--- Loading Mappings ---")
+        mappingConfig = self.mappingConfig
+        print "-- CFG >",mappingConfig
+        log.debug("Loading Deployments")
+        deployments = mappingConfig["deployment"]
+        
+        print "-- DEPLOY --> ",deployments
+        
+        #return
 
+        log.debug("Loading Houses")
+        log.debug("Loading Locations")
+        log.debug("Loading Rooms")
+        
+        
+        
+
+        #return
 
         #self.mapDeployments()
         self.mapHouses() #Then houses
@@ -880,13 +900,14 @@ class Pusher(object):
         newItems = theDiff.added()
         log.debug(newItems)
 
+        #ys.exit(0)
         #log.debug(newItems)
         for item in newItems:
             thisItem = remoteNodes[item]
             log.info("Node {0}:{1} Not in Local Database".format(item,
                                                                  thisItem))
-            thisItem.nodeTypeId = None #Set node type to none
-            thisItem.locationId = None
+            #thisItem.nodeTypeId = None #Set node type to none
+            #thisItem.locationId = None
             session.add(thisItem)
             session.flush()
 
@@ -1142,5 +1163,5 @@ class Pusher(object):
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
 
-    server = PushServer()
+    server = PushServer(configfile="test.conf")
     server.sync()
