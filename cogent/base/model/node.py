@@ -129,29 +129,29 @@ class Node(meta.Base, meta.InnoDBMix):
         locId = jsondict.get("locationId",None)
         #Lets Try Cheating here.
 
-        if locId is None:
-            return
+        # if locId is None:
+        #     return
 
         
-        newLocation = session.query(location.Location).filter_by(id = locId).first()
+        # newLocation = session.query(location.Location).filter_by(id = locId).first()
         
-        if self.location is None:
-            #Force an Update
-            LOG.debug("Forcing Location Update to {0}".format(locId))
-            self.locationId = locId
+        # if self.location is None:
+        #     #Force an Update
+        #     LOG.debug("Forcing Location Update to {0}".format(locId))
+        #     self.locationId = locId
             
-            LOG.debug("NEW LOCATION IS {0} {1}".format(self.location,newLocation))
+        #     LOG.debug("NEW LOCATION IS {0} {1}".format(self.location,newLocation))
             
-            self.all_locs.append(newLocation)
-            LOG.debug("New Loc {0} {1}".format(self.locationId,self.location))
+        #     self.all_locs.append(newLocation)
+        #     LOG.debug("New Loc {0} {1}".format(self.locationId,self.location))
 
-        elif self.locationId == locId:
-            LOG.debug("Location has been updated correctly")
-            if self.location in self.all_locs:
-                LOG.debug("We Know about this location")
-            else:
-                LOG.debug("No such Location in the List")
-                self.all_locs.append(newLocation)
-        else:
-            LOG.warning("Location Id {0} != locId {1}".format(self.location.id,
-                                                              locId))
+        # elif self.locationId == locId:
+        #     LOG.debug("Location has been updated correctly")
+        #     if self.location in self.all_locs:
+        #         LOG.debug("We Know about this location")
+        #     else:
+        #         LOG.debug("No such Location in the List")
+        #         self.all_locs.append(newLocation)
+        # else:
+        #     LOG.warning("Location Id {0} != locId {1}".format(self.location.id,
+        #                                                       locId))
