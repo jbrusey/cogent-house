@@ -874,6 +874,10 @@ class Pusher(object):
 
         for item in theQry:
             #Convert to take account of mapped houses and Rooms
+            if item.id in mappedLocations:
+                log.info("Location {0} has been mapped")
+                continue
+
             hId = mappedHouses[item.houseId]
             rId =mappedRooms.get(item.roomId,None)
             log.debug("Mapping for item {0} : House {1} Room {2}".format(item,

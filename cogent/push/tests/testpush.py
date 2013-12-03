@@ -760,7 +760,6 @@ class TestClient(unittest.TestCase):
         session.close()  
 
 
-    #@unittest.skip
     def test_sync_locations(self):
         """Does Synching Locations work as expected.
 
@@ -788,7 +787,7 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
         session.execute("ALTER TABLE Location AUTO_INCREMENT = 1;") #Reset AutoIncremement
-        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        #session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
         session.commit()
         session.close()
         
@@ -801,23 +800,22 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
         session.execute("ALTER TABLE Location AUTO_INCREMENT = 1;")
-        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        #session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
         session.commit()
         session.close()  
 
 
-        rurl = "{0}location".format(RESTURL)
+        rurl = "{0}Location/".format(RESTURL)
 
 
         self.pusher.sync_simpletypes()
-        #self.pusher.sync_houses()
+        self.pusher.sync_houses()
         
-        return True
         #Then check that locations work as expected
         self.pusher.sync_locations()
         #Initial set of loactions
         locdict = {1:1, 2:2, 3:3, 4:4}
-        self.assertEqual(locdict, self.mappedLocations)
+        self.assertEqual(locdict, self.pusher.mappedLocations)
         
         #The next thing to test is wheter new locations get added using an existing rooms.
         self.assertEqual(self.pusher.mappedRooms[3], 3) #Sanity check
@@ -837,11 +835,11 @@ class TestClient(unittest.TestCase):
         self.pusher.sync_locations()
         locdict[5] = 5
         locdict[6] = 6
-        self.assertEqual(locdict, self.pusher.mapped_locations)
+        self.assertEqual(locdict, self.pusher.mappedLocations)
 
         req = requests.get(rurl)
         jsn = req.json()
-        self.assertEqual(len(req), 6)
+        self.assertEqual(len(jsn), 6)
 
 
         #Then we can map locations with different ID's
@@ -862,25 +860,31 @@ class TestClient(unittest.TestCase):
         #Add new items and check they exists
         locdict[10] = 7
         locdict[11] = 8
-        self.assertEqual(locdict, self.pusher.mapped_locations)
+        self.assertEqual(locdict, self.pusher.mappedLocations)
         req = requests.get(rurl)
         jsn = req.json()
-        self.assertEqual(len(req), 8)
+        self.assertEqual(len(jsn), 8)
         
         #Finally Check that locations that have nothing to do with this project are not in the DB
 
-        newhouse = models.House(id=3,
-                                address="Location Test")
-        requests.post(rurl,newhouse.json())
+        session = self.rSession()
+        newhouse = models.House(address="Location Test")
+        session.add(newhouse)
 
         newitem = models.Location(id=9,
-                                  houseId=3,
-                                  roomId=5)
-        requests.post(rurl,newitem.json())
+                                  houseId=newhouse.id,
+                                  roomId=1)
+        session.add(newitem)
+        session.flush()
+        session.commit()
+        session.close()
 
         req = requests.get(rurl) #Does it exist on the remote
         jsn = req.json()
-        self.assertEqual(len(req), 9)
+        for item in jsn:
+            print item
+        
+        self.assertEqual(len(jsn), 9)
         
         session = self.Session()
         qry = session.query(models.Location)
@@ -901,10 +905,6 @@ class TestClient(unittest.TestCase):
         updated on the sink, then this needs to be pulled to the remote device
         3) If the location of the node has been updated on the remote, then this
         needs to be pushed to the sink
-
-
-        
-
         """
         self.Fail()
 
