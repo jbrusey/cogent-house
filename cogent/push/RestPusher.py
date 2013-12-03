@@ -16,6 +16,7 @@ import logging.handlers
 
 import os
 import datetime
+import re
 
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
@@ -321,7 +322,9 @@ class Pusher(object):
         #hostname = "salford21"
         try:
             #Quick and simple for the moment
-            theport = int(hostname[-2:])
+            #theport = int(hostname[-2:])
+            theport = int(re.findall("\d+",hostname)[0])
+            log.debug("Port to use is {0}".format(theport))
         except ValueError:
             log.warning("Unable to get port from hostname {0}".format(hostname))
             theport = 0
@@ -365,6 +368,14 @@ class Pusher(object):
                     subprocess.check_output(["./ch-ssh stop"],shell=True)
         
 
+    def sync_simpletypes(self):
+        """Synchronse any simple (ie ones that have no foreign keys) tables"""
+        self.sync_sensortypes()
+        self.sync_roomtypes()
+        self.sync_rooms()
+        self.sync_deployments()
+
+
     def sync(self):
         """
         Perform one synchronisation step for this Pusher object
@@ -374,14 +385,17 @@ class Pusher(object):
 
         log = self.log
 
+        self.load_mappings()
+
         log.debug("Performing sync")
         #Load our Stored Mappings
-        #.. TODO:: update the Load Mappings Script
-        self.sync_sensortypes()
-        self.sync_roomtypes()
-        self.sync_rooms()
-        self.sync_deployments()
-        self.load_mappings()
+
+        #Things that should be relitively static
+        self.sync_simpletypes()
+
+        self.sync_houses() #Then houses
+        self.sync_locations()
+
         self.save_mappings()
 
         #Moved here for the Sampson Version
@@ -403,34 +417,38 @@ class Pusher(object):
         self.save_mappings()
 
     def load_mappings(self):
-        """Load known mappings from the config file,
-        then update with new mappings"""
+        """Load known mappings from the config file"""
         log = self.log
-        log.debug("=-"*40)
         log.info("--- Loading Mappings ---")
         mappingConfig = self.mappingConfig
-        print "-- CFG >",mappingConfig
+
         log.debug("Loading Deployments")
-        deployments = mappingConfig["deployment"]
-        
-        print "-- DEPLOY --> ",deployments
-        
-        #return
-
+        deployments = mappingConfig["deployment"]        
+        self.mappedDeployments = dict([(int(k),int(v))
+                                       for k,v in 
+                                       deployments.iteritems()])
+                                       
         log.debug("Loading Houses")
+        houses = mappingConfig["house"]        
+        self.mappedHouses = dict([(int(k),int(v))
+                                       for k,v in 
+                                       houses.iteritems()])
+                                       
         log.debug("Loading Locations")
+        locations = mappingConfig["location"]        
+        self.mappedLocations = dict([(int(k),int(v))
+                                       for k,v in 
+                                       locations.iteritems()])
         log.debug("Loading Rooms")
-        
-        
-        
-
+        rooms = mappingConfig["room"]        
+        self.mappedRooms = dict([(int(k),int(v))
+                                       for k,v in 
+                                       rooms.iteritems()])
         #return
 
         #self.mapDeployments()
-        self.mapHouses() #Then houses
-        self.mapLocations()
         log.info("---- Save Mappings ----")
-        self.save_mappings()
+        #self.save_mappings()
 
 
     def save_mappings(self):
@@ -560,6 +578,7 @@ class Pusher(object):
             mergedItems[origId] = thisItem.id
 
         session.commit()
+        session.close()
 
         removedItems = theDiff.removed()
         log.debug("Removed {0}".format(removedItems))
@@ -572,6 +591,7 @@ class Pusher(object):
             newItem = r.json()
             log.info("New Item {0}".format(thisItem))
             mergedItems[thisItem.id] = newItem["id"]
+
 
         return mergedItems
 
@@ -605,9 +625,10 @@ class Pusher(object):
         #Fetch Local Version of room types
         localQry = session.query(self.RoomType)
         localTypes = dict([(x.name, x) for x in localQry])
-
+        session.close()
         log.debug(localTypes)
         log.debug(remoteTypes)
+
 
         mappedRoomTypes = self._syncItems(localTypes, remoteTypes, theUrl)
         self.mappedRoomTypes = mappedRoomTypes
@@ -773,14 +794,25 @@ class Pusher(object):
 
         self.mappedDeployments = mappedDeployments
 
-    def mapHouses(self):
-        """Map houses on the Local Database to those on the Remote Database"""
+    def sync_houses(self):
+        """Map houses on the Local Database to those on the Remote Database
+
+        Houses need mapping in a different way to the more simple items.  For a
+        start they have foreign keys (which may rely on another mapping) Thus we
+        get the house from the database, and make sure the location Id is mapped
+        against the deployment mapped from the remote DB.
+
+        """
         log = self.log
         log.debug("----- Mapping Houses ------")
         mappedDeployments = self.mappedDeployments
         mappedHouses = self.mappedHouses
         lSess = self.localsession()
 
+        log.debug("----- CURRENTLY MAPPED HOUSES ARE -----")
+        log.debug(mappedHouses)
+        log.debug("---------------------------------------")
+        
         #log.debug("Loading Known Houses from config file")
         mappingConfig = self.mappingConfig
 
@@ -790,6 +822,12 @@ class Pusher(object):
 
         for item in theQry:
             log.debug("Check Mapping for {0}".format(item))
+            if item.id in mappedHouses:
+                log.debug("--> Mapping for house exists")
+                continue
+                #raw_input("--> Press a key to continue")
+                
+
 
             #Calculate the Deployment Id:
             mapDep = mappedDeployments.get(item.deploymentId,None)
@@ -814,7 +852,7 @@ class Pusher(object):
         #And Save this in out Local Version
         self.mappedHouses = mappedHouses
 
-    def mapLocations(self):
+    def sync_locations(self):
         #Synchronise Locations
         log = self.log
         log.debug("----- Syncing Locations ------")
@@ -826,11 +864,11 @@ class Pusher(object):
         mappedRooms = self.mappedRooms
         mappedLocations = self.mappedLocations
 
-        mappingConfig = self.mappingConfig
-        configLoc = mappingConfig.get("location",{})
-        mappedLocations.update(dict([(int(k),v)
-                                     for k,v in
-                                     configLoc.iteritems()]))
+        # mappingConfig = self.mappingConfig
+        # configLoc = mappingConfig.get("location",{})
+        # mappedLocations.update(dict([(int(k),v)
+        #                              for k,v in
+        #                              configLoc.iteritems()]))
 
         theQry = lSess.query(self.Location)
 

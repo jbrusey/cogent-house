@@ -12,6 +12,7 @@ import os
 import configobj
 import requests
 
+import sqlalchemy
 
 RESTURL = "http://127.0.0.1:6543/rest/"
 
@@ -19,6 +20,9 @@ import cogent.push.RestPusher as RestPusher
 import cogent.base.model as models
 
 import init_testingdb
+
+import logging
+logging.getLogger("nosecover3").setLevel(logging.WARNING)
 
 @unittest.skip
 class TestServer(unittest.TestCase):
@@ -86,23 +90,31 @@ class TestClient(unittest.TestCase):
         #We want to remove any preexisting config files
         
         confpath = "localhost_push_test_map.conf"
+        if os.path.exists(confpath):
+            print "DELETING EXISTING CONFIG FILE"
+            os.remove(confpath)
 
-        REINIT = False
-        
+        import time
+        t1 = time.time()
+
+        REINIT = False     
         if REINIT:
-            if os.path.exists(confpath):
-                print "DELETING EXISTING CONFIG FILE"
-                os.remove(confpath)
 
             #TODO: Fix this so no majic strings
             #and create the database
             init_testingdb.main("mysql://chuser@localhost/push_test")
+            print "Total Time Taken {0}".format(time.time() - t1)
             #And the remote DB
             init_testingdb.main("mysql://chuser@localhost/test")
 
             #TODO:  Fix this so theres a bit less magic strings
             #We also want to initialise the testing DB
             #init_testingdb.main("sqlite:///home/dang/coding/webinterface/viewer-repo/cogent-house.devel/test.db")
+        
+        #We also want to open a connection to the remote database (so everything can get cleaned up)
+        remoteengine = sqlalchemy.create_engine("mysql://chuser@localhost/test")
+        connection = remoteengine.connect()
+        cls.rSession = sqlalchemy.orm.sessionmaker(bind=remoteengine)
 
         server = RestPusher.PushServer(configfile="test.conf")
         cls.pusher = server.synclist[0]
@@ -110,16 +122,36 @@ class TestClient(unittest.TestCase):
         #And a link to that classes session (so we can check everything)
         cls.Session = cls.pusher.localsession
 
-    @unittest.skip
+        #cls.pusher.log.setLevel(logging.WARNING)
+
+    def setUp(self):
+        """Reset all the mappings before running any tests"""
+        # Storage for mappings between local -> Remote 
+        self.pusher.mappedDeployments = {} 
+        self.pusher.mappedHouses = {} 
+        self.pusher.mappedRooms = {} 
+        self.pusher.mappedLocations = {} 
+        self.pusher.mappedRoomTypes = {} 
+        self.pusher.mappedSensorTypes = {} 
+
+    #@unittest.skip
     def test_connection(self):
         """Can we get an connection"""
         
         self.assertTrue(self.pusher.checkConnection(),
                         msg="No Connection to the test server... Is it running?")
         
-    @unittest.skip
+    #@unittest.skip
     def test_sensortypes_remote(self):
-        """Does Synching of sensortypes work as expected"""
+        """Does Synching of sensortypes work as expected
+        
+        Sensortypes should be synchronised across all servers.
+        Additionally, no sensortype should have an id conflict.
+        """
+
+
+        rurl = "{0}sensortype/".format(RESTURL)
+
 
         #First thing to check is that our local version of the database is as expected
         session = self.Session()
@@ -128,24 +160,13 @@ class TestClient(unittest.TestCase):
         #As many sensor types as expected
         self.assertEqual(qry.count(), 59)
 
-        #So Lets delete a couple of sensortypes
+        #So Lets delete a couple of sensortypes and check they get added back
         qry = session.query(models.SensorType).filter_by(id=1)
         qry.delete()
         qry = session.query(models.SensorType).filter_by(id=3)
         qry.delete()
         session.flush()
         session.commit()
-
-        session = self.Session()
-        qry = session.query(models.SensorType)
-        self.assertEqual(qry.count(), 57)
-        qry = session.query(models.SensorType).filter_by(name="Delta Temperature")
-        self.assertFalse(qry.first())
-        qry = session.query(models.SensorType).filter_by(name="Delta Humidity")
-        self.assertFalse(qry.first())
-        session.flush()
-        session.commit()
-        session.close()
         
         #So now we have removed the sensortypes we need to check they come back
         self.pusher.sync_sensortypes()
@@ -154,6 +175,18 @@ class TestClient(unittest.TestCase):
         qry = session.query(models.SensorType)
         #As many sensor types as expected
         self.assertEqual(qry.count(), 59)
+        qry = session.query(models.SensorType).filter_by(name="Delta Temperature")
+        item = qry.first()
+        self.assertTrue(item)
+        self.assertEquals(item.id, 1)
+        qry = session.query(models.SensorType).filter_by(name="Delta Humidity")
+        item = qry.first()
+        self.assertTrue(item)
+        self.assertEquals(item.id, 3)
+        session.flush()
+        session.commit()
+        session.close()
+
 
         """What happens if we have more on the local server"""
         session = self.Session()
@@ -163,20 +196,28 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
         
-        #Check we have what we expect
-        qry = session.query(models.SensorType)
-        self.assertEqual(qry.count(), 60)
-
-        rurl = "{0}sensortype/".format(RESTURL)
-        qry = requests.get(rurl)
-        self.assertEqual(len(qry.json()), 59)
-        
         #Now push
         self.pusher.sync_sensortypes()
         qry = requests.get(rurl)
         self.assertEqual(len(qry.json()), 60)
 
-    @unittest.skip
+        self.assertEqual(qry.json()[59]["name"], "Foo Sensor")
+
+        #Finally remove the new objects we have added
+        session = self.Session()
+        qry = session.query(models.SensorType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+        session = self.rSession()
+        qry = session.query(models.SensorType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
+        
+
+    #@unittest.skip
     def test_sensortypes_fails(self):
         """Does the sensortype fail if we have bad sensortypes"""
         session = self.Session()
@@ -202,7 +243,7 @@ class TestClient(unittest.TestCase):
         session.close()
 
 
-    @unittest.skip
+    #unittest.skip
     def test_sync_roomtypes(self):
         """Does the sync_roomtypes() code work
 
@@ -215,22 +256,41 @@ class TestClient(unittest.TestCase):
         However, there may be a difference in roomIds (this is stored as a mapping)
         """
 
-        #Check everything is as expected
+        # Make sure the DB is in a sensible state before we get started
         session = self.Session()
-        qry = session.query(models.RoomType)
-        self.assertEqual(qry.count(), 4)
+        qry = session.query(models.RoomType).filter(models.RoomType.id > 4)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+        import time
+        time.sleep(1)
+        session = self.Session()
+        session.execute("ALTER TABLE RoomType AUTO_INCREMENT = 1;") #Reset AutoIncrememebt
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.RoomType).filter(models.RoomType.id > 4)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+        session = self.rSession()
+        session.execute("ALTER TABLE RoomType AUTO_INCREMENT = 1;")
+        session.commit()
+        session.close()  
+        
 
         #And we also want to make sure the remote has what we expect
         rurl = "{0}roomtype/".format(RESTURL)
-        qry = requests.get(rurl)
-        self.assertEqual(len(qry.json()),4)
                
         #First makesure nothing is added or taken away
         self.assertTrue(self.pusher.sync_roomtypes())
 
+        session = self.Session()
         qry = session.query(models.RoomType)
         self.assertEqual(qry.count(), 4)
-
 
         #So Lets add a local room type
         theroom = models.RoomType(id=5,
@@ -239,6 +299,7 @@ class TestClient(unittest.TestCase):
         session.add(theroom)
         session.flush()
         session.commit()
+        session.close()
 
         session = self.Session()
         qry = session.query(models.RoomType)
@@ -258,7 +319,6 @@ class TestClient(unittest.TestCase):
         requests.post(rurl,data=theroom.json())
         qry = requests.get(rurl)
         #self.assertEqual(len(qry.json()),6)
-        
         session.close()
 
         self.assertTrue(self.pusher.sync_roomtypes())
@@ -276,21 +336,51 @@ class TestClient(unittest.TestCase):
         thedict = {1:1, 2:2, 3:3, 4:4, 5:5, 10:6}
         self.assertEqual(mappings, thedict)
 
-    @unittest.skip
+        # ------  Clean up after ourselves ----------
+
+        session = self.Session()
+        qry = session.query(models.RoomType).filter(models.RoomType.id > 4)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.RoomType).filter(models.RoomType.id > 4)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()   
+
+        self.pusher.mappedRoomTypes = {}
+
+    #@unittest.skip
     def test_syncRooms(self):
         """Check if sync-rooms works correctly"""
+
+        # Make sure the DB is in a sensible state before we get started
+        session = self.Session()
+        qry = session.query(models.Room).filter(models.Room.id > 12)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE Room AUTO_INCREMENT = 1;") #Reset AutoIncrememebt
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.Room).filter(models.Room.id > 12)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE Room AUTO_INCREMENT = 1;")
+        session.close()  
 
         session = self.Session()
         rurl = "{0}room/".format(RESTURL)
 
-        qry = session.query(models.Room)
-        #Do we have the expected number of rooms
-        self.assertEqual(qry.count(), 12)
-
-        qry = requests.get(rurl)
-        self.assertEqual(len(qry.json()), 12)
-
-        #So syncing shouldnt change anything
+        #Initial Synching shouldnt change anything
         self.assertTrue(self.pusher.sync_rooms())
         qry = session.query(models.Room)
         #Do we have the expected number of rooms
@@ -350,9 +440,47 @@ class TestClient(unittest.TestCase):
 
         self.assertEqual(thedict, self.pusher.mappedRooms)
 
-    @unittest.skip
+        #And Cleanup
+        session = self.Session()
+        qry = session.query(models.Room).filter(models.Room.id > 12)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+        
+        session = self.rSession()
+        qry = session.query(models.Room).filter(models.Room.id > 12)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()  
+
+        self.pusher.mappedRooms = {}
+
+
+    #@unittest.skip
     def test_syncDeployments(self):
-        """Another Bi-Directional Sync"""
+        """Does Syncronising deployments work correctly
+
+        Another Bi-Directional Sync"""
+
+        # Make sure the DB is in a sensible state before we get started
+        session = self.Session()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE Deployment AUTO_INCREMENT = 1;") #Reset AutoIncrememebt
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE Deployment AUTO_INCREMENT = 1;")
+        session.close()  
 
         rurl = "{0}deployment/".format(RESTURL)
 
@@ -366,7 +494,7 @@ class TestClient(unittest.TestCase):
         #Add a local deployment
         theDeployment = models.Deployment(id=2,
                                           name="Test Deployment",
-                                          desctiption="Test")
+                                          description="Test")
         session.add(theDeployment)
         session.flush()
         session.commit()
@@ -384,15 +512,17 @@ class TestClient(unittest.TestCase):
         session.close()
         
         #Check Mappings
-        thedict = {1:1,2:2}
+        thedict = {1:1, 2:2}
         self.assertEqual(thedict, self.pusher.mappedDeployments)
 
         #And add a remote version
-        theHouse = models.House(id=10,
+        theDeployment = models.Deployment(id=10,
                                 name="Foobar",
                                 )
 
-        requests.post(rurl, theHouse.json())
+        requests.post(rurl, theDeployment.json())
+
+        self.pusher.sync_deployments()        
 
         #We should now have three at each end
         session = self.Session()
@@ -407,7 +537,27 @@ class TestClient(unittest.TestCase):
         thedict = {1:1, 2:2, 10:3}
         self.assertEqual(thedict, self.pusher.mappedDeployments)
        
- 
+        # Make sure the DB is in a sensible state before we get started
+        session = self.Session()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
+        qry.delete()
+        session.flush()
+        session.commit()
+        #session.execute("ALTER TABLE Deployment AUTO_INCREMENT = 1;") #Reset AutoIncrememebt
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
+        qry.delete()
+        session.flush()
+        session.commit()
+        #session.execute("ALTER TABLE Deployment AUTO_INCREMENT = 1;")
+        session.close()  
+
+        self.pusher.mappedDeployment = {}
+
+    @unittest.skip
     def test_loadsavemappings(self):
         """Test the Load / Save mappings function
 
@@ -430,14 +580,10 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedRooms = rooms
         
         self.pusher.save_mappings()
-        print "------ ORIGINAL MAPPING ---------"
-        print self.pusher.mappingConfig
-        print "---------------------------------"
+
         #For this version we need to do a forced restart of the push server
         server = RestPusher.PushServer(configfile="test.conf")
         pusher = server.synclist[0]
-        #print "Second version"
-        #print pusher.mappingConfig
 
         # #Now remove everything we have just set and reload
         # pusher.mappedDeployments = {}
@@ -446,11 +592,269 @@ class TestClient(unittest.TestCase):
         # pusher.mappedRooms = {}
 
         pusher.load_mappings()
-        # self.assertEqual(pusher.mappedDeployments, deployments)
-        # self.assertEqual(pusher.mappedHouses, houses)
-        # self.assertEqual(pusher.mappedLocations, locations)
-        # self.assertEqual(pusher.mappedRooms, rooms)
+        self.assertEqual(pusher.mappedDeployments, deployments)
+        self.assertEqual(pusher.mappedHouses, houses)
+        self.assertEqual(pusher.mappedLocations, locations)
+        self.assertEqual(pusher.mappedRooms, rooms)
         # #self.Fail()
+
+    #@unittest.skip
+    def test_sync_houses(self):
+
+        # Make sure the DB is in a sensible state before we get started
+        session = self.Session()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        session.commit()
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;")
+        session.execute("ALTER TABLE Deployment AUTO_INCREMENT = 1;") #We also need to reset deployments
+        session.commit()
+        session.close()  
+
+        rurl = "{0}house/".format(RESTURL)
+        #Reset mapped houses
+        self.pusher.mappedHouses = {}
+        #Check that the push works first time around
+        houses = {1:1, 2:2}
+        self.pusher.sync_houses()
+        self.assertEqual(self.pusher.mappedHouses, houses)
+
+        #Next test is a simple sync between houses with matching details
+        testHouse = models.House(id=3,
+                                 deploymentId=1,
+                                 address="test address")
+        session = self.Session()
+        session.add(testHouse)
+        session.flush()
+        session.commit()
+
+
+        #Push the same house to the remote db
+        #req = requests.post(rurl, testHouse.json())
+
+        session.close()
+        #And see if our push updates correctly
+        self.pusher.sync_houses()
+        self.assertEqual(self.pusher.mappedHouses,
+                         {1:1,2:2,3:3})
+        
+
+        #Now map a house to a new ID in the database
+        testHouse = models.House(id=10,
+                                 deploymentId=1,
+                                 address="second test")
+        session = self.Session()
+        session.add(testHouse)
+        session.flush()
+        session.commit()
+
+        #Remap to we have Id 10 instead
+        jhouse = testHouse.dict()
+        session.close()
+
+        #req = requests.post(rurl, jhouse)
+        
+        #And check if we update coreretly
+        self.pusher.sync_houses()
+        self.assertEqual(self.pusher.mappedHouses,
+                         {1:1, 2:2, 3:3, 10:4})
+
+        # req = requests.get(rurl)
+        # jsn = req.json()
+        # self.assertEqual(len(jsn), 4)
+        # self.assertEqual(jsn[0]["id"], 1)
+        # self.assertEqual(jsn[1]["id"], 2)
+        # self.assertEqual(jsn[2]["id"], 3)
+        # self.assertEqual(jsn[3]["id"], 4)
+
+        #We also want to make sure the deployments map properly
+        #As this would normally be taken care of earlier in the process we need to 
+        #Do a quick sync here
+        session = self.Session()
+        newdeployment = models.Deployment(id=10,
+                                          name="Testing Deployment")
+        session.add(newdeployment)
+        session.flush()
+        session.commit()
+        self.pusher.sync_deployments()
+
+        #Check deploymets worked properly
+        self.assertEqual(self.pusher.mappedDeployments,
+                         {1:1, 10:2})
+
+
+        testHouse = models.House(id=6,
+                                 deploymentId=10,
+                                 address="Mixed Test")
+        session.add(testHouse)
+        session.flush()        
+        session.commit()
+        session.close()
+        #self.pusher.log.setLevel(logging.DEBUG)
+        self.pusher.sync_houses()
+
+        #self.fail()
+        #return
+        #First do we have a new house mapped.
+        self.assertEqual(self.pusher.mappedHouses,
+                         {1:1, 2:2, 3:3, 10:4, 6:5})
+        #return
+        #But do we also have everything correct at the remote
+        req = requests.get("{0}5".format(rurl))
+        jsn = req.json()[0]
+        
+        self.assertEqual(jsn["id"], 5)
+        self.assertEqual(jsn["deploymentId"], 2)
+
+        
+        
+        #Finally we want to ensure that no remote houses are picked up
+        newhouse = models.House(id=8,
+                                address="Excluded House")
+        requests.post(rurl,newhouse.json())
+        self.pusher.sync_houses()
+
+        #So is this local
+        session = self.Session()
+        qry = session.query(models.House)
+        self.assertEqual(qry.count(), 5)
+
+        qry = requests.get(rurl)
+        jsn = qry.json()
+        self.assertEqual(len(jsn), 6)
+
+        #return
+        #Cleanup
+        session = self.Session()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 2)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        qry = session.query(models.Deployment).filter(models.Deployment.id > 2)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()  
+
+
+    #@unittest.skip
+    def test_sync_locations(self):
+        """Does Synching Locations work as expected.
+
+        Syncing locations will add any new locations to the DB if they do
+        not all ready exist.
+
+        However, as with houses, there may be some differences between BOTH
+        the houseid and the room Id.
+
+        Therefore we need to test that:
+        1) Simple Synchroniseation works and the ID's are mapped correctly
+        2) No Locations are pulled from the remote server
+
+        3) Sycnronisation on new items with existing houses / rooms works correctly
+        4) Syncronisation of new items with new houses works correctly
+        5) Synchronisation of new items with new rooms works correctly
+
+        """
+
+        rurl = "{0}location".format(RESTURL)
+
+
+        self.pusher.sync_simpletypes()
+        #self.pusher.sync_houses()
+        
+        return True
+        #Then check that locations work as expected
+        self.pusher.sync_locations()
+        #Initial set of loactions
+        locdict = {1:1, 2:2, 3:3, 4:4}
+        self.assertEqual(locdict, self.mappedLocations)
+        
+        #The next thing to test is wheter new locations get added using an existing rooms.
+        self.assertEqual(self.pusher.mappedRooms[3], 3) #Sanity check
+        self.assertEqual(self.pusher.mappedRooms[4], 4)
+
+        session = self.Session()
+        newloc = models.Location(houseId=1,
+                                 roomId=3)
+        session.add(newloc)
+        newloc = models.Location(houseId=2,
+                                 roomId=3)
+        session.add(newloc)
+        session.flush()
+        session.commit()
+        session.close()
+        
+        self.pusher.sync_locations()
+        locdict[5] = 5
+        locdict[6] = 6
+        self.assertEqual(locdict, self.pusher.mapped_locations)
+
+        req = requests.get(rurl)
+        jsn = req.json()
+        self.assertEqual(len(req), 6)
+
+
+        #Then we can map locations with different ID's
+        session = self.Session()
+        newloc = models.Location(id=10,
+                                 houseId=1,
+                                 roomId=4)
+        session.add(newloc)
+        newloc = models.Location(id=11,
+                                 houseId=2,
+                                 roomId=4)
+        session.add(newloc)
+        session.flush()
+        session.commit()
+        session.close()
+        
+        self.pusher.sync_locations()
+        #Add new items and check they exists
+        locdict[10] = 7
+        locdict[11] = 8
+        self.assertEqual(locdict, self.pusher.mapped_locations)
+        req = requests.get(rurl)
+        jsn = req.json()
+        self.assertEqual(len(req), 8)
+        
+        #Finally Check that locations that have nothing to do with this project are not in the DB
+
+        newitem = models.Location(id=9,
+                                  houseId=1,
+                                  roomId=5)
+        requests.post(rurl,newitem.json())
+
+        req = requests.get(rurl) #Does it exist on the remote
+        jsn = req.json()
+        self.assertEqual(len(req), 9)
+        
+        session = self.Session()
+        qry = session.query(models.Location)
+        self.assertEqual(qry.count(), 8)
 
     @unittest.skip
     def test_syncnodes(self):
@@ -475,6 +879,8 @@ class TestClient(unittest.TestCase):
         self.Fail()
 
 
+
+
     @unittest.skip
     def test_uploadreadings(self):
         """Does the uploading of readings happen correctly"""
@@ -483,4 +889,19 @@ class TestClient(unittest.TestCase):
     @unittest.skip
     def test_uploadnodestate(self):
         """Do we upload nodestates correctly"""
+        rSession = self.rSession()
+        qry = rSession.query(models.House)
+        print
+        print "+______REMOPTE_______"
+        for item in qry:
+            print item
+
+
+        session = self.Session()
+        print "------- LOCAL --------"
+        qry = session.query(models.House)
+        for item in qry:
+            print item
         self.Fail()
+
+
