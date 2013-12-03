@@ -780,6 +780,32 @@ class TestClient(unittest.TestCase):
 
         """
 
+        session = self.Session()
+        qry = session.query(models.Location).filter(models.Location.id > 4)
+        qry.delete()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE Location AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        session.commit()
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.Location).filter(models.Location.id > 4)
+        qry.delete()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE Location AUTO_INCREMENT = 1;")
+        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        session.commit()
+        session.close()  
+
+
         rurl = "{0}location".format(RESTURL)
 
 
@@ -843,8 +869,12 @@ class TestClient(unittest.TestCase):
         
         #Finally Check that locations that have nothing to do with this project are not in the DB
 
+        newhouse = models.House(id=3,
+                                address="Location Test")
+        requests.post(rurl,newhouse.json())
+
         newitem = models.Location(id=9,
-                                  houseId=1,
+                                  houseId=3,
                                   roomId=5)
         requests.post(rurl,newitem.json())
 
