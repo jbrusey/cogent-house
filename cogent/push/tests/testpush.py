@@ -140,7 +140,120 @@ class TestClient(unittest.TestCase):
         
         self.assertTrue(self.pusher.checkConnection(),
                         msg="No Connection to the test server... Is it running?")
+
+
+    def test_nodetypes_remote(self):
+        """Can we properly synch nodetypes
+
+        Like sensor types node types should be synchronised across all server.
+        If there is a conflict on node type Id, we should Fail
+
+        """
+        rurl = "{0}nodetype/".format(RESTURL)
+
+        #Cleanup
+        session = self.Session()
+        qry = session.query(models.NodeType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+        session = self.rSession()
+        qry = session.query(models.NodeType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
         
+        #Check that the numebrs are as expected
+        session = self.Session()
+        qry = session.query(models.NodeType)
+        lcount = qry.count()
+        session.close()
+        session = self.rSession()
+        qry = session.query(models.NodeType)
+        rcount = qry.count()
+        session.close()
+        self.assertEqual(lcount, rcount)
+        
+        self.pusher.sync.nodetypes()
+        session = self.Session()
+        qry = session.query(models.NodeType)
+        self.assertEqual(lcount, qry.count())
+
+        #Delete nodetypes in the local database
+        session = self.Session()
+        qry = session.query(models.NodeType).filter_by(id=10)
+        qry.delete()
+        qry = session.query(models.NodeType).filter_by(id=11)
+        qry.delete()
+        session.commit()
+
+        #And check they come back
+        self.pusher.sync_nodetypes()
+        session = self.Session()
+        qry = session.query(models.NodeType)
+        self.assertEqual(qry.count(), lcount)
+
+        qry = session.query(models.NodeType).filter_by(id=10).first()
+        self.assertTrue(qry)
+        self.assertEquals(qry.Name, "ClusterHead CO2")
+        qry = session.query(models.NodeType).filter_by(id=11).first()
+        self.assertTrue(qry)
+        self.assertEquals(qry.Name, "ClusterHead AQ")
+        
+        #Finally add a new sensor type on the remote server (its a corner case)
+        session = self.Session()
+        newtype = models.SensorType(id=5000,
+                                    name="Testing Node")
+        session.add(newtype)
+        session.commit()
+        
+        self.pusher.sync_nodetypes()
+        #Does it exist on the remote
+        session = self.rSession()
+        qry = session.query(models.SensorType).filter_by(id=5000).first()
+        self.assertTrue(qry)
+        self.assertEqual(qry.name, "Testing Node")
+        
+        #Cleanup
+        session = self.Session()
+        qry = session.query(models.NodeType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+        session = self.rSession()
+        qry = session.query(models.NodeType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+    #@unittest.skip
+    def test_nodetypes_fails(self):
+        """Does the sensortype fail if we have bad sensortypes"""
+        session = self.Session()
+        qry = session.query(models.NodeType).filter_by(id=0)
+        #change the paramertes
+        sensor = qry.first()
+        sensor.name="FOOBAR"
+        session.flush()
+        session.commit()
+        session.close()
+
+        with self.assertRaises(RestPusher.MappingError):
+            self.pusher.sync_nodetypes()
+
+        #And reset the details of the node
+        session = self.Session()
+        qry = session.query(models.NodeType).filter_by(id=0)
+        #change the paramertes
+        sensor = qry.first()
+        sensor.name="Base"
+        session.flush()
+        session.commit()
+        session.close()
+        
+
     #@unittest.skip
     def test_sensortypes_remote(self):
         """Does Synching of sensortypes work as expected
@@ -800,7 +913,7 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
         session.execute("ALTER TABLE Location AUTO_INCREMENT = 1;")
-        #session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
         session.commit()
         session.close()  
 
@@ -890,8 +1003,36 @@ class TestClient(unittest.TestCase):
         qry = session.query(models.Location)
         self.assertEqual(qry.count(), 8)
 
-    @unittest.skip
-    def test_syncnodes(self):
+
+        #Cleanup
+        session = self.Session()
+        qry = session.query(models.Location).filter(models.Location.id > 4)
+        qry.delete()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        session.flush()
+        session.commit()
+        #session.execute("ALTER TABLE Location AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        #session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        session.commit()
+        session.close()
+        
+
+        session = self.rSession()
+        qry = session.query(models.Location).filter(models.Location.id > 4)
+        qry.delete()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.execute("ALTER TABLE Location AUTO_INCREMENT = 1;")
+        session.execute("ALTER TABLE House AUTO_INCREMENT = 1;") #Reset AutoIncremement
+        session.commit()
+        session.close()  
+
+
+    #@unittest.skip
+    def test_Zsyncnodes(self):
         """Test the syncNodes function
 
         Node Syncing should do several things.
@@ -906,8 +1047,157 @@ class TestClient(unittest.TestCase):
         3) If the location of the node has been updated on the remote, then this
         needs to be pushed to the sink
         """
-        self.Fail()
+        
+        #Clear out the cruft
+        session = self.Session()
+        qry = session.query(models.Node).filter(models.Node.id > 1100)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
 
+        session = self.rSession()
+        qry = session.query(models.Node).filter(models.Node.id > 1100)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+        
+        rurl = "{0}node/".format(RESTURL)
+
+        #Check everything is as we expect
+        session = self.Session()
+        qry = session.query(models.Node)
+        self.assertEqual(qry.count(), 4)
+        session.close()
+
+        session = self.rSession()
+        qry = session.query(models.Node)
+        self.assertEqual(qry.count(), 4)
+        session.close()
+
+        #First test should be to check if we DONT actually sync anythin
+        #As there should be no difference in the nodes
+        self.pusher.sync_nodes()
+        session = self.Session()
+        qry = session.query(models.Node)
+        self.assertEqual(qry.count(), 4)
+        session.close()
+
+        session = self.rSession()
+        qry = session.query(models.Node)
+        self.assertEqual(qry.count(), 4)
+        session.close()
+        
+        #Lets add a new node to the local system (Without location or nodetype)
+        session = self.Session()
+        thenode = models.Node(id=2000,
+                              locationId=None,
+                              nodetype=None)
+        session.add(thenode)
+        session.commit()
+
+        self.pusher.sync_nodes()
+
+        session = self.Session()
+        qry = session.query(models.Node)
+        self.assertEqual(qry.count(), 5)
+        session.close()
+
+        #So we should now have 5 nodes on both the source and sink
+        session = self.rSession()
+        qry = session.query(models.Node)
+        self.assertEqual(qry.count(), 5)
+        qry = session.query(models.Node).filter_by(id=2000).first()
+        self.assertTrue(qry)
+        self.assertEqual(qry.id=2000)
+        self.assertFalse(qry.locationId)
+        self.assertFalse(qry.nodetype)
+        session.close()
+
+
+        #Test if updates with both location and nodetype go through correctly
+        #(Where there is a straight mapping)
+        session = self.Session()
+        newnode = models.Node(id=2001,
+                              nodeTypeId=1,
+                              locationId=1)
+        session.add(newnode)
+
+        newnode = models.Node(id=2002,
+                              nodeTypeId=1,
+                              locationId=None)
+        session.add(newnode)
+        session.commit()
+        session.close()
+        self.pusher.sync_nodes()
+        
+        session = self.rSession()
+        qry = session.query(models.Node)
+        self.assertEqual(qry.count(), 7)
+        qry = session.query(models.Node).filter_by(id=2001).first()
+        self.assertTrue(qry)
+        self.assertEqual(qry.nodeTypeId, 1)
+        self.assertEqual(qry.locationId, 1)
+
+        qry = session.query(models.Node).filter_by(id=2002).first()
+        self.assertTrue(qry)
+        self.assertEqual(qry.nodeTypeId, 1)
+        self.assertEqual(qry.locationId, None)        
+        session.close()
+
+        #Finally add a new location fake mappings and work with it
+        session = self.Session()
+        newloc = models.Location(id=20,
+                                 houseId = 1
+                                 roomId = 5)
+        session.add(newloc)
+        newnode = models.Node(id=2003,
+                              locationId = 20,
+                              nodeTypeId = 1)
+        session.commit()
+        session.flush()
+
+        session = self.rSession()
+        newloc = models.Location(id=10,
+                                 houseId = 1
+                                 roomId = 5)
+        session.add(newloc)
+        session.commit()
+        session.flush()
+
+        #Fake mapping the location
+        self.pusher.mappedLocations[10] = 20
+
+        #The push
+        self.pusher.sync_nodes()
+        
+        #And check it has been updated correctly
+        session = self.rSession()
+        qry = session.query(models.Node).filter_by(id=2003).first()
+        self.assertTrue(qry)
+        self.assertEquals(qry.locationId, 10) #Has it mapped properly
+        session.close()
+       
+        #self.Fail()
+        #Clear out the cruft
+        session = self.Session()
+        qry = session.query(models.Node).filter(models.Node.id > 1100)
+        qry.delete()
+        qry = session.query(models.Location).filter(models.Location.id > 6)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+
+        session = self.rSession()
+        qry = session.query(models.Node).filter(models.Node.id > 1100)
+        qry.delete()
+        qry = session.query(models.Location).filter(models.Location.id > 6)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
 
 
 

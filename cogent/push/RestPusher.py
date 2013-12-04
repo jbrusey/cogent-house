@@ -851,6 +851,8 @@ class Pusher(object):
         log.debug("Map House: {0}".format(mappedHouses))
         #And Save this in out Local Version
         self.mappedHouses = mappedHouses
+        lSess.flush()
+        lSess.close()
 
     def sync_locations(self):
         #Synchronise Locations
