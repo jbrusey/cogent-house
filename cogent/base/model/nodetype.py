@@ -68,3 +68,14 @@ class NodeType(Base,meta.InnoDBMix):
                                             self.blink,
                                             self.configured]]) + ")")
 
+
+    def __cmp__(self,other):
+        if self.id - other.id == 0:
+            return cmp(self.name, other.name)
+        else:
+            return self.id - other.id
+        #return False
+        #print "COMPARE {0} ({1}) to {2} ({3}) == {4}".format(self.id,type(self.id),
+        #                                                     other.id,type(other.id),
+        #                                                     self.id == other.id)
+        #return self.id - other.id
