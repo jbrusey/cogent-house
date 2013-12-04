@@ -175,7 +175,8 @@ class TestClient(unittest.TestCase):
         session.close()
         self.assertEqual(lcount, rcount)
         
-        self.pusher.sync.nodetypes()
+        self.pusher.sync_nodetypes()
+        return
         session = self.Session()
         qry = session.query(models.NodeType)
         self.assertEqual(lcount, qry.count())
@@ -230,7 +231,7 @@ class TestClient(unittest.TestCase):
 
     #@unittest.skip
     def test_nodetypes_fails(self):
-        """Does the sensortype fail if we have bad sensortypes"""
+        """Does the NodeType fail if we have bad sensortypes"""
         session = self.Session()
         qry = session.query(models.NodeType).filter_by(id=0)
         #change the paramertes
@@ -579,6 +580,8 @@ class TestClient(unittest.TestCase):
 
         # Make sure the DB is in a sensible state before we get started
         session = self.Session()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
         qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
         qry.delete()
         session.flush()
@@ -588,6 +591,8 @@ class TestClient(unittest.TestCase):
         
 
         session = self.rSession()
+        qry = session.query(models.House).filter(models.House.id > 2)
+        qry.delete()
         qry = session.query(models.Deployment).filter(models.Deployment.id > 1)
         qry.delete()
         session.flush()
@@ -994,9 +999,6 @@ class TestClient(unittest.TestCase):
 
         req = requests.get(rurl) #Does it exist on the remote
         jsn = req.json()
-        for item in jsn:
-            print item
-        
         self.assertEqual(len(jsn), 9)
         
         session = self.Session()

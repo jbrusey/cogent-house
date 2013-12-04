@@ -153,6 +153,7 @@ def clsFromJSON(theList):
                "sensortype":SensorType,
                "room":Room,
                "location":Location,
+               "nodetype":NodeType,
                }
 
     for item in theList:

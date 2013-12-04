@@ -703,7 +703,7 @@ class Pusher(object):
         for item in restItems:
             remoteTypes[item.id] = item
 
-        itemTypes = session.query(self.NodeType)
+        itemTypes = session.query(models.NodeType)
         for item in itemTypes:
             localTypes[item.id] = item
 
@@ -718,6 +718,12 @@ class Pusher(object):
 
         if changedItems:
             log.warning("Node Types with mathching Id's but different Names")
+            # print "{0} Local {0}".format("-"*25)
+            # for key,item in localTypes.iteritems():
+            #     print "{0} {1}".format(key,item)
+            # print "{0} Remote {0}".format("-"*25)
+            # for key,item in remoteTypes.iteritems():
+            #     print "{0} {1}".format(key,item)
             for item in changedItems:
                 log.warning("--> {0}".format(item))
             #log.warning("Remote is {0}".format(remoteTypes[changedItems[0]]))
