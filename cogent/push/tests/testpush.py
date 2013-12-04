@@ -1050,18 +1050,27 @@ class TestClient(unittest.TestCase):
         
         #Clear out the cruft
         session = self.Session()
+        qry = session.execute("TRUNCATE NodeLocation")
         qry = session.query(models.Node).filter(models.Node.id > 1100)
+        qry.delete()
+        qry = session.query(models.Location).filter(models.Location.id > 6)
         qry.delete()
         session.flush()
         session.commit()
         session.close()
 
         session = self.rSession()
+        qry = session.execute("TRUNCATE NodeLocation")
         qry = session.query(models.Node).filter(models.Node.id > 1100)
+        qry.delete()
+        qry = session.query(models.Location).filter(models.Location.id > 6)
         qry.delete()
         session.flush()
         session.commit()
         session.close()
+
+        #And fake mapping locations
+        self.pusher.mappedLocations = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6}
         
         rurl = "{0}node/".format(RESTURL)
 
@@ -1093,7 +1102,7 @@ class TestClient(unittest.TestCase):
         session = self.Session()
         thenode = models.Node(id=2000,
                               locationId=None,
-                              nodetype=None)
+                              nodeTypeId=None)
         session.add(thenode)
         session.commit()
 
@@ -1110,9 +1119,9 @@ class TestClient(unittest.TestCase):
         self.assertEqual(qry.count(), 5)
         qry = session.query(models.Node).filter_by(id=2000).first()
         self.assertTrue(qry)
-        self.assertEqual(qry.id=2000)
+        self.assertEqual(qry.id, 2000)
         self.assertFalse(qry.locationId)
-        self.assertFalse(qry.nodetype)
+        self.assertFalse(qry.nodeTypeId)
         session.close()
 
 
@@ -1141,6 +1150,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(qry.locationId, 1)
 
         qry = session.query(models.Node).filter_by(id=2002).first()
+        
         self.assertTrue(qry)
         self.assertEqual(qry.nodeTypeId, 1)
         self.assertEqual(qry.locationId, None)        
@@ -1149,25 +1159,26 @@ class TestClient(unittest.TestCase):
         #Finally add a new location fake mappings and work with it
         session = self.Session()
         newloc = models.Location(id=20,
-                                 houseId = 1
+                                 houseId = 1,
                                  roomId = 5)
         session.add(newloc)
         newnode = models.Node(id=2003,
                               locationId = 20,
                               nodeTypeId = 1)
+        session.add(newnode)
         session.commit()
         session.flush()
 
         session = self.rSession()
         newloc = models.Location(id=10,
-                                 houseId = 1
+                                 houseId = 1,
                                  roomId = 5)
         session.add(newloc)
         session.commit()
         session.flush()
 
         #Fake mapping the location
-        self.pusher.mappedLocations[10] = 20
+        self.pusher.mappedLocations[20] = 10
 
         #The push
         self.pusher.sync_nodes()
@@ -1182,6 +1193,7 @@ class TestClient(unittest.TestCase):
         #self.Fail()
         #Clear out the cruft
         session = self.Session()
+        qry = session.execute("TRUNCATE NodeLocation")
         qry = session.query(models.Node).filter(models.Node.id > 1100)
         qry.delete()
         qry = session.query(models.Location).filter(models.Location.id > 6)
@@ -1191,6 +1203,7 @@ class TestClient(unittest.TestCase):
         session.close()
 
         session = self.rSession()
+        qry = session.execute("TRUNCATE NodeLocation")
         qry = session.query(models.Node).filter(models.Node.id > 1100)
         qry.delete()
         qry = session.query(models.Location).filter(models.Location.id > 6)

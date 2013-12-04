@@ -677,6 +677,88 @@ class Pusher(object):
 
         return True
 
+    def sync_nodetypes(self):
+        """Function to synchronise Node types between the two databases.
+        This is a bi-directional sync method.
+        Node Types should EXACTLY match in ALL databases.
+
+        :return: True on Success
+        :raises: MappingError if node types do not match
+        """
+
+        #First we need to map room Types
+        log = self.log
+        log.debug("Mapping NodeTypes between databases")
+        session = self.localsession()
+
+        #Fetch the sensor types from the remote Database
+        theUrl = "{0}{1}".format(self.restUrl, "nodetype/")
+
+        remoteTypes = {}
+        localTypes = {}
+
+        remoteQry = requests.get(theUrl)
+        jsonBody=remoteQry.json()
+        restItems = self.unpackJSON(jsonBody)
+        for item in restItems:
+            remoteTypes[item.id] = item
+
+        itemTypes = session.query(self.NodeType)
+        for item in itemTypes:
+            localTypes[item.id] = item
+
+        theDiff = DictDiff(remoteTypes,localTypes)
+
+        #those in the remote Database that are not in the local
+        newItems = theDiff.added()
+        #Those that are in the Remote but not in the local
+        removedItems = theDiff.removed()
+        #"Changed" items,  Items that are not the same
+        changedItems = theDiff.changed()
+
+        if changedItems:
+            log.warning("Node Types with mathching Id's but different Names")
+            for item in changedItems:
+                log.warning("--> {0}".format(item))
+            #log.warning("Remote is {0}".format(remoteTypes[changedItems[0]]))
+            #log.warning("local is {0}".format(localTypes[changedItems[1]]))
+            raise(MappingError(changedItems,
+                               "Diffrent Node Types with Same ID"))
+
+        #Deal with items that are not on the local database
+        for item in newItems:
+            theItem = remoteTypes[item]
+            log.info("--> Nodetype {0} Not in Local Database: {1}".format(item,
+                                                                        theItem))
+            #Turn into a NodeType
+            session.add(theItem)
+            localTypes[item] = theItem
+
+        session.flush()
+        session.commit()
+
+        #Then Push any new nodes to the Remote Database
+        for item in removedItems:
+            theItem = localTypes[item]
+            log.info("--> Nodetype {0} Not in Remote Database: {1}".format(item,
+                                                                         theItem))
+            theUrl = "{0}nodetype/".format(self.restUrl)
+            #print theUrl
+            dictItem = theItem.toDict()
+            #We then Post the New Item to the Remote DBString
+            r= requests.post(theUrl,data=json.dumps(dictItem))
+            log.debug(r)
+
+        log.debug("Updating Mapping Dictionary")
+        #Update the Mapping Dictionary
+        newTypes = {}
+        for key, value in localTypes.iteritems():
+            newTypes[key] = value.id
+
+        self.mappedNodeTypes = newTypes
+        return True
+
+
     def sync_sensortypes(self):
         """Function to synchronise Sensor types between the two databases.
         This is a bi-directional sync method.
@@ -965,8 +1047,10 @@ class Pusher(object):
             theUrl = "{0}node/".format(self.restUrl)
             log.info("Node {0} Not in Remote Db, Uploading".format(item))
             dictItem= thisItem.toDict()
-            dictItem["locationId"] = None
-            dictItem["nodeTypeId"] = None
+            rloc = self.mappedLocations.get(thisItem.locationId,None)
+            log.info("Attempting to mapp location {0} to {1}".format(thisItem.locationId,rloc))
+            dictItem["locationId"] = rloc
+            #dictItem["nodeTypeId"] = None
             log.debug("--> New Node is {0}".format(dictItem))
             r = requests.post(theUrl,data=json.dumps(dictItem))
             log.debug(r)
