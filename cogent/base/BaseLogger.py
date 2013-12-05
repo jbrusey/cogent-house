@@ -20,12 +20,12 @@ import sys
 import os
 from optparse import OptionParser
 
+
 if "TOSROOT" not in os.environ:
     raise Exception("Please source the Tiny OS environment script first")
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 
-from cogent.node import (AckMsg,
-                         Packets)
+from cogent.node import *
 from cogent.base.BaseIF import BaseIF
 
 from Queue import Empty
@@ -34,58 +34,36 @@ from datetime import datetime, timedelta
 
 import time
 
-from cogent.base.model import (Reading, NodeState, SensorType,
-                               Base, Session, init_model, Node)
+from cogent.base.model import *
+import cogent.base.model.populateData as populateData
 
-from cogent.base.packstate import PackState
+#logger = logging.getLogger("ch.base")
 
-LOGGER = logging.getLogger("ch.base")
-
+F="/home/james/sa.db"
+#DBFILE = "sqlite:///" 
 DBFILE = "mysql://chuser@localhost/ch"
 
-from sqlalchemy import create_engine, and_
+from sqlalchemy import create_engine, func, and_
+import sqlalchemy.exc
 
-def duplicate_packet(session, receipt_time, node_id, localtime):
-    """ duplicate packets can occur because in a large network,
-    the duplicate packet cache used is not sufficient. If such
-    packets occur, then they will have the same node id, same
-    local time and arrive within a few seconds of each other. In
-    some cases, the first received copy may be corrupt and this is
-    not dealt with within this code yet.
-    """
-    earliest = receipt_time - timedelta(minutes=1)
-    return session.query(NodeState).filter(
-        and_(NodeState.nodeId==node_id,
-             NodeState.localtime==localtime,
-             NodeState.time > earliest)).first() is not None
-
-def add_node(session, node_id):
-    """ add a database entry for a node
-    """
-    try:
-        session.add(Node(id=node_id,
-                         locationId=None,
-            nodeTypeId=(node_id / 4096)))
-        session.commit()
-    except Exception:
-        session.rollback()
-        LOGGER.exception("can't add node %d" % node_id)
-
+#New RRD stuff
+import rrdstore
+RRDLIST = {}
 
 class BaseLogger(object):
-    """ BaseLogger class receives sensor messages and writes them to
-    the database.
-    """
     def __init__(self, bif=None, dbfile=DBFILE):
-        """ create a new BaseLogger and connect it to the sensor
-        source (bif) and the database (dbfile).
-        """
         self.engine = create_engine(dbfile, echo=False)
         init_model(self.engine)
+        #if DBFILE[:7] == "sqlite:":
+        #    self.engine.execute("pragma foreign_keys=on")
         self.metadata = Base.metadata
 
         if bif is None:
+#            try:
             self.bif = BaseIF("sf@localhost:9002")
+#            except KeyboardInterrupt:
+#                print "Thread Based Madness"
+#                self.running = False
         else:
             self.bif = bif
 
@@ -93,124 +71,161 @@ class BaseLogger(object):
         self.running = True
 
     def create_tables(self):
-        #Moved this so it calls the models.populate data version of this code
         self.metadata.create_all(self.engine)
+
         session = Session()
+
+        #Moved this so it calls the models.populate data version of this code
         populateData.init_data(session)
         return
 
-    def send_ack(self,
-                 seq=None,
-                 dest=None):
-        """ send acknowledgement message
+    def duplicate_packet(self, session, time, nodeId, localtime):
+        """ duplicate packets can occur because in a large network,
+        the duplicate packet cache used is not sufficient. If such
+        packets occur, then they will have the same node id, same
+        local time and arrive within a few seconds of each other. In
+        some cases, the first received copy may be corrupt and this is
+        not dealt with within this code yet.
         """
-        ack_msg = AckMsg()
-        ack_msg.set_seq(seq)
-        ack_msg.set_node_id(dest)
-        
-        self.bif.sendMsg(ack_msg, dest)
-        LOGGER.debug("Sending Ack %s to %s" %
-                     (seq, dest))
+        earliest = time - timedelta(minutes=1)
+        return session.query(NodeState).filter(
+            and_(NodeState.nodeId==nodeId,
+                 NodeState.localtime==localtime,
+                 NodeState.time > earliest)).first() is not None
             
     def getNodeDetails(self, nid):
         return ((nid % 4096) / 32,
                 nid % 32,
                 nid / 4096)
-
-
-    def store_state(self, msg):
-        """ receive and process a message object from the base station
-        """
     
+    # def store_rrd(self, n, i, t, v, locId = 1000):
+    #     """Store the latest reading in a RRD file
+        
+    #     :param n: Node Id
+    #     :param i: Node Type
+    #     :param t: Time
+    #     :param v: Value
+
+    #     .. note::
+        
+    #         Currently this does not take account of the location Id.  This may be an option in the future
+    #     """
+    #     #Store in a RRD Database
+        
+    #     t1 = time.time()
+    #     theRRD = RRDLIST.get((n,i,locId),None)
+    #     if theRRD is None:
+    #         try:
+    #             theRRD = rrdstore.RRDStore(n,i,locId)
+    #             RRDLIST[(n,i,locId)] = theRRD
+
+    #             theRRD.update(t,v)
+    #             t2 = time.time()
+    #             log.debug("Time Taken to update RRD {0}".format(t2-t1))        
+    #         except Exception,e:
+    #             log.warning("Problem updating RRD")
+    #             log.warning(e)
+	
+    def store_state(self, msg):
         if msg.get_special() != Packets.SPECIAL:
-            raise Exception("Corrupted packet - special is %02x not %02x" %
-                            (msg.get_special(), Packets.SPECIAL))
+            raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
 
         try:
             session = Session()
-            current_time = datetime.utcnow()
-            node_id = msg.getAddr()
-            parent_id = msg.get_ctp_parent_id()
-            seq = msg.get_seq()
-            rssi_val = msg.get_rssi()
+            t = datetime.utcnow()
+            n = msg.getAddr()
+            parent = msg.get_ctp_parent_id()
+            localtime = msg.get_timestamp()
 
-            node = session.query(Node).get(node_id)
-            loc_id = None
+            node = session.query(Node).get(n)
+            locId = None
             if node is None:
-                add_node(session, node_id)
-            else:
-                loc_id = node.locationId
-
-
-            pack_state = PackState.from_message(msg)
-            
-            if duplicate_packet(session=session,
-                                receipt_time=current_time,
-                                node_id=node_id,
-                                localtime=msg.get_timestamp()):
-                LOGGER.info("duplicate packet %d->%d, %d %s" %
-                            (node_id, parent_id, msg.get_timestamp(), str(msg)))
-
-                return
-
-            # write a node state row
-            node_state = NodeState(time=current_time,
-                                   nodeId=node_id,
-                                   parent=parent_id,
-                localtime=msg.get_timestamp(),
-                seq_num=seq,
-                rssi = rssi_val)
-            session.add(node_state)
-
-            for i, value in pack_state.d.iteritems():
-                type_id = i
-
-                r = Reading(time=current_time,
-                            nodeId=node_id,
-                            typeId=type_id,
-                            locationId=loc_id,
-                            value=value)
+                #(houseId,roomId,nodeTypeId) = self.getNodeDetails(n)
                 try:
-                    session.add(r)
-                    session.flush()
-
-                except sqlalchemy.exc.IntegrityError:
-                    self.log.error("Unable to store, checking if node type exists")
+                    session.add(Node(id=n,
+                                     locationId=None,
+                                     #nodeTypeId=(n / 4096)))
+                                     nodeTypeId=None,
+                                     )
+                                )
+                    session.commit()
+                except:
                     session.rollback()
-                    s = session.query(SensorType).filter_by(id=i).first()
-                    if s is None:
-                        s = SensorType(id=type_id,name="UNKNOWN")
-                        session.add(s)
-                        self.log.info("Adding new sensortype")
-                        session.flush()
-                        session.add(r)
-                        session.flush()                            
-                    else:
-                        self.log.error("Sensor type exists")
+                    self.log.exception("can't add node %d" % n)
+            else:
+                locId = node.locationId
 
+            if self.duplicate_packet(session=session,
+                                     time=t,
+                                     nodeId=n,
+                                     localtime=localtime):
+                self.log.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
+                return
+                #raise Exception("duplicate packet: %s, %s" % (str(msg), msg.data))
+
+            ns = NodeState(time=t,
+                           nodeId=n,
+                           parent=msg.get_ctp_parent_id(),
+                           localtime=msg.get_timestamp())
+            session.add(ns)
+
+
+            self.log.debug("Message from {0}".format(n))
+
+            j = 0
+            mask = Bitset(value=msg.get_packed_state_mask())
+            state = []
+            for i in range(msg.totalSizeBits_packed_state_mask()):
+                if mask[i]:
+                    v = msg.getElement_packed_state(j)
+                    state.append((i,v))
+                    self.log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
+                    
+                    #Store in RRD
+                    #self.store_rrd(n, i, t, v)
+                    t1 = time.time()
+                    try:
+                        r = Reading(time=t,
+                                    nodeId=n,
+                                    typeId=i,
+                                    locationId=locId,
+                                    value=v)
+                        session.add(r)
+                        session.flush()
+                    except sqlalchemy.exc.IntegrityError:
+                        self.log.error("Unable to store, checking if node type exists")
+                        session.rollback()
+                        
+                        s = session.query(SensorType).filter_by(id=i).first()
+                        if s is None:
+                            s = SensorType(id=i,name="UNKNOWN")
+                            session.add(s)
+                            self.log.info("Adding new sensortype")
+                            session.flush()
+                            r = Reading(time=t,
+                                        nodeId=n,
+                                        typeId=i,
+                                        locationId=locId,
+                                        value=v)
+                            session.add(r)
+                            session.flush()                            
+                        else:
+                            self.log.error("Sensor type exists")
+                        
+                    t2 = time.time()
+                    self.log.debug("Time taken to update DB {0}".format(t2-t1))
+                    j += 1
 
             session.commit()
-
-            #send acknowledgement to base station to fwd to node
-            self.send_ack(seq=seq,
-                          dest=node_id)
-                     
-            LOGGER.debug("reading: %s, %s" % (node_state, pack_state))
-        except Exception as exc:
+            self.log.debug("reading: %s, %s, %s" % (ns,mask,state))
+        except Exception as e:
             session.rollback()
-            LOGGER.exception("during storing: " + str(exc))
+            self.log.exception("during storing: " + str(e))
         finally:
             session.close()
 
     def run(self):
-        """ run - main loop
-
-        At the moment this is just receiving from the sensor message
-        queue and processing the message.
-
-        """
         self.log.info("Stating Baselogger Daemon")
-
         while self.running:
             try:
                 msg = self.bif.queue.get(True,10)
@@ -218,8 +233,7 @@ class BaseLogger(object):
                 self.store_state(msg)
                 self.bif.queue.task_done()  #Signal the queue that we have finished processing
             except Empty:
-                pass
-                #self.log.debug("Empty Queue")
+                self.log.debug("Empty Queue")
             except KeyboardInterrupt:
                 print "KEYB IRR"
                 self.running = False
