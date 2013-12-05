@@ -1415,8 +1415,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual(lasttx, currentdate - datetime.timedelta(minutes=5))
         session.close()
 
-
-
         #Finally, what happens if we hit the maximum number of samples to be transmitted
         self.pusher.pushLimit = 144 #1/2 day
         self.pusher.log.setLevel(logging.DEBUG)
@@ -1429,23 +1427,25 @@ class TestClient(unittest.TestCase):
                                        locationId = 1,
                                        typeId = 0,
                                        value = 600)
+            session.add(thesample)
             thesample = models.Reading(time = currentdate, 
                                        nodeId = 838,
                                        locationId = 2,
                                        typeId = 0,
                                        value = 600)
+            session.add(thesample)
             currentdate = currentdate + datetime.timedelta(minutes=5)
         session.flush()
         session.commit()
         session.close()
 
-        
+       
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=1).first()
-        for x in range(4): #As we should have 4 lots of readings to transfer
-            output = self.pusher.upload_readings(thehouse)
-            txcount, lasttx = output
-            self.assertEqual(txcount, 144)
+
+        output = self.pusher.upload_readings(thehouse)
+        txcount, lasttx = output
+        self.assertEqual(txcount, 288*2)
         
         #Then we want to ensure that there is nothing left
         output = self.pusher.upload_readings(thehouse)
@@ -1501,8 +1501,19 @@ class TestClient(unittest.TestCase):
 
         #Push house2
 
+
+
     @unittest.skip
     def test_uploadnodestate_and_reading(self):
-        """Does the sync process work for both nodestate and house?
-    
+        """Does the sync process work for both nodestate and house?"""
+        
+        #Check that both the nodestate and reading uploads work together
+
+        #Add some readings and nodestates
+
+        #Push
+        
+
+        #Check against expected output.
+        
 
