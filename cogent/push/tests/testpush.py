@@ -131,6 +131,7 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedHouses = {} 
         self.pusher.mappedRooms = {} 
         self.pusher.mappedLocations = {} 
+        self.pusher.backmappedLocations = {} 
         self.pusher.mappedRoomTypes = {} 
         self.pusher.mappedSensorTypes = {} 
 
@@ -190,28 +191,31 @@ class TestClient(unittest.TestCase):
 
         #And check they come back
         self.pusher.sync_nodetypes()
+
+
         session = self.Session()
         qry = session.query(models.NodeType)
         self.assertEqual(qry.count(), lcount)
 
         qry = session.query(models.NodeType).filter_by(id=10).first()
         self.assertTrue(qry)
-        self.assertEquals(qry.Name, "ClusterHead CO2")
+        self.assertEquals(qry.name, "ClusterHead CO2")
         qry = session.query(models.NodeType).filter_by(id=11).first()
         self.assertTrue(qry)
-        self.assertEquals(qry.Name, "ClusterHead AQ")
+        self.assertEquals(qry.name, "ClusterHead AQ")
         
         #Finally add a new sensor type on the remote server (its a corner case)
         session = self.Session()
-        newtype = models.SensorType(id=5000,
-                                    name="Testing Node")
+        newtype = models.NodeType(id=5000,
+                                  name="Testing Node")
         session.add(newtype)
         session.commit()
         
         self.pusher.sync_nodetypes()
         #Does it exist on the remote
         session = self.rSession()
-        qry = session.query(models.SensorType).filter_by(id=5000).first()
+        qry = session.query(models.NodeType).filter_by(id=5000).first()
+        print "QUERY {0} ({1}),  Name {2}".format(qry, type(qry), qry.name)
         self.assertTrue(qry)
         self.assertEqual(qry.name, "Testing Node")
         
@@ -261,6 +265,19 @@ class TestClient(unittest.TestCase):
         Sensortypes should be synchronised across all servers.
         Additionally, no sensortype should have an id conflict.
         """
+
+        #Finally remove the new objects we have added
+        session = self.Session()
+        qry = session.query(models.SensorType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+        session = self.rSession()
+        qry = session.query(models.SensorType).filter_by(id = 5000)
+        qry.delete()
+        session.flush()
+        session.commit()
 
 
         rurl = "{0}sensortype/".format(RESTURL)

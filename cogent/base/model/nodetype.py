@@ -66,7 +66,8 @@ class NodeType(Base,meta.InnoDBMix):
                                             self.updated_seq,
                                             self.period,
                                             self.blink,
-                                            self.configured]]) + ")")
+                                            self.configured,
+                                            ]]) + ")")
 
 
     def __cmp__(self,other):
