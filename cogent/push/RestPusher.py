@@ -1155,6 +1155,14 @@ class Pusher(object):
 
         return rdgCount > 0
 
+    def get_lastupdate(self, theHouse):
+        """ Fetch the time of the last update to this house 
+
+        :var theHouse: House object we want to get the last update for
+        :return: Datetime of last update to this house
+        """
+
+
     def upload_readings(self, theHouse):
         """
         Syncronise Readings between two databases,
