@@ -1406,8 +1406,6 @@ class TestClient(unittest.TestCase):
         theqry = session.query(models.Reading).filter_by(nodeId=1063)
         self.assertEqual(theqry.count(), expected)
 
-
-        self.pusher.log.setLevel(logging.DEBUG)
         #Finally we want to push stuff from house 2
         session = self.Session()
         secondhouse = session.query(models.House).filter_by(id=2).first()
@@ -1415,8 +1413,48 @@ class TestClient(unittest.TestCase):
         txcount,lasttx = output
         self.assertEqual(txcount, 288*2)
         self.assertEqual(lasttx, currentdate - datetime.timedelta(minutes=5))
+        session.close()
+
+
+
+        #Finally, what happens if we hit the maximum number of samples to be transmitted
+        self.pusher.pushLimit = 144 #1/2 day
+        self.pusher.log.setLevel(logging.DEBUG)
+        #Add some samples
+        session = self.Session()
+        enddate = datetime.datetime(2013,2,4,0,0,0) #One day
+        while currentdate < enddate:
+            thesample = models.Reading(time = currentdate, 
+                                       nodeId = 837,
+                                       locationId = 1,
+                                       typeId = 0,
+                                       value = 600)
+            thesample = models.Reading(time = currentdate, 
+                                       nodeId = 838,
+                                       locationId = 2,
+                                       typeId = 0,
+                                       value = 600)
+            currentdate = currentdate + datetime.timedelta(minutes=5)
+        session.flush()
+        session.commit()
+        session.close()
+
+        
+        session = self.Session()
+        thehouse = session.query(models.House).filter_by(id=1).first()
+        for x in range(4): #As we should have 4 lots of readings to transfer
+            output = self.pusher.upload_readings(thehouse)
+            txcount, lasttx = output
+            self.assertEqual(txcount, 144)
+        
+        #Then we want to ensure that there is nothing left
+        output = self.pusher.upload_readings(thehouse)
+        txcount, lasttx = output
+        self.assertEqual(txcount, 0)
 
         self.pusher.log.setLevel(logging.WARNING)
+
+
 
         cutdate = datetime.datetime(2013,2,1,0,0,0)
         session = self.Session()
@@ -1433,24 +1471,38 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()
 
-        #self.Fail()
+        
 
     @unittest.skip
     def test_uploadnodestate(self):
         """Do we upload nodestates correctly"""
-        rSession = self.rSession()
-        qry = rSession.query(models.House)
-        print
-        print "+______REMOPTE_______"
-        for item in qry:
-            print item
-
-
+        cutdate = datetime.datetime(2013,2,1,0,0,0)
         session = self.Session()
-        print "------- LOCAL --------"
-        qry = session.query(models.House)
-        for item in qry:
-            print item
-        self.Fail()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
 
+        session = self.rSession()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+
+        #So now its time to check if nodestates are updated correctly
+
+        #First off lets make sure that a run without anything to transfer works properly
+
+        #Now add a load of nodestates for house One
+
+        #Add nodestates for house One and Two but only push house 1
+
+        #Push house2
+
+    @unittest.skip
+    def test_uploadnodestate_and_reading(self):
+        """Does the sync process work for both nodestate and house?
+    
 

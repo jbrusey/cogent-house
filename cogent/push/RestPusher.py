@@ -1309,7 +1309,7 @@ class Pusher(object):
             theReadings = theReadings.order_by(models.Reading.time)
             #---theReadings = theReadings.limit(self.pushLimit)
             #theReadings = theReadings.limit(10)
-            theReadings = theReadings.limit(10000)
+            theReadings = theReadings.limit(self.pushLimit)
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
