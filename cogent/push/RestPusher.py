@@ -273,7 +273,9 @@ class Pusher(object):
         self.mappedHouses = {}
         self.mappedRooms = {}
         self.mappedLocations = {}
+        self.backmappedLocations = {}
         self.mappedRoomTypes = {}
+
         #Evidently we need to map Sensor Types too
         self.mappedSensorTypes = {}
 
@@ -953,12 +955,7 @@ class Pusher(object):
         mappedHouses = self.mappedHouses
         mappedRooms = self.mappedRooms
         mappedLocations = self.mappedLocations
-
-        # mappingConfig = self.mappingConfig
-        # configLoc = mappingConfig.get("location",{})
-        # mappedLocations.update(dict([(int(k),v)
-        #                              for k,v in
-        #                              configLoc.iteritems()]))
+        backmappedLocations = self.backmappedLocations
 
         theQry = lSess.query(self.Location)
 
@@ -993,6 +990,12 @@ class Pusher(object):
 
         log.debug(mappedLocations)
         self.mappedLocations = mappedLocations
+
+        #And sort out the backmapping
+        for key, value in mappedLocations.iteritems():
+            backmappedLocations[value] = key
+        
+        self.backmappedLocations = backmappedLocations
 
     def sync_nodes(self):
         """Synchronise Nodes between databases.
@@ -1032,14 +1035,16 @@ class Pusher(object):
         newItems = theDiff.added()
         log.debug(newItems)
 
-        #ys.exit(0)
-        #log.debug(newItems)
         for item in newItems:
             thisItem = remoteNodes[item]
             log.info("Node {0}:{1} Not in Local Database".format(item,
                                                                  thisItem))
-            #thisItem.nodeTypeId = None #Set node type to none
-            #thisItem.locationId = None
+
+            #We also need to map this location to that in the local database
+            rloc = self.backmappedLocations.get(thisItem.locationId,None)
+            log.info("Attempting to map location {0} to {1}".format(thisItem.locationId, rloc))
+            thisItem.locationId = rloc
+            
             session.add(thisItem)
             session.flush()
 
@@ -1054,7 +1059,7 @@ class Pusher(object):
             log.info("Node {0} Not in Remote Db, Uploading".format(item))
             dictItem= thisItem.toDict()
             rloc = self.mappedLocations.get(thisItem.locationId,None)
-            log.info("Attempting to mapp location {0} to {1}".format(thisItem.locationId,rloc))
+            log.info("Attempting to map location {0} to {1}".format(thisItem.locationId,rloc))
             dictItem["locationId"] = rloc
             #dictItem["nodeTypeId"] = None
             log.debug("--> New Node is {0}".format(dictItem))
