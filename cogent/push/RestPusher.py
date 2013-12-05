@@ -17,6 +17,7 @@ import logging.handlers
 import os
 import datetime
 import re
+import zlib
 
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
@@ -1162,30 +1163,17 @@ class Pusher(object):
         :return: Datetime of last update to this house
         """
 
-
-    def upload_readings(self, theHouse):
-        """
-        Syncronise Readings between two databases,
-        modified to upload by House
-        """
         log = self.log
-        log.info("--- Upload Readings for house {0} ----".format(theHouse))
-
-        #Load the Mapped items to the local namespace
-        mappedLocations = self.mappedLocations
-        mappedTypes = self.mappedSensorTypes
-        #print mappedTypes
-        #Mapping Config
+        log.info("---- Fetching Last Update for {0} ----".format(theHouse))
         mappingConfig = self.mappingConfig
 
-        #Fetch the last Date from the mapping config
         uploadDates = mappingConfig.get("lastupdate", None)
         lastUpdate = None
         if uploadDates:
             print uploadDates
             lastUpdate = uploadDates.get(str(theHouse.id), None)
             log.info("LAST UPDATE {0} {1}".format(lastUpdate, type(lastUpdate)))
-            if type(lastUpdate) == datetime:
+            if type(lastUpdate) == datetime.datetime:
                 pass
             elif lastUpdate and lastUpdate != 'None':
                 lastUpdate = dateutil.parser.parse(lastUpdate)
@@ -1193,15 +1181,6 @@ class Pusher(object):
                 lastUpdate = None
         log.info("Last Update from Config is >{0}< >{1}<".format(lastUpdate,
                                                                  type(lastUpdate)))
-
-        #TODO:
-        # This is a temporary fix for the problem for nodestates,
-        # Currently I cannot think of a sensible way
-        # To do this without generting a lot of network traffic.
-        self.firstUpload = lastUpdate
-
-        #Get the last reading for this House
-        session = self.localsession()
 
         #As we should be able to trust the last update field of the config file.
         #Only request the last sample from the remote DB if this does not exist.
@@ -1226,11 +1205,87 @@ class Pusher(object):
 
             lastUpdate = lastDate
 
+        return lastUpdate
+
+    def upload_readings(self, theHouse):
+        """
+        Syncronise Readings between two databases,
+        modified to upload by House
+
+        :param theHouse: House Object that we wish to synchronise readings for
+        :return:  A tuple of (number of readings uploaded,  last upload date)
+        """
+        log = self.log
+        log.info("--- Upload Readings for house {0} ----".format(theHouse))
+
+        #Load the Mapped items to the local namespace
+        mappedLocations = self.mappedLocations
+        mappedTypes = self.mappedSensorTypes
+        #print mappedTypes
+        #Mapping Config
+        mappingConfig = self.mappingConfig
+        uploadDates = mappingConfig.get("lastupdate", None)
+
+        #Get the last reading for this House
+        session = self.localsession()
+
+
+        lastUpdate = self.get_lastupdate(theHouse)
+        # # ---------- MOVED TO ABOVE FUNCTION ------
+        # #Fetch the last Date from the mapping config
+        # uploadDates = mappingConfig.get("lastupdate", None)
+        # lastUpdate = None
+        # if uploadDates:
+        #     print uploadDates
+        #     lastUpdate = uploadDates.get(str(theHouse.id), None)
+        #     log.info("LAST UPDATE {0} {1}".format(lastUpdate, type(lastUpdate)))
+        #     if type(lastUpdate) == datetime:
+        #         pass
+        #     elif lastUpdate and lastUpdate != 'None':
+        #         lastUpdate = dateutil.parser.parse(lastUpdate)
+        #     else:
+        #         lastUpdate = None
+        # log.info("Last Update from Config is >{0}< >{1}<".format(lastUpdate,
+        #                                                          type(lastUpdate)))
+
+
+
+        # #As we should be able to trust the last update field of the config file.
+        # #Only request the last sample from the remote DB if this does not exist.
+
+        # if lastUpdate is None:
+        #     log.info("--> Requesting date of last reading in Remote DB")
+        #     log.info("The House is {0}".format(theHouse))
+        #     params = {"house":theHouse.address,
+        #               "lastUpdate":lastUpdate}
+        #     theUrl = "{0}lastSync/".format(self.restUrl)
+
+        #     restQuery = requests.get(theUrl,params=params)
+        #     strDate =  restQuery.json()
+
+        #     log.debug("Str Date {0}".format(strDate))
+        #     if strDate is None:
+        #         log.info("--> --> No Readings in Remote DB")
+        #         lastDate = None
+        #     else:
+        #         lastDate = dateutil.parser.parse(strDate)
+        #         log.info("--> Last Upload Date {0}".format(lastDate))
+
+        #     lastUpdate = lastDate
+
+
+        #TODO:
+        # This is a temporary fix for the problem for nodestates,
+        # Currently I cannot think of a sensible way
+        # To do this without generting a lot of network traffic.
+        firstupload = lastUpdate
+
+
         #sys.exit(0)
         #Then Save
         uploadDates[str(theHouse.id)] = lastUpdate
         mappingConfig["lastupdate"] = uploadDates
-        self.save_mappings()
+        #self.save_mappings()
 
         #Get locations associated with this House
         theLocations = [x.id for x in theHouse.locations]
@@ -1258,7 +1313,7 @@ class Pusher(object):
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
-                return True
+                return transferCount, lastUpdate
 
             transferCount += rdgCount
 
@@ -1273,7 +1328,7 @@ class Pusher(object):
                 dictReading = reading.toDict()
                 #log.debug("==> {0}".format(dictReading))
                 dictReading['locationId'] = mappedLocations[reading.locationId]
-                dictReading['typeId'] = mappedTypes[reading.typeId]
+                #dictReading['typeId'] = mappedTypes[reading.typeId]
                 #log.debug("==> Converted {0}".format(dictReading))
                 jsonList.append(dictReading)
                 lastSample = reading.time
@@ -1302,10 +1357,10 @@ class Pusher(object):
             #And save the last date in the config file
             uploadDates[str(theHouse.id)] = lastUpdate
             mappingConfig["lastupdate"] = uploadDates
-            self.save_mappings()
+            #self.save_mappings()
 
         #Return True if we need to upload more
-        return rdgCount > 0
+        return transferCount, lastUpdate
 
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
