@@ -5,7 +5,6 @@
 #include "./Sensing/CurrentCost/cc_struct.h"
 #include "Filter.h"
 #include "./Exposure/exposure.h"
-#include "./Sensing/HeatMeter/hm_struct.h"
 #include <stdint.h>
 #ifdef DEBUG
 #define NEW_PRINTF_SEMANTICS
