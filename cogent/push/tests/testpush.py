@@ -176,7 +176,6 @@ class TestClient(unittest.TestCase):
         self.assertEqual(lcount, rcount)
         
         self.pusher.sync_nodetypes()
-        return
         session = self.Session()
         qry = session.query(models.NodeType)
         self.assertEqual(lcount, qry.count())
@@ -675,7 +674,7 @@ class TestClient(unittest.TestCase):
 
         self.pusher.mappedDeployment = {}
 
-    @unittest.skip
+    #@unittest.skip
     def test_loadsavemappings(self):
         """Test the Load / Save mappings function
 
@@ -933,7 +932,9 @@ class TestClient(unittest.TestCase):
         self.pusher.sync_locations()
         #Initial set of loactions
         locdict = {1:1, 2:2, 3:3, 4:4}
+        backdict = {1:1, 2:2, 3:3, 4:4}
         self.assertEqual(locdict, self.pusher.mappedLocations)
+        self.assertEqual(backdict, self.pusher.backmappedLocations)
         
         #The next thing to test is wheter new locations get added using an existing rooms.
         self.assertEqual(self.pusher.mappedRooms[3], 3) #Sanity check
@@ -953,7 +954,10 @@ class TestClient(unittest.TestCase):
         self.pusher.sync_locations()
         locdict[5] = 5
         locdict[6] = 6
+        backdict[5] = 5
+        backdict[6] = 6
         self.assertEqual(locdict, self.pusher.mappedLocations)
+        self.assertEqual(backdict, self.pusher.backmappedLocations)
 
         req = requests.get(rurl)
         jsn = req.json()
@@ -978,7 +982,11 @@ class TestClient(unittest.TestCase):
         #Add new items and check they exists
         locdict[10] = 7
         locdict[11] = 8
+        backdict[7] = 10
+        backdict[8] = 11
+
         self.assertEqual(locdict, self.pusher.mappedLocations)
+        self.assertEqual(backdict, self.pusher.backmappedLocations)
         req = requests.get(rurl)
         jsn = req.json()
         self.assertEqual(len(jsn), 8)
@@ -1158,6 +1166,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(qry.locationId, None)        
         session.close()
 
+        #Test we can update local nodes only (With a fake mapping)
         #Finally add a new location fake mappings and work with it
         session = self.Session()
         newloc = models.Location(id=20,
@@ -1181,6 +1190,7 @@ class TestClient(unittest.TestCase):
 
         #Fake mapping the location
         self.pusher.mappedLocations[20] = 10
+        self.pusher.backmappedLocations[10] = 20
 
         #The push
         self.pusher.sync_nodes()
@@ -1191,6 +1201,26 @@ class TestClient(unittest.TestCase):
         self.assertTrue(qry)
         self.assertEquals(qry.locationId, 10) #Has it mapped properly
         session.close()
+
+        #Check we can pull new nodes from the remote server too
+        session = self.rSession()
+        newnode = models.Node(id=2005,
+                              locationId = 10,
+                              nodeTypeId = 1)
+        session.add(newnode)
+        session.flush()
+        session.commit()
+        session.close()
+
+        #Is this pulled correctly
+        self.pusher.sync_nodes()
+        
+        session = self.Session()
+        qry = session.query(models.Node).filter_by(id=2005).first()
+        self.assertTrue(qry)
+        self.assertEquals(qry.nodeTypeId, 1)
+        self.assertEquals(qry.locationId, 20) #This should map to location 20
+        
        
         #self.Fail()
         #Clear out the cruft
