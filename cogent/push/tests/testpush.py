@@ -136,14 +136,14 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedRoomTypes = {} 
         self.pusher.mappedSensorTypes = {} 
 
-    @unittest.skip
+    #@unittest.skip
     def test_connection(self):
         """Can we get an connection"""
         
         self.assertTrue(self.pusher.checkConnection(),
                         msg="No Connection to the test server... Is it running?")
 
-    @unittest.skip
+    #@unittest.skip
     def test_nodetypes_remote(self):
         """Can we properly synch nodetypes
 
@@ -233,7 +233,7 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
 
-    @unittest.skip
+    #@unittest.skip
     def test_nodetypes_fails(self):
         """Does the NodeType fail if we have bad sensortypes"""
         session = self.Session()
@@ -259,7 +259,7 @@ class TestClient(unittest.TestCase):
         session.close()
         
 
-    @unittest.skip
+    #@unittest.skip
     def test_sensortypes_remote(self):
         """Does Synching of sensortypes work as expected
         
@@ -348,7 +348,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         
 
-    @unittest.skip
+    #@unittest.skip
     def test_sensortypes_fails(self):
         """Does the sensortype fail if we have bad sensortypes"""
         session = self.Session()
@@ -374,7 +374,7 @@ class TestClient(unittest.TestCase):
         session.close()
 
 
-    @unittest.skip
+    #@unittest.skip
     def test_sync_roomtypes(self):
         """Does the sync_roomtypes() code work
 
@@ -486,7 +486,7 @@ class TestClient(unittest.TestCase):
 
         self.pusher.mappedRoomTypes = {}
 
-    @unittest.skip
+    #@unittest.skip
     def test_syncRooms(self):
         """Check if sync-rooms works correctly"""
 
@@ -589,7 +589,7 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedRooms = {}
 
 
-    @unittest.skip
+    #@unittest.skip
     def test_syncDeployments(self):
         """Does Syncronising deployments work correctly
 
@@ -692,7 +692,7 @@ class TestClient(unittest.TestCase):
 
         self.pusher.mappedDeployment = {}
 
-    @unittest.skip
+    #@unittest.skip
     def test_loadsavemappings(self):
         """Test the Load / Save mappings function
 
@@ -733,7 +733,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(pusher.mappedRooms, rooms)
         # #self.Fail()
 
-    @unittest.skip
+    #@unittest.skip
     def test_sync_houses(self):
 
         # Make sure the DB is in a sensible state before we get started
@@ -840,7 +840,7 @@ class TestClient(unittest.TestCase):
         session.flush()        
         session.commit()
         session.close()
-        #self.pusher.log.setLevel(logging.DEBUG)
+
         self.pusher.sync_houses()
 
         #self.fail()
@@ -894,7 +894,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()  
 
-    @unittest.skip
+    #@unittest.skip
     def test_sync_locations(self):
         """Does Synching Locations work as expected.
 
@@ -1059,7 +1059,7 @@ class TestClient(unittest.TestCase):
         session.close()  
 
 
-    @unittest.skip
+    #@unittest.skip
     def test_Zsyncnodes(self):
         """Test the syncNodes function
 
@@ -1262,7 +1262,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()
 
-    @unittest.skip
+    #@unittest.skip
     def test_getlastupdate(self):
         """Can we get the date of the last update accurately"""
         #Hopefully nothing yet esists
@@ -1294,6 +1294,8 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
         session.close()
+
+        self.pusher.mappingConfig["lastupdate"] = {}
 
 
         session = self.Session()
@@ -1417,7 +1419,7 @@ class TestClient(unittest.TestCase):
 
         #Finally, what happens if we hit the maximum number of samples to be transmitted
         self.pusher.pushLimit = 144 #1/2 day
-        self.pusher.log.setLevel(logging.DEBUG)
+        #self.pusher.log.setLevel(logging.DEBUG)
         #Add some samples
         session = self.Session()
         enddate = datetime.datetime(2013,2,4,0,0,0) #One day
@@ -1452,10 +1454,6 @@ class TestClient(unittest.TestCase):
         txcount, lasttx = output
         self.assertEqual(txcount, 0)
 
-        self.pusher.log.setLevel(logging.WARNING)
-
-
-
         cutdate = datetime.datetime(2013,2,1,0,0,0)
         session = self.Session()
         qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
@@ -1473,12 +1471,15 @@ class TestClient(unittest.TestCase):
 
         
 
-    @unittest.skip
+    #@unittest.skip
     def test_uploadnodestate(self):
         """Do we upload nodestates correctly"""
+        self.pusher.log.setLevel(logging.DEBUG)
         cutdate = datetime.datetime(2013,2,1,0,0,0)
         session = self.Session()
         qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
         qry.delete()
         session.flush()
         session.commit()
@@ -1486,34 +1487,290 @@ class TestClient(unittest.TestCase):
 
         session = self.rSession()
         qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
         qry.delete()
         session.flush()
         session.commit()
         session.close()
 
         #So now its time to check if nodestates are updated correctly
+        session = self.Session()
+        thehouse = session.query(models.House).filter_by(id=1).first()
+        #As this will get passed in by the upload readings we need to fetch it now
+        lastupdate = self.pusher.get_lastupdate(thehouse)
+        expectdate = datetime.datetime(2013,1,10,23,55,00)
+        self.assertEqual(lastupdate, expectdate)
 
-        #First off lets make sure that a run without anything to transfer works properly
+        #First off lets make sure that a run without anything to transfer works properly        
+        txcount = self.pusher.upload_nodestate(thehouse, lastupdate)
+        self.assertEqual(txcount, 0)
 
         #Now add a load of nodestates for house One
+        currentdate = cutdate
 
+        enddate = datetime.datetime(2013,2,2,0,0,0) #One day
+        session = self.Session()
+        while currentdate < enddate:
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 837)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 837,
+                                     locationId = 1)
+            session.add(theitem)
+            currentdate = currentdate + datetime.timedelta(minutes=5)
+        session.flush()
+        session.commit()
+
+
+        txcount = self.pusher.upload_nodestate(thehouse, lastupdate)
+        #Modify last update
+        
+        self.assertEqual(txcount, 288)
+        lastupdate = currentdate
+    
+        #currentdate = currentdate - datetime.timedelta(minutes=5)
         #Add nodestates for house One and Two but only push house 1
+        enddate = datetime.datetime(2013,2,3,0,0,0)
+        while currentdate <= enddate:
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 837)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 837,
+                                     locationId = 1)
+            session.add(theitem)
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 838)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 838,
+                                     locationId = 2)
+            session.add(theitem)
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 1061)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 1061,
+                                     locationId = 3)
+            session.add(theitem)
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 1063)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 1063,
+                                     locationId = 4)
+            session.add(theitem)           
+            currentdate = currentdate + datetime.timedelta(minutes=5)
+        session.flush()
+        session.commit()
+        session.close()
+        txcount = self.pusher.upload_nodestate(thehouse, lastupdate)
+        self.assertEqual(txcount, 288*2)
+
+        #Check nothing has been transfered to house2
+        node1061expected = 144*10
+        node1063expected = 1920 #round(288*0.666*10)
+        session = self.rSession()
+        qry = session.query(models.NodeState).filter_by(nodeId=837)
+        self.assertEqual(qry.count(), 288*12)
+        qry = session.query(models.NodeState).filter_by(nodeId=838)
+        self.assertEqual(qry.count(), 288*11)
+        qry = session.query(models.NodeState).filter_by(nodeId=1061)
+        self.assertEqual(qry.count(), node1061expected)
+        qry = session.query(models.NodeState).filter_by(nodeId=1063)
+        self.assertEqual(qry.count(), node1063expected)
+        session.close()
 
         #Push house2
+        session = self.Session()
+        thehouse = session.query(models.House).filter_by(id=2).first()
+        txcount = self.pusher.upload_nodestate(thehouse, lastupdate)
+        self.assertEqual(txcount, 288*2)
+        session.close()
+
+        session = self.rSession()
+        qry = session.query(models.NodeState).filter_by(nodeId=837)
+        self.assertEqual(qry.count(), 288*12)
+        qry = session.query(models.NodeState).filter_by(nodeId=838)
+        self.assertEqual(qry.count(), 288*11)
+        qry = session.query(models.NodeState).filter_by(nodeId=1061)
+        self.assertEqual(qry.count(), node1061expected+288)
+        qry = session.query(models.NodeState).filter_by(nodeId=1063)
+        self.assertEqual(qry.count(), node1063expected+288)
+        session.close()
+        
+        session = self.Session()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+
+        session = self.rSession()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
 
 
 
-    @unittest.skip
+    ##@unittest.skip
     def test_uploadnodestate_and_reading(self):
         """Does the sync process work for both nodestate and house?"""
+
+        self.pusher.mappingConfig["lastupdate"] = {}
+        cutdate = datetime.datetime(2013,2,1,0,0,0)
+
+        session = self.Session()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+
+        session = self.rSession()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+
         
+
         #Check that both the nodestate and reading uploads work together
+        #First nothing should be pushed
+        session = self.Session()
+        thehouse = session.query(models.House).filter_by(id=1).first()
+        lastupdate = self.pusher.get_lastupdate(thehouse)
+        
+        self.pusher.mappedLocations = {1:1,2:2,3:3,4:4}
+
+        #And push
+        output = self.pusher.upload_readings(thehouse)
+        txcount, lasttx = output
+        self.assertEqual(txcount, 0)
+        output = self.pusher.upload_nodestate(thehouse, lastupdate)
+        self.assertEqual(output,0)
 
         #Add some readings and nodestates
+        currentdate = datetime.datetime(2013,2,1,0,0,0)
+        enddate = datetime.datetime(2013,2,2,0,0,0)
+        while currentdate < enddate:
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 837,
+                                       parent = 1)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 837,
+                                     locationId = 1)
+            session.add(theitem)
 
-        #Push
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 838,
+                                       parent = 1)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 838,
+                                     locationId = 2)
+            session.add(theitem)
+
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 1061,
+                                       parent = 1)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 1061,
+                                     locationId = 3)
+            session.add(theitem)
+
+            theitem = models.NodeState(time = currentdate,
+                                       nodeId = 1063,
+                                       parent = 1)
+            session.add(theitem)
+            theitem = models.Reading(time = currentdate,
+                                     nodeId = 1063,
+                                     locationId = 4)
+            session.add(theitem)   
+        
+            currentdate = currentdate + datetime.timedelta(minutes=5)
+
+
+        session.flush()
+        session.commit()
+        session.close()
+
+        #Push House 1
+
+        session = self.Session()
+        thehouse = session.query(models.House).filter_by(id=1).first()
+        lastupdate = self.pusher.get_lastupdate(thehouse)
+        output = self.pusher.upload_readings(thehouse)
+        txcount, lasttx = output
+        self.assertEqual(txcount, 288*2)
+        output = self.pusher.upload_nodestate(thehouse, lastupdate)
+        self.assertEqual(output, 288*2)
+        session.close()
+
+
+        #And House 2
+        session = self.Session()
+        thehouse = session.query(models.House).filter_by(id=2).first()
+        lastupdate = self.pusher.get_lastupdate(thehouse)
+        output = self.pusher.upload_readings(thehouse)
+        txcount, lasttx = output
+        self.assertEqual(txcount, 288*2)
+        output = self.pusher.upload_nodestate(thehouse, lastupdate)
+        self.assertEqual(output, 288*2)
+        session.close()
+
+        #Check against expected output.
+        session = self.Session()
+        lqry = session.query(models.Reading)
+        rsession = self.rSession()
+        rqry = session.query(models.Reading)
+
+        self.assertEqual(lqry.count(), rqry.count())
+        for item in zip(lqry,rqry):
+            self.assertEqual(item[0], item[1])
         
 
         #Check against expected output.
+        session = self.Session()
+        lqry = session.query(models.NodeState)
+        rsession = self.rSession()
+        rqry = session.query(models.NodeState)
+
+        self.assertEqual(lqry.count(), rqry.count())
+        for item in zip(lqry,rqry):
+            self.assertEqual(item[0], item[1])
         
 
+
+        session = self.Session()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()
+
+        session = self.rSession()
+        qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
+        qry.delete()
+        qry = session.query(models.Reading).filter(models.Reading.time >= cutdate)
+        qry.delete()
+        session.flush()
+        session.commit()
+        session.close()

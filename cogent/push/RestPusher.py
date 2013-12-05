@@ -1067,9 +1067,12 @@ class Pusher(object):
             r = requests.post(theUrl,data=json.dumps(dictItem))
             log.debug(r)
 
-    def upload_nodestate(self):
+    def upload_nodestate(self,thehouse, lastupdate):
         """
         Upload Nodestates between two databases
+
+        :param thehouse:  House object we want to synchonise
+        :param lastupdate:    Time to start the transfer from
         """
 
         log = self.log
@@ -1080,60 +1083,53 @@ class Pusher(object):
         #Get the last state upload
         mappingConfig = self.mappingConfig
 
-        uploadDate = mappingConfig.get("lastStateUpdate", None)
-        lastUpdate = None
+        #First we want to find the nodes associated with this particular house
+        locations = [x.id for x in thehouse.locations]
+        log.debug("Locations associated with house: {0}".format(locations))
+        nodes = session.query(models.Reading.nodeId).filter(models.Reading.locationId.in_(locations))
+        nodes = nodes.filter(models.Reading.time > lastupdate).distinct()
 
+        log.debug("Nodes associated with this house {0}".format(thehouse))        
+        if nodes.count() == 0:
+            log.debug("No Nodes at this time")
+            return 0
 
-        if uploadDate:
-            log.debug("Last State upload from Config {0}".format(uploadDate))
-            if uploadDate and uploadDate != "None":
-                lastUpdate = dateutil.parser.parse(uploadDate)
-        else:
-            #Hack to match last nodestate with the first Reading we transfer
-            lastUpdate = self.firstUpload
+        #So lets wrap up the nodeIds
+        nids = [x[0] for x in nodes]
+        log.debug("Node Ids to check for {0}".format(nids))
+       
+        qry = session.query(models.NodeState)
+        qry = qry.filter(models.NodeState.time > lastupdate)
+        qry = qry.filter(models.NodeState.nodeId.in_(nids))
+        
+        totalcount = qry.count()
+        log.debug("--> Total of {0} NS to transfer".format(totalcount))
+        rdgCount = totalcount
 
-        log.info("Last Update from Config {0}".format(lastUpdate))
-
-        #Otherwise we want to fetch the last synchronisation
-        #Which is a little bit difficult as we dont have a house or
-        #anything to base this on so we will have to rely on the nodestates
-        #and the readings being synchonised
-
-        #Count total number of Nodestates to upload
-        theStates = session.query(models.NodeState)
-        if lastUpdate:
-            log.debug("-- Filter on {0}".format(lastUpdate))
-            theStates = theStates.filter(models.NodeState.time > lastUpdate)
-
-        origCount = theStates.count()
-        log.info("--> Total of {0} Nodestates to transfer".format(origCount))
-        rdgCount = origCount
-        transferCount = 0
-
+        transfercount = 0
         while rdgCount > 0:
-            theState = session.query(models.NodeState)
-            if lastUpdate:
-                theState = theStates.filter(models.NodeState.time > lastUpdate)
-            theState = theState.order_by(models.NodeState.time)
-            theState = theState.limit(self.pushLimit)
-            rdgCount = theState.count()
+            qry = session.query(models.NodeState)
+            qry = qry.filter(models.NodeState.time > lastupdate)
+            qry = qry.filter(models.NodeState.nodeId.in_(nids))
+            qry = qry.limit(self.pushLimit)
+            rdgCount = qry.count()
+
             if rdgCount <= 0:
-                log.info("--> No States Remain")
-                return True
+                log.info("--> No states remain")
+                return transfercount
 
-            transferCount += rdgCount
-            log.debug("--> Transfer {0}/{1} States to remote DB".format(
-                    transferCount,
-                    origCount))
+            transfercount += rdgCount
+            log.debug("Transfer {0}/{1} to remote DB".format(transfercount, totalcount))
 
-            #Convert to REST
+
             jsonList = []
-            for x in theState:
+            for x in qry:
                 theItem = x.toDict() 
                 theItem["id"] = None
                 jsonList.append(theItem)
-            lastSample = theState[-1].time
-            log.debug("Last State in List {0}".format(lastSample))
+
+            lastupdate = qry[-1].time
+            log.debug("Last State in List {0}".format(lastupdate))
 
             #Zip him up
             jsonStr = json.dumps(jsonList)
@@ -1149,12 +1145,8 @@ class Pusher(object):
                 log.warning(restQry)
                 raise Exception ("Upload Failed")
 
-            #update the stample times
-            lastUpdate = lastSample
-            mappingConfig["lastStateUpdate"] = lastUpdate
-            self.save_mappings()
-
-        return rdgCount > 0
+            
+        return transfercount
 
     def get_lastupdate(self, theHouse):
         """ Fetch the time of the last update to this house 
@@ -1167,7 +1159,7 @@ class Pusher(object):
         log.info("---- Fetching Last Update for {0} ----".format(theHouse))
         mappingConfig = self.mappingConfig
 
-        uploadDates = mappingConfig.get("lastupdate", None)
+        uploadDates = mappingConfig.get("lastupdate", {})
         lastUpdate = None
         if uploadDates:
             print uploadDates

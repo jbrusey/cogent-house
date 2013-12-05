@@ -71,5 +71,5 @@ class NodeState(Base,meta.InnoDBMix):
             val += self.parent - other.parent
             return val
         except TypeError,e:
-            log.warning("Unable to Compate {0} {1}".format(self,other))
+            log.warning("Unable to Compare {0} {1} {2}".format(self,other,e))
         
