@@ -1310,6 +1310,7 @@ class Pusher(object):
             #---theReadings = theReadings.limit(self.pushLimit)
             #theReadings = theReadings.limit(10)
             theReadings = theReadings.limit(self.pushLimit)
+            log.info("Transfering {0} samples to limit of {1}".format(theReadings.count(),self.pushLimit))
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
