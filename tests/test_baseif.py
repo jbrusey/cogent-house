@@ -1,5 +1,5 @@
 import unittest
 
-import cogent.base.baseIf as baseIf
+import cogent.base.BaseIF as BaseIF
 
 
