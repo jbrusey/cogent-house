@@ -7,14 +7,9 @@ Table to hold details of Occupiers
 
 """
 
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 
 import meta
-
-
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-
-
 
 class Occupier(meta.Base, meta.InnoDBMix):
     """Class representing someone who lives in a house

@@ -2,12 +2,9 @@
 class Bitset(object):
     @staticmethod
     def fromstring(s):
-        #print "Convert Bitset {0} {1}".format(s,type(s))
         if s == 'None':
             return None
         return Bitset(value=[int(i) for i in s.split(',')])
-        
-
 
     def __init__(self, size=0, value=None):
         if value is not None:

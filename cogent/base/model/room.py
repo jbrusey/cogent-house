@@ -5,13 +5,11 @@
 """
 
 from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 import meta
-BASE = meta.Base
 
-
-class Room(BASE, meta.InnoDBMix):
+class Room(meta.Base, meta.InnoDBMix):
     """
     A room in a :class:`cogentviewer.models.house.House`
 
@@ -29,39 +27,10 @@ class Room(BASE, meta.InnoDBMix):
 
     location = relationship("Location", backref="room")
 
-
-    def asJSON(self, parentId=""):
-        theItem = {"id":"R_{0}".format(self.id),
-                   "label": "{0} ({1})".format(self.name, self.roomType.name),
-                   "name": "{0} ({1})".format(self.name, self.roomType.name),
-                   "type":"room",
-                   "parent": "H_{0}".format(parentId),
-                   "children":False
-                   }
-        return theItem
-
-    def flatten(self):
-        jsonDict =  self.asJSON()
-        if self.nodes:
-            children = [x.flatten() for x in self.nodes]
-            jsonDict["children"] = children
-
-        return jsonDict
-
-    # def asList(self,parentId=""):
-  #     """Turn this object into a list, so the tree functions can display it"""
-    #     log.debug("--> Room As List Called")
-    #     outDict = [self.asJSON(parentId)]
-    #     if self.nodes:
-    #         outDict[0]["children"] = True
-    #         for item in self.nodes:
-    #             outDict.extend(item.asList(self.id))
-
-    #     return outDict
-
-
     def __str__(self):
-        return "Room ({0}) {1} (Type={2})".format(self.id, self.name,self.roomTypeId)
+        return "Room ({0}) {1} (Type={2})".format(self.id,
+                                                  self.name,
+                                                  self.roomTypeId)
 
 
     def __eq__(self, other):

@@ -70,28 +70,6 @@ class House(meta.Base, meta.InnoDBMix):
         return self.address < other.address
 
 
-    def asJSON(self):
-        item = {"id":"H_{0}".format(self.id),
-                "name":self.address,
-                "label":self.address,
-                "type":"house",
-                "parent": "D_{0}".format(self.deploymentId),
-                "children":[]
-                }
-
-        if not self.deploymentId:
-            item["parent"] = "noDep"
-
-        return item
-
-
-    def asTree(self):
-        item = self.asJSON()
-        item["children"] = [x.asTree() for x in self.locations]
-        return item
-
-
-
     def __str__(self):
         out = "House ({0}):  {1}  {2}-{3}".format(self.id,
                                                      self.address,

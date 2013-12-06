@@ -4,18 +4,18 @@
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 """
 
-import meta
-
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
-#from sqlalchemy.orm import relationship
 
+import meta
 
 class HouseMetadata(meta.Base, meta.InnoDBMix):
     """Table to hold Metadata about houses
 
     :var Integer id: id
-    :var Integer houseId: *foreignKey* Id of :class:`cogentviewer.models.house.House` this beongs to
+    :var Integer houseId: *foreignKey* Id of
+        :class:`cogentviewer.models.house.House` this belongs to
+
     :var string name: Name of metadata
     :var string description: Description of metadata
     :var string units: Units of Metadata

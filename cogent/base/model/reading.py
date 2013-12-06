@@ -156,23 +156,27 @@ class Reading(meta.Base, meta.InnoDBMix):
         #pass
         #Find the Sensor
         session = meta.Session()
-        theSensor = session.query(sensor.Sensor).filter_by(sensorTypeId = self.typeId,
-                                                           nodeId = self.nodeId).first()
+        thesensor = session.query(sensor.Sensor)
+        thesensor = thesensor.filter_by(sensorTypeId = self.typeId,
+                                        nodeId = self.nodeId).first()
 
-        if theSensor is None:
+        if thesensor is None:
             return self.time, self.value
 
         #Otherwise Calibrate
-        value = (self.value * theSensor.calibrationSlope) + theSensor.calibrationOffset
+        value = (self.value * thesensor.calibrationSlope) + thesensor.calibrationOffset
         return (self.time, value)
 
-    def toDict(self):
+    def dict(self):
         """
         Helper Method to convert an object to a dictionary.
 
         This will return a dictionary object, representing this object.  As the
         Reading table does some trickery with reading.typeId remapping it to
         (type) then we need to take account of that.
+
+        Overloads the default :models.meta.Serializemixin.toDict(): method to
+        take acount of the remapped reading.typeId
 
         .. note::  As this is intended to simplify conversion to and from JSON,
                    datetimes are converted using .isoformat()
@@ -202,7 +206,7 @@ class Reading(meta.Base, meta.InnoDBMix):
 
         return out
 
-    def fromJSON(self, jsonDict):
+    def from_json(self, jsonDict):
         """Update the object using a JSON string
 
         :var jsonDict:: Either a JSON string (from json.dumps) or dictionary
@@ -270,7 +274,7 @@ def calibrateReadings(theQuery):
 
 def calibJSON(theQuery):
     """Generator object to calibate all readings,
-    hopefully this gathers all calibration based readings into one 
+    hopefully this gathers all calibration based readings into one
     area
 
     :param theQuery: SQLA query object containing Reading values"""
@@ -304,7 +308,7 @@ def calibJSON(theQuery):
 
 def calibPandas(theQuery):
     """Generator object to calibate all readings,
-    hopefully this gathers all calibration based readings into one 
+    hopefully this gathers all calibration based readings into one
     area
 
     :param theQuery: SQLA query object containing Reading values"""

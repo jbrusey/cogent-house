@@ -3,26 +3,17 @@ Table to hold details of raw messages
 
 .. module:: rawmessage
 
-.. codeauthor::  Ross Wiklins 
+.. codeauthor::  Ross Wiklins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 
 """
 
-import sqlalchemy
-import logging
-log = logging.getLogger(__name__)
-
 import meta
-Base = meta.Base
 
+from sqlalchemy import Column, Integer, String, DateTime
 
-# from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Table, Column, Integer, String, DateTime
-from sqlalchemy.orm import relationship, backref
-
-
-class RawMessage(Base,meta.InnoDBMix):
+class RawMessage(meta.Base, meta.InnoDBMix):
     """A Raw Message
 
     :var Integer id: Id
@@ -33,7 +24,6 @@ class RawMessage(Base,meta.InnoDBMix):
     __tablename__ = "RawMessage"
 
 
-    id = Column(Integer,primary_key=True,autoincrement=False)
+    id = Column(Integer, primary_key=True, autoincrement=False)
     time = Column(DateTime)
     pickedObject = Column(String(400))
-    

@@ -1,37 +1,27 @@
 """
-.. codeauthor::  Ross Wiklins 
+.. codeauthor::  Ross Wiklins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 
 """
 
-import sqlalchemy
-import logging
-log = logging.getLogger(__name__)
-
 import meta
-Base = meta.Base
 
-from sqlalchemy import Table, Column, Integer, ForeignKey,String,DateTime,Boolean
-from sqlalchemy.orm import relationship, backref
-
-import sqlalchemy.types as types
-#from Bitset import Bitset
+from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 
 
-
-class NodeHistory(Base,meta.InnoDBMix):
+class NodeHistory(meta.Base, meta.InnoDBMix):
     """
     Class to hold history of the node
 
-    :var Integer nodeId: Id of :class:`cogentviewer.models.node.Node` this history belogs to
-    :var DateTime startDate: 
-    :var DateTime endDate: 
+    :var Integer nodeId: Id of :class:`cogentviewer.models.node.Node`
+        this history belogs to
+    :var DateTime startDate:
+    :var DateTime endDate:
     :var String houseAddress:
-    :var String roomType: 
+    :var String roomType:
     :var String roomName:
     """
-    
 
     __tablename__ = "NodeHistory"
 
