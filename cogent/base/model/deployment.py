@@ -46,15 +46,6 @@ class Deployment(meta.Base, meta.InnoDBMix):
                         backref="deployment")
     houses = relationship("House", order_by="House.id", backref="deployment")
 
-    def asJSON(self):
-        """ Return a JSON compatable structure representing this item
-        see :func:`models.asJSON`"""
-        return {"id":"D_{0}".format(self.id),
-               "name":self.name,
-               "label":self.name,
-               "type":"deployment",
-               "children":[],
-               "parent":"root"}
 
     def __str__(self):
         return "Deployment: {0} {1} {2} - {3}".format(self.id,
@@ -62,13 +53,6 @@ class Deployment(meta.Base, meta.InnoDBMix):
                                                       self.startDate,
                                                       self.endDate)
 
-
-
-    def asTree(self):
-        """Recursively turn the deployments into a tree"""
-        thisitem = self.asJSON()
-        thisitem["children"] = [x.asTree() for x in self.houses]
-        return thisitem
 
     def __eq__(self, other):
         """Check for equality

@@ -1,19 +1,21 @@
-import sqlalchemy
-import logging
-log = logging.getLogger(__name__)
+"""
+.. codeauthor::  Ross Wiklins
+.. codeauthor::  James Brusey
+.. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, DateTime, Float, Boolean
+"""
+
+from sqlalchemy import Column, String
 
 import meta
-Base = meta.Base
 
-class LastReport(Base,meta.InnoDBMix):
+class LastReport(meta.Base, meta.InnoDBMix):
     """
     Class to deal with LastReports
 	This holds details of the last report E-Mailed to chuser
 
-    :var String name: Name 
-    :var String value: Value 
+    :var String name: Name
+    :var String value: Value
 
     """
 

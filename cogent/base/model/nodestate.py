@@ -1,58 +1,48 @@
 """
-.. codeauthor::  Ross Wiklins 
+.. codeauthor::  Ross Wiklins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 
 """
 
-import sqlalchemy
 import logging
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 import meta
-Base = meta.Base
 
-from sqlalchemy import Table, Column, Integer, ForeignKey,String,DateTime,Boolean,BigInteger, Index
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, BigInteger, Index
 
-import sqlalchemy.types as types
 #from Bitset import Bitset
 
 
-class NodeState(Base,meta.InnoDBMix):
+class NodeState(meta.Base, meta.InnoDBMix):
     """
     It appears that this table holds the state of any nodes.
-    
-    I assume this will be used for the routing tree display,
-
-    .. todo::
-    
-        Find out what these are for        
-        1. parent
-        1. localTime
-
 
     :var Integer id: Id of NodeState
-    :var DateTime time: Timestamp of state 
-    :var Integer nodeId: :class:`cogentviewer.models.node.Node` this state belongs to
+    :var DateTime time: Timestamp of state
+    :var Integer nodeId: :class:`cogentviewer.models.node.Node`
     :var Integer parent: Parent node in the routing tree?
     :var BigInteger localtime: Local time of the node (in unix time??)
     """
 
     __tablename__ = "NodeState"
 
-
-    id = Column(Integer, 
+    id = Column(Integer,
                 primary_key=True)
     time = Column(DateTime)
-    nodeId = Column(Integer, 
+    nodeId = Column(Integer,
                     ForeignKey('Node.id'))
     parent = Column(Integer)
     localtime = Column(BigInteger)
     seq_num = Column(Integer)
     rssi = Column(Integer)
 
-    __table_args__ = (Index('ns_1','time','nodeId','localtime'),
+    #Add a named index
+    __table_args__ = (Index('ns_1',
+                            'time',
+                            'nodeId',
+                            'localtime'),
                       )
 
     def __repr__(self):
@@ -64,12 +54,23 @@ class NodeState(Base,meta.InnoDBMix):
                 str(self.localtime) + ")")
 
 
-    def __cmp__(self,other):
+    def __cmp__(self, other):
         try:
             val = (self.time - other.time).seconds
             val += self.nodeId - other.nodeId
             val += self.parent - other.parent
             return val
-        except TypeError,e:
-            log.warning("Unable to Compare {0} {1} {2}".format(self,other,e))
+        except TypeError, e:
+            LOG.warning("Unable to Compare {0} {1} \n{2}".format(self, other, e))
+
+
+    def pandas(self):
+        """Return this object as something suitable for pandas"""
         
+        #Igonre parent / rssi as we dont really use them
+        return {"id":self.id,
+                "localtime":self.localtime,
+                "nodeId":self.nodeId,
+                "seq_num":self.seq_num,
+                "time":self.time}
+                

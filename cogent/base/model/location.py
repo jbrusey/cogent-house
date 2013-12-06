@@ -1,5 +1,4 @@
 """
-
 .. codeauthor::  Ross Wiklins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
@@ -46,27 +45,8 @@ class Location(meta.Base, meta.InnoDBMix):
                             secondary="NodeLocation",
                             backref="all_locs")
 
-    def asJSON(self):
-        """
-        Differes from the standard asJSON model by returning the
-        name of the room as its name
-        """
-        item = {"id":"L_{0}".format(self.id),
-                "name":"{0}".format(self.room.name),
-                "label":"({0}) {1}".format(self.id, self.room.name),
-                "type":"location",
-                "parent": "H_{0}".format(self.houseId),
-                   }
-
-        return item
-
-
-    def asTree(self):
-        return self.asJSON()
-
-
     def __str__(self):
-        return "Loacation {0}: {1} {2}".format(self.id,
+        return "Location {0}: {1} {2}".format(self.id,
                                                self.houseId,
                                                self.roomId)
 

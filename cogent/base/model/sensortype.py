@@ -44,16 +44,6 @@ class SensorType(meta.Base, meta.InnoDBMix):
     readings = relationship("Reading", backref="sensorType")
     sensors = relationship("Sensor", backref="sensorType")
 
-    def asJSON(self):
-        """
-        Convert the Item to JSON
-        """
-        return {"id":self.id,
-                "label":self.name,
-                "name":self.name,
-                "type":"sensorType",
-                "code":self.code,
-                "units":self.units}
 
     def __str__(self):
         return "{0}: {1} {2} {3}".format(self.id,
