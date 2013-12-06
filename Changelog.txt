@@ -73,4 +73,6 @@ Merge Models with base webinterface and fix unittests
 * dict() method added to meta.py
 * update populate data with the "new" constants for SensorTypeId
 * Merge "fixed" alembic scripts
-
+* Added unittests for models based of those in webinterface
+* Made the unitests for the RestPusher somewhat more sane
+* Added setup.cfg file for unittests via nose
