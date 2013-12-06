@@ -178,6 +178,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(lcount, rcount)
         
         self.pusher.sync_nodetypes()
+
         session = self.Session()
         qry = session.query(models.NodeType)
         self.assertEqual(lcount, qry.count())
