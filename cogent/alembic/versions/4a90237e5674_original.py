@@ -8,7 +8,7 @@ Create Date: 2012-02-07 14:22:54.298813
 
 # revision identifiers, used by Alembic.
 revision = '4a90237e5674'
-#What sort of wanker did this!!!!!
+#What sort of wanker did this!!!!! (Remove the Init Database Nightmare)
 #down_revision = '13037206f335'
 down_revision=None
 
