@@ -20,7 +20,6 @@ import sys
 import os
 from optparse import OptionParser
 
-
 if "TOSROOT" not in os.environ:
     raise Exception("Please source the Tiny OS environment script first")
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
@@ -37,18 +36,14 @@ import time
 from cogent.base.model import *
 import cogent.base.model.populateData as populateData
 
-#logger = logging.getLogger("ch.base")
 
 F="/home/james/sa.db"
-#DBFILE = "sqlite:///" 
-DBFILE = "mysql://chuser@localhost/ch"
+DBFILE = "sqlite:///test.db" 
+#DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
 import sqlalchemy.exc
 
-#New RRD stuff
-import rrdstore
-RRDLIST = {}
 
 class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
@@ -59,11 +54,7 @@ class BaseLogger(object):
         self.metadata = Base.metadata
 
         if bif is None:
-#            try:
             self.bif = BaseIF("sf@localhost:9002")
-#            except KeyboardInterrupt:
-#                print "Thread Based Madness"
-#                self.running = False
         else:
             self.bif = bif
 
@@ -97,35 +88,7 @@ class BaseLogger(object):
         return ((nid % 4096) / 32,
                 nid % 32,
                 nid / 4096)
-    
-    # def store_rrd(self, n, i, t, v, locId = 1000):
-    #     """Store the latest reading in a RRD file
-        
-    #     :param n: Node Id
-    #     :param i: Node Type
-    #     :param t: Time
-    #     :param v: Value
 
-    #     .. note::
-        
-    #         Currently this does not take account of the location Id.  This may be an option in the future
-    #     """
-    #     #Store in a RRD Database
-        
-    #     t1 = time.time()
-    #     theRRD = RRDLIST.get((n,i,locId),None)
-    #     if theRRD is None:
-    #         try:
-    #             theRRD = rrdstore.RRDStore(n,i,locId)
-    #             RRDLIST[(n,i,locId)] = theRRD
-
-    #             theRRD.update(t,v)
-    #             t2 = time.time()
-    #             log.debug("Time Taken to update RRD {0}".format(t2-t1))        
-    #         except Exception,e:
-    #             log.warning("Problem updating RRD")
-    #             log.warning(e)
-	
     def store_state(self, msg):
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
@@ -228,7 +191,7 @@ class BaseLogger(object):
         self.log.info("Stating Baselogger Daemon")
         while self.running:
             try:
-                msg = self.bif.queue.get(True,10)
+                msg = self.bif.queue.get(True,30)
                 #msg = self.bif.get(True, 10) #Avoid using this for the moment
                 self.store_state(msg)
                 self.bif.queue.task_done()  #Signal the queue that we have finished processing
@@ -240,41 +203,6 @@ class BaseLogger(object):
             except Exception as e:
                 self.log.exception("during receiving or storing msg: " + str(e))
 
-        # try:
-        #     while self.running:
-        #         print "LOOPING"
-                # wait up to 30 seconds for a message
-                # try:
-                #     print "Attempting to get MSG"
-                #     #msg = self.bif.get(True, 5)
-                #     msg = self.bif.queue.get(True,10)
-                #     print "STORING MSG"
-                #     #self.store_state(msg)
-                #     #self.bif.queue.task_done()
-                # except SystemExit:
-                #     print "System Exit Called"
-                # except KeyboardInterrupt:
-                #     #Try to catch a keybaord interrupt a little earlier
-                #     print "Keybord in Fecth" 
-                #     self.running = False
-                #     raise
-                # except Empty:
-                #     print "EMPTY"
-                #     pass        
-                # except AttributeError:
-                #     print "Attrivute Error"
-                #     self.running = False
-                # except Exception as e:
-                #     print "OTHER EXCEPTION"
-                #     self.log.exception("during receiving or storing msg: " + str(e))
-                #     time.sleep(30)
-        # finally:
-        #     print "All Done"
-        # except KeyboardInterrupt:
-        #     #This is a little bit strange, half the time we exit properly, the other half this gets swallowed up by another exception handler
-        #     print "-----> EXIT VIA KEYBD"
-        #     raise
-        #     self.log.debug("Exiting via KeyboardInterrupt")
         print "SHUTDOWN"
         self.bif.finishAll()
         print "---> Done"
@@ -331,6 +259,6 @@ if __name__ == '__main__':
 
     logging.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
-    #lm.create_tables()
+    lm.create_tables()
     lm.run()
 		
