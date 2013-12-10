@@ -13,11 +13,10 @@ REQUIRES = ['SQLAlchemy',
             "matplotlib",
             "pyserial",
             "requests",
-            "pyrrd",
             "transaction",
             "python-daemon",
             "alembic",
-            "scipy",
+#            "scipy",
             ]
     
 setup(name='ch-base',
