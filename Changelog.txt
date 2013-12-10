@@ -76,3 +76,4 @@ Merge Models with base webinterface and fix unittests
 * Added unittests for models based of those in webinterface
 * Made the unitests for the RestPusher somewhat more sane
 * Added setup.cfg file for unittests via nose
+* Setup repository for default and release branches
