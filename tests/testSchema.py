@@ -27,6 +27,21 @@ DBURL="sqlite:///:memory:"
 
 
 class TestNodeType(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        print "Setting up testing database"
+        from sqlalchemy import create_engine
+
+        engine = create_engine(DBURL, echo=False)
+        engine.execute("pragma foreign_keys=on")
+        init_model(engine)
+        metadata = Base.metadata
+        metadata.create_all(engine)
+        cls.engine = engine
+        cls.metadata = metadata
+
+
     def setUp(self):
         session = Session()
         engine = session.get_bind(mapper=None)
@@ -106,11 +121,27 @@ class TestNodeType(unittest.TestCase):
             session.close()
             
 class TestSchema(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(cls):
+        print "Setting up testing database"
+        from sqlalchemy import create_engine
+
+        engine = create_engine(DBURL, echo=False)
+        engine.execute("pragma foreign_keys=on")
+        init_model(engine)
+        metadata = Base.metadata
+        metadata.create_all(engine)
+        cls.engine = engine
+        cls.metadata = metadata
+
+
     def setUp(self):
         session = Session()
         engine = session.get_bind(mapper=None)
         session.close()
         Base.metadata.create_all(engine)
+        #self.metadata.create_all(engine)
 
     def tearDown(self):
         session = Session()
