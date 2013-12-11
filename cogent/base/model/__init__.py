@@ -45,6 +45,7 @@ from event import *
 from timings import *
 from user import *
 
+import populateData
 
 import json
 
