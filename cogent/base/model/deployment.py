@@ -13,15 +13,10 @@ from sqlalchemy import Column, Integer, String, DateTime
 #And Backrefs and Relations.
 from sqlalchemy.orm import relationship
 
-#Setup Logging
-import logging
-log = logging.getLogger(__name__)
-
 #Import Pyramid Meta Data
 import meta
-Base = meta.Base
 
-class Deployment(Base, meta.InnoDBMix):
+class Deployment(meta.Base, meta.InnoDBMix):
     """Table to hold information about deployments.
 
     :var integer id: deployment id (pk)
@@ -36,8 +31,8 @@ class Deployment(Base, meta.InnoDBMix):
 
     :var list houses: *Backref:* all
         :class:`cogentviewer.models.house.House` objects in this deployment
-
     """
+
     __tablename__ = "Deployment"
 
     id = Column(Integer, primary_key=True)
@@ -51,15 +46,6 @@ class Deployment(Base, meta.InnoDBMix):
                         backref="deployment")
     houses = relationship("House", order_by="House.id", backref="deployment")
 
-    def asJSON(self):
-        """ Return a JSON compatable structure representing this item
-        see :func:`models.asJSON`"""
-        return {"id":"D_{0}".format(self.id),
-               "name":self.name,
-               "label":self.name,
-               "type":"deployment",
-               "children":[],
-               "parent":"root",}
 
     def __str__(self):
         return "Deployment: {0} {1} {2} - {3}".format(self.id,
@@ -68,22 +54,22 @@ class Deployment(Base, meta.InnoDBMix):
                                                       self.endDate)
 
 
-    def toList(self):
-        """Create a Flattened List represenstaion of this item"""
-        thisItem = self.asJSON()
-        thisItem["parent"] = "root"
-        return [thisItem]
-
-    def asTree(self):
-        """Recursively turn the deployments into a tree"""
-        thisItem = self.asJSON()
-        thisItem["children"] = [x.asTree() for x in self.houses]
-        return thisItem
-
-    def __eq__(self,other):
+    def __eq__(self, other):
         """Check for equality
 
         Given that Deployment Names should be Unique,
         equality is given if the names match
         """
-        return (self.name == other.name)
+        return self.name == other.name
+
+    def __ne__(self, other):
+        """Check for Inequality"""
+        return not(self.name == other.name)
+        #return not(self.id == other.id and self.name == other.name)
+
+    def __lt__(self, other):
+        """Order Objects,
+        """
+        #if self.id == other.id:
+        return self.name < other.name
+

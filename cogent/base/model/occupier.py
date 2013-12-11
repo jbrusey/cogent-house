@@ -7,27 +7,18 @@ Table to hold details of Occupiers
 
 """
 
-
-import sqlalchemy
-import logging
-log = logging.getLogger(__name__)
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 
 import meta
-Base = meta.Base
 
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import relationship, backref
-
-
-
-class Occupier(Base,meta.InnoDBMix):
+class Occupier(meta.Base, meta.InnoDBMix):
     """Class representing someone who lives in a house
-    
+
     :var Integer id: Id
     :var Integer houseId: *fk* to :class:`cogentviewer.models.house.House`
     :var String name: Name of Resident
     :var String contactNumber: Contact Number
-    :var DateTime startDate: 
+    :var DateTime startDate:
     :var DateTime endDate:
     """
 
