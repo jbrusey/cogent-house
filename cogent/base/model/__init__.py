@@ -10,16 +10,16 @@ Classes to initialise the SQL and populate with default Sensors
     new tables are created using INNODB
 """
 
-import logging
-log = logging.getLogger(__name__)
-#log.setLevel(logging.WARNING)
-
 import csv
 import os
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import mapperlib
 
 from meta import *
+
+#Namespace Manginlg the Proper way, (via all)
+#__all__ = ["deployment.*"]
 
 #Namespace Mangling
 from deployment import *
@@ -41,15 +41,27 @@ from roomtype import *
 from sensor import *
 from sensortype import *
 from weather import *
-from uploadurl import *
+from event import *
+from timings import *
+from user import *
 
 import populateData
 
 import json
 
 #Setup Logging
+import logging
 log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
 
+TABLEMAP = {}
+
+def init_model(engine):
+    """Call me before using any of the tables or classes in the model
+
+    DO NOT REMOVE ON MERGE
+    """
+    Session.configure(bind=engine)
 
 def initialise_sql(engine, dropTables=False):
     """Initialise the database
@@ -58,8 +70,7 @@ def initialise_sql(engine, dropTables=False):
     :param dropTables: Do we want to clean the database out or not
     :param session: Use a session other than the global DB session
 
-    .. warning:: 
-    
+    .. warning::
         Previously this function called the populateData function. I
         have removed this functionality Any function that calls
         initialise_sql will have to call the init_data method if
@@ -73,28 +84,55 @@ def initialise_sql(engine, dropTables=False):
     if dropTables:
         Base.metadata.drop_all(engine)
 
-    Base.metadata.create_all(engine)  
+    Base.metadata.create_all(engine)
 
-def populate_data(session=None):
-    """Populate the database with some initial data
+def findClass(tableName):
+    """Helper method that attempts to find a SQLA class given a tablename
+    :var tablename: Name of table to find
+    """
 
-    :param session: Session to use to populate database"""
-    log.info("Populating Data")
+    tableName = tableName.lower()
+    log.debug(TABLEMAP)
+    mappedTable = TABLEMAP.get(tableName,None)
+    if mappedTable:
+        return mappedTable
 
-    #Create a brand new session, not linked to any sort of transaction managers
-    if not session:
-        tMaker = sqlalchemy.orm.sessionmaker()
-        session = tMaker()
-    
+    log.debug("Looking for {0}".format(tableName))
+    for x in mapperlib._mapper_registry.items():
+        #mapped table
+        log.debug("--> Checking against {0}".format(x))
+        checkTable = x[0].mapped_table
+        theClass = x[0].class_
+        log.debug("--> Mapped Table {0}".format(checkTable))
+        checkName = checkTable.name.lower()
+        TABLEMAP[checkName] = theClass
+        if checkName == tableName:
+            log.debug("--> Match {0}".format(checkTable.name))
+            log.debug("--> Class is {0}".format(theClass))
+            mappedTable = theClass
 
-    populateData.init_data(session)
+    log.debug("--> Final Verison {0}".format(mappedTable))
+    return mappedTable
 
-    
-    
-def init_model(engine):
-    """Call me before using any of the tables or classes in the model"""
-    Session.configure(bind=engine)
+def newClsFromJSON(jsonItem):
+    """Method to create class from JSON"""
+    if type(jsonItem) == str:
+        jsonItem = json.loads(jsonItem)
 
+    log.debug("Loading class from JSON")
+    log.debug("JSON ITEM IS {0}".format(jsonItem))
+    theType = jsonItem["__table__"]
+    log.debug("Table from JSON is {0}".format(theType))
+    theClass = findClass(theType)
+    log.debug("Returned Class {0}".format(theClass))
+    #Iterate through to find the class
+    #Create a new instace of this models
+    theModel = theClass()
+    log.debug("New model is {0}".format(theModel))
+    #And update using the JSON stuff
+    theModel.fromJSON(jsonItem)
+    log.debug("Updated Model {0}".format(theModel))
+    return theModel
 
 def clsFromJSON(theList):
     """Generator object to convert JSON strings from a rest object
@@ -102,11 +140,9 @@ def clsFromJSON(theList):
     #Convert from JSON encoded string
     if type(theList) == str:
         theList = json.loads(theList)
-    
     #Make the list object iterable
     if not type(theList) == list:
         theList = [theList]
-
 
     typeMap = {"deployment":Deployment,
                "house":House,
@@ -118,9 +154,9 @@ def clsFromJSON(theList):
                "sensortype":SensorType,
                "room":Room,
                "location":Location,
+               "nodetype":NodeType,
                }
 
-        
     for item in theList:
         #print "--> {0}".format(item)
         #Convert to the correct type of object
@@ -130,5 +166,3 @@ def clsFromJSON(theList):
         
         theModel.fromJSON(item)
         yield theModel
-            
-    
