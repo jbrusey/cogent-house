@@ -61,8 +61,6 @@ class Deployment(meta.Base, meta.InnoDBMix):
         equality is given if the names match
         """
         return self.name == other.name
-        #return (self.id == other.id) and (self.name == other.name)
-
 
     def __ne__(self, other):
         """Check for Inequality"""
@@ -75,9 +73,3 @@ class Deployment(meta.Base, meta.InnoDBMix):
         #if self.id == other.id:
         return self.name < other.name
 
-        #if self.id < other.id:
-        #    if self.name == other.name:
-        #        return True
-        #    else:
-        #        return self.name < other.name
-        #return False
