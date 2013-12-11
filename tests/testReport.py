@@ -28,6 +28,10 @@ class TestIP(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """One off population of Database"""
+        engine = create_engine("sqlite:///", echo=False)
+        Base.metadata.create_all(engine)
+        init_model(engine)
+
         initDb()
 
     def test_lowbat(self):
@@ -90,7 +94,8 @@ def initDb():
             ns = NodeState(time=t,
                            nodeId=23,
                            parent=0,
-                           localtime=0)
+                           localtime=0,
+                           seq_num=i)
             s.add(ns)
 
             s.add(Reading(typeId=6,
@@ -112,7 +117,8 @@ def initDb():
                 s.add(NodeState(time=t,
                                 nodeId=24,
                                 parent=0,
-                                localtime=0))
+                                localtime=0,
+                                seq_num=i))
             t = t + timedelta(minutes=5)
             
         s.commit()
