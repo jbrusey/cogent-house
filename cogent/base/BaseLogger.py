@@ -10,7 +10,7 @@
 #
 # BaseLogger
 #
-# log data from mote to a database and also print out 
+# log data from mote to a database and also print out
 #
 # J. Brusey, R. Wilkins, April 2011
 # D. Goldsmith, May 2013
@@ -38,15 +38,17 @@ import cogent.base.model.populateData as populateData
 
 
 F="/home/james/sa.db"
-DBFILE = "sqlite:///test.db" 
+DBFILE = "sqlite:///test.db"
 #DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
 import sqlalchemy.exc
 
+QUEUE_TIMEOUT = 10
 
 class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
+        log.debug("Init Engine")
         self.engine = create_engine(dbfile, echo=False)
         init_model(self.engine)
         #if DBFILE[:7] == "sqlite:":
@@ -83,7 +85,7 @@ class BaseLogger(object):
             and_(NodeState.nodeId==nodeId,
                  NodeState.localtime==localtime,
                  NodeState.time > earliest)).first() is not None
-            
+
     def getNodeDetails(self, nid):
         return ((nid % 4096) / 32,
                 nid % 32,
@@ -143,7 +145,7 @@ class BaseLogger(object):
                     v = msg.getElement_packed_state(j)
                     state.append((i,v))
                     self.log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
-                    
+
                     #Store in RRD
                     #self.store_rrd(n, i, t, v)
                     t1 = time.time()
@@ -158,7 +160,7 @@ class BaseLogger(object):
                     except sqlalchemy.exc.IntegrityError:
                         self.log.error("Unable to store, checking if node type exists")
                         session.rollback()
-                        
+
                         s = session.query(SensorType).filter_by(id=i).first()
                         if s is None:
                             s = SensorType(id=i,name="UNKNOWN")
@@ -171,10 +173,10 @@ class BaseLogger(object):
                                         locationId=locId,
                                         value=v)
                             session.add(r)
-                            session.flush()                            
+                            session.flush()
                         else:
                             self.log.error("Sensor type exists")
-                        
+
                     t2 = time.time()
                     self.log.debug("Time taken to update DB {0}".format(t2-t1))
                     j += 1
@@ -186,6 +188,33 @@ class BaseLogger(object):
             self.log.exception("during storing: " + str(e))
         finally:
             session.close()
+
+    def mainloop(self):
+        """Break out run into a single 'mainloop' function
+
+        Poll the bif.queue for data, if something has been recieved
+        process and store.
+
+        :return True: If a packet has been recieved and stored correctly
+        :return False: Otherwise
+        """
+        log.debug("Main Loop")
+        try:
+            msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
+            log.debug("Msg Recvd {0}".format(msg))
+            self.store_state(msg)
+            #Signal the queue that we have finished processing
+            self.bif.queue.task_done()
+            return True
+        except Empty:
+            self.log.debug("Empty Queue")
+            return False
+        except KeyboardInterrupt:
+            print "KEYB IRR"
+            self.running = False
+        except Exception as e:
+            self.log.exception("during receiving or storing msg: " + str(e))
+
 
     def run(self):
         self.log.info("Stating Baselogger Daemon")
@@ -207,7 +236,7 @@ class BaseLogger(object):
         self.bif.finishAll()
         print "---> Done"
 
-                
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
@@ -221,9 +250,9 @@ if __name__ == '__main__':
 
     parser.add_option("-t", "--log-terminal",
                       help="Echo Logging output to terminal",
-                      action="store_true",                      
+                      action="store_true",
                       default=False)
-    
+
 
     (options, args) = parser.parse_args()
     if len(args) != 0:
@@ -255,10 +284,9 @@ if __name__ == '__main__':
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
 
-        
+
 
     logging.info("Starting BaseLogger with log-level %s" % (options.log_level))
     lm = BaseLogger()
     lm.create_tables()
     lm.run()
-		
