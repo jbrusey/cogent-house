@@ -36,6 +36,8 @@ Header file containing all packet formats sent/received
 #define _PACKETS_H
 
 // state codes
+// These state codes are used to represent datatypes in packets transmitted across
+// the network. For example in the BitSet.
 enum {
   SC_TEMPERATURE = 0,
   SC_D_TEMPERATURE = 1,
@@ -69,6 +71,7 @@ enum {
 #include "PackState/packstate.h"
 
 // raw sensors
+// These a lookup values, to map a sensor type to a given read function.
 enum { 
   RS_TEMPERATURE = 0,
   RS_HUMIDITY = 1,

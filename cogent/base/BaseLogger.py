@@ -1,12 +1,3 @@
-#rrdtool graph test.png DEF:x1=32768_None_6.rrd:reading:AVERAGE LINE1:x1#FF0000
-#rrdtool fetch 32768_None_6.rrd AVERAGE -s -1h
-#python BaseLogger.py -l debug -f testLog.log -t
-#
-# Node IDS
-#20480 is the nodeId you want
-##basically look at CogentHouseP from line 183 to get the node type then * that by 4096
-
-
 #
 # BaseLogger
 #
@@ -45,6 +36,7 @@ from sqlalchemy import create_engine, func, and_
 import sqlalchemy.exc
 
 QUEUE_TIMEOUT = 10
+
 
 class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
@@ -93,7 +85,9 @@ class BaseLogger(object):
 
     def store_state(self, msg):
         if msg.get_special() != Packets.SPECIAL:
-            raise Exception("Corrupted packet - special is %02x not %02x" % (msg.get_special(), Packets.SPECIAL))
+            exp="Corrupted packet - special is %02x not %02x"%(msg.get_special(),
+                                                               Packets.SPECIAL)
+            raise Exception(exp)
 
         try:
             session = Session()
@@ -124,9 +118,11 @@ class BaseLogger(object):
                                      time=t,
                                      nodeId=n,
                                      localtime=localtime):
-                self.log.info("duplicate packet %d->%d, %d %s" % (n, parent, localtime, str(msg)))
+                self.log.info("duplicate packet %d->%d, %d %s" % (n,
+                                                                  parent,
+                                                                  localtime,
+                                                                  str(msg)))
                 return
-                #raise Exception("duplicate packet: %s, %s" % (str(msg), msg.data))
 
             ns = NodeState(time=t,
                            nodeId=n,
@@ -201,7 +197,7 @@ class BaseLogger(object):
         log.debug("Main Loop")
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
-            log.debug("Msg Recvd {0}".format(msg))
+            self.log.debug("Msg Recvd {0}".format(msg))
             self.store_state(msg)
             #Signal the queue that we have finished processing
             self.bif.queue.task_done()
@@ -223,7 +219,8 @@ class BaseLogger(object):
                 msg = self.bif.queue.get(True,30)
                 #msg = self.bif.get(True, 10) #Avoid using this for the moment
                 self.store_state(msg)
-                self.bif.queue.task_done()  #Signal the queue that we have finished processing
+                #Signal the queue that we have finished processing
+                self.bif.queue.task_done()
             except Empty:
                 self.log.debug("Empty Queue")
             except KeyboardInterrupt:
@@ -240,7 +237,7 @@ class BaseLogger(object):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
-                      help="Set log level to LEVEL: debug,info,warning,error, [default: info]",
+                      help="Set log level to LEVEL: debug,info,warning,error",
                       default="info",
                       metavar="LEVEL")
 
