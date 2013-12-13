@@ -94,6 +94,69 @@ class test_baselogger(base.BaseTestCase):
         output = self.blogger.mainloop()
         self.assertFalse(output)
 
+    def testFailOnSpecial(self):
+        """Do We fail gracefully if Special is wrong"""
+        bs = Bitset(size=Packets.SC_SIZE)
+        #Try to setup a temperature sample
+        bs[Packets.SC_TEMPERATURE] = True
+
+        #Then A packet
+        packet = StateMsg(addr=4242)        
+        packet.set_ctp_parent_id(101) #Parent Node Id
+        #packet.set_special(0xc7) #Special Id
+
+        packet.set_packed_state_mask(bs.a)
+        packet.set_packed_state([22.5])
+
+        #with self.assertRaises(Exception): 
+        #self.testbif.receive(packet)
+        #output = self.blogger.mainloop()           
+            #self.blogger.store_state(packet)        
+
+
+
+    def testStore(self):
+        """Store State without queuing"""
+        now = datetime.datetime.now()
+        #Create our bitmask
+        bs = Bitset(size=Packets.SC_SIZE)
+        #Try to setup a temperature sample
+        bs[Packets.SC_TEMPERATURE] = True
+
+        #Then A packet
+        packet = StateMsg(addr=4242)        
+        packet.set_ctp_parent_id(101) #Parent Node Id
+        packet.set_special(0xc7) #Special Id
+
+        packet.set_packed_state_mask(bs.a)
+        packet.set_packed_state([22.5])
+
+        self.blogger.store_state(packet)
+
+        #Check the reading turns up
+        session = self.Session()
+        qry = session.query(models.Node).filter_by(id=4242).first()
+        self.assertTrue(qry)
+
+        #NodeState
+        qry = session.query(models.NodeState).filter_by(nodeId=4242)
+        self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertTrue(qry)
+        tdiff = qry.time - now
+        self.assertLess(tdiff.seconds, 1.0)
+        self.assertEqual(qry.parent, 101)
+        
+        #And Reading
+        qry = session.query(models.Reading).filter_by(nodeId=4242)
+        #As we just did temperature there should only be one reading
+        self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertTrue(qry)
+        self.assertEqual(qry.typeId, 0)
+        self.assertEqual(qry.value, 22.5)     
+
+    @unittest.skip
     def testRcv(self):
         """Test a single receive"""
         now = datetime.datetime.now()
@@ -106,9 +169,9 @@ class test_baselogger(base.BaseTestCase):
         #session.close()
         
         #Create our bitmask
-        bs = Bitset(size=Packets.RS_SIZE)
+        bs = Bitset(size=Packets.SC_SIZE)
         #Try to setup a temperature sample
-        bs[Packets.RS_TEMPERATURE] = True
+        bs[Packets.SC_TEMPERATURE] = True
 
         #Then A packet
         packet = StateMsg(addr=4242)        
@@ -145,15 +208,16 @@ class test_baselogger(base.BaseTestCase):
         self.assertEqual(qry.typeId, 0)
         self.assertEqual(qry.value, 22.5)        
 
+    @unittest.skip
     def test_Rcv_Node(self):
         """Does Recieve work when that node is not in the DB"""
 
         now = datetime.datetime.now()
 
         #Create our bitmask
-        bs = Bitset(size=Packets.RS_SIZE)
+        bs = Bitset(size=Packets.SC_SIZE)
         #Try to setup a temperature sample
-        bs[Packets.RS_TEMPERATURE] = True
+        bs[Packets.SC_TEMPERATURE] = True
 
         #Then A packet
         packet = StateMsg(addr=100)        
@@ -191,10 +255,64 @@ class test_baselogger(base.BaseTestCase):
         self.assertEqual(qry.typeId, 0)
         self.assertEqual(qry.value, 22.5)
         
-        
+    @unittest.skip
     def testrecvCombined(self):
-        """Can we correctly recieve and store multiple packets"""
+        """Can we correctly recieve and packets with multiple readings"""
+        now = datetime.datetime.now()
 
-        
-        
+        #Create our bitmask
+        bs = Bitset(size=Packets.SC_SIZE)
+        #Try to setup a temperature sample
+        bs[Packets.SC_TEMPERATURE] = True
+        bs[Packets.SC_HUMIDITY] = True
+        bs[Packets.SC_VOLTAGE] = True
+        print
+        print "="*40
+        print Packets.SC_SIZE
+        print bs
+        print bs.toString()
+        print bs.a
+        print "="*40
+        #Then A packet
+        packet = StateMsg(addr=100)        
+        packet.set_ctp_parent_id(101) #Parent Node Id
+        packet.set_special(0xc7) #Special Id
+
+        packet.set_packed_state_mask(bs.a)
+        packet.set_packed_state([22.5,50.0,2.45])
+
+        self.testbif.receive(packet)
+        output = self.blogger.mainloop()
+        self.assertTrue(output)
+
+
+        #And check the data has arrived
+        session = self.Session()
+        qry = session.query(models.NodeState)
+        #self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertEqual(qry.nodeId, 100)
+        self.assertEqual(qry.parent, 101)
+
+        #Do we get the temperature reading
+        qry = session.query(models.Reading).filter_by(typeId = 0)
+        #self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertEqual(qry.nodeId, 100)
+        self.assertEqual(qry.value, 22.5)
+
+        #Humidity
+        qry = session.query(models.Reading).filter_by(typeId = 2)
+        #self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertEqual(qry.nodeId, 100)
+        self.assertEqual(qry.value, 50.0)
+
+        #Voltage
+        qry = session.query(models.Reading).filter_by(typeId = 6)
+        #self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertEqual(qry.nodeId, 100)
+        self.assertAlmostEqual(qry.value, 2.45)
+
 
