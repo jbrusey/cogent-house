@@ -35,6 +35,7 @@ def setuptestingDB(session):
     #Remove stuff from Node    session.execute("DELETE FROM Node")
     session.execute("DELETE FROM NodeState")
     session.execute("DELETE FROM Reading")
+    session.execute("DELETE FROM SensorType")
     session.flush()
     session.commit()
     #foo = models.Node(id=400)
@@ -68,6 +69,14 @@ class test_baselogger(base.BaseTestCase):
         #session = cls.Session()
         #setuptestingDB(session)
 
+        #Remove Delta Temperature sensor type for a specific test
+        session = cls.Session()
+        qry = session.query(models.SensorType).filter_by(id=1)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+
     def setUp(self):
         #Clean up the database before each run
         session = self.Session()
@@ -88,12 +97,13 @@ class test_baselogger(base.BaseTestCase):
     #    print "Tearing Down BIF"
     #    pass
 
-    @unittest.skip
+    #@unittest.skip
     def test_nodata(self):
         """Check what happens if we have no data recieved from the bif"""
         output = self.blogger.mainloop()
         self.assertFalse(output)
-
+    
+    #@unittest.skip
     def testFailOnSpecial(self):
         """Do We fail gracefully if Special is wrong"""
         bs = Bitset(size=Packets.SC_SIZE)
@@ -108,13 +118,16 @@ class test_baselogger(base.BaseTestCase):
         packet.set_packed_state_mask(bs.a)
         packet.set_packed_state([22.5])
 
-        #with self.assertRaises(Exception): 
-        #self.testbif.receive(packet)
-        #output = self.blogger.mainloop()           
-            #self.blogger.store_state(packet)        
+        #The First thing is to see if the code passes nicely (ie no fail)
+        #When run in the normal way
+        self.testbif.receive(packet)
+        output = self.blogger.mainloop()
+        self.assertIsNone(output) #Only when we store return True
 
+        with self.assertRaises(Exception): 
+            self.blogger.store_state(packet)        
 
-
+    #@unittest.skip
     def testStore(self):
         """Store State without queuing"""
         now = datetime.datetime.now()
@@ -156,18 +169,11 @@ class test_baselogger(base.BaseTestCase):
         self.assertEqual(qry.typeId, 0)
         self.assertEqual(qry.value, 22.5)     
 
-    @unittest.skip
+    #@unittest.skip
     def testRcv(self):
         """Test a single receive"""
         now = datetime.datetime.now()
 
-        #Add the node
-        #session = self.Session()
-        #thenode = models.Node(id=4242)
-        #session.add(thenode)
-        #session.commit()
-        #session.close()
-        
         #Create our bitmask
         bs = Bitset(size=Packets.SC_SIZE)
         #Try to setup a temperature sample
@@ -208,7 +214,7 @@ class test_baselogger(base.BaseTestCase):
         self.assertEqual(qry.typeId, 0)
         self.assertEqual(qry.value, 22.5)        
 
-    @unittest.skip
+    #@unittest.skip
     def test_Rcv_Node(self):
         """Does Recieve work when that node is not in the DB"""
 
@@ -254,8 +260,96 @@ class test_baselogger(base.BaseTestCase):
         self.assertTrue(qry)
         self.assertEqual(qry.typeId, 0)
         self.assertEqual(qry.value, 22.5)
+
+
+    #@unittest.skip
+    def test_Rcv_Sensor(self):
+        """Does Recieve work when that sensortype is not in the DB"""
+
+        now = datetime.datetime.now()
+        #Create our bitmask
+        bs = Bitset(size=Packets.SC_SIZE)
+        #Try to setup a temperature sample
+        bs[Packets.SC_D_TEMPERATURE] = True
+
+        #Then A packet
+        packet = StateMsg(addr=4242)        
+        packet.set_ctp_parent_id(101) #Parent Node Id
+        packet.set_special(0xc7) #Special Id
+
+        packet.set_packed_state_mask(bs.a)
+        packet.set_packed_state([22.5])
+
+        self.testbif.receive(packet)
+        output = self.blogger.mainloop()
+        self.assertTrue(output)
+
+        #Check stuff gets added to the database correctly
+        session = self.Session()
+
+        #Does the sensortype exist now (Apparently its not a FK in Reading)
+        #qry = session.query(models.SensorType).filter_by(id=1).first()
+        #self.assertTrue(qry)
+        #Is the name UNKNOWN
+        #self.assertEqual(qry.Name, "UNKNOWN")
         
-    @unittest.skip
+
+        #NodeState
+        qry = session.query(models.NodeState).filter_by(nodeId=4242)
+        self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertTrue(qry)
+        tdiff = qry.time - now
+        self.assertLess(tdiff.seconds, 1.0)
+        self.assertEqual(qry.parent, 101)
+        
+        #And Reading
+        qry = session.query(models.Reading).filter_by(nodeId=4242)
+        #As we just did temperature there should only be one reading
+        self.assertEqual(qry.count(), 1)
+        qry = qry.first()
+        self.assertTrue(qry)
+        self.assertEqual(qry.typeId, 1)
+        self.assertEqual(qry.value, 22.5)
+
+        #Reset the sensor type to be as it should
+        qry = session.query(models.SensorType).filter_by(id=1).first()
+        if qry is None:
+            qry = models.SensorType(id=1)
+            session.add(qry)
+
+        qry.name = "Delta Temperature"
+        qry.code = "dT"
+        qry.units = "deg.C/s"
+        #session.flush()
+        #session.commit()
+        
+    def testDuplicate(self):
+        """What about duplicate packets"""
+        now = datetime.datetime.now()
+
+        #Create our bitmask
+        bs = Bitset(size=Packets.SC_SIZE)
+        #Try to setup a temperature sample
+        bs[Packets.SC_TEMPERATURE] = True
+
+        #Then A packet
+        packet = StateMsg(addr=4242)        
+        packet.set_ctp_parent_id(101) #Parent Node Id
+        packet.set_special(0xc7) #Special Id
+
+        packet.set_packed_state_mask(bs.a)
+        packet.set_packed_state([22.5])
+
+        self.testbif.receive(packet) 
+        self.testbif.receive(packet) #Add it twice
+        output = self.blogger.mainloop()
+        self.assertTrue(output)         
+        output = self.blogger.mainloop() #And a duplicate
+        self.assertTrue(output)          
+
+        
+    #@unittest.skip
     def testrecvCombined(self):
         """Can we correctly recieve and packets with multiple readings"""
         now = datetime.datetime.now()
@@ -266,13 +360,7 @@ class test_baselogger(base.BaseTestCase):
         bs[Packets.SC_TEMPERATURE] = True
         bs[Packets.SC_HUMIDITY] = True
         bs[Packets.SC_VOLTAGE] = True
-        print
-        print "="*40
-        print Packets.SC_SIZE
-        print bs
-        print bs.toString()
-        print bs.a
-        print "="*40
+
         #Then A packet
         packet = StateMsg(addr=100)        
         packet.set_ctp_parent_id(101) #Parent Node Id
