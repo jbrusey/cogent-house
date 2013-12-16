@@ -323,7 +323,8 @@ class test_baselogger(base.BaseTestCase):
         qry.units = "deg.C/s"
         #session.flush()
         #session.commit()
-        
+
+    #@unittest.skip        
     def testDuplicate(self):
         """What about duplicate packets"""
         now = datetime.datetime.now()
@@ -348,7 +349,47 @@ class test_baselogger(base.BaseTestCase):
         output = self.blogger.mainloop() #And a duplicate
         self.assertTrue(output)          
 
+
+    def testDuplicateFunction(self):
+        """Test the duplicate packet function"""
+
+
+        #Create our bitmask
+        bs = Bitset(size=Packets.SC_SIZE)
+        #Try to setup a temperature sample
+        bs[Packets.SC_TEMPERATURE] = True
+
+        #Then A packet
+        packet = StateMsg(addr=4242)        
+        packet.set_ctp_parent_id(101) #Parent Node Id
+        packet.set_special(0xc7) #Special Id
+
+        packet.set_packed_state_mask(bs.a)
+        packet.set_packed_state([22.5])
+
+        #Store the initial packet
+        self.testbif.receive(packet) 
+        output = self.blogger.mainloop()
+        self.assertTrue(output)  
+
+        now = datetime.datetime.now()
+        #Check the duplicate function
         
+        #session = self.blogger.getSession()
+        session = self.Session()
+        out = self.blogger.duplicate_packet(session = session,
+                                            time = now,
+                                            nodeId = 4242,
+                                            localtime = 0)
+        self.assertTrue(out)
+
+        now = now+datetime.timedelta(minutes=1)
+        out = self.blogger.duplicate_packet(session = session,
+                                            time = now,
+                                            nodeId = 4242,
+                                            localtime = 0)
+        self.assertFalse(out)
+
     #@unittest.skip
     def testrecvCombined(self):
         """Can we correctly recieve and packets with multiple readings"""
