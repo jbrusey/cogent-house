@@ -28,7 +28,7 @@ from cogent.base.model import *
 import cogent.base.model.populateData as populateData
 
 
-F="/home/james/sa.db"
+F = "/home/james/sa.db"
 DBFILE = "sqlite:///test.db"
 #DBFILE = "mysql://chuser@localhost/ch"
 
@@ -39,12 +39,18 @@ QUEUE_TIMEOUT = 10
 
 
 class BaseLogger(object):
+    """Baselogger Class
+
+    Connects to the serial forwarder, and deals with queued packets.
+    This class will add any new readings received over the serial interface
+    to the database.
+    """
     def __init__(self, bif=None, dbfile=DBFILE):
         log.debug("Init Engine")
         self.engine = create_engine(dbfile, echo=False)
         init_model(self.engine)
-        #if DBFILE[:7] == "sqlite:":
-        #    self.engine.execute("pragma foreign_keys=on")
+        if DBFILE[:7] == "sqlite:":
+            self.engine.execute("pragma foreign_keys=on")
         self.metadata = Base.metadata
 
         if bif is None:
@@ -56,6 +62,7 @@ class BaseLogger(object):
         self.running = True
 
     def create_tables(self):
+        """Populate the intial database"""
         self.metadata.create_all(self.engine)
 
         session = Session()
@@ -78,10 +85,10 @@ class BaseLogger(object):
                  NodeState.localtime==localtime,
                  NodeState.time > earliest)).first() is not None
 
-    def getNodeDetails(self, nid):
-        return ((nid % 4096) / 32,
-                nid % 32,
-                nid / 4096)
+    # def getNodeDetails(self, nid):
+    #     return ((nid % 4096) / 32,
+    #             nid % 32,
+    #             nid / 4096)
 
     def store_state(self, msg):
         if msg.get_special() != Packets.SPECIAL:
@@ -99,7 +106,6 @@ class BaseLogger(object):
             node = session.query(Node).get(n)
             locId = None
             if node is None:
-                #(houseId,roomId,nodeTypeId) = self.getNodeDetails(n)
                 try:
                     session.add(Node(id=n,
                                      locationId=None,
@@ -108,9 +114,12 @@ class BaseLogger(object):
                                      )
                                 )
                     session.commit()
-                except:
+                except sqlalchemy.exc.IntegrityError, e:
+                    #Really this should only be a problem on Integrity Error
+                    self.log.exception("can't add node {0} As {1}".format(n,
+                                                                          e))
                     session.rollback()
-                    self.log.exception("can't add node %d" % n)
+
             else:
                 locId = node.locationId
 
@@ -139,13 +148,17 @@ class BaseLogger(object):
             for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
                     v = msg.getElement_packed_state(j)
-                    state.append((i,v))
-                    self.log.debug("Message recieved t:{0} n{1} i{2} v{3}".format(t,n,i,v))
+                    state.append((i, v))
+                    logmsg = "Message received t:{0} n{1} i{2} v{3}".format(t,
+                                                                            n,
+                                                                            i,
+                                                                            v)
+                    self.log.debug(logmsg)
 
                     #Store in RRD
                     #self.store_rrd(n, i, t, v)
                     t1 = time.time()
-                    
+
                     try:
                         r = Reading(time=t,
                                     nodeId=n,
@@ -157,12 +170,12 @@ class BaseLogger(object):
                         session.commit()
                     except sqlalchemy.exc.IntegrityError, e:
                         #No Idea why the sensortype code is not called using sqlite
-                        self.log.error("Intergrity Error on store: {0}".format(e))
+                        self.log.error("Integrity Error on store: {0}".format(e))
                         session.rollback()
                         s = session.query(SensorType).filter_by(id=i).first()
                         if s is None:
                             self.log.info("--> No such SensorType")
-                            s = SensorType(id=i,name="UNKNOWN")
+                            s = SensorType(id=i, name="UNKNOWN")
                             session.add(s)
                             self.log.info("Adding new sensortype")
                             session.flush()
@@ -182,7 +195,7 @@ class BaseLogger(object):
                     j += 1
 
             session.commit()
-            self.log.debug("reading: %s, %s, %s" % (ns,mask,state))
+            self.log.debug("reading: %s, %s, %s" % (ns, mask, state))
         except Exception as e:
             session.rollback()
             self.log.exception("during storing: " + str(e))
@@ -192,16 +205,16 @@ class BaseLogger(object):
     def mainloop(self):
         """Break out run into a single 'mainloop' function
 
-        Poll the bif.queue for data, if something has been recieved
+        Poll the bif.queue for data, if something has been received
         process and store.
 
-        :return True: If a packet has been recieved and stored correctly
+        :return True: If a packet has been received and stored correctly
         :return False: Otherwise
         """
         log.debug("Main Loop")
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
-            self.log.debug("Msg Recvd {0}".format(msg))
+            #self.log.debug("Msg Recvd {0}".format(msg))
             self.store_state(msg)
             #Signal the queue that we have finished processing
             self.bif.queue.task_done()
@@ -217,28 +230,30 @@ class BaseLogger(object):
 
 
     def run(self):
+        """Mainloop function"""
         self.log.info("Stating Baselogger Daemon")
         while self.running:
-            try:
-                msg = self.bif.queue.get(True,30)
-                #msg = self.bif.get(True, 10) #Avoid using this for the moment
-                self.store_state(msg)
-                #Signal the queue that we have finished processing
-                self.bif.queue.task_done()
-            except Empty:
-                self.log.debug("Empty Queue")
-            except KeyboardInterrupt:
-                print "KEYB IRR"
-                self.running = False
-            except Exception as e:
-                self.log.exception("during receiving or storing msg: " + str(e))
+            self.mainloop()
+            # try:
+            #     msg = self.bif.queue.get(True, 30)
+            #     #msg = self.bif.get(True, 10) #Avoid using this for the moment
+            #     self.store_state(msg)
+            #     #Signal the queue that we have finished processing
+            #     self.bif.queue.task_done()
+            # except Empty:
+            #     self.log.debug("Empty Queue")
+            # except KeyboardInterrupt:
+            #     print "KEYB IRR"
+            #     self.running = False
+            # except Exception as e:
+            #     self.log.exception("during receiving or storing msg: " + str(e))
 
         print "SHUTDOWN"
         self.bif.finishAll()
         print "---> Done"
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error",
