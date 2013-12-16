@@ -39,7 +39,9 @@ def lowBat(session,
         if c >= count_thresh:
             lowbat_set.add(n)
 
-    
+    print "-"*80
+    print "LOWBAT SET", lowbat_set
+    print "LASTBAT SET", last_lowbat_set
 
     if lowbat_set != last_lowbat_set:
 

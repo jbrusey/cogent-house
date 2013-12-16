@@ -38,7 +38,7 @@ def initDatabase():
     log.debug("Database Engine Started: {0}".format(engine))
 
     meta.Base.metadata.bind = engine
-
+    meta.Base.metadata.create_all(engine)
 
 #Check to see if we have a database all ready initialised (Avoids bug where the
 #test overrides everything)
@@ -64,7 +64,10 @@ class BaseTestCase(unittest.TestCase):
         cls.engine = sqlalchemy.create_engine("sqlite:///test.db")
         meta.Base.metadata.create_all(cls.engine)
         cls.Session = sessionmaker()
+        #if not meta.Session:
         cls.Session.configure(bind=cls.engine)
+        #cls.Session = meta.Session
+
 
     def setUp(self):
         """Called each time a test case is called,

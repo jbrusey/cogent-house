@@ -48,9 +48,9 @@ class BaseLogger(object):
     def __init__(self, bif=None, dbfile=DBFILE):
         log.debug("Init Engine")
         self.engine = create_engine(dbfile, echo=False)
-        init_model(self.engine)
-        if DBFILE[:7] == "sqlite:":
-            self.engine.execute("pragma foreign_keys=on")
+        #init_model(self.engine)
+        #if DBFILE[:7] == "sqlite:":
+        #    self.engine.execute("pragma foreign_keys=on")
         self.metadata = Base.metadata
 
         if bif is None:
