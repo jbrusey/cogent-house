@@ -145,6 +145,7 @@ class BaseLogger(object):
                     #Store in RRD
                     #self.store_rrd(n, i, t, v)
                     t1 = time.time()
+                    
                     try:
                         r = Reading(time=t,
                                     nodeId=n,
@@ -153,12 +154,14 @@ class BaseLogger(object):
                                     value=v)
                         session.add(r)
                         session.flush()
-                    except sqlalchemy.exc.IntegrityError:
-                        self.log.error("Unable to store, checking if node type exists")
+                        session.commit()
+                    except sqlalchemy.exc.IntegrityError, e:
+                        #No Idea why the sensortype code is not called using sqlite
+                        self.log.error("Intergrity Error on store: {0}".format(e))
                         session.rollback()
-
                         s = session.query(SensorType).filter_by(id=i).first()
                         if s is None:
+                            self.log.info("--> No such SensorType")
                             s = SensorType(id=i,name="UNKNOWN")
                             session.add(s)
                             self.log.info("Adding new sensortype")
@@ -170,8 +173,9 @@ class BaseLogger(object):
                                         value=v)
                             session.add(r)
                             session.flush()
+                            session.commit()
                         else:
-                            self.log.error("Sensor type exists")
+                            self.log.error("--> Unable to add reading")
 
                     t2 = time.time()
                     self.log.debug("Time taken to update DB {0}".format(t2-t1))
