@@ -3,7 +3,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Dat
 from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
 
-import unittest
+import unittest2 as unittest
 from datetime import datetime, timedelta
 
 #Original Version used this namespace,

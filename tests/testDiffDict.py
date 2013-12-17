@@ -1,4 +1,4 @@
-import unittest
+import unittest2 as unittest
 # import cogent
 # import cogent.base.model as models
 

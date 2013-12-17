@@ -21,7 +21,7 @@ except ImportError:
 from cogent.base.model import *
 from cogent.report import *
 
-import unittest
+import unittest2 as unittest
 
 # class TestIP(unittest.TestCase):
 
