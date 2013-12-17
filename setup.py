@@ -3,6 +3,14 @@ from setuptools import setup
 import os
 import sys
 
+#Fix for when a virtualenv is used to install
+here = os.path.abspath(os.path.dirname(__file__))
+
+#calcualte the prefix to instal data files into to meet debian FHS 
+if sys.prefix  == "/usr":
+    conf_prefix = "/" #If its a standard "global" instalation
+else :
+    conf_prefix = "{0}/".format(sys.prefix)
 
 REQUIRES = ['SQLAlchemy',
             "MySQL-python",
@@ -32,12 +40,12 @@ setup(name='ch-base',
                 'cogent.node',
                 'cogent.scripts'],
       package_data={'cogent.base' : ['Calibration/*.csv']},
-      data_files=[('/etc/init', ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
-                  ('/etc/cron.daily', ['etc/ch-daily-email']),
-                  ('/etc/apache2/sites-available', ['etc/cogent-house']),
-                  ('/var/www/cogent-house', ['www/index.py']),
-                  ('/var/www/scripts', ['www/scripts/datePicker.js']),
-                  ('/var/www/style', ['www/style/ccarc.css']),
+      data_files=[('{0}etc/init'.format(conf_prefix), ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
+                  ('{0}etc/cron.daily'.format(conf_prefix), ['etc/ch-daily-email']),
+                  ('{0}etc/apache2/sites-available'.format(conf_prefix), ['etc/cogent-house']),
+                  ('{0}var/www/cogent-house'.format(conf_prefix), ['www/index.py']),
+                  ('{0}var/www/scripts'.format(conf_prefix), ['www/scripts/datePicker.js']),
+                  ('{0}var/www/style'.format(conf_prefix), ['www/style/ccarc.css']),
                   ("{0}/share/cogent-house/calibration".format(sys.prefix),["cogent/base/Calibration/aq_coeffs.csv",
                                                                             "cogent/base/Calibration/voc_coeffs.csv"]),
                   ],
