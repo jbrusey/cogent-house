@@ -27,6 +27,7 @@ DBURL="sqlite:///:memory:"
 
 import base
 
+@unittest.skip
 class TestNodeType(base.BaseTestCase):
 
     # @classmethod
