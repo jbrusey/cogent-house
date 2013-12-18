@@ -13,5 +13,11 @@ build/
 dist/
 cogent/push/.cache
 cogent/push/.coverage
-tos/*/build/*
-.pythoscope/
+cogent/push/testcover/
+cogent/push/*_map.conf
+*.egg-info/*
+dataclense/*
+*.log
+*.html
+*.db
+dist
