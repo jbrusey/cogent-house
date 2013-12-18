@@ -119,7 +119,7 @@ class TestNodeType(base.BaseTestCase):
         session = Session()
         try:
             r = session.query(NodeType).get(0)
-            self.assertTrue( r )
+            self.assertTrue( r is None )
         finally:
             session.close()
         

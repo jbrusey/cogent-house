@@ -48,7 +48,7 @@ if meta.Base.metadata.bind is None:
     print "====================="
     print "Initialise Database"
     initDatabase()
-    #models.populatedata.init_data()
+    models.populateData.init_data()
     print "====================="
 
 class BaseTestCase(unittest.TestCase):
@@ -64,10 +64,7 @@ class BaseTestCase(unittest.TestCase):
         cls.engine = sqlalchemy.create_engine("sqlite:///test.db")
         meta.Base.metadata.create_all(cls.engine)
         cls.Session = sessionmaker()
-        #if not meta.Session:
         cls.Session.configure(bind=cls.engine)
-        #cls.Session = meta.Session
-
 
     def setUp(self):
         """Called each time a test case is called,
