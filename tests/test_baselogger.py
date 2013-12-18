@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import cogent.base.BaseLogger as BaseLogger
 import cogent.base.model.Bitset as Bitset
-from cogent.node import StateMsg, StateV1Msg, ConfigMsg, Packets
+from cogent.node import StateMsg, ConfigMsg, Packets
 import cogent.base.model as models
 
 import base
