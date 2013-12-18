@@ -25,30 +25,6 @@ from alembic import command
 
 from cogent.base.model import populateData as populateData
 import cogent.base.model as models
-# from cogent.base.model import (
-#     deployment,
-#     deploymentmetadata,
-#     host,
-#     house,
-#     housemetadata,
-#     lastreport,
-#     location,
-#     node,
-#     nodehistory,
-#     nodestate,
-#     nodetype,
-#     occupier,
-#     rawmessage,
-#     reading,
-#     room,
-#     roomtype,
-#     sensor,
-#     sensortype,
-#     weather,
-#     event,
-#     timings,
-#     user,
-#     )
 
 #import getpass
 #import transaction
@@ -106,6 +82,13 @@ def populatedata(session = None):
     if not session:
         print "Creating a new Session"
         session = meta.Session()
+
+    #Remove Existing nodes as they just confuse things
+    qry = session.query(models.Node)
+    qry.delete()
+    session.flush()
+    session.commit()
+    transaction.commit()
 
     #now = datetime.datetime.now()
     now = datetime.datetime(2013,01,01,00,00,00)
@@ -328,11 +311,11 @@ def main(dburl="sqlite:///pushtest.db"):
     print "--> Time Create {0}".format(time.time() - t1)
     # #Start the transaction 
     # #trans = connection.begin()
-    populateData.init_data()
-    print "--> Time to Init {0}".format(time.time() - t1)
+    populateData.init_data(docalib=False)
+    print "--> Time to Init {0}".format(time.time() - t1)   
     populatedata()
     print "--> Time to Populate {0}".format(time.time() - t1)
-    #populate_readings()
+    populate_readings()
 
 if __name__ == "__main__":
     main()
