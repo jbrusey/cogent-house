@@ -98,9 +98,10 @@ class TestClient(unittest.TestCase):
         import time
         t1 = time.time()
 
-        REINIT = False     
+        #REINIT = False     
+        REINIT = True
         if REINIT:
-
+            print "INITIALISING DATABASE"
             #TODO: Fix this so no majic strings
             #and create the database
             init_testingdb.main("mysql://chuser@localhost/push_test")
@@ -176,7 +177,7 @@ class TestClient(unittest.TestCase):
         rcount = qry.count()
         session.close()
         self.assertEqual(lcount, rcount)
-        
+
         self.pusher.sync_nodetypes()
 
         session = self.Session()
@@ -1080,6 +1081,9 @@ class TestClient(unittest.TestCase):
         #Clear out the cruft
         session = self.Session()
         qry = session.execute("TRUNCATE NodeLocation")
+        qry = session.execute("TRUNCATE Sensor")
+        session.flush()
+        session.commit()
         qry = session.query(models.Node).filter(models.Node.id > 1100)
         qry.delete()
         qry = session.query(models.Location).filter(models.Location.id > 6)
@@ -1090,6 +1094,9 @@ class TestClient(unittest.TestCase):
 
         session = self.rSession()
         qry = session.execute("TRUNCATE NodeLocation")
+        qry = session.execute("TRUNCATE Sensor")
+        session.commit()
+        session.flush()
         qry = session.query(models.Node).filter(models.Node.id > 1100)
         qry.delete()
         qry = session.query(models.Location).filter(models.Location.id > 6)
@@ -1268,12 +1275,12 @@ class TestClient(unittest.TestCase):
         """Can we get the date of the last update accurately"""
         #Hopefully nothing yet esists
 
-
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=1).first()
         print thehouse
         lastupdate = self.pusher.get_lastupdate(thehouse)
         expectdate = datetime.datetime(2013,1,10,23,55,00)
+        #expectdate = None
         self.assertEqual(lastupdate, expectdate)
 
     #@unittest.skip
@@ -1530,7 +1537,7 @@ class TestClient(unittest.TestCase):
         
         self.assertEqual(txcount, 288)
         lastupdate = currentdate
-    
+
         #currentdate = currentdate - datetime.timedelta(minutes=5)
         #Add nodestates for house One and Two but only push house 1
         enddate = datetime.datetime(2013,2,3,0,0,0)
@@ -1622,7 +1629,7 @@ class TestClient(unittest.TestCase):
 
 
 
-    ##@unittest.skip
+    #@unittest.skip
     def test_uploadnodestate_and_reading(self):
         """Does the sync process work for both nodestate and house?"""
 
