@@ -1,0 +1,79 @@
+Version 1.0
+--------------
+
+ * Initial Release
+
+
+Version 1.1
+-------------
+
+Mostly changes to get the code running nicely on the PI
+
+.. WARNING:
+
+This has a pretty signifiacnt change.  While the original version of the code
+checks for a KeyboardInterupt (SIGINT) before shutting down (and running the
+appropriate cleanup code) This may not allways be caught (due to pythons
+handling of threads and signals)
+
+The reason for this is the TinyOS.Watcher module (called by tinyos.moteIF) which
+does a reasonably nifty trick to ensure that SIGINT is captured correctly and
+kills the child thread.  (see
+http://code.activestate.com/recipes/496735-workaround-for-missed-sigint-in-multithreaded-prog/?in=user-2523263
+for the rationale behind this)
+
+However, this code acutally kills the child (with sigkill) so any code to handle
+cleanup is not called in all cases, but only when the GIL is executing the child
+rather than parent thread.  This means that in many cases the watcher catches
+the SIGINT and kills the child, without allowing cleanup code to be executed.
+
+To ensure that the SIGINT gets passed to the baselogger, we need to modify part of the TOS Libraries.
+In <tinyos>/support/sdk/python/tinyos/utils/Watcher.py  modify the line to ensure that the SIGINT is passed to the child::
+
+   #os.kill(self.child, signal.SIGKILL)
+   os.kill(self.child, signal.SIGINT)
+
+
+
+* Created sysvinit scripts for the ch-sf and ch-base modules
+
+
+
+Version 1.1.1
+-------------
+
+Merged Database / Alembic code with the webinterface
+
+* Removed the "create from scratch revision" as I have no idea why this exists.  Added the create_webinterface_db script that does the same job in a somewhat more sensible way.
+* Added a initialize_cogent_db script to create and populate the initial database
+* Modified setup.py to install setup scripts in {prefix}/share/cogent-house/...  
+* Added default nodetypes (Alembic Revision  1f9a02a1b28) to populate data  
+* Fuck knows what was happeing with with Alembic, "start from scratch" revision.  Removed it and gone back to doing things in a sensible way.
+* Updated initialise DB script to ensure the most current Alembic version (ie head) is inserted into the DB.
+
+Version 1.1.2
+---------------
+
+Update database to take account of Clustered version.
+
+.. NOTE:
+    The clustered version has the strange "start from scratch" revision. If / when we merge clustered and standard this will have to be resolved
+
+.. WARNING:
+   For some reason the unique id's for sensor types were modified in mercurial revisions 586c28147430, 21e95e1f54d1 etc. this is very bad thing(TM).
+   I have added a new alembic revision <...> to makes sure that unique ID's are always unique and don't refer to different things in different versions of the code.
+
+Version 1.1.3
+---------------
+
+Merge Models with base webinterface and fix unittests
+
+* Add index to Reading
+* Sequence No / RSSI to Nodestate
+* dict() method added to meta.py
+* update populate data with the "new" constants for SensorTypeId
+* Merge "fixed" alembic scripts
+* Added unittests for models based of those in webinterface
+* Made the unitests for the RestPusher somewhat more sane
+* Added setup.cfg file for unittests via nose
+* Setup repository for default and release branches
