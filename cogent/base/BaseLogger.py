@@ -1,9 +1,11 @@
 #
 # BaseLogger
 #
-# log data from mote to a database and also print out 
+# log data from mote to a database and also print out
 #
 # J. Brusey, R. Wilkins, April 2011
+# D. Goldsmith, May 2013
+
 """BaseLogger - cogent-house data logging process.
 
 Receives sensor readings from the base station and logs them to the
@@ -43,6 +45,8 @@ LOGGER = logging.getLogger("ch.base")
 DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, and_
+
+QUEUE_TIMEOUT = 10
 
 def duplicate_packet(session, receipt_time, node_id, localtime):
     """ duplicate packets can occur because in a large network,
@@ -87,6 +91,9 @@ class BaseLogger(object):
             self.bif = BaseIF("sf@localhost:9002")
         else:
             self.bif = bif
+
+        self.log = logging.getLogger("baselogger")
+        self.running = True
 
     def create_tables(self):
         """ create any missing tables using sqlalchemy
@@ -201,6 +208,32 @@ class BaseLogger(object):
         finally:
             session.close()
 
+
+    def mainloop(self):
+        """Break out run into a single 'mainloop' function
+
+        Poll the bif.queue for data, if something has been received
+        process and store.
+
+        :return True: If a packet has been received and stored correctly
+        :return False: Otherwise
+        """
+        self.log.debug("Main Loop")
+        try:
+            msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
+            #self.log.debug("Msg Recvd {0}".format(msg))
+            self.store_state(msg)
+            #Signal the queue that we have finished processing
+            self.bif.queue.task_done()
+            return True
+        except Empty:
+            self.log.debug("Empty Queue")
+            return False
+        except KeyboardInterrupt:
+            print "KEYB IRR"
+            self.running = False
+        except Exception as e:
+            self.log.exception("during receiving or storing msg: " + str(e))
     def run(self):
         """ run - main loop
 
