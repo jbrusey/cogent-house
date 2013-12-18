@@ -23,17 +23,6 @@ from cogent.report import *
 
 import unittest2 as unittest
 
-# class TestIP(unittest.TestCase):
-
-#     @classmethod
-#     def setUpClass(self):
-#         """One off population of Database"""
-#         engine = create_engine("sqlite:///", echo=False)
-#         Base.metadata.create_all(engine)
-#         init_model(engine)
-
-#         initDb()
-
 import base
 
 class TestReport(base.BaseTestCase):
