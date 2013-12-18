@@ -63,7 +63,7 @@ def init_model(engine):
     """
     Session.configure(bind=engine)
     print "---------------- INIT MODEL CALLED ---------------"
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
 
 def initialise_sql(engine, dropTables=False):
     """Initialise the database
