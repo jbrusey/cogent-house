@@ -5,7 +5,7 @@ meaning the DB is consistently initiated in all test cases.
 """
 
 import os
-import unittest
+import unittest2 as unittest
 import datetime
 
 import logging
@@ -38,7 +38,7 @@ def initDatabase():
     log.debug("Database Engine Started: {0}".format(engine))
 
     meta.Base.metadata.bind = engine
-
+    meta.Base.metadata.create_all(engine)
 
 #Check to see if we have a database all ready initialised (Avoids bug where the
 #test overrides everything)
@@ -48,7 +48,7 @@ if meta.Base.metadata.bind is None:
     print "====================="
     print "Initialise Database"
     initDatabase()
-    #models.populatedata.init_data()
+    models.populateData.init_data()
     print "====================="
 
 class BaseTestCase(unittest.TestCase):

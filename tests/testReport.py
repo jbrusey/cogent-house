@@ -21,24 +21,45 @@ except ImportError:
 from cogent.base.model import *
 from cogent.report import *
 
-import unittest
+import unittest2 as unittest
 
-class TestIP(unittest.TestCase):
+import base
 
+class TestReport(base.BaseTestCase):
     @classmethod
-    def setUpClass(self):
-        """One off population of Database"""
-        engine = create_engine("sqlite:///", echo=False)
-        Base.metadata.create_all(engine)
-        init_model(engine)
+    def setUpClass(cls):
+        #Inherit from Base
+        super(TestReport, cls).setUpClass()
 
+        session = cls.Session()
+        session.execute("DELETE FROM Node")
+        session.execute("DELETE FROM NodeState")
+        session.execute("DELETE FROM House")
+        session.execute("DELETE FROM Room")
+        session.execute("DELETE FROM Location")
+        session.execute("DELETE FROM Reading")
+        session.execute("DELETE FROM LastReport")
+        session.commit()
         initDb()
 
-    def test_lowbat(self):
 
+    @classmethod
+    def tearDownClass(cls):
+        #Inherit from Base
+        session = cls.Session()
+        session.execute("DELETE FROM Node")
+        session.execute("DELETE FROM NodeState")
+        session.execute("DELETE FROM House")
+        session.execute("DELETE FROM Room")
+        session.execute("DELETE FROM Location")
+        session.execute("DELETE FROM Reading")
+        session.execute("DELETE FROM LastReport")
+        session.commit()
+
+
+    def test_lowbat(self):
         try:
             s = Session()
-
             x = lowBat(s)
             self.assertTrue(len(x) == 5)
             y = lowBat(s)
