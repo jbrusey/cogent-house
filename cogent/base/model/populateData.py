@@ -346,6 +346,10 @@ def populateNodeTypes(session = False):
                  'time': "2011-07-10 00:00:00",
                  'seq': 1,
                  'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '255,4'},
+                {'id': 4, 'name': "Heat Meter",
+                 'time': "2011-07-10 00:00:00",
+                 'seq': 1,
+                 'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
                 {'id': 5, 'name': "EnergyBoard",
                  'time': "2011-07-10 00:00:00",
                  'seq': 1,
@@ -522,7 +526,7 @@ def populateCalibration(session = False):
     :param session: Session to use if not the default session
     """
     LOG.debug("Populating Calibration Data")
-
+    return
     #List of (file, sensor code) pairs
     calibFiles = [("aq_coeffs","AQ"),
                   ("co2_coeffs","CO2"),
@@ -579,7 +583,7 @@ def populateRoomTypes(session):
     #session.commit()
     #session.close()
 
-def init_data(session=False):
+def init_data(session=False, docalib=True):
     """Populate the database with some initial data
 
     :param session: Session to use if not the default
@@ -591,6 +595,7 @@ def init_data(session=False):
     populateSensorTypes(session = session)
     populateNodeTypes(session= session)
     populateRoomTypes(session = session)
-    populateCalibration(session = session)
+    #if docalib:
+    #    populateCalibration(session = session)
     session.commit()
     LOG.debug("Database Population Complete")
