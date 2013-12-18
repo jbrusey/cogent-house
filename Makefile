@@ -6,7 +6,7 @@
 #    sudo make install
 .PHONY: all install
 
-MIGPYFILES=$(addprefix cogent/node/,StateMsg.py Packets.py) 
+MIGPYFILES=$(addprefix cogent/node/,StateMsg.py ConfigMsg.py Packets.py) 
 all: $(MIGPYFILES)
 
 install:  all
@@ -14,5 +14,5 @@ install:  all
 	a2ensite cogent-house
 	alembic -c cogent/alembic.ini upgrade head
 
- $(MIGPYFILES): tos/Packets.h
+ $(MIGPYFILES): tos/Node/Packets.h
 	make -C tos/Node telosb
