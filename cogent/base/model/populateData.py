@@ -526,7 +526,6 @@ def populateCalibration(session = False):
     :param session: Session to use if not the default session
     """
     LOG.debug("Populating Calibration Data")
-
     #List of (file, sensor code) pairs
     calibFiles = [("aq_coeffs","AQ"),
                   ("co2_coeffs","CO2"),
@@ -583,7 +582,7 @@ def populateRoomTypes(session):
     #session.commit()
     #session.close()
 
-def init_data(session=False):
+def init_data(session=False, docalib=True):
     """Populate the database with some initial data
 
     :param session: Session to use if not the default
@@ -595,6 +594,7 @@ def init_data(session=False):
     populateSensorTypes(session = session)
     populateNodeTypes(session= session)
     populateRoomTypes(session = session)
-    populateCalibration(session = session)
+    if docalib:
+        populateCalibration(session = session)
     session.commit()
     LOG.debug("Database Population Complete")
