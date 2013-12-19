@@ -38,11 +38,14 @@ from datetime import datetime, timedelta
 from cogent.base.model import (Reading, NodeState, SensorType,
                                Base, Session, init_model, Node)
 
+import cogent.base.model as models
+import cogent.base.model.meta as meta
 from cogent.base.packstate import PackState
 
 LOGGER = logging.getLogger("ch.base")
 
-DBFILE = "mysql://chuser@localhost/ch"
+#DBFILE = "mysql://chuser@localhost/ch"
+DBFILE = "sqlite:///test.db"
 
 from sqlalchemy import create_engine, and_
 
@@ -84,8 +87,9 @@ class BaseLogger(object):
         source (bif) and the database (dbfile).
         """
         self.engine = create_engine(dbfile, echo=False)
-        init_model(self.engine)
-        self.metadata = Base.metadata
+        #init_model(self.engine)
+        models.initialise_sql(self.engine)
+        #self.metadata = Base.metadata
 
         if bif is None:
             self.bif = BaseIF("sf@localhost:9002")
@@ -98,12 +102,13 @@ class BaseLogger(object):
     def create_tables(self):
         """ create any missing tables using sqlalchemy
         """
-        self.metadata.create_all(self.engine)
+        #self.metadata.create_all(self.engine)
         # TODO: follow the instructions at url:
         # https://alembic.readthedocs.org/en/latest/tutorial.html#building-an-up-to-date-database-from-scratch
         # to write an alembic version string
 
-        session = Session()
+        session = meta.Session()
+        models.populateData.init_data(session)
         if session.query(SensorType).get(0) is None:
             raise Exception("SensorType must be populated by alembic " +
                             "before starting BaseLogger")
@@ -281,12 +286,13 @@ if __name__ == '__main__':
 
     
     
-    logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
+    #logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
+    logging.basicConfig(filename="test.log",
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=LEVEL_MAP[options.log_level])
     LOGGER.info("Starting BaseLogger with log-level %s" % (options.log_level))
     LM = BaseLogger()
     LM.create_tables()
-    
+    print "RUNNING"
     LM.run()
