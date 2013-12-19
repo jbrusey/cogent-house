@@ -16,6 +16,3 @@ install:  all
 
  $(MIGPYFILES): tos/Packets.h
 	make -C tos/Node telosb
-
-clean:
-	rm -r cogent/node

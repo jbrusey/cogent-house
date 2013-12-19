@@ -44,8 +44,8 @@ from cogent.base.packstate import PackState
 
 LOGGER = logging.getLogger("ch.base")
 
-#DBFILE = "mysql://chuser@localhost/ch"
-DBFILE = "sqlite:///test.db"
+DBFILE = "mysql://chuser@localhost/ch"
+#DBFILE = "sqlite:///test.db"
 
 from sqlalchemy import create_engine, and_
 
@@ -162,7 +162,7 @@ class BaseLogger(object):
                 LOGGER.info("duplicate packet %d->%d, %d %s" %
                             (node_id, parent_id, msg.get_timestamp(), str(msg)))
 
-                return
+                return False
 
             # write a node state row
             node_state = NodeState(time=current_time,
@@ -213,6 +213,7 @@ class BaseLogger(object):
         finally:
             session.close()
 
+        return True
 
     def mainloop(self):
         """Break out run into a single 'mainloop' function
@@ -227,10 +228,10 @@ class BaseLogger(object):
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
             #self.log.debug("Msg Recvd {0}".format(msg))
-            self.store_state(msg)
+            status = self.store_state(msg)
             #Signal the queue that we have finished processing
             self.bif.queue.task_done()
-            return True
+            return status
         except Empty:
             self.log.debug("Empty Queue")
             return False
@@ -263,36 +264,56 @@ class BaseLogger(object):
             self.bif.finishAll()
 
                 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
-                      help="Set log level to LEVEL: debug,info,warning,error"+
-                      " [default: info]",
+                      help="Set log level to LEVEL: debug,info,warning,error",
                       default="info",
                       metavar="LEVEL")
+
+    parser.add_option("-f", "--log-file",
+                      help="Log file to use (Default /var/log/ch/Baselogging.log",
+                      default="/var/log/ch/BaseLogging.log")
+
+    parser.add_option("-t", "--log-terminal",
+                      help="Echo Logging output to terminal",
+                      action="store_true",
+                      default=False)
+
 
     (options, args) = parser.parse_args()
     if len(args) != 0:
         parser.error("incorrect number of arguments")
 
-    LEVEL_MAP = {"debug": logging.DEBUG,
+    lvlmap = {"debug": logging.DEBUG,
               "info": logging.INFO,
               "warning": logging.WARNING,
               "error": logging.ERROR,
               "critical": logging.CRITICAL}
 
-    if options.log_level not in LEVEL_MAP:
+    if options.log_level not in lvlmap:
         parser.error("invalid LEVEL: " + options.log_level)
 
-    
-    
-    #logging.basicConfig(filename="/var/log/ch/BaseLogger.log",
-    logging.basicConfig(filename="test.log",
+    logfile = options.log_file
+
+    #logging.basicConfig(filename="/var/log/ch/BaseLogging.log"
+    logging.basicConfig(filename=logfile,
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
-                        level=LEVEL_MAP[options.log_level])
-    LOGGER.info("Starting BaseLogger with log-level %s" % (options.log_level))
-    LM = BaseLogger()
-    LM.create_tables()
-    print "RUNNING"
-    LM.run()
+                        level=lvlmap[options.log_level])
+
+    #And if we want to echo the output on the terminal
+    logterm = options.log_terminal
+    if logterm:
+        console = logging.StreamHandler()
+        console.setLevel(lvlmap[options.log_level])
+        formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+        console.setFormatter(formatter)
+        logging.getLogger('').addHandler(console)
+
+
+
+    logging.info("Starting BaseLogger with log-level %s" % (options.log_level))
+    lm = BaseLogger()
+    lm.create_tables()
+    lm.run()
