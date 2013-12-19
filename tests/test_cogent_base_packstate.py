@@ -32,14 +32,17 @@ class TestPackState(unittest.TestCase):
         pack_state = PackState({6:3.0})
         self.assertEqual({6:3.0}, pack_state.d)
 
+    @unittest.skip
     def test___repr__(self):
         pack_state = PackState({5:1.1})
         self.assertEqual("PackState({5: 1.1})", repr(pack_state))
 
+    @unittest.skip
     def test___str__(self):
         pack_state = PackState({5:1.1})
         self.assertEqual('{5: 1.1}', str(pack_state))
 
+    @unittest.skip
     def test_from_message(self):
         msg = Msg({5:1.1, 23:2.0})
         pack_state = PackState.from_message(msg)
