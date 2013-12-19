@@ -1,7 +1,6 @@
 #
 # Provide an interface between the base station.
 #
-#
 # J. Brusey, May 2011
 
 import sys
@@ -24,6 +23,7 @@ class BaseIF(object):
         self.queue = Queue()
 
     def get(self, wait=True, timeout=30):
+        #This goes into an infinate loop
         if self.source.isDone():
             raise Exception("source is no longer connected")
         return self.queue.get(wait, timeout)
