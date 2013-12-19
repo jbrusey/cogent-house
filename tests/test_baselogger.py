@@ -346,7 +346,7 @@ class test_baselogger(base.BaseTestCase):
         output = self.blogger.mainloop()
         self.assertTrue(output)
         output = self.blogger.mainloop() #And a duplicate
-        self.assertTrue(output)
+        self.assertFalse(output)
 
     #@unittest.skip
     def testDuplicateFunction(self):
