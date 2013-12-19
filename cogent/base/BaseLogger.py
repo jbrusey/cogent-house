@@ -30,8 +30,8 @@ import cogent.base.model.meta as meta
 import cogent.base.model as models
 
 F = "/home/james/sa.db"
-DBFILE = "sqlite:///test.db"
-#DBFILE = "mysql://chuser@localhost/ch"
+#DBFILE = "sqlite:///test.db"
+DBFILE = "mysql://chuser@localhost/ch"
 
 from sqlalchemy import create_engine, func, and_
 import sqlalchemy.exc
