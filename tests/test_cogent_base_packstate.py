@@ -1,4 +1,4 @@
-import unittest
+import unittest2 as unittest
 
 from cogent.node import Packets
 from cogent.base.packstate import PackState
