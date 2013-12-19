@@ -37,8 +37,9 @@ setup(name='ch-base',
                 'cogent.base.model',
                 'cogent.push',
                 'cogent.report',
+                'cogent.sip',
                 'cogent.node',
-                'cogent.scripts'
+				'cogent.scripts'
 				],
       package_data={'cogent.base' : ['Calibration/*.csv']},
       data_files=[('{0}etc/init'.format(conf_prefix), ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),

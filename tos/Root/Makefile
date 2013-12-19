@@ -1,16 +1,20 @@
-PFLAGS += -I%T/lib/net/ctp -I%T/lib/net -I%T/lib/net/4bitle -I%T/lib/net/drip
-COMPONENT=CogentRootC
+PFLAGS += -I./ErrorDisplay \
+	-I%T/lib/net/ctp \
+	-I%T/lib/net \
+	-I%T/lib/net/drip \
+	-I%T/lib/net/4bitle #-I../Util/ch4bitle 
 
-PFLAGS +=-DTOSH_DATA_LENGTH=106
+COMPONENT=RssiCogentRootC
 
-# turn on leds for debugging?
-CFLAGS += -DBLINKY
+PFLAGS += -DTOSH_DATA_LENGTH=76
 CFLAGS += -DSERIAL_QUEUE_SIZE=50
 
-CFLAGS += -DLOW_POWER_LISTENING
-CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=0
-CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
-CFLAGS += -DDELAY_AFTER_RECEIVE=20
+CFLAGS += -DACK_TIMEOUT_TIME=5120L
+
+#CFLAGS += -DCC2420_DEF_CHANNEL=15
+#PFLAGS += -DCC2420_DEF_RFPOWER=3
+
+#CFLAGS += -DBLINKY
 
 include $(MAKERULES)
 

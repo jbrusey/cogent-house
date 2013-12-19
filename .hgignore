@@ -9,6 +9,7 @@ tos/Root/*/build
 cogent/node/Packets.py
 cogent/node/*Msg.py
 build/
+dist/
 cogent/push/.cache
 cogent/push/.coverage
 cogent/push/testcover/

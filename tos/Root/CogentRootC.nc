@@ -1,26 +1,25 @@
 // -*- c -*-
-#include "../Node/Packets.h"
-configuration CogentRootC { }
+#include "../Packets.h"
+configuration CogentRootC {
+  provides interface Intercept as RadioIntercept[am_id_t amid];
+}
 implementation
 {
   components CogentRootP, MainC, LedsC;
   components SerialActiveMessageC as Serial;
   components ActiveMessageC as Radio;
-  components new SerialAMReceiverC(AM_CONFIGMSG) as SettingsReceiver;
 
   CogentRootP.Boot -> MainC;
+
+  components new SerialAMReceiverC(AM_ACKMSG) as AckReceiver;
+  CogentRootP.UartAckReceive -> AckReceiver;
 
   CogentRootP.SerialControl -> Serial;
   CogentRootP.UartSend -> Serial;
   CogentRootP.UartPacket -> Serial;
   CogentRootP.UartAMPacket -> Serial;
-  CogentRootP.UartSettingsReceive -> SettingsReceiver;
 
   CogentRootP.RadioControl -> Radio;
-
-#ifdef LOW_POWER_LISTENING
-  CogentRootP.LowPowerListening -> Radio;
-#endif
   CogentRootP.Leds -> LedsC;
 
   components CollectionC; 
@@ -29,12 +28,15 @@ implementation
   CogentRootP.CollectionPacket -> CollectionC;
   CogentRootP.CollectionReceive -> CollectionC.Receive;
   CogentRootP.RadioPacket -> CollectionC;
-#ifdef DISSEMINATION
+  
+  RadioIntercept = CogentRootP.RadioIntercept;
+
   components DisseminationC;
-  components new DisseminatorC(ConfigMsg, DIS_SETTINGS);
+  components new DisseminatorC(AckMsg, AM_ACKMSG);
   CogentRootP.DisseminationControl -> DisseminationC;
-  CogentRootP.SettingsUpdate -> DisseminatorC;
-#endif
+  CogentRootP.AckUpdate -> DisseminatorC;
+  components CrcC;
+  CogentRootP.CRCCalc -> CrcC;
 
   components new QueueC(message_t*, SERIAL_QUEUE_SIZE);
   components new PoolC(message_t, SERIAL_QUEUE_SIZE);
@@ -44,4 +46,14 @@ implementation
   components new TimerMilliC() as BlinkTimer;
   CogentRootP.BlinkTimer -> BlinkTimer;
 
+  components new TimerMilliC() as AckTimeoutTimer;
+  CogentRootP.AckTimeoutTimer ->  AckTimeoutTimer;
+
+  /* error display */
+  components new TimerMilliC() as ErrorDisplayTimer;
+  components ErrorDisplayM;
+  ErrorDisplayM.ErrorDisplayTimer -> ErrorDisplayTimer;
+  ErrorDisplayM.Leds -> LedsC;
+  CogentRootP.ErrorDisplayControl -> ErrorDisplayM.ErrorDisplayControl;
+  CogentRootP.ErrorDisplay -> ErrorDisplayM.ErrorDisplay;
 }

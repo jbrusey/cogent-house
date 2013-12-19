@@ -2,7 +2,8 @@
 #include "msp430usart.h"
 
 enum {
-  SC_SIZE = 20
+  SC_SIZE = 20,
+  SC_PACKED_SIZE = 5
 };
 
 #include "packstate.h" 
@@ -21,10 +22,12 @@ implementation
 
   components PrintfC;
   components SerialStartC;
+  components LedsC;
 
 
   PackStateTestP.Boot -> MainC.Boot; 
   PackState.Mask -> ABV;
   PackStateTestP.PackState -> PackState;
+  PackStateTestP.Leds -> LedsC;
 }
 

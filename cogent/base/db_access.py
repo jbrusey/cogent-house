@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, and_
+from sqlalchemy import create_engine, and_, distinct, select, alias
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
 from datetime import datetime
@@ -6,6 +6,7 @@ import os.path
 import csv
 import scipy.stats as stats
 import sys
+
 
 from cogent.base.model import *
 
@@ -160,6 +161,40 @@ def _query_by_node_and_type(session, node_id, reading_type, start_time, end_time
             Reading.time < end_time,
             Reading.nodeId == node_id,
             Reading.typeId == rtype_id))
+
+
+
+def _locCalibrateReadings(session,theQuery):
+    """Generator object to calibate all readings,
+    hopefully this gathers all calibration based readings into one 
+    area
+
+    :param theQuery: SQLA query object containing Reading values"""
+    #Dictionary to hold all sensor paramters
+    sensorParams = {}
+
+    for reading in theQuery:
+
+        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
+        log.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        if not theSensor:
+            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
+            if theSensor is None:
+                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
+            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+
+        #Then add the offset etc
+        cReading = Reading(time=reading.time,
+                           nodeId = reading.nodeId,
+                           typeId = reading.typeId,
+                           locationId = reading.locationId,
+                           value = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
+                           )
+    
+        yield cReading
+
+
+
     
 def _query_by_type_with_join_target(session, reading_type, start_time, end_time, target, filter_values = True):
     rtype_id = reading_types.index(reading_type)
@@ -210,6 +245,9 @@ def create_session_mysql(username, database, host='localhost'):
     db_engine = create_db_engine_mysql(username, database, host)
     return create_session(db_engine)
 
+def get_house_details(session, house_id):
+    row = session.query(House).filter(House.id==house_id).first()
+    return row
 
 def get_house_address(session, house_id):
     row = session.query(House).filter(House.id==house_id).first()
@@ -237,7 +275,8 @@ def get_node_locations_by_house(session, house_id, include_external=True):
     return node_details
 
 
-def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, cal_func=get_calibration, with_deltas=False):
+
+def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
 
@@ -361,6 +400,7 @@ def get_yield(session, node_id, reading_type, start_time = datetime.fromtimestam
     row_count = _query_by_node_and_type(session, node_id, reading_type, start_time, end_time).count()
 
     return (row_count * 100.0) / expected_rows
+
 
 
 def get_houses(session):

@@ -21,7 +21,7 @@ class TestBif(object):
     def receive(self, msg):
         self.queue.put(msg)
 
-    def sendMsg(self, msg):
+    def sendMsg(self, msg, addr=None):
         # assumption is that msg is a ConfigMsg
         print "sendMsg",msg
 
@@ -375,18 +375,28 @@ class test_baselogger(base.BaseTestCase):
         #Check the duplicate function
 
         #session = self.blogger.getSession()
+
+        #Duplicate packet has been renamed
         session = self.Session()
-        out = self.blogger.duplicate_packet(session = session,
-                                            time = now,
-                                            nodeId = 4242,
-                                            localtime = 0)
+        out = BaseLogger.duplicate_packet(session = session,
+                                          receipt_time = now,
+                                          node_id = 4242,
+                                          localtime = 0)
+        #out = self.blogger.duplicate_packet(session = session,
+                                          # time = now,
+                                          # nodeId = 4242,
+                                          # localtime = 0)
         self.assertTrue(out)
 
         now = now+datetime.timedelta(minutes=1)
-        out = self.blogger.duplicate_packet(session = session,
-                                            time = now,
-                                            nodeId = 4242,
-                                            localtime = 0)
+        #out = self.blogger.duplicate_packet(session = session,
+        #                                    time = now,
+        #                                    nodeId = 4242,
+        #                                    localtime = 0)
+        out = BaseLogger.duplicate_packet(session = session,
+                                          receipt_time = now,
+                                          node_id = 4242,
+                                          localtime = 0)
         self.assertFalse(out)
 
     #@unittest.skip

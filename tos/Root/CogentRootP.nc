@@ -1,14 +1,14 @@
 // -*- c -*-
-module CogentRootP
-{
-  uses
-    {
+#include "AM.h"
+#include "Serial.h"
+
+
+module CogentRootP @safe() {
+  uses {
       interface Boot;
       interface SplitControl as SerialControl;
       interface SplitControl as RadioControl;
-#ifdef LOW_POWER_LISTENING
-      interface LowPowerListening;
-#endif
+
       interface StdControl as CollectionControl;
       interface RootControl;
 
@@ -17,34 +17,50 @@ module CogentRootP
       interface Packet as RadioPacket;
       interface CollectionPacket;
 
-#ifdef DISSEMINATION
       // dissemination
-      interface DisseminationUpdate<ConfigMsg> as SettingsUpdate;
+      interface DisseminationUpdate<AckMsg> as AckUpdate;
       interface StdControl as DisseminationControl;
-#endif
+      interface Crc as CRCCalc ;
 
       //data forwarding interfaces
       interface AMSend as UartSend[am_id_t id];
       interface Packet as UartPacket;
       interface AMPacket as UartAMPacket;
-      interface Receive as UartSettingsReceive;
-
-
+      interface Receive as UartAckReceive;
 
       // queuing
       interface Queue<message_t *>;
       interface Pool<message_t>;
 
+      //errors
+      interface StdControl as ErrorDisplayControl;
+      interface ErrorDisplay;
+
       interface Timer<TMilli> as BlinkTimer;
+      interface Timer<TMilli> as AckTimeoutTimer;
       interface Leds;
     }
+    
+  provides interface Intercept as RadioIntercept[am_id_t amid];
 }
 
 implementation
 {
+
+  enum {
+    ERR_SERIAL_SEND_FAILED = 1,
+    ERR_SERIAL_START = 2,
+    ERR_RADIO_START = 3,
+    ERR_ACK_TIMEOUT = 4
+  };
+
+
+
   message_t fwdMsg;
   bool fwdBusy;
-  uint8_t lastLen;
+  bool bouncing = FALSE;
+  message_t uartmsg;
+  
 
   event void Boot.booted()
   {
@@ -54,13 +70,13 @@ implementation
   }
 
   event void RadioControl.startDone(error_t error) {
-    if (error == FAIL)
+    if (error == FAIL){
+      call ErrorDisplay.add(ERR_RADIO_START);
       call RadioControl.start();
+    }
     else {
       call CollectionControl.start();
-#ifdef DISSEMINATION
       call DisseminationControl.start();
-#endif
       call RootControl.setRoot();
     }
   }
@@ -69,8 +85,6 @@ implementation
 
 
   //DEAL WITH STATE
-  message_t uartmsg;
-
   task void serialForwardTask() { 
     if (!call Queue.empty() && !fwdBusy) {
       message_t* msg = call Queue.dequeue();
@@ -88,81 +102,95 @@ implementation
 	uart_payload = call UartPacket.getPayload(msg, len);
 	if (uart_payload != NULL) { 
 	  memcpy(uart_payload, &uartmsg, len);
-      
+
+	  call AckTimeoutTimer.startOneShot(ACK_TIMEOUT_TIME);      
 	  if (call UartSend.send[id](AM_BROADCAST_ADDR, msg, len) == SUCCESS) { 
 	    fwdBusy = TRUE;
-	  }
-	  else {
-	    // TODO consider restarting the serial port here
-#ifdef BLINKY
-	    call Leds.led0On();
-#endif
 	  }
 	}
       }
     }
   }
-
+  
 
   event message_t *CollectionReceive.receive[collection_id_t id](message_t* msg, 
 						    void* payload, 
 						    uint8_t len)
   {
-#ifdef BLINKY
-    call Leds.led1Toggle();
-#endif
     if (!call Pool.empty() && call Queue.size() < call Queue.maxSize()) { 
       message_t *tmp = call Pool.get();
+      if (!signal RadioIntercept.forward[id](msg,payload,len))
+          return tmp;
       call Queue.enqueue(msg);
       if (!fwdBusy) {
 	post serialForwardTask();
       }
       return tmp;
     }
-    else {
-#ifdef BLINKY
-      call Leds.led2On(); // buffer overflow
-#endif
-    }
     return msg;
   }
 
   event void UartSend.sendDone[am_id_t id](message_t *msg, error_t error) {
     fwdBusy = FALSE;
+    if (error != SUCCESS) {
+      call ErrorDisplay.add(ERR_SERIAL_SEND_FAILED);
+    }
     call Pool.put(msg);
     if (! call Queue.empty())
       post serialForwardTask();
   }
 
-  /** disseminate new settings */
-  event message_t *UartSettingsReceive.receive(message_t* msg, void* payload, uint8_t len)
-  {
-#ifdef DISSEMINATION
-    ConfigMsg *newSettings = payload;
+  event message_t *UartAckReceive.receive(message_t* msg, void* payload, uint8_t len)
+  {    
+    AckMsg *ackMsg = payload;
+    CRCStruct crs;
+    uint16_t crc;
 
-    if (len == sizeof(*newSettings))
-      {
-	if (newSettings->special == SPECIAL) {
-	  //call Leds.led2Toggle();
-	  call SettingsUpdate.change(newSettings);
-	}
-	else {
-#ifdef BLINKY
-	  call Leds.led2Toggle();
+    call AckTimeoutTimer.stop();
+
+#ifdef BLINKY 
+    call Leds.led1Toggle();
 #endif
-	}
-      }
-#endif
+    if (len == sizeof(*ackMsg)) {
+      //message is ok calculate crc
+      crs.node_id = ackMsg->node_id;
+      crs.seq = ackMsg->seq;
+      crc = call CRCCalc.crc16(&crs, sizeof crs);
+      ackMsg->crc=crc;
+      call AckUpdate.change(ackMsg);
+    }
     return msg;
+  }
+
+
+
+  // ACK has not been recieved from the SP bounce
+  event void AckTimeoutTimer.fired() { 
+    bouncing = TRUE;
+    fwdBusy = TRUE;
+
+    call ErrorDisplay.add(ERR_ACK_TIMEOUT);
+    call SerialControl.stop();
   }
 
   event void SerialControl.startDone(error_t error) {
     fwdBusy = FALSE;
-    if (error == FAIL)
+
+    if (error == FAIL){
+      call ErrorDisplay.add(ERR_SERIAL_START);
       call SerialControl.start();
-    // TODO: make sure that we don't try to use the serial port until it is up
+    }
+    else {
+      if (bouncing && !call Queue.empty())
+	post serialForwardTask();
+      bouncing=FALSE;
+    }
   }
-  event void SerialControl.stopDone(error_t error) { }
+
+  event void SerialControl.stopDone(error_t error) { 
+    if (bouncing)
+      call SerialControl.start();
+  }
 
   uint8_t blink_state = 0;
 
@@ -171,6 +199,7 @@ implementation
   event void BlinkTimer.fired() { 
     if (blink_state >= 60) { /* 30 seconds */
       call Leds.set(0);
+      call ErrorDisplayControl.start();
     }
     else { 
       blink_state++;
@@ -178,7 +207,13 @@ implementation
       call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
     }
   }
-    
+
+  default event bool
+  RadioIntercept.forward[am_id_t amid](message_t* msg,
+				       void* payload,
+				       uint8_t len) {
+    return TRUE;
+  }
 
 
 }

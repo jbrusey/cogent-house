@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Wrapper script for RestPusher - attempts to push the ch db every hour includes checks on 3g connectivity
+
+#select random time within 10 mins of call
+RTIME=`shuf -i 0-600 -n 1`
+sleep $RTIME
+
+SIP="8.8.8.8"
+TIMEOUT=30
+COUNT=1
+while [ $COUNT -lt $TIMEOUT ]
+do
+    let COUNT++
+    if ping -I ppp0 -q -c 1 $SIP >/dev/null
+    then
+	cd /opt/cogent-house.clustered/cogent/push && python RestPusher.py
+	break #SUCESSS
+    else
+	sudo service 3g-connection start
+    fi
+    sleep 10
+done
+

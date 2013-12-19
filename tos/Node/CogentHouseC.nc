@@ -1,10 +1,10 @@
 // -*- c -*-
-#include "Packets.h"
+#include "../Packets.h"
 #include "Collection.h"
-#include "PolyClass/horner.c"
-#include "CurrentCost/cc_struct.h"
-#include "HeatMeter/hm_struct.h"
-#include <stdio.h>
+#include "./Sensing/PolyClass/horner.c"
+#include "./Sensing/CurrentCost/cc_struct.h"
+#include "Filter.h"
+#include "./Exposure/exposure.h"
 #include <stdint.h>
 #ifdef DEBUG
 #define NEW_PRINTF_SEMANTICS
@@ -14,122 +14,86 @@
 configuration CogentHouseC {}
 implementation
 {
-  components CogentHouseP, ActiveMessageC, MainC, LedsC, ActiveMessageC as Radio;
-#ifdef DEBUG
-  components PrintfC;
-  components SerialStartC;
-#endif
-	
-  //import timers
-  components new TimerMilliC() as SenseTimer;
-  components new TimerMilliC() as SendTimeoutTimer;
-  components new TimerMilliC() as BlinkTimer;
-  components new TimerMilliC() as WarmUpTimer;   
-  components new TimerMilliC() as TimeOut;
 
-  CogentHouseP.Boot -> MainC.Boot;
-  CogentHouseP.SenseTimer -> SenseTimer;
-  CogentHouseP.SendTimeoutTimer -> SendTimeoutTimer;
-  CogentHouseP.BlinkTimer -> BlinkTimer;
+  /************* MAIN COMPONENTS ***********/
+  
+  components MainC, CogentHouseP, LedsC, HilTimerMilliC;
+#ifdef DEBUG
+  components PrintfC, SerialStartC;
+#endif
+
+  CogentHouseP.Boot -> MainC.Boot; 
   CogentHouseP.Leds -> LedsC;
+  CogentHouseP.LocalTime -> HilTimerMilliC;
+  
+  //Timers
+  components new TimerMilliC() as SenseTimer;
+  components new TimerMilliC() as BlinkTimer;
+  components new TimerMilliC() as WarmUpTimer;
+  components new TimerMilliC() as SendTimeOutTimer;
+
+  CogentHouseP.SenseTimer -> SenseTimer;
+  CogentHouseP.BlinkTimer -> BlinkTimer;
+  CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
+
+  // Instantiate and wire our collection service
+  components CollectionC, ActiveMessageC;
+  components new CollectionSenderC(AM_STATEMSG) as StateSender;
+
   CogentHouseP.RadioControl -> ActiveMessageC;
-  CogentHouseP.LowPowerListening -> Radio;
+  CogentHouseP.CollectionControl -> CollectionC;
+  CogentHouseP.CtpInfo -> CollectionC;
+  CogentHouseP.StateSender -> StateSender;
+  
+  //LPL
+  CogentHouseP.LowPowerListening -> ActiveMessageC;
+
+  //Configured
+  components new AccessibleBitVectorC(RS_SIZE) as Configured;
+  CogentHouseP.Configured -> Configured.AccessibleBitVector;
+
+  //expectReadDone
+  components new BitVectorC(RS_SIZE) as ExpectReadDone;
+  CogentHouseP.ExpectReadDone -> ExpectReadDone.BitVector;
+
+  //PackState
+  components new PackStateC(SC_SIZE) as PackState;
+  components new AccessibleBitVectorC(SC_SIZE) as ABV;
+
+  PackState.Mask -> ABV;
+  CogentHouseP.PackState -> PackState;
 
   //sensing interfaces
   components new SensirionSht11C();
-  components new HamamatsuS1087ParC() as PAR;
-  components new HamamatsuS10871TsrC() as TSR;
   components new VoltageC() as Volt;
   components new CarbonDioxideC() as CarbonDioxide;
   components new VOCC() as VOC;
   components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
-  components new Temp_ADC1C() as Temp_ADC1;
-  components new Temp_ADC2C() as Temp_ADC2;
-  components new BlackBulbC() as BlackBulbADC;
 
-  //import sensing modules
-  components ThermalSensingM;
-  components LightSensingM;
-  components AirQualityM;
-  components WindowSensorM;
-  components HeatMeterM;
-  components new PulseReaderM() as OptiReader;
-  components new PulseReaderM() as GasReader;
-  components BlackBulbM;
 
-  //sensor readings
+  //Sensing Modules
+  components ThermalSensingM, AirQualityM, BatterySensingM;
+  components new ACStatusM() as ACStatusM;
+
+  //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
-
-  OptiReader.Leds -> LedsC;
-  OptiReader.EnergyInput -> GIO.Port26;
-  OptiReader.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
-  
-  GasReader.Leds -> LedsC;
-  GasReader.EnergyInput -> GIO.Port26;
-  GasReader.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3 NOTE: need to potentially change this
-
-  LightSensingM.GetPAR -> PAR;
-  LightSensingM.GetTSR -> TSR;
-
-  WindowSensorM.GetTempADC1 -> Temp_ADC1;
-  WindowSensorM.GetTempADC2 -> Temp_ADC2;
-  BlackBulbM.GetTemp -> BlackBulbADC;
-  
+  BatterySensingM.GetVoltage -> Volt;
   AirQualityM.GetCO2 -> CarbonDioxide;
   AirQualityM.GetVOC -> VOC;
   AirQualityM.GetAQ -> AQ;
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
 
-  HeatMeterM.EnergyInput -> GIO.Port26;
-  HeatMeterM.EnergyInterrupt -> GIOInterrupt.Port26; //set to read from gio3
-  HeatMeterM.VolumeInput -> GIO.Port23;
-  HeatMeterM.VolumeInterrupt -> GIOInterrupt.Port23; //set to read from gio2
+  ACStatusM.ACInput -> GIO.Port26;
+  CogentHouseP.ACControl -> ACStatusM.ACControl;
+  CogentHouseP.ReadAC->ACStatusM.ReadAC;
+  
+#ifdef SIP
 
-  //link modules to main file
-  CogentHouseP.ReadTemp->ThermalSensingM.ReadTemp;
-  CogentHouseP.ReadHum->ThermalSensingM.ReadHum;
-  CogentHouseP.ReadPAR->LightSensingM.ReadPAR;
-  CogentHouseP.ReadTSR->LightSensingM.ReadTSR;
-  CogentHouseP.ReadVolt->Volt;
-  CogentHouseP.ReadCO2->AirQualityM.ReadCO2;
-  CogentHouseP.ReadVOC->AirQualityM.ReadVOC;
-  CogentHouseP.ReadAQ->AirQualityM.ReadAQ;
-  CogentHouseP.ReadOpti->OptiReader.ReadPulse;
-  CogentHouseP.OptiControl -> GasReader.PulseControl;
-  CogentHouseP.ReadGas->GasReader.ReadPulse;
-  CogentHouseP.GasControl -> GasReader.PulseControl;
-  CogentHouseP.ReadTempADC1->WindowSensorM.ReadTempADC1;
-  CogentHouseP.ReadTempADC2->WindowSensorM.ReadTempADC2;
-  CogentHouseP.ReadBlackBulb->BlackBulbM.ReadTemp;
-
-  CogentHouseP.ReadHeatMeter->HeatMeterM.ReadHeatMeter;
-  CogentHouseP.HeatMeterControl -> HeatMeterM.HeatMeterControl;
-
-  // Instantiate and wire our collection service
-  components CollectionC;
-  components new CollectionSenderC(AM_STATEMSG) as StateSender;
-  components HilTimerMilliC;
-
-  CogentHouseP.CollectionControl -> CollectionC;
-  CogentHouseP.CtpInfo -> CollectionC;
-  CogentHouseP.StateSender -> StateSender;
-	
-  CogentHouseP.LocalTime -> HilTimerMilliC;
-
-#ifdef DISSEMINATE
-  // Instantiate and wire the settings dissemination service 
-  components DisseminationC;
-  CogentHouseP.DisseminationControl -> DisseminationC;
-	
-  components new DisseminatorC(ConfigMsg, DIS_SETTINGS);
-  CogentHouseP.SettingsValue -> DisseminatorC;
-#endif
-
-  // current cost
+  // CC Wiring
   components CurrentCostM,CurrentCostSerialC;
   components new TimerMilliC() as TimeoutTimer;
   components new TimerMilliC() as ResumeTimer;
@@ -143,27 +107,215 @@ implementation
   CurrentCostM.Leds -> LedsC;
   CurrentCostM.LocalTime -> HilTimerMilliC;
   
-  CogentHouseP.ReadWattage->CurrentCostM.ReadWattage;
+
+  //Heat Meter Energy Reader
+  components new PulseReaderM() as HMEnergy;
+  HMEnergy.Leds -> LedsC;
+  HMEnergy.Input -> GIO.Port26;
+  HMEnergy.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
+
+
+  //Heat Meter Volume Reader
+  components new PulseReaderM() as HMVolume;
+  HMVolume.Leds -> LedsC;
+  HMVolume.Input -> GIO.Port26;
+  HMVolume.Interrupt -> GIOInterrupt.Port23; //set to read from gio3
+
+
+  //Opti Reader
+  components new PulseReaderM() as Opti;
+  Opti.Leds -> LedsC;
+  Opti.Input -> GIO.Port26;
+  Opti.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
+
+  //Gas Reader  
+  components new PulseReaderM() as Gas;
+  Gas.Leds -> LedsC;
+  Gas.Input -> GIO.Port26;
+  Gas.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
+  
+  //ADC Temp
+  components TempADCM;
+  components new Temp_ADC1C() as Temp_ADC1;
+  TempADCM.GetTempADC1 -> Temp_ADC1;
+
+  //Window Sensor
+  components new WindowC() as Window;
+  components WindowM;
+  WindowM.GetWindow  -> Window;
+#endif
+  /*********** ACK CONFIG *************/
+
+  components DisseminationC;
+  components new DisseminatorC(AckMsg, AM_ACKMSG);
+  components CrcC;
+
+  CogentHouseP.DisseminationControl -> DisseminationC;
+  CogentHouseP.AckValue -> DisseminatorC;
+  CogentHouseP.CRCCalc -> CrcC;
+
+
+#ifdef SIP
+  /************* SIP CONFIG ***********/
+  //SIP Components
+  components SIPControllerC, PredictC;
+  components FilterM;
+  components DEWMAC; 
+  components PassThroughC as Pass;
+  components new TimerMilliC() as HeartBeatTimer;
+  components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
+
+  //Global SIP modules
+  SIPControllerC.SinkStatePredict -> PredictC;
+  HeartbeatC.HeartbeatTimer -> HeartBeatTimer;
+  SIPControllerC.Heartbeat -> HeartbeatC;
+  FilterM.LocalTime -> HilTimerMilliC;
+  
+  // Temp Wiring
+  FilterM.Filter[RS_TEMPERATURE] -> DEWMAC.Filter[RS_TEMPERATURE];
+  FilterM.GetSensorValue[RS_TEMPERATURE]  -> ThermalSensingM.ReadTemp;
+  SIPControllerC.EstimateCurrentState[RS_TEMPERATURE]  -> FilterM.EstimateCurrentState[RS_TEMPERATURE];
+  CogentHouseP.ReadTemp -> SIPControllerC.SIPController[RS_TEMPERATURE];
+
+  // Hum Wiring
+  FilterM.Filter[RS_HUMIDITY]  -> DEWMAC.Filter[RS_HUMIDITY];
+  FilterM.GetSensorValue[RS_HUMIDITY]  -> ThermalSensingM.ReadHum;
+  SIPControllerC.EstimateCurrentState[RS_HUMIDITY]  -> FilterM.EstimateCurrentState[RS_HUMIDITY];
+  CogentHouseP.ReadHum -> SIPControllerC.SIPController[RS_HUMIDITY];
+
+  // Battery Wiring
+  FilterM.Filter[RS_VOLTAGE]  -> DEWMAC.Filter[RS_VOLTAGE];
+  FilterM.GetSensorValue[RS_VOLTAGE]  -> BatterySensingM.ReadBattery;
+  SIPControllerC.EstimateCurrentState[RS_VOLTAGE]  -> FilterM.EstimateCurrentState[RS_VOLTAGE];
+  CogentHouseP.ReadVolt -> SIPControllerC.SIPController[RS_VOLTAGE];
+
+  // CO2 Wiring
+  FilterM.Filter[RS_CO2]  -> DEWMAC.Filter[RS_CO2];
+  FilterM.GetSensorValue[RS_CO2]  -> AirQualityM.ReadCO2;
+  SIPControllerC.EstimateCurrentState[RS_CO2]  -> FilterM.EstimateCurrentState[RS_CO2];
+  CogentHouseP.ReadCO2 -> SIPControllerC.SIPController[RS_CO2];
+
+  // AQ Wiring
+  FilterM.Filter[RS_AQ]  -> DEWMAC.Filter[RS_AQ];
+  FilterM.GetSensorValue[RS_AQ]  -> AirQualityM.ReadAQ;
+  SIPControllerC.EstimateCurrentState[RS_AQ]  -> FilterM.EstimateCurrentState[RS_AQ] ;
+  CogentHouseP.ReadAQ -> SIPControllerC.SIPController[RS_AQ] ;
+
+  // VOC Wiring
+  FilterM.Filter[RS_VOC]  -> DEWMAC.Filter[RS_VOC];
+  FilterM.GetSensorValue[RS_VOC]  -> AirQualityM.ReadVOC;
+  SIPControllerC.EstimateCurrentState[RS_VOC]  -> FilterM.EstimateCurrentState[RS_VOC] ;
+  CogentHouseP.ReadVOC -> SIPControllerC.SIPController[RS_VOC] ;
+  
+  //CC Wiring 
+  FilterM.Filter[RS_POWER]  -> Pass.Filter[RS_POWER];
+  FilterM.GetSensorValue[RS_POWER]  -> CurrentCostM.ReadWattage;
+  SIPControllerC.EstimateCurrentState[RS_POWER]  -> FilterM.EstimateCurrentState[RS_POWER] ;
+  CogentHouseP.ReadCC -> SIPControllerC.SIPController[RS_POWER] ;
   CogentHouseP.CurrentCostControl -> CurrentCostM.CurrentCostControl;
 
 
-  //Configured
-  //Need to define right size
-  components new AccessibleBitVectorC(RS_SIZE) as Configured;
-  CogentHouseP.Configured -> Configured.AccessibleBitVector;
-
-  //expectReadDone
-  components new BitVectorC(RS_SIZE) as ExpectReadDone;
-  CogentHouseP.ExpectReadDone -> ExpectReadDone.BitVector;
+  //Heat meter energy Wiring
+  CogentHouseP.HMEnergyControl -> HMEnergy.PulseControl;
+  FilterM.Filter[RS_HM_ENERGY]  -> Pass.Filter[RS_HM_ENERGY];
+  FilterM.GetSensorValue[RS_HM_ENERGY]  -> HMEnergy.ReadPulse;
+  SIPControllerC.EstimateCurrentState[RS_HM_ENERGY]  -> FilterM.EstimateCurrentState[RS_HM_ENERGY] ;
+  CogentHouseP.ReadHMEnergy -> SIPControllerC.SIPController[RS_HM_ENERGY] ;
 
 
-  //PackState
-  components new PackStateC(SC_SIZE) as PackState;
-  components new AccessibleBitVectorC(SC_SIZE) as ABV;
+  //Heat Meter Volume Wiring
+  CogentHouseP.HMVolumeControl -> HMVolume.PulseControl;
+  FilterM.Filter[RS_HM_VOLUME]  -> Pass.Filter[RS_HM_VOLUME];
+  FilterM.GetSensorValue[RS_HM_VOLUME]  -> HMVolume.ReadPulse;
+  SIPControllerC.EstimateCurrentState[RS_HM_VOLUME]  -> FilterM.EstimateCurrentState[RS_HM_VOLUME] ;
+  CogentHouseP.ReadHMVolume -> SIPControllerC.SIPController[RS_HM_VOLUME] ;
+  
 
-  PackState.Mask -> ABV;
-  CogentHouseP.PackState -> PackState;
+  //Opti Smart Wiring
+  CogentHouseP.OptiControl -> Opti.PulseControl;
+  FilterM.Filter[RS_OPTI]  -> Pass.Filter[RS_OPTI];
+  FilterM.GetSensorValue[RS_OPTI]  -> Opti.ReadPulse;
+  SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
+  CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
 
-  //components new LogStorageC(VOLUME_DEBUGLOG, TRUE);
-  //CogentHouseP.DebugLog -> LogStorageC;
+  //Gas Smart Wiring
+  CogentHouseP.GasControl -> Gas.PulseControl;
+  FilterM.Filter[RS_GAS]  -> Pass.Filter[RS_GAS];
+  FilterM.GetSensorValue[RS_GAS]  -> Gas.ReadPulse;
+  SIPControllerC.EstimateCurrentState[RS_GAS]  -> FilterM.EstimateCurrentState[RS_GAS] ;
+  CogentHouseP.ReadGas -> SIPControllerC.SIPController[RS_GAS] ;  
+
+  //Temp ADC  
+  FilterM.Filter[RS_TEMPADC1]  -> DEWMAC.Filter[RS_TEMPADC1];
+  FilterM.GetSensorValue[RS_TEMPADC1]  -> TempADCM.ReadTempADC1;
+  SIPControllerC.EstimateCurrentState[RS_TEMPADC1]  -> FilterM.EstimateCurrentState[RS_TEMPADC1];
+  CogentHouseP.ReadTempADC1 -> SIPControllerC.SIPController[RS_TEMPADC1];
+
+  //Window Wiring
+  FilterM.Filter[RS_WINDOW]  -> Pass.Filter[RS_WINDOW];
+  FilterM.GetSensorValue[RS_WINDOW]  -> WindowM.ReadWindow;
+  SIPControllerC.EstimateCurrentState[RS_WINDOW]  -> FilterM.EstimateCurrentState[RS_WINDOW];
+  CogentHouseP.ReadWindow -> SIPControllerC.SIPController[RS_WINDOW];
+
+  //Transmission Control
+  CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;
+#endif
+
+
+#ifdef BN
+  /************* BN CONFIG ***********/
+
+  components new TimerMilliC() as HeartBeatTimer;
+  components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
+  HeartbeatC.HeartbeatTimer -> HeartBeatTimer;
+  CogentHouseP.Heartbeat -> HeartbeatC;
+  
+  // Temp Wiring
+  components new ExposureControllerC(TEMP_BAND_LEN,BN_TEMP_BAND_THRESH) as TempBN;
+  components new ExposureC(TEMP_BAND_LEN, RS_TEMPERATURE, BN_GAMMA) as TempExposure;
+
+  TempExposure.GetValue -> ThermalSensingM.ReadTemp;
+  TempBN.ExposureRead -> TempExposure.Read;
+  CogentHouseP.ReadTemp -> TempBN.BNController;
+
+  // Hum Wiring
+  components new ExposureControllerC(HUM_BAND_LEN, BN_HUM_BAND_THRESH) as HumBN;
+  components new ExposureC(HUM_BAND_LEN, RS_HUMIDITY, BN_GAMMA) as HumExposure;
+
+  HumExposure.GetValue -> ThermalSensingM.ReadHum;
+  HumBN.ExposureRead -> HumExposure.Read;
+  CogentHouseP.ReadHum -> HumBN.BNController;
+
+  // Battery Wiring
+  components LowBatteryC;  
+  LowBatteryC.BatteryRead -> BatterySensingM.ReadBattery;
+  CogentHouseP.ReadVolt -> LowBatteryC.BNController;
+
+  // CO2 Wiring
+  components new ExposureControllerC(CO2_BAND_LEN,BN_CO2_BAND_THRESH) as CO2BN;
+  components new ExposureC(CO2_BAND_LEN, RS_CO2, BN_GAMMA) as CO2Exposure;
+  
+  CO2Exposure.GetValue -> AirQualityM.ReadCO2;
+  CO2BN.ExposureRead -> CO2Exposure.Read;
+  CogentHouseP.ReadCO2 -> CO2BN.BNController;
+
+
+  // AQ Wiring
+  components new ExposureControllerC(AQ_BAND_LEN,BN_AQ_BAND_THRESH) as AQBN;
+  components new ExposureC(AQ_BAND_LEN, RS_AQ, BN_GAMMA) as AQExposure;
+
+  AQExposure.GetValue -> AirQualityM.ReadAQ;
+  AQBN.ExposureRead -> AQExposure.Read;
+  CogentHouseP.ReadAQ -> AQBN.BNController;
+
+
+  // VOC Wiring
+  components new ExposureControllerC(VOC_BAND_LEN, BN_VOC_BAND_THRESH) as VOCBN;
+  components new ExposureC(VOC_BAND_LEN, RS_VOC, BN_GAMMA) as VOCExposure;
+
+  VOCExposure.GetValue -> AirQualityM.ReadVOC;
+  VOCBN.ExposureRead -> VOCExposure.Read;
+  CogentHouseP.ReadVOC -> VOCBN.BNController;
+#endif
+
 }
