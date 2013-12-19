@@ -385,7 +385,6 @@ def populateNodeTypes(session = False):
         for item in nodelist:
             thisNode = NodeType()
             thisNode.from_dict(item) #Dict based update
-            print "Adding node  type  {0}".format(thisNode)
             session.merge(thisNode)
         
     # with transaction.manager:
@@ -526,7 +525,6 @@ def populateCalibration(session = False):
     :param session: Session to use if not the default session
     """
     LOG.debug("Populating Calibration Data")
-    return
     #List of (file, sensor code) pairs
     calibFiles = [("aq_coeffs","AQ"),
                   ("co2_coeffs","CO2"),
@@ -595,7 +593,7 @@ def init_data(session=False, docalib=True):
     populateSensorTypes(session = session)
     populateNodeTypes(session= session)
     populateRoomTypes(session = session)
-    #if docalib:
-    #    populateCalibration(session = session)
+    if docalib:
+        populateCalibration(session = session)
     session.commit()
     LOG.debug("Database Population Complete")

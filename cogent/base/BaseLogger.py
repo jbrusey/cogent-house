@@ -26,7 +26,8 @@ import time
 
 from cogent.base.model import *
 import cogent.base.model.populateData as populateData
-
+import cogent.base.model.meta as meta
+import cogent.base.model as models
 
 F = "/home/james/sa.db"
 DBFILE = "sqlite:///test.db"
@@ -46,30 +47,44 @@ class BaseLogger(object):
     to the database.
     """
     def __init__(self, bif=None, dbfile=DBFILE):
-        log.debug("Init Engine")
+        log = logging.getLogger("baselogger")
+        self.log = log
+        log.info("---- INIT BASELOGGER ----")
+        log.debug(" > Init Engine")
         self.engine = create_engine(dbfile, echo=False)
+        models.initialise_sql(self.engine)
         #init_model(self.engine)
         #if DBFILE[:7] == "sqlite:":
         #    self.engine.execute("pragma foreign_keys=on")
-        self.metadata = Base.metadata
+        #self.metadata = Base.metadata
 
+        log.debug(" > Init BIF")
         if bif is None:
             self.bif = BaseIF("sf@localhost:9002")
         else:
             self.bif = bif
+                  
+        log.debug(" > Bif Init Complete")
 
-        self.log = logging.getLogger("baselogger")
         self.running = True
+        log.debug("---- COMPLETE ----")
 
     def create_tables(self):
         """Populate the intial database"""
-        self.metadata.create_all(self.engine)
+        log = self.log
 
-        session = Session()
+        log.info("--- CREATE TABLES ----")
+        log.debug(" > meta.create all")
 
+        #self.metadata.create_all(self.engine)
+        
+        log.debug("---- INIT DATABASE ----")
+        session = meta.Session()
+        populateData.init_data(session, docalib=False)
         #Moved this so it calls the models.populate data version of this code
-        populateData.init_data(session)
-        return
+        #populateData.init_data(session)
+        log.debug("---- Complete ----")
+
 
     def duplicate_packet(self, session, time, nodeId, localtime):
         """ duplicate packets can occur because in a large network,
@@ -211,7 +226,7 @@ class BaseLogger(object):
         :return True: If a packet has been received and stored correctly
         :return False: Otherwise
         """
-        log.debug("Main Loop")
+        #log.debug("Main Loop")
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
             #self.log.debug("Msg Recvd {0}".format(msg))
@@ -220,7 +235,7 @@ class BaseLogger(object):
             self.bif.queue.task_done()
             return True
         except Empty:
-            self.log.debug("Empty Queue")
+            #self.log.debug("Empty Queue")
             return False
         except KeyboardInterrupt:
             print "KEYB IRR"
@@ -306,3 +321,4 @@ if __name__ == '__main__': # pragma: no cover
     lm = BaseLogger()
     lm.create_tables()
     lm.run()
+    #lm.bif.finishAll()
