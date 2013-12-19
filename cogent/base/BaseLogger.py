@@ -44,8 +44,8 @@ from cogent.base.packstate import PackState
 
 LOGGER = logging.getLogger("ch.base")
 
-#DBFILE = "mysql://chuser@localhost/ch"
-DBFILE = "sqlite:///test.db"
+DBFILE = "mysql://chuser@localhost/ch"
+#DBFILE = "sqlite:///test.db"
 
 from sqlalchemy import create_engine, and_
 
