@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 #LOCAL_URL = "sqlite:///local.db"
-LOCAL_URL = 'mysql://test_user:test_user@localhost/pushSource'
+LOCAL_URL = 'mysql://chuser@localhost/pushSource'
 
 import cogent
 import cogent.base.model as models
@@ -17,14 +17,22 @@ import time
 from datetime import datetime
 from datetime import timedelta
 
-READING_GAP = 10
-STATE_SWITCH = 100
+READING_GAP = 300  #How often to add a new reading (Seconds)
+STATE_SWITCH = 100 #How often to fake a nodestate change
+
+BULK_SAMPLES = 157824 #How many samples to add in Bulk
+#BULK_SAMPLES = 288
+BULK_OFFSET = 1 #Offest multiplier (EG doing a bulk add will take us up to now.  This will do BULK_SAMPLES*OFFSET = Now
+
+import cogent.base.rrdstore as rrdstore
+
+RRDLIST = {}
 
 class Datagen(object):
     def __init__(self):
         log.debug("Initialising Push Script")
         engine = sqlalchemy.create_engine(LOCAL_URL)
-        
+    
         #Intialise the databse
         models.initialise_sql(engine)
         models.populate_data()
@@ -107,17 +115,17 @@ class Datagen(object):
         self.node38 = node38
 
         #Finally add an Upload URL if required
-        theUrl = session.query(models.UploadURL).filter_by(url="dang@127.0.0.1").first()
-        if not theUrl:
-            theUrl = models.UploadURL(url="dang@127.0.0.1",
-                                      dburl="mysql://test_user:test_user@localhost:3307/pushTest")
-            session.add(theUrl)
+        # theUrl = session.query(models.UploadURL).filter_by(url="dang@127.0.0.1").first()
+        # if not theUrl:
+        #     theUrl = models.UploadURL(url="dang@127.0.0.1",
+        #                               dburl="mysql://test_user:test_user@localhost:3307/pushTest")
+        #     session.add(theUrl)
         
-        theUrl = session.query(models.UploadURL).filter_by(url="dang@cogentee.coventry.ac.uk").first()
-        if not theUrl:
-            theUrl = models.UploadURL(url="dang@cogentee.coventry.ac.uk",
-                                      dburl="mysql://dang:j4a77aec@localhost:3307/chtest")
-            session.add(theUrl)
+        # theUrl = session.query(models.UploadURL).filter_by(url="dang@cogentee.coventry.ac.uk").first()
+        # if not theUrl:
+        #     theUrl = models.UploadURL(url="dang@cogentee.coventry.ac.uk",
+        #                               dburl="mysql://dang:j4a77aec@localhost:3307/chtest")
+        #     session.add(theUrl)
 
         session.commit()
 
@@ -132,26 +140,61 @@ class Datagen(object):
         node37 = self.node37
         node38 = self.node38
 
+        #Work out a better start time
+        currentTime = datetime.now()
+        #Calculate total seconds for samples
+        deploymentSeconds = (BULK_SAMPLES*READING_GAP)*BULK_OFFSET
+        fakeTime = currentTime - timedelta(seconds=deploymentSeconds)
+        log.debug("Current Time is {0}  -> Start time is {1}".format(currentTime,fakeTime))
+
         totalCount = 0
         try:
             #while totalCount < 500000:
-            while totalCount < 100000:
+            while totalCount < BULK_SAMPLES:
                 #Add a reading every N seconds
                 #log.debug("Adding New Reading {0}".format(fakeTime))
+                
+                thisRRD = RRDLIST.get((node37.id,
+                                       0,
+                                       node37.locationId), None)
+                if thisRRD is None:
+                    thisRRD = rrdstore.RRDStore(node37.id,
+                                                0,
+                                                node37.locationId,
+                                                startTime = fakeTime)
+                    RRDLIST[(node37.id,0,node37.locationId)] = thisRRD
 
                 theReading = models.Reading(time = fakeTime,
                                             nodeId = node37.id,
                                             locationId = node37.locationId,
                                             value = localCount,
                                             typeId = 0)
+
                 session.add(theReading)
 
-                theReading = models.Reading(time = fakeTime,
-                                            nodeId = node38.id,
-                                            locationId = node38.locationId,
-                                            value = 100-localCount,
-                                            typeId = 0)            
+                thisRRD.update(fakeTime,localCount)
+
+                # ---- AND Node 38
+                thisRRD = RRDLIST.get((node38.id,
+                                       0,
+                                       node38.locationId), None)
+                if thisRRD is None:
+                    thisRRD = rrdstore.RRDStore(node38.id,
+                                                0,
+                                                node38.locationId,
+                                                startTime = fakeTime)
+
+                    RRDLIST[(node38.id,0,node38.locationId)] = thisRRD
+
+                thisReading = models.Reading(time = fakeTime,
+                                             nodeId = node38.id,
+                                             locationId = node38.locationId,
+                                             value = 100-localCount,
+                                             typeId = 0)            
                 session.add(theReading)
+
+                thisRRD.update(fakeTime,localCount)
+
                 session.flush()
                 if localCount == STATE_SWITCH:
                     log.debug("Switching States")
@@ -192,7 +235,7 @@ class Datagen(object):
 
                 #time.sleep(READING_GAP)
                 totalCount += 1
-                fakeTime = fakeTime + timedelta(seconds=10)
+                fakeTime = fakeTime + timedelta(seconds=READING_GAP)
                 #session.commit()
         except KeyboardInterrupt:
             log.debug("Closing Everything down")
