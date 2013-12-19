@@ -385,7 +385,6 @@ def populateNodeTypes(session = False):
         for item in nodelist:
             thisNode = NodeType()
             thisNode.from_dict(item) #Dict based update
-            print "Adding node  type  {0}".format(thisNode)
             session.merge(thisNode)
         
     # with transaction.manager:
