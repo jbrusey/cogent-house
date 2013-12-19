@@ -311,7 +311,7 @@ def main(dburl="sqlite:///pushtest.db"):
     print "--> Time Create {0}".format(time.time() - t1)
     # #Start the transaction 
     # #trans = connection.begin()
-    populateData.init_data()
+    populateData.init_data(docalib=False)
     print "--> Time to Init {0}".format(time.time() - t1)   
     populatedata()
     print "--> Time to Populate {0}".format(time.time() - t1)

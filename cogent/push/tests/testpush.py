@@ -98,8 +98,8 @@ class TestClient(unittest.TestCase):
         import time
         t1 = time.time()
 
-        REINIT = False     
-        #REINIT = True
+        #REINIT = False     
+        REINIT = True
         if REINIT:
             print "INITIALISING DATABASE"
             #TODO: Fix this so no majic strings
