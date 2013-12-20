@@ -595,5 +595,5 @@ def init_data(session=False, docalib=True):
     populateRoomTypes(session = session)
     if docalib:
         populateCalibration(session = session)
-    session.commit()
+    #session.commit()
     LOG.debug("Database Population Complete")
