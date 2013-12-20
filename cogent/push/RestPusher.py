@@ -1358,5 +1358,5 @@ class Pusher(object):
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
 
-    server = PushServer(configfile="test.conf")
+    server = PushServer()
     server.sync()
