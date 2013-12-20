@@ -257,7 +257,12 @@ class Pusher(object):
         mappingConfig = dbConfig.get(restUrl, None)
         if mappingConfig is None:
             log.info("No Mapping in ConfigFile for URL {0}".format(restUrl))
-            mappingConfig = {"lastupdate":{}}
+            mappingConfig = {"lastupdate":{},
+                             "deployment":{},
+                             "house":{},
+                             "location":{},
+                             "room":{},
+                             }
             dbConfig[restUrl] = mappingConfig
             dbConfig.write()
 
