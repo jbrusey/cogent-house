@@ -225,7 +225,7 @@ class BaseLogger(object):
         :return True: If a packet has been received and stored correctly
         :return False: Otherwise
         """
-        self.log.debug("Main Loop")
+        #self.log.debug("Main Loop")
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
             #self.log.debug("Msg Recvd {0}".format(msg))
@@ -234,7 +234,7 @@ class BaseLogger(object):
             self.bif.queue.task_done()
             return status
         except Empty:
-            self.log.debug("Empty Queue")
+            #self.log.debug("Empty Queue")
             return False
         except KeyboardInterrupt:
             print "KEYB IRR"
