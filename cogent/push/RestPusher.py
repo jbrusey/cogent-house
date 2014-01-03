@@ -44,7 +44,7 @@ import dateutil.parser
 import json
 import urllib
 import requests
-import configobj 
+import configobj
 import time
 #Local Imports
 import cogent.base.model as models
@@ -97,7 +97,7 @@ class PushServer(object):
 
         :var localURL:  The DBString used to connect to the local database.
                         This can be used to overwrite the url in the config file
-                        
+
         :configfile:  Name of configfile to use
         """
 
@@ -213,7 +213,7 @@ class PushServer(object):
             item.checkRPC()
             #TODO Uncomment this after testing
             item.sync()
-            
+
 
         loopend = time.time()
         log.info("Total Time Taken {0} Avg {1}".format(loopend-loopstart,
@@ -307,9 +307,9 @@ class Pusher(object):
         #Do we have a connection to the server
         log = self.log
 
-        #Fetch the room types from the remote Database                                                                                                      
+        #Fetch the room types from the remote Database
         theUrl = "{0}deployment/".format(self.restUrl)
-        # #Fetch All Deployments the Remote Database knows about                                                                                            
+        # #Fetch All Deployments the Remote Database knows about
         restQry = requests.get(theUrl)
         if restQry.status_code == 503:
             log.warning("No Connection to server available")
@@ -339,17 +339,17 @@ class Pusher(object):
 
         #sys.exit(0)
 
-        #Fetch All room Types the Remote Database knows about        
+        #Fetch All room Types the Remote Database knows about
         log.debug("Fetching data from {0}".format(theUrl))
         try:
-            remoteqry = requests.get(theUrl,timeout=60)    
+            remoteqry = requests.get(theUrl,timeout=60)
         except requests.exceptions.Timeout:
             log.warning("Timeout on connection to cogentee")
             sys.exit(-1)
-            
+
         jsonbody = remoteqry.json()
         log.debug(jsonbody)
-        
+
         log.debug("Processing RPC")
         #Go through the JSON and see if we have any RPC
         for item in jsonbody:
@@ -360,11 +360,13 @@ class Pusher(object):
                 if command == "tunnel":
                     log.debug("Attempting to start SSH Process on port {0}".format(theport))
                     #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
-                    proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh", "start" ,"{0}".format(theport)],
+                    proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
+                                             "start" ,
+                                             "{0}".format(theport)],
                                             stderr=subprocess.PIPE)
-                    
+
                     # for line in iter(proc.stdout.readline, ''):
-                        
+
                     #     log.debug("--> {0}".format(line.strip()))
 
                     for line in iter(proc.stderr.readline, ''):
@@ -374,7 +376,7 @@ class Pusher(object):
                     log.debug("Killing existing SSH Process")
                     #Wait for Exit then Kill
                     subprocess.check_output(["./ch-ssh stop"],shell=True)
-        
+
 
     def sync_simpletypes(self):
         """Synchronse any simple (ie ones that have no foreign keys) tables"""
@@ -424,7 +426,7 @@ class Pusher(object):
             log.debug("Upload Readings Returns {0}".format(out))
             self.upload_nodestate(item, lastUpdate)
         #Then upload the node Sttes
-        
+
         self.save_mappings()
 
     def load_mappings(self):
@@ -434,26 +436,26 @@ class Pusher(object):
         mappingConfig = self.mappingConfig
 
         log.debug("Loading Deployments")
-        deployments = mappingConfig["deployment"]        
+        deployments = mappingConfig["deployment"]
         self.mappedDeployments = dict([(int(k),int(v))
-                                       for k,v in 
+                                       for k,v in
                                        deployments.iteritems()])
-                                       
+
         log.debug("Loading Houses")
-        houses = mappingConfig["house"]        
+        houses = mappingConfig["house"]
         self.mappedHouses = dict([(int(k),int(v))
-                                       for k,v in 
+                                       for k,v in
                                        houses.iteritems()])
-                                       
+
         log.debug("Loading Locations")
-        locations = mappingConfig["location"]        
+        locations = mappingConfig["location"]
         self.mappedLocations = dict([(int(k),int(v))
-                                       for k,v in 
+                                       for k,v in
                                        locations.iteritems()])
         log.debug("Loading Rooms")
-        rooms = mappingConfig["room"]        
+        rooms = mappingConfig["room"]
         self.mappedRooms = dict([(int(k),int(v))
-                                       for k,v in 
+                                       for k,v in
                                        rooms.iteritems()])
         #return
 
@@ -610,10 +612,10 @@ class Pusher(object):
         """Synchronise Room Types
 
         Room types should be global to all databases, as it is likely that
-        a given room type may be needed in several deployments.  
+        a given room type may be needed in several deployments.
 
         Thus this method does a two way sync between the local and remote database
-        While room types will be the same between databases.  The ID's may differ 
+        While room types will be the same between databases.  The ID's may differ
         betweeen instances.  Therefore this function also maps the local roomtypeId
         to the remote roomtypeId
 
@@ -883,7 +885,7 @@ class Pusher(object):
         # log.debug("------ REMOTE ------")
         # for key,item in remoteTypes.iteritems():
         #     log.debug("--> '{0}' {1}".format(key,item))
-        
+
         # log.debug("------ LOCAL -------")
         # for key,item in localTypes.iteritems():
         #     log.debug("--> '{0}' {1}".format(key,item))
@@ -911,7 +913,7 @@ class Pusher(object):
         log.debug("----- CURRENTLY MAPPED HOUSES ARE -----")
         log.debug(mappedHouses)
         log.debug("---------------------------------------")
-        
+
         #log.debug("Loading Known Houses from config file")
         mappingConfig = self.mappingConfig
 
@@ -925,7 +927,7 @@ class Pusher(object):
                 log.debug("--> Mapping for house exists")
                 continue
                 #raw_input("--> Press a key to continue")
-                
+
 
 
             #Calculate the Deployment Id:
@@ -1003,7 +1005,7 @@ class Pusher(object):
         #And sort out the backmapping
         for key, value in mappedLocations.iteritems():
             backmappedLocations[value] = key
-        
+
         self.backmappedLocations = backmappedLocations
 
     def sync_nodes(self):
@@ -1053,7 +1055,7 @@ class Pusher(object):
             rloc = self.backmappedLocations.get(thisItem.locationId,None)
             log.info("Attempting to map location {0} to {1}".format(thisItem.locationId, rloc))
             thisItem.locationId = rloc
-            
+
             session.add(thisItem)
             session.flush()
 
@@ -1075,6 +1077,84 @@ class Pusher(object):
             r = requests.post(theUrl,data=json.dumps(dictItem))
             log.debug(r)
 
+    def sync_nodeLocations(self, thehouse, lastupdate = None):
+        """Synchonise the location of any nodes associated with this house.
+
+        :param thehouse: House object to sync items for
+        :param lastupdate: Time to start transfer from
+        """
+        log = self.log
+        log.info("--- Synch Node Locations ---")
+        session = self.localsession()
+
+        #Find locations / nodes assocatied with this house
+        locations = [x.id for x in thehouse.locations]
+        log.debug("Locations associated with house: {0}".format(locations))
+        log.debug(locations)
+
+        nodes = session.query(models.Node)
+        nodes = nodes.filter(models.Node.locationId.in_(locations))
+        # nodes = session.query(models.Reading.nodeId)
+        # nodes = nodes.filter(models.Reading.locationId.in_(locations))
+        # if lastupdate:
+        #     nodes = nodes.filter(models.Reading.time > lastupdate)
+        # nodes = nodes.distinct()
+
+        if nodes.count() == 0:
+            log.debug("No Nodes at this time")
+            return 0
+
+        #For each node
+        theUrl = "{0}node/".format(self.restUrl)
+        for node in nodes:
+            nid = node.id
+            localnode = session.query(models.Node).filter_by(id=nid).first()
+            log.debug("--> Checking node {0} {1}".format(nid, localnode))
+
+            #theUrl = "{0}node/{1}".format(self.restUrl, nid)
+            remoteqry = requests.get(theUrl, params={"id": nid})
+            log.debug(remoteqry)
+            remotenode = remoteqry.json()
+            log.debug(remotenode)
+
+            #If the local node doesn't exist on the system
+            if remotenode == []:
+                log.debug("Adding new node to system")
+                dictitem = localnode.dict()
+                #Map locations
+                rloc = self.mappedLocations.get(localnode.locationId, None)
+                log.info("Attempting to map location {0} to {1}".format(localnode.locationId,
+                                                                        rloc))
+                dictitem["locationId"] = rloc
+                r = requests.post(theUrl, data=json.dumps(dictitem))
+                log.debug(r)
+            else:
+                log.debug("Node exists on system {0}".format(remotenode))
+                rnode = remotenode[0]
+                #In this version if our mapped location differs we update
+                rloc = self.mappedLocations.get(localnode.locationId, None)
+                log.debug("--> Location {0} maps to {1}".format(localnode.locationId, rloc))
+                log.debug("--> Remote Location {0} {1}".format(rnode["locationId"], type(rnode["locationId"])))
+                if localnode.locationId == rnode["locationId"]:
+                    log.debug("Location Ids match, No update required")
+                else:
+                    #We want to update the location id
+                    #TODO:  Perhaps we could add some kind of check here to
+                    #       Ensure that we only update if a local update has
+                    #       been made.
+                    log.debug(" **** Location Mismatch ****")
+                    dictitem = localnode.dict()
+                    rloc = self.mappedLocations.get(localnode.locationId, None)
+                    dictitem["locationId"] = rloc
+                    #r = requests.put("{0}/{1}".format(theUrl, nid),
+                    #                 data=json.dumps(dictitem))
+                    r = requests.put(theUrl,
+                                     params={"id": nid},
+                                     data=json.dumps(dictitem))
+                    log.debug(r)
+                    print r.json
+        pass
+
     def upload_nodestate(self,thehouse, lastupdate):
         """
         Upload Nodestates between two databases
@@ -1094,12 +1174,14 @@ class Pusher(object):
         #First we want to find the nodes associated with this particular house
         locations = [x.id for x in thehouse.locations]
         log.debug("Locations associated with house: {0}".format(locations))
-        nodes = session.query(models.Reading.nodeId).filter(models.Reading.locationId.in_(locations))
+        nodes = session.query(models.Reading.nodeId)
+        nodes = nodes.filter(models.Reading.locationId.in_(locations))
         if lastupdate:
             nodes = nodes.filter(models.Reading.time > lastupdate)
         nodes = nodes.distinct()
 
-        log.debug("Nodes associated with this house {0}: {1}".format(thehouse, nodes))        
+        log.debug("Nodes associated with this house {0}: {1}".format(thehouse,
+                                                                     nodes))
         if nodes.count() == 0:
             log.debug("No Nodes at this time")
             return 0
@@ -1107,13 +1189,13 @@ class Pusher(object):
         #So lets wrap up the nodeIds
         nids = [x[0] for x in nodes]
         log.debug("Node Ids to check for {0}".format(nids))
-       
+
         qry = session.query(models.NodeState)
         qry = qry.filter(models.NodeState.nodeId.in_(nids))
         if lastupdate:
             qry = qry.filter(models.NodeState.time > lastupdate)
 
-        
+
         totalcount = qry.count()
         log.debug("--> Total of {0} NS to transfer".format(totalcount))
         rdgCount = totalcount
@@ -1132,12 +1214,13 @@ class Pusher(object):
                 return transfercount
 
             transfercount += rdgCount
-            log.debug("Transfer {0}/{1} to remote DB".format(transfercount, totalcount))
+            log.debug("Transfer {0}/{1} to remote DB".format(transfercount,
+                                                             totalcount))
 
 
             jsonList = []
             for x in qry:
-                theItem = x.toDict() 
+                theItem = x.toDict()
                 theItem["id"] = None
                 jsonList.append(theItem)
 
@@ -1158,11 +1241,11 @@ class Pusher(object):
                 log.warning(restQry)
                 raise Exception ("Upload Failed")
 
-            
+
         return transfercount
 
     def get_lastupdate(self, theHouse):
-        """ Fetch the time of the last update to this house 
+        """ Fetch the time of the last update to this house
 
         :var theHouse: House object we want to get the last update for
         :return: Datetime of last update to this house
@@ -1340,7 +1423,7 @@ class Pusher(object):
                 log.warning("Upload Fails")
                 log.warning(restQry)
                 raise Exception ("Upload Fails")
-            
+
 
             log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
             log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
