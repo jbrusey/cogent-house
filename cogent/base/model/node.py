@@ -60,11 +60,11 @@ class Node(meta.Base, meta.InnoDBMix):
 
     def __eq__(self, other):
         """Nodes should be equal in Id (and type but it may not exist) Only"""
-        return self.id == other.id
+        return self.id == other.id & self.locationId == other.locationId
 
     def __ne__(self, other):
         """Ids differ"""
-        return not(self.id == other.id)
+        return not(self == other)
 
     def __lt__(self, other):
         return self.id < other.id
@@ -75,4 +75,9 @@ class Node(meta.Base, meta.InnoDBMix):
 
     def __str__(self):
         return "Node {0} Loc {1}".format(self.id,self.locationId)
+
+    def cmp(self, other):
+        if self.id == other.id:
+            return self.locationId - other.locationId
+        return self.id - other.id
 
