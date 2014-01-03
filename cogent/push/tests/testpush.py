@@ -98,8 +98,8 @@ class TestClient(unittest.TestCase):
         import time
         t1 = time.time()
 
-        #REINIT = False     
-        REINIT = True
+        REINIT = False     
+        #REINIT = True
         if REINIT:
             print "INITIALISING DATABASE"
             #TODO: Fix this so no majic strings
@@ -137,14 +137,14 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedRoomTypes = {} 
         self.pusher.mappedSensorTypes = {} 
 
-    #@unittest.skip
+    @unittest.skip
     def test_connection(self):
         """Can we get an connection"""
         
         self.assertTrue(self.pusher.checkConnection(),
                         msg="No Connection to the test server... Is it running?")
 
-    #@unittest.skip
+    @unittest.skip
     def test_nodetypes_remote(self):
         """Can we properly synch nodetypes
 
@@ -261,7 +261,7 @@ class TestClient(unittest.TestCase):
         session.close()
         
 
-    #@unittest.skip
+    @unittest.skip
     def test_sensortypes_remote(self):
         """Does Synching of sensortypes work as expected
         
@@ -350,7 +350,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         
 
-    #@unittest.skip
+    @unittest.skip
     def test_sensortypes_fails(self):
         """Does the sensortype fail if we have bad sensortypes"""
         session = self.Session()
@@ -376,7 +376,7 @@ class TestClient(unittest.TestCase):
         session.close()
 
 
-    #@unittest.skip
+    @unittest.skip
     def test_sync_roomtypes(self):
         """Does the sync_roomtypes() code work
 
@@ -488,7 +488,7 @@ class TestClient(unittest.TestCase):
 
         self.pusher.mappedRoomTypes = {}
 
-    #@unittest.skip
+    @unittest.skip
     def test_syncRooms(self):
         """Check if sync-rooms works correctly"""
 
@@ -591,7 +591,7 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedRooms = {}
 
 
-    #@unittest.skip
+    @unittest.skip
     def test_syncDeployments(self):
         """Does Syncronising deployments work correctly
 
@@ -694,7 +694,7 @@ class TestClient(unittest.TestCase):
 
         self.pusher.mappedDeployment = {}
 
-    #@unittest.skip
+    @unittest.skip
     def test_loadsavemappings(self):
         """Test the Load / Save mappings function
 
@@ -735,7 +735,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(pusher.mappedRooms, rooms)
         # #self.Fail()
 
-    #@unittest.skip
+    @unittest.skip
     def test_sync_houses(self):
 
         # Make sure the DB is in a sensible state before we get started
@@ -896,7 +896,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()  
 
-    #@unittest.skip
+    @unittest.skip
     def test_sync_locations(self):
         """Does Synching Locations work as expected.
 
@@ -1061,8 +1061,8 @@ class TestClient(unittest.TestCase):
         session.close()  
 
 
-    #@unittest.skip
-    def test_Zsyncnodes(self):
+    @unittest.skip
+    def test_syncnodes(self):
         """Test the syncNodes function
 
         Node Syncing should do several things.
@@ -1270,7 +1270,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()
 
-    #@unittest.skip
+    @unittest.skip
     def test_getlastupdate(self):
         """Can we get the date of the last update accurately"""
         #Hopefully nothing yet esists
@@ -1283,7 +1283,7 @@ class TestClient(unittest.TestCase):
         #expectdate = None
         self.assertEqual(lastupdate, expectdate)
 
-    #@unittest.skip
+    @unittest.skip
     def test_uploadreadings(self):
         """Does the uploading of readings happen correctly"""
 
@@ -1309,7 +1309,7 @@ class TestClient(unittest.TestCase):
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=1).first()
         secondhouse = session.query(models.House).filter_by(id=2).first()
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, None)
         #The First time around we should have no readings transferred (as everthing should match)
         txcount, lasttx = output
         
@@ -1338,7 +1338,7 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedLocations = {1:1,2:2,3:3,4:4}
 
 
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, cutdate)
         txcount, lasttx = output
         self.assertEqual(txcount, 288)
         self.assertEqual(lasttx, currentdate-datetime.timedelta(minutes=5)) #Remove 5 mins as that is the actual last sample transferred
@@ -1354,7 +1354,7 @@ class TestClient(unittest.TestCase):
         session.close()
 
         #And now if we transfer there should be nothing pushed across
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, currentdate)
         txcount, lasttx = output
         self.assertEqual(txcount, 0)
         self.assertEqual(lasttx, currentdate-datetime.timedelta(minutes=5))
@@ -1392,7 +1392,7 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
 
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, cutdate)
         txcount, lasttx = output
         self.assertEqual(txcount,288*2)
         self.assertEqual(lasttx, currentdate-datetime.timedelta(minutes=5))
@@ -1479,7 +1479,7 @@ class TestClient(unittest.TestCase):
 
         
 
-    #@unittest.skip
+    @unittest.skip
     def test_uploadnodestate(self):
         """Do we upload nodestates correctly"""
         self.pusher.log.setLevel(logging.DEBUG)
@@ -1629,7 +1629,7 @@ class TestClient(unittest.TestCase):
 
 
 
-    #@unittest.skip
+    @unittest.skip
     def test_uploadnodestate_and_reading(self):
         """Does the sync process work for both nodestate and house?"""
 
@@ -1665,7 +1665,7 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedLocations = {1:1,2:2,3:3,4:4}
 
         #And push
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, lastupdate)
         txcount, lasttx = output
         self.assertEqual(txcount, 0)
         output = self.pusher.upload_nodestate(thehouse, lastupdate)
@@ -1723,7 +1723,7 @@ class TestClient(unittest.TestCase):
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=1).first()
         lastupdate = self.pusher.get_lastupdate(thehouse)
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, lastupdate)
         txcount, lasttx = output
         self.assertEqual(txcount, 288*2)
         output = self.pusher.upload_nodestate(thehouse, lastupdate)
@@ -1735,7 +1735,7 @@ class TestClient(unittest.TestCase):
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=2).first()
         lastupdate = self.pusher.get_lastupdate(thehouse)
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, lastupdate)
         txcount, lasttx = output
         self.assertEqual(txcount, 288*2)
         output = self.pusher.upload_nodestate(thehouse, lastupdate)
@@ -1782,3 +1782,191 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
         session.close()
+
+
+
+    def test_update_nodelocations(self):
+        
+        #Cleanup
+        session = self.Session()
+        qry = session.query(models.Node).filter(models.Node.id > 2000)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+        session = self.rSession()
+        qry = session.query(models.Node).filter(models.Node.id > 2000)
+        qry.delete()
+        session.flush()
+        session.commit()
+        
+
+        session = self.Session()
+        thehouse = session.query(models.House)
+        print "{0} Local Houses {0}".format("-"*20)
+        for item in thehouse:
+            print "--> {0}".format(item)
+
+        rsession = self.rSession()
+        thehouse = session.query(models.House)
+        print "{0} Remote Houses {0}".format("-"*20)
+        for item in thehouse:
+            print "--> {0}".format(item)
+
+
+        targethouse = thehouse[0]
+        secondhouse = thehouse[1]    
+
+        thenode = session.query(models.Node)
+        print "{0} Local Nodes {0}".format("-"*20)
+        for item in thenode:
+            print "--> {0}".format(item)
+
+
+        rsession = self.rSession()
+        thenode = session.query(models.Node)
+        print "{0} Remote Nodes {0}".format("-"*20)
+        for item in thenode:
+            print "--> {0}".format(item)
+        rsession.close()
+
+        #Fake location mappings
+        self.pusher.mappedLocations = {1:1,
+                                       2:1, #Fake mapping of 2 to 1
+                                       3:3,
+                                       4:4}
+
+        print "{0} Mapped Locations {0}".format("-"*20)
+
+        print self.pusher.mappedLocations
+        
+        #The First test is adding a new node with no location
+        #This should not get synchronised with the remote server
+        #As it has no location Id
+        newnode = models.Node(id=2001)
+        session.add(newnode)
+        session.flush()
+        session.commit()
+
+        #Synchronise
+        self.pusher.sync_nodeLocations(targethouse)
+        rsession = self.rSession()
+        qry = rsession.query(models.Node).filter_by(id = 2001).first()
+        self.assertFalse(qry)
+        rsession.close()
+
+        print "="*80
+        print "="*80
+
+        #Next test is to check if new nodes with locations are added correctly
+        newnode = models.Node(id=2002,
+                              locationId = 1)
+        session.add(newnode)
+        session.flush()
+        session.commit()
+
+        #Synchronise
+        self.pusher.sync_nodeLocations(targethouse)
+
+        rsession = self.rSession()
+        qry = rsession.query(models.Node).filter_by(id = 2002).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 1)
+        rsession.close()
+
+        #What happens if a node without a location (ie hasn't been synched) now has one
+        qry = session.query(models.Node).filter_by(id = 2001).first()
+        qry.locationId = 1
+        session.flush()
+        session.commit()
+
+        self.pusher.sync_nodeLocations(targethouse)
+        rsession = self.rSession()
+        qry = rsession.query(models.Node).filter_by(id = 2001).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 1)
+        rsession.close()
+
+        print "="*80
+        print "="*80
+
+        #Move a node to a new house
+        qry = session.query(models.Node).filter_by(id = 2001).first()
+        qry.locationId = 3
+        session.flush()
+        session.commit()
+
+        #Until we sync house2 this will be in the same place
+        self.pusher.sync_nodeLocations(targethouse)
+        rsession = self.rSession()
+        qry = rsession.query(models.Node).filter_by(id = 2001).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 2)
+        rsession.close()
+        
+
+        self.pusher.sync_nodeLocations(secondhouse)
+        rsession = self.rSession()
+        qry = rsession.query(models.Node).filter_by(id = 2001).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 3)
+        rsession.close()        
+        
+        #Finally add a few more nodes to our second house
+        newnode = models.Node(id=2005,
+                              locationId = 4)
+        session.add(newnode)
+
+        newnode = models.Node(id=2006,
+                              locationId = 4)
+        session.add(newnode)
+
+        qry = session.query(models.Node).filter_by(id = 2001).first()
+        qry.locationId = 4
+        session.flush()
+        session.commit()
+
+        self.pusher.sync_nodeLocations(targethouse)
+        self.pusher.sync_nodeLocations(secondhouse)
+        
+        #Check all is where it should be
+        rsession = self.rSession()
+        qry = rsession.query(models.Node).filter_by(id = 2001).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 4)
+        
+        qry = rsession.query(models.Node).filter_by(id = 2002).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 2)
+
+        qry = rsession.query(models.Node).filter_by(id = 2005).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 4)
+
+        qry = rsession.query(models.Node).filter_by(id = 2006).first()
+        self.assertTrue(qry)
+        self.assertTrue(qry.locationId, 4)
+       
+        rsession.close()        
+        
+        #Finally does the mapping part of the code work correctly
+        qry = session.query(models.Node).filter_by(id = 2001).first()
+        qry.locationId = 2
+        session.commit()
+        
+
+        self.pusher.sync_nodeLocations(targethouse)
+        
+        #As we have faked a mapping between locations 2 -> 1
+        #Expect locationid to be 1
+
+        rsession = self.rSession()
+        qry = rsession.query(models.Node).filter_by(id=2001).first()
+        self.assertTrue(qry.locationId, 1)
+        
+        
+        
+                            
+        
+        
+        

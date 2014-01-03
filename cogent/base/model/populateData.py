@@ -17,7 +17,7 @@ import os
 
 
 
-import transaction
+#import transaction
 #DB Relevant imports
 #from meta import *
 import meta
@@ -306,13 +306,13 @@ def populateSensorTypes(session = False):
                   ]
     
 
-    with transaction.manager:
-        for item in sensorList:        
-            LOG.debug("Adding Sensor {0}".format(item.name))
-            session.merge(item)
+
+    for item in sensorList:        
+        LOG.debug("Adding Sensor {0}".format(item.name))
+        session.merge(item)
 
     session.flush()
-    #session.commit()
+    session.commit()
     #session.close()
 
 
@@ -381,11 +381,11 @@ def populateNodeTypes(session = False):
                 ]
                 
 
-    with transaction.manager:
-        for item in nodelist:
-            thisNode = NodeType()
-            thisNode.from_dict(item) #Dict based update
-            session.merge(thisNode)
+
+    for item in nodelist:
+        thisNode = NodeType()
+        thisNode.from_dict(item) #Dict based update
+        session.merge(thisNode)
         
     # with transaction.manager:
     #     for item in nodelist:
@@ -393,6 +393,7 @@ def populateNodeTypes(session = False):
     #         session.merge(item)
 
     session.flush()
+    session.commit()
 
 def _parseCalibration(filename, sensorcode, session=False):
     """Helper method to Parse a sensor calibration file
@@ -465,56 +466,56 @@ def _parseCalibration(filename, sensorcode, session=False):
         LOG.warning("Unable to parse calibration {0}".format(e))
         return False
 
-    with transaction.manager:
-        for row in reader:
-            if len(row) == 2:
-                nodeId,c = row
-                m = 1.0
-            elif len(row) == 3:
-                nodeId,m,c = row
-            else:
-                LOG.warning("--> Unable to parse Coefficients")
 
-            #Check for blank values
-            if m == '':
-                m = 1.0
-            if c == '':
-                c = 0.0
+    for row in reader:
+        if len(row) == 2:
+            nodeId,c = row
+            m = 1.0
+        elif len(row) == 3:
+            nodeId,m,c = row
+        else:
+            LOG.warning("--> Unable to parse Coefficients")
 
-            nodeId = int(nodeId)
-            m = float(m)
-            c = float(c)
+        #Check for blank values
+        if m == '':
+            m = 1.0
+        if c == '':
+            c = 0.0
 
-            #Check if we know about this Node
-            theNode = session.query(Node).filter_by(id = nodeId).first()
-            if theNode is None:
-                #Create a new Node
-                theNode = Node(id=nodeId)
-                LOG.debug("--> Creating Node {0}".format(theNode))
-                session.add(theNode)
+        nodeId = int(nodeId)
+        m = float(m)
+        c = float(c)
+
+        #Check if we know about this Node
+        theNode = session.query(Node).filter_by(id = nodeId).first()
+        if theNode is None:
+            #Create a new Node
+            theNode = Node(id=nodeId)
+            LOG.debug("--> Creating Node {0}".format(theNode))
+            session.add(theNode)
 
 
-            #Check if we know about this sensor
-            theSensor = session.query(Sensor).filter_by(sensorTypeId = sensorType.id,
-                                                        nodeId = nodeId).first()
+        #Check if we know about this sensor
+        theSensor = session.query(Sensor).filter_by(sensorTypeId = sensorType.id,
+                                                    nodeId = nodeId).first()
 
-            if theSensor is None:
-                #Add a new Sensor
-                theSensor = Sensor(sensorTypeId = sensorType.id,
-                                   nodeId = nodeId,
-                                   calibrationSlope = m,
-                                   calibrationOffset = c)
-                session.add(theSensor)
-                LOG.debug("--> Adding New Sensor {0}".format(theSensor))
+        if theSensor is None:
+            #Add a new Sensor
+            theSensor = Sensor(sensorTypeId = sensorType.id,
+                               nodeId = nodeId,
+                               calibrationSlope = m,
+                               calibrationOffset = c)
+            session.add(theSensor)
+            LOG.debug("--> Adding New Sensor {0}".format(theSensor))
 
-            else:
-                #Update the Sensor ?
-                theSensor.calibrationSlope = m
-                theSensor.calibrationOffset = c
+        else:
+            #Update the Sensor ?
+            theSensor.calibrationSlope = m
+            theSensor.calibrationOffset = c
 
-    #session.flush()
-    #session.commit()
-    #session.close()
+    session.flush()
+    session.commit()
+    session.close()
     return True
 
 def populateCalibration(session = False):
@@ -563,23 +564,22 @@ def populateRoomTypes(session):
                  ]
 
 
-    with transaction.manager:
-        for roomType, rooms in roomTypes:
-            theType = session.query(RoomType).filter_by(name=roomType).first()
-            if theType is None:
-                theType = RoomType(name=roomType)
-                session.add(theType)
-                session.flush()
+    for roomType, rooms in roomTypes:
+        theType = session.query(RoomType).filter_by(name=roomType).first()
+        if theType is None:
+            theType = RoomType(name=roomType)
+            session.add(theType)
+            session.flush()
 
-                for item in rooms:
-                    theQry = session.query(Room).filter_by(name=item).first()
-                    if theQry is None:
-                        session.add(Room(name=item,roomTypeId=theType.id))
-                        session.flush()
+            for item in rooms:
+                theQry = session.query(Room).filter_by(name=item).first()
+                if theQry is None:
+                    session.add(Room(name=item,roomTypeId=theType.id))
+                    session.flush()
 
-        session.flush()
-    #session.commit()
-    #session.close()
+    session.flush()
+    session.commit()
+    session.close()
 
 def init_data(session=False, docalib=True):
     """Populate the database with some initial data
@@ -595,5 +595,5 @@ def init_data(session=False, docalib=True):
     populateRoomTypes(session = session)
     if docalib:
         populateCalibration(session = session)
-    session.commit()
+    #session.commit()
     LOG.debug("Database Population Complete")

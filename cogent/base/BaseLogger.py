@@ -200,16 +200,17 @@ class BaseLogger(object):
                         self.log.error("Sensor type exists")
 
 
+            self.log.debug("reading: %s, %s" % (node_state, pack_state))
             session.commit()
 
             #send acknowledgement to base station to fwd to node
             self.send_ack(seq=seq,
                           dest=node_id)
                      
-            LOGGER.debug("reading: %s, %s" % (node_state, pack_state))
+
         except Exception as exc:
             session.rollback()
-            LOGGER.exception("during storing: " + str(exc))
+            self.log.exception("during storing: " + str(exc))
         finally:
             session.close()
 
@@ -224,7 +225,7 @@ class BaseLogger(object):
         :return True: If a packet has been received and stored correctly
         :return False: Otherwise
         """
-        self.log.debug("Main Loop")
+        #self.log.debug("Main Loop")
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
             #self.log.debug("Msg Recvd {0}".format(msg))
@@ -233,13 +234,15 @@ class BaseLogger(object):
             self.bif.queue.task_done()
             return status
         except Empty:
-            self.log.debug("Empty Queue")
+            #self.log.debug("Empty Queue")
             return False
         except KeyboardInterrupt:
             print "KEYB IRR"
             self.running = False
         except Exception as e:
             self.log.exception("during receiving or storing msg: " + str(e))
+
+
     def run(self):
         """ run - main loop
 
@@ -248,20 +251,22 @@ class BaseLogger(object):
 
         """
 
-        try:
-            while True:
-                # wait up to 5 seconds for a message
-                try:
-                    msg = self.bif.get(True, 5)
-                    self.store_state(msg)
-                except Empty:
-                    pass
-                except Exception as exc:
-                    LOGGER.exception("during receiving or storing msg: " +
-                                     str(exc))
+        while self.running:
+            self.mainloop()
+        # try:
+        #     while True:
+        #         # wait up to 5 seconds for a message
+        #         try:
+        #             msg = self.bif.get(True, 5)
+        #             self.store_state(msg)
+        #         except Empty:
+        #             pass
+        #         except Exception as exc:
+        #             LOGGER.exception("during receiving or storing msg: " +
+        #                              str(exc))
 
-        except KeyboardInterrupt:
-            self.bif.finishAll()
+        # except KeyboardInterrupt:
+        #     self.bif.finishAll()
 
                 
 if __name__ == '__main__': # pragma: no cover

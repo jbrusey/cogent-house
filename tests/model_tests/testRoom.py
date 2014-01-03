@@ -97,43 +97,43 @@ class TestRoom(base.ModelTestCase):
         self.assertLess(item1,item2)
 
 
-    def testAssociations(self):
-        """Test if backrefs and foriegn keys work correctly"""
-        session = self.session
+    # def testAssociations(self):
+    #     """Test if backrefs and foriegn keys work correctly"""
+    #     session = self.session
 
-        roomtype = models.RoomType(name = "Foo Type")
-        session.add(roomtype)
-        session.flush()
+    #     roomtype = models.RoomType(name = "Foo Type")
+    #     session.add(roomtype)
+    #     session.flush()
 
-        room = models.Room(name = "Test Room",
-                           roomTypeId = roomtype.id)
+    #     room = models.Room(name = "Test Room",
+    #                        roomTypeId = roomtype.id)
 
-        session.add(room)
-        session.flush()
+    #     session.add(room)
+    #     session.flush()
 
-        session.commit()
+    #     session.commit()
 
-        #And then do the check the backrefs etc
-        qryroom = session.query(models.Room).filter_by(name="Test Room").first()
+    #     #And then do the check the backrefs etc
+    #     qryroom = session.query(models.Room).filter_by(name="Test Room").first()
 
-        print "-"
-        print "-"*70
-        print "OR RM: ",room
-        print "NE RM: ",qryroom
-        print "OR TY: ",roomtype 
-        print "TY ID: ",qryroom.roomTypeId
-        print "-"*70
+    #     print "-"
+    #     print "-"*70
+    #     print "OR RM: ",room
+    #     print "NE RM: ",qryroom
+    #     print "OR TY: ",roomtype 
+    #     print "TY ID: ",qryroom.roomTypeId
+    #     print "-"*70
 
-        self.assertEqual(room,qryroom)
+    #     self.assertEqual(room,qryroom)
 
-        #Check the Ids match
-        qrytype = qryroom.roomTypeId
+    #     #Check the Ids match
+    #     qrytype = qryroom.roomTypeId
         
-        self.assertEqual(qrytype, roomtype.id)
+    #     self.assertEqual(qrytype, roomtype.id)
 
-        #And check on the backrefs
-        qrytype = qryroom.roomType
-        self.assertEqual(qrytype,roomtype)
+    #     #And check on the backrefs
+    #     qrytype = qryroom.roomType
+    #     self.assertEqual(qrytype,roomtype)
 
         
         
