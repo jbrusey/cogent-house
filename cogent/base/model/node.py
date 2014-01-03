@@ -1,5 +1,5 @@
 """
-.. codeauthor::  Ross Wiklins 
+.. codeauthor::  Ross Wilkins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 
@@ -20,7 +20,7 @@ import location
 
 class Node(meta.Base, meta.InnoDBMix):
     """
-    Class to hold detals of the nodes themselves
+    Class to hold details of the nodes themselves
 
     :var Integer id: Node Id
     :var Integer locationId: `Location` this node is in
@@ -60,7 +60,10 @@ class Node(meta.Base, meta.InnoDBMix):
 
     def __eq__(self, other):
         """Nodes should be equal in Id (and type but it may not exist) Only"""
-        return self.id == other.id & self.locationId == other.locationId
+        if self.id == other.id:
+            return self.locationId == other.locationId
+        return False
+        #return self.id == other.id & self.locationId == other.locationId
 
     def __ne__(self, other):
         """Ids differ"""
