@@ -1,5 +1,5 @@
 """
-.. codeauthor::  Ross Wiklins 
+.. codeauthor::  Ross Wilkins
 .. codeauthor::  James Brusey
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 
@@ -12,15 +12,11 @@ import meta
 
 
 from sqlalchemy import Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship, backref
-
-#import sqlalchemy.types as types
-
-import location
+from sqlalchemy.orm import relationship
 
 class Node(meta.Base, meta.InnoDBMix):
     """
-    Class to hold detals of the nodes themselves
+    Class to hold details of the nodes themselves
 
     :var Integer id: Node Id
     :var Integer locationId: `Location` this node is in
@@ -57,22 +53,30 @@ class Node(meta.Base, meta.InnoDBMix):
     #                          secondary="NodeLocation",
     #                          backref="node")
 
+    def update(self, **kwargs):
+        """ Function to update based on a dictionary"""
+        for key,value in kwargs.iteritems():
+            setattr(self, key, value)
 
     def __eq__(self, other):
         """Nodes should be equal in Id (and type but it may not exist) Only"""
-        return self.id == other.id
+        if self.id == other.id:
+            return self.locationId == other.locationId
+        return False
+        #return self.id == other.id & self.locationId == other.locationId
 
     def __ne__(self, other):
         """Ids differ"""
-        return not(self.id == other.id)
+        return not(self == other)
 
     def __lt__(self, other):
         return self.id < other.id
 
-    def update(self, **kwargs):
-        for key,value in kwargs.iteritems():
-            setattr(self,key,value)
-
     def __str__(self):
-        return "Node {0} Loc {1}".format(self.id,self.locationId)
+        return "Node {0} Loc {1}".format(self.id, self.locationId)
+
+    def __cmp__(self, other):
+        if self.id == other.id:
+            return self.locationId - other.locationId
+        return self.id - other.id
 

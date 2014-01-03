@@ -115,10 +115,7 @@ def main(argv=sys.argv):
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
     
-    #We also want any alembic scripts to be executed (or not if we build the DB
-    #properly)
-    alembic_cfg = Config("alembic.ini") #TODO: WARNING RELATIVE PATH
-    command.stamp(alembic_cfg,"head")
+
 
     DBSession = meta.Session()
     #DBSession.configure(bind=engine)
@@ -127,7 +124,14 @@ def main(argv=sys.argv):
     #populateUser()
     logging.debug("Populated")
     DBSession.flush()
-    DBSession.commit()
+    #DBSession.commit()
+
+
+    #We also want any alembic scripts to be executed (or not if we build the DB
+    #properly)
+    alembic_cfg = Config("cogent/alembic.ini") #TODO: WARNING RELATIVE PATH
+    command.stamp(alembic_cfg,"head")
+
     DBSession.close()
     
                   
