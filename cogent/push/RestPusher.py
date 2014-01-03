@@ -418,10 +418,13 @@ class Pusher(object):
         for item in houses:
             log.info("Synchronising Readings for House {0}".format(item))
             #Look for the Last update
-            self.upload_readings(item)
-
+            lastUpdate = self.get_lastupdate(item)
+            log.debug("Last Update was {0}".format(lastUpdate))
+            out = self.upload_readings(item, lastUpdate)
+            log.debug("Upload Readings Returns {0}".format(out))
+            self.upload_nodestate(item, lastUpdate)
         #Then upload the node Sttes
-        #self.upload_nodestate()
+        
         self.save_mappings()
 
     def load_mappings(self):
@@ -1092,9 +1095,11 @@ class Pusher(object):
         locations = [x.id for x in thehouse.locations]
         log.debug("Locations associated with house: {0}".format(locations))
         nodes = session.query(models.Reading.nodeId).filter(models.Reading.locationId.in_(locations))
-        nodes = nodes.filter(models.Reading.time > lastupdate).distinct()
+        if lastupdate:
+            nodes = nodes.filter(models.Reading.time > lastupdate)
+        nodes = nodes.distinct()
 
-        log.debug("Nodes associated with this house {0}".format(thehouse))        
+        log.debug("Nodes associated with this house {0}: {1}".format(thehouse, nodes))        
         if nodes.count() == 0:
             log.debug("No Nodes at this time")
             return 0
@@ -1104,8 +1109,10 @@ class Pusher(object):
         log.debug("Node Ids to check for {0}".format(nids))
        
         qry = session.query(models.NodeState)
-        qry = qry.filter(models.NodeState.time > lastupdate)
         qry = qry.filter(models.NodeState.nodeId.in_(nids))
+        if lastupdate:
+            qry = qry.filter(models.NodeState.time > lastupdate)
+
         
         totalcount = qry.count()
         log.debug("--> Total of {0} NS to transfer".format(totalcount))
@@ -1114,8 +1121,9 @@ class Pusher(object):
         transfercount = 0
         while rdgCount > 0:
             qry = session.query(models.NodeState)
-            qry = qry.filter(models.NodeState.time > lastupdate)
             qry = qry.filter(models.NodeState.nodeId.in_(nids))
+            if lastupdate:
+                qry = qry.filter(models.NodeState.time > lastupdate)
             qry = qry.limit(self.pushLimit)
             rdgCount = qry.count()
 
@@ -1164,23 +1172,11 @@ class Pusher(object):
         log.info("---- Fetching Last Update for {0} ----".format(theHouse))
         mappingConfig = self.mappingConfig
 
-        uploadDates = mappingConfig.get("lastupdate", {})
-        lastUpdate = None
-        if uploadDates:
-            print uploadDates
-            lastUpdate = uploadDates.get(str(theHouse.id), None)
-            log.info("LAST UPDATE {0} {1}".format(lastUpdate, type(lastUpdate)))
-            if type(lastUpdate) == datetime.datetime:
-                pass
-            elif lastUpdate and lastUpdate != 'None':
-                lastUpdate = dateutil.parser.parse(lastUpdate)
-            else:
-                lastUpdate = None
-        log.info("Last Update from Config is >{0}< >{1}<".format(lastUpdate,
-                                                                 type(lastUpdate)))
 
         #As we should be able to trust the last update field of the config file.
         #Only request the last sample from the remote DB if this does not exist.
+        lastUpdate = None
+
 
         if lastUpdate is None:
             log.info("--> Requesting date of last reading in Remote DB")
@@ -1204,7 +1200,7 @@ class Pusher(object):
 
         return lastUpdate
 
-    def upload_readings(self, theHouse):
+    def upload_readings(self, theHouse, lastUpdate):
         """
         Syncronise Readings between two databases,
         modified to upload by House
@@ -1227,7 +1223,6 @@ class Pusher(object):
         session = self.localsession()
 
 
-        lastUpdate = self.get_lastupdate(theHouse)
         # # ---------- MOVED TO ABOVE FUNCTION ------
         # #Fetch the last Date from the mapping config
         # uploadDates = mappingConfig.get("lastupdate", None)
@@ -1344,7 +1339,6 @@ class Pusher(object):
             if restQry.status_code == 500:
                 log.warning("Upload Fails")
                 log.warning(restQry)
-                sys.exit(0)
                 raise Exception ("Upload Fails")
             
 
@@ -1358,7 +1352,7 @@ class Pusher(object):
             #self.save_mappings()
 
         #Return True if we need to upload more
-        return transferCount, lastUpdate
+        return transferCount, firstupload
 
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
