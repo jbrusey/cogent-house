@@ -77,3 +77,9 @@ Merge Models with base webinterface and fix unittests
 * Made the unitests for the RestPusher somewhat more sane
 * Added setup.cfg file for unittests via nose
 * Setup repository for default and release branches
+
+Version 1.1.4
+----------------
+
+  * Updated push script to merge node locations
+  * Removed transaction extension codez from models/meta
