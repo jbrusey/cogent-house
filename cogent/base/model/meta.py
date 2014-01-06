@@ -17,16 +17,16 @@ __all__ = ['Base', 'Session']
 
 
 #PYRAMID IMPORTS (COMMENT THESE FOR NON PYRAMID OPERATION)
-try:
-    from zope.sqlalchemy import ZopeTransactionExtension
-    Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-except ImportError:
-    #STANDARD IMPORTS
-    # SQLAlchemy session manager. Updated by model.init_model()
-    Session = scoped_session(sessionmaker())
+# try:
+#     from zope.sqlalchemy import ZopeTransactionExtension
+#     Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+# except ImportError:
+#     #STANDARD IMPORTS
+#     # SQLAlchemy session manager. Updated by model.init_model()
+#     Session = scoped_session(sessionmaker())
 
 # SQLAlchemy session manager. Updated by model.init_model()
-#Session = scoped_session(sessionmaker())
+Session = scoped_session(sessionmaker())
 
 import sqlalchemy
 
