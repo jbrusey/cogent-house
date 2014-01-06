@@ -82,3 +82,17 @@ ChangeList
    .. since 0.3.5::
 
       General Code Tidyup,  Broke code into relevant modules
+
+
+   .. since 0.3.6::
+
+      Added a function to synchronise a nodes location Id with the sink independently
+      Removed calls to depricated toDict() function
+
+      Modified sync_nodes function:
+          No longer pulls nodes from the remote server
+	  Updates location Id's to the remote server
+	  Updated test cases to reflect these changes
+
+      
+      
