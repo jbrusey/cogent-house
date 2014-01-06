@@ -116,15 +116,13 @@ class TestClient(unittest.TestCase):
         #We also want to open a connection to the remote database (so everything can get cleaned up)
         remoteengine = sqlalchemy.create_engine("mysql://chuser@localhost/test")
         connection = remoteengine.connect()
-        cls.rSession = sqlalchemy.orm.sessionmaker(bind=remoteengine)
+        cls.rSession = sqlalchemy.orm.sessionmaker(bind = remoteengine)
 
         server = RestPusher.PushServer(configfile="test.conf")
         cls.pusher = server.synclist[0]
 
         #And a link to that classes session (so we can check everything)
         cls.Session = cls.pusher.localsession
-
-        #cls.pusher.log.setLevel(logging.WARNING)
 
     def setUp(self):
         """Reset all the mappings before running any tests"""
@@ -136,6 +134,7 @@ class TestClient(unittest.TestCase):
         self.pusher.backmappedLocations = {} 
         self.pusher.mappedRoomTypes = {} 
         self.pusher.mappedSensorTypes = {} 
+        self.pusher.log.setLevel(logging.WARNING)
 
     @unittest.skip
     def test_connection(self):
@@ -209,15 +208,15 @@ class TestClient(unittest.TestCase):
         
         #Finally add a new sensor type on the remote server (its a corner case)
         session = self.Session()
-        newtype = models.NodeType(id=5000,
-                                  name="Testing Node")
+        newtype = models.NodeType(id = 5000,
+                                  name = "Testing Node")
         session.add(newtype)
         session.commit()
         
         self.pusher.sync_nodetypes()
         #Does it exist on the remote
         session = self.rSession()
-        qry = session.query(models.NodeType).filter_by(id=5000).first()
+        qry = session.query(models.NodeType).filter_by(id = 5000).first()
         print "QUERY {0} ({1}),  Name {2}".format(qry, type(qry), qry.name)
         self.assertTrue(qry)
         self.assertEqual(qry.name, "Testing Node")
@@ -235,7 +234,7 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
 
-    #@unittest.skip
+    @unittest.skip
     def test_nodetypes_fails(self):
         """Does the NodeType fail if we have bad sensortypes"""
         session = self.Session()
@@ -323,8 +322,8 @@ class TestClient(unittest.TestCase):
 
         """What happens if we have more on the local server"""
         session = self.Session()
-        sensor = models.SensorType(id=5000,
-                                   name="Foo Sensor")
+        sensor = models.SensorType(id = 5000,
+                                   name = "Foo Sensor")
         session.add(sensor)
         session.flush()
         session.commit()
@@ -447,9 +446,9 @@ class TestClient(unittest.TestCase):
                           "id": 5})                                  
 
         #Then add one to the remote side of things
-        theroom = models.RoomType(id=10,
-                                  name="More Testing")
-        requests.post(rurl,data=theroom.json())
+        theroom = models.RoomType(id = 10,
+                                  name = "More Testing")
+        requests.post(rurl, data = theroom.json())
         qry = requests.get(rurl)
         #self.assertEqual(len(qry.json()),6)
         session.close()
@@ -550,11 +549,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual(len(qry.json()), 13)
 
         #And a new remote room
-        theroom = models.Room(id=20,
-                              name="Another Testing",
-                              roomTypeId=1)
+        theroom = models.Room(id = 20,
+                              name = "Another Testing",
+                              roomTypeId = 1)
         #Add to remote via rest
-        requests.post(rurl, data=theroom.json())
+        requests.post(rurl, data = theroom.json())
         
         session.close()
         
@@ -917,6 +916,10 @@ class TestClient(unittest.TestCase):
         """
 
         session = self.Session()
+        qry = session.query(models.Node).filter(models.Node.id > 2000)
+        qry.delete()
+        session.flush()
+        
         qry = session.query(models.Location).filter(models.Location.id > 4)
         qry.delete()
         qry = session.query(models.House).filter(models.House.id > 2)
@@ -930,6 +933,10 @@ class TestClient(unittest.TestCase):
         
 
         session = self.rSession()
+        qry = session.query(models.Node).filter(models.Node.id > 2000)
+        qry.delete()
+        session.flush()
+
         qry = session.query(models.Location).filter(models.Location.id > 4)
         qry.delete()
         qry = session.query(models.House).filter(models.House.id > 2)
@@ -1061,8 +1068,10 @@ class TestClient(unittest.TestCase):
         session.close()  
 
 
-    @unittest.skip
+    @unittest.skip 
     def test_syncnodes(self):
+        #Skip this test as the syncnodes functionaly has changed significantly.
+        #Instead the nodelocation test will test the syncnode functionalty
         """Test the syncNodes function
 
         Node Syncing should do several things.
@@ -1287,6 +1296,7 @@ class TestClient(unittest.TestCase):
     def test_uploadreadings(self):
         """Does the uploading of readings happen correctly"""
 
+        self.pusher.log.setLevel(logging.DEBUG)
         #Clean up
         cutdate = datetime.datetime(2013,2,1,0,0,0)
         session = self.Session()
@@ -1304,19 +1314,20 @@ class TestClient(unittest.TestCase):
         session.close()
 
         self.pusher.mappingConfig["lastupdate"] = {}
-
+        
+        #We also need to fake the mappings
+        self.pusher.mappedLocations = {1:1,2:2,3:3,4:4}
 
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=1).first()
         secondhouse = session.query(models.House).filter_by(id=2).first()
-        output = self.pusher.upload_readings(thehouse, None)
+        output = self.pusher.upload_readings(thehouse, cutdate) #Limit to stuff after the cutoff date
         #The First time around we should have no readings transferred (as everthing should match)
         txcount, lasttx = output
-        
-        expectdate = datetime.datetime(2013,1,10,23,55,00)
 
+        #expectdate = datetime.datetime(2013,1,10,23,55,00)
         self.assertEqual(txcount, 0)
-        self.assertEqual(lasttx, expectdate)
+        self.assertEqual(lasttx, cutdate)
 
         
         #So lets transfer some readings
@@ -1333,36 +1344,32 @@ class TestClient(unittest.TestCase):
             currentdate = currentdate + datetime.timedelta(minutes=5)
         session.flush()
         session.commit()
-        
-        #We also need to fake the mappings
-        self.pusher.mappedLocations = {1:1,2:2,3:3,4:4}
-
 
         output = self.pusher.upload_readings(thehouse, cutdate)
         txcount, lasttx = output
-        self.assertEqual(txcount, 288)
+        self.assertEqual(txcount, 287)
         self.assertEqual(lasttx, currentdate-datetime.timedelta(minutes=5)) #Remove 5 mins as that is the actual last sample transferred
 
         #We should also now have about 11 days worth of samples
-        
+
         #expectedcount = ((288*10)*2)+288
         session = self.rSession()
         qry = session.query(models.Reading)
         qry = qry.filter(models.Reading.time >= cutdate)
         qry = qry.filter(models.Reading.time <= currentdate)
-        self.assertEqual(288, qry.count())
+        self.assertEqual(287, qry.count())
         session.close()
 
         #And now if we transfer there should be nothing pushed across
         output = self.pusher.upload_readings(thehouse, currentdate)
         txcount, lasttx = output
         self.assertEqual(txcount, 0)
-        self.assertEqual(lasttx, currentdate-datetime.timedelta(minutes=5))
+        self.assertEqual(lasttx, currentdate)
         
         #So lets add readings for multiple locations and houses
         enddate = datetime.datetime(2013,2,3,0,0,0) #One day
         session = self.Session()
-        while currentdate < enddate:
+        while currentdate <= enddate:
             thesample = models.Reading(time = currentdate, 
                                        nodeId = 837,
                                        locationId = 1,
@@ -1392,6 +1399,7 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
 
+        cutdate = lasttx
         output = self.pusher.upload_readings(thehouse, cutdate)
         txcount, lasttx = output
         self.assertEqual(txcount,288*2)
@@ -1400,7 +1408,7 @@ class TestClient(unittest.TestCase):
         #And double check everything on the remote server
         session = self.rSession()
         #House 1, locaition 1 Should now have 12 days of readings (11 with 2 locations 1 with only one)
-        expected = 12*288
+        expected = (12*288) - 1
         theqry = session.query(models.Reading).filter_by(nodeId=837)
         self.assertEqual(theqry.count(), expected)
         #House 1 location 2 should have 11
@@ -1419,11 +1427,13 @@ class TestClient(unittest.TestCase):
         #Finally we want to push stuff from house 2
         session = self.Session()
         secondhouse = session.query(models.House).filter_by(id=2).first()
-        output = self.pusher.upload_readings(secondhouse)
+        output = self.pusher.upload_readings(secondhouse, cutdate)
         txcount,lasttx = output
         self.assertEqual(txcount, 288*2)
         self.assertEqual(lasttx, currentdate - datetime.timedelta(minutes=5))
         session.close()
+
+        cutdate = lasttx
 
         #Finally, what happens if we hit the maximum number of samples to be transmitted
         self.pusher.pushLimit = 144 #1/2 day
@@ -1453,12 +1463,12 @@ class TestClient(unittest.TestCase):
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=1).first()
 
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, lasttx)
         txcount, lasttx = output
-        self.assertEqual(txcount, 288*2)
+        self.assertEqual(txcount, (288-1)*2)
         
         #Then we want to ensure that there is nothing left
-        output = self.pusher.upload_readings(thehouse)
+        output = self.pusher.upload_readings(thehouse, lasttx)
         txcount, lasttx = output
         self.assertEqual(txcount, 0)
 
@@ -1479,10 +1489,10 @@ class TestClient(unittest.TestCase):
 
         
 
-    @unittest.skip
+    #@unittest.skip
     def test_uploadnodestate(self):
         """Do we upload nodestates correctly"""
-        self.pusher.log.setLevel(logging.DEBUG)
+        #self.pusher.log.setLevel(logging.DEBUG)
         cutdate = datetime.datetime(2013,2,1,0,0,0)
         session = self.Session()
         qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
@@ -1609,6 +1619,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(qry.count(), node1063expected+288)
         session.close()
         
+        #return
         session = self.Session()
         qry = session.query(models.NodeState).filter(models.NodeState.time >= cutdate)
         qry.delete()
@@ -1783,8 +1794,6 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()
 
-
-
     def test_update_nodelocations(self):
         
         #Cleanup
@@ -1840,19 +1849,20 @@ class TestClient(unittest.TestCase):
 
         print self.pusher.mappedLocations
         
-        #The First test is adding a new node with no location
-        #This should not get synchronised with the remote server
-        #As it has no location Id
+        #First test it to see if nodes without a location get 
+        #updated properly.
         newnode = models.Node(id=2001)
         session.add(newnode)
         session.flush()
         session.commit()
 
         #Synchronise
-        self.pusher.sync_nodeLocations(targethouse)
+        self.pusher.sync_nodes()
+        #self.pusher.sync_nodeLocations(targethouse)
         rsession = self.rSession()
         qry = rsession.query(models.Node).filter_by(id = 2001).first()
-        self.assertFalse(qry)
+        self.assertTrue(qry)
+        self.assertEquals(qry.locationId, None)
         rsession.close()
 
         print "="*80
@@ -1866,8 +1876,8 @@ class TestClient(unittest.TestCase):
         session.commit()
 
         #Synchronise
-        self.pusher.sync_nodeLocations(targethouse)
-
+        #self.pusher.sync_nodeLocations(targethouse)
+        self.pusher.sync_nodes()
         rsession = self.rSession()
         qry = rsession.query(models.Node).filter_by(id = 2002).first()
         self.assertTrue(qry)
@@ -1880,7 +1890,8 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
 
-        self.pusher.sync_nodeLocations(targethouse)
+        #self.pusher.sync_nodeLocations(targethouse)
+        self.pusher.sync_nodes()
         rsession = self.rSession()
         qry = rsession.query(models.Node).filter_by(id = 2001).first()
         self.assertTrue(qry)
@@ -1890,22 +1901,21 @@ class TestClient(unittest.TestCase):
         print "="*80
         print "="*80
 
+
         #Move a node to a new house
         qry = session.query(models.Node).filter_by(id = 2001).first()
         qry.locationId = 3
         session.flush()
         session.commit()
 
-        #Until we sync house2 this will be in the same place
-        self.pusher.sync_nodeLocations(targethouse)
+        self.pusher.sync_nodes()
         rsession = self.rSession()
         qry = rsession.query(models.Node).filter_by(id = 2001).first()
         self.assertTrue(qry)
         self.assertTrue(qry.locationId, 2)
         rsession.close()
         
-
-        self.pusher.sync_nodeLocations(secondhouse)
+        self.pusher.sync_nodes()
         rsession = self.rSession()
         qry = rsession.query(models.Node).filter_by(id = 2001).first()
         self.assertTrue(qry)
@@ -1926,8 +1936,9 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
 
-        self.pusher.sync_nodeLocations(targethouse)
-        self.pusher.sync_nodeLocations(secondhouse)
+        #self.pusher.sync_nodeLocations(targethouse)
+        self.pusher.sync_nodes()
+        #self.pusher.sync_nodeLocations(secondhouse)
         
         #Check all is where it should be
         rsession = self.rSession()
@@ -1955,7 +1966,8 @@ class TestClient(unittest.TestCase):
         session.commit()
         
 
-        self.pusher.sync_nodeLocations(targethouse)
+        #self.pusher.sync_nodeLocations(targethouse)
+        self.pusher.sync_nodes()
         
         #As we have faked a mapping between locations 2 -> 1
         #Expect locationid to be 1
@@ -1963,9 +1975,39 @@ class TestClient(unittest.TestCase):
         rsession = self.rSession()
         qry = rsession.query(models.Node).filter_by(id=2001).first()
         self.assertTrue(qry.locationId, 1)
+
+
+        session = self.Session()
+        qry = session.query(models.Node).filter(models.Node.id > 2000)
+        qry.delete()
+        session.flush()
+        session.commit()
+
+        session = self.rSession()
+        qry = session.query(models.Node).filter(models.Node.id > 2000)
+        qry.delete()
+        session.flush()
+        session.commit()
         
-        
-        
+     
+    def test_rpc(self):
+        print "==== TESTING RPC FUNCTIONALTY ===="
+
+        #Check to see if there is the tunnel command for salford21
+        commands = self.pusher.checkRPC(hostname="salford21")
+        self.assertEqual(commands[1], ["tunnel"])
+
+        #Check to see if there as no command for a random name
+        commands = self.pusher.checkRPC(hostname="random42")
+        self.assertFalse(commands[1])
+
+    
+    @unittest.skip
+    def test_RPCTunnel(self):
+        commands = self.pusher.checkRPC(hostname="salford21")
+        self.assertEqual(commands[1], ["tunnel"])
+        self.pusher.processRPC(commands[0], commands[1])
+
                             
         
         

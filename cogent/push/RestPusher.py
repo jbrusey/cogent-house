@@ -4,11 +4,9 @@ Script to push data to a remote server using REST
 .. codeauthor:: Daniel Goldsmith <djgoldsmith@googlemail.com>
 
 For Changes see CHANGES.txt
-
-.. version:: 0.3.5
 """
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 #Setup Logging
 import logging
@@ -18,6 +16,8 @@ import os
 import datetime
 import re
 import zlib
+
+import subprocess
 
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-10s %(levelname)-8s %(message)s",
@@ -210,7 +210,9 @@ class PushServer(object):
         log.info("Running Full Syncronise Cycle")
         for item in self.synclist:
             log.info("Synchronising {0}".format(item))
-            item.checkRPC()
+            hostname, commands = item.checkRPC()
+            if commands:
+                item.processRPC(hostname, commands)
             #TODO Uncomment this after testing
             item.sync()
 
@@ -304,7 +306,9 @@ class Pusher(object):
     #     log = self.log
 
     def checkConnection(self):
-        #Do we have a connection to the server
+        """
+        Check for a connction to the server
+        """
         log = self.log
 
         #Fetch the room types from the remote Database
@@ -317,65 +321,92 @@ class Pusher(object):
         log.debug("Connection to rest server OK")
         return True
 
-    def checkRPC(self):
-        """Check for a set of remote procedure calls"""
+
+    def checkRPC(self, hostname = None):
+        """Check if this server has any RPC
+
+        :param hostname: Host name (<name><id>) to use when checking for RPC
+        :return: hostname, list of functions returned by the server
+        """
         log = self.log
         log.info("Checking for RPC")
 
         theUrl = "{0}rpc/".format(self.restUrl)
 
         #Work out my hostname
-        hostname = os.uname()[1]
-        log.debug("Hostname {0}".format(hostname))
+        if hostname is None:
+            hostname = os.uname()[1]
+            log.debug("Hostname {0}".format(hostname))
         #hostname = "salford21"
-        try:
-            #Quick and simple for the moment
-            #theport = int(hostname[-2:])
-            theport = int(re.findall("\d+",hostname)[0])
-            log.debug("Port to use is {0}".format(theport))
-        except ValueError:
-            log.warning("Unable to get port from hostname {0}".format(hostname))
-            theport = 0
-
-        #sys.exit(0)
+        # try:
+        #     #Quick and simple for the moment
+        #     #theport = int(hostname[-2:])
+        #     theport = int(re.findall(r"\d+", hostname)[0])
+        #     log.debug("Port to use is {0}".format(theport))
+        # except ValueError:
+        #     log.warning("Unable to get port from hostname {0}".format(hostname))
+        #     theport = 0
 
         #Fetch All room Types the Remote Database knows about
         log.debug("Fetching data from {0}".format(theUrl))
         try:
-            remoteqry = requests.get(theUrl,timeout=60)
+            remoteqry = requests.get(theUrl, timeout=60)
         except requests.exceptions.Timeout:
             log.warning("Timeout on connection to cogentee")
-            sys.exit(-1)
+            return
 
         jsonbody = remoteqry.json()
         log.debug(jsonbody)
 
-        log.debug("Processing RPC")
-        #Go through the JSON and see if we have any RPC
+        allcommands = []
         for item in jsonbody:
-            log.debug(item)
             host, command = item
             if host.lower() == hostname.lower():
-                log.info("RPC COMMAND {0}".format(command))
-                if command == "tunnel":
-                    log.debug("Attempting to start SSH Process on port {0}".format(theport))
+                log.debug("Host has RPC queued {0}".format(command))
+                allcommands.append(command)
+
+        print "== {0}".format(allcommands)
+        return hostname, allcommands
+
+    def processRPC(self, hostname, commands):
+        """Process any remote procedure calls
+
+        :param hostname: Hostname we are connecting under
+        :param commands: List of RPC commands for this particualr server
+        """
+        log = self.log
+        log.debug("Processing RPC")
+        #Go through the JSON and see if we have any RPC
+        for item in commands:
+#        for item in jsonbody:
+            log.debug(item)
+#            host, command = item
+#            if host.lower() == hostname.lower():
+#                log.info("RPC COMMAND {0}".format(command))
+            if item == "tunnel":
+
+
+                try:
+                    theport = int(re.findall(r"\d+", hostname)[0])
+                    log.debug("Port to use is {0}".format(theport))
+                except ValueError:
+                    log.warning("Unable to get port from hostname {0}".format(hostname))
+                    theport = 0
+
+                log.debug("Attempting to start SSH Process on port {0}".format(theport))
                     #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
-                    proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
-                                             "start" ,
-                                             "{0}".format(theport)],
-                                            stderr=subprocess.PIPE)
+                proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
+                #proc = subprocess.Popen(["./ch-ssh",
+                                         "start" ,
+                                         "{0}".format(theport)],
+                                        stderr=subprocess.PIPE)
 
-                    # for line in iter(proc.stdout.readline, ''):
+                for line in iter(proc.stderr.readline, ''):
+                    log.debug("E-> {0}".format(line.strip()))
 
-                    #     log.debug("--> {0}".format(line.strip()))
-
-                    for line in iter(proc.stderr.readline, ''):
-                        log.debug("E-> {0}".format(line.strip()))
-
-                    print proc.returncode
-                    log.debug("Killing existing SSH Process")
+                log.debug("Killing existing SSH Process")
                     #Wait for Exit then Kill
-                    subprocess.check_output(["./ch-ssh stop"],shell=True)
+                subprocess.check_output(["./ch-ssh stop"], shell=True)
 
 
     def sync_simpletypes(self):
@@ -411,12 +442,10 @@ class Pusher(object):
         #Moved here for the Sampson Version
         #self.sync_nodes()
 
-
         session = self.localsession()
         houses = session.query(self.House)
-        mappingconfig = self.mappingConfig
+        #mappingconfig = self.mappingConfig
 
-        #sys.exit(0)
         for item in houses:
             log.info("Synchronising Readings for House {0}".format(item))
             #Look for the Last update
@@ -438,25 +467,25 @@ class Pusher(object):
 
         log.debug("Loading Deployments")
         deployments = mappingConfig["deployment"]
-        self.mappedDeployments = dict([(int(k),int(v))
-                                       for k,v in
+        self.mappedDeployments = dict([(int(k), int(v))
+                                       for k, v in
                                        deployments.iteritems()])
 
         log.debug("Loading Houses")
         houses = mappingConfig["house"]
-        self.mappedHouses = dict([(int(k),int(v))
-                                       for k,v in
+        self.mappedHouses = dict([(int(k), int(v))
+                                       for k, v in
                                        houses.iteritems()])
 
         log.debug("Loading Locations")
         locations = mappingConfig["location"]
-        self.mappedLocations = dict([(int(k),int(v))
-                                       for k,v in
+        self.mappedLocations = dict([(int(k), int(v))
+                                       for k, v in
                                        locations.iteritems()])
         log.debug("Loading Rooms")
         rooms = mappingConfig["room"]
-        self.mappedRooms = dict([(int(k),int(v))
-                                       for k,v in
+        self.mappedRooms = dict([(int(k), int(v))
+                                       for k, v in
                                        rooms.iteritems()])
         #return
 
@@ -469,20 +498,20 @@ class Pusher(object):
         """Save mappings to a file"""
         mappingConfig = self.mappingConfig
 
-        mappingConfig["deployment"] = dict([(str(k),v)
-                                            for k,v in
+        mappingConfig["deployment"] = dict([(str(k), v)
+                                            for k, v in
                                             self.mappedDeployments.iteritems()])
 
-        mappingConfig["house"] = dict([(str(k),v)
-                                       for k,v in
+        mappingConfig["house"] = dict([(str(k), v)
+                                       for k, v in
                                        self.mappedHouses.iteritems()])
 
-        mappingConfig["location"] = dict([(str(k),v)
-                                          for k,v in
+        mappingConfig["location"] = dict([(str(k), v)
+                                          for k, v in
                                           self.mappedLocations.iteritems()])
 
-        mappingConfig["room"] = dict([(str(k),v)
-                                      for k,v in
+        mappingConfig["room"] = dict([(str(k), v)
+                                      for k, v in
                                       self.mappedRooms.iteritems()])
 
         self.dbConfig[self.restUrl] = self.mappingConfig
@@ -508,7 +537,7 @@ class Pusher(object):
 
         if jsonBody == []:
             #Item does not exist so we want to add it
-            restQry = requests.post(theUrl, data=json.dumps(theBody))
+            restQry = requests.post(theUrl, data = json.dumps(theBody))
             log.debug("New Item to be added {0}".format(theBody))
             jsonBody = restQry.json()
             log.debug(jsonBody)
@@ -599,9 +628,9 @@ class Pusher(object):
         for item in removedItems:
             thisItem = localTypes[item]
             log.info("Item {0} Not in remote DB".format(thisItem))
-            dictItem = thisItem.toDict()
+            dictItem = thisItem.dict()
             del(dictItem["id"])
-            r = requests.post(theUrl,data=json.dumps(dictItem))
+            r = requests.post(theUrl, data = json.dumps(dictItem))
             newItem = r.json()
             log.info("New Item {0}".format(thisItem))
             mergedItems[thisItem.id] = newItem["id"]
@@ -673,13 +702,12 @@ class Pusher(object):
 
         localQry = session.query(self.Room)
         #Dictionary of local Types
-        localTypes = dict([(x.name, x) for x in localQry])
+        #localTypes = dict([(x.name, x) for x in localQry])
 
         tmpTypes = {}
         for item in localQry:
             #Convert the local types to hold mapped room type Ids
-            mappedId = mappedRoomTypes.get(item.roomTypeId,None)
-            #mappedId = mappedRoomTypes.get(item.roomTypeId,None)
+            mappedId = mappedRoomTypes.get(item.roomTypeId, None)
             tmpRoom = self.Room(id = item.id,
                                 name = item.name,
                                 roomTypeId = mappedId
@@ -712,7 +740,7 @@ class Pusher(object):
         localTypes = {}
 
         remoteQry = requests.get(theUrl)
-        jsonBody=remoteQry.json()
+        jsonBody = remoteQry.json()
         restItems = self.unpackJSON(jsonBody)
         for item in restItems:
             remoteTypes[item.id] = item
@@ -721,7 +749,7 @@ class Pusher(object):
         for item in itemTypes:
             localTypes[item.id] = item
 
-        theDiff = DictDiff(remoteTypes,localTypes)
+        theDiff = DictDiff(remoteTypes, localTypes)
 
         #those in the remote Database that are not in the local
         newItems = theDiff.added()
@@ -764,9 +792,9 @@ class Pusher(object):
                                                                          theItem))
             theUrl = "{0}nodetype/".format(self.restUrl)
             #print theUrl
-            dictItem = theItem.toDict()
+            dictItem = theItem.dict()
             #We then Post the New Item to the Remote DBString
-            r= requests.post(theUrl,data=json.dumps(dictItem))
+            r = requests.post(theUrl, data = json.dumps(dictItem))
             log.debug(r)
 
         log.debug("Updating Mapping Dictionary")
@@ -800,7 +828,7 @@ class Pusher(object):
         localTypes = {}
 
         remoteQry = requests.get(theUrl)
-        jsonBody=remoteQry.json()
+        jsonBody = remoteQry.json()
         restItems = self.unpackJSON(jsonBody)
         for item in restItems:
             remoteTypes[item.id] = item
@@ -809,7 +837,7 @@ class Pusher(object):
         for item in itemTypes:
             localTypes[item.id] = item
 
-        theDiff = DictDiff(remoteTypes,localTypes)
+        theDiff = DictDiff(remoteTypes, localTypes)
 
         #those in the remote Database that are not in the local
         newItems = theDiff.added()
@@ -846,9 +874,9 @@ class Pusher(object):
                                                                          theItem))
             theUrl = "{0}sensortype/".format(self.restUrl)
             #print theUrl
-            dictItem = theItem.toDict()
+            dictItem = theItem.dict()
             #We then Post the New Item to the Remote DBString
-            r= requests.post(theUrl,data=json.dumps(dictItem))
+            r = requests.post(theUrl, data = json.dumps(dictItem))
             log.debug(r)
 
         log.debug("Updating Mapping Dictionary")
@@ -891,7 +919,7 @@ class Pusher(object):
         # for key,item in localTypes.iteritems():
         #     log.debug("--> '{0}' {1}".format(key,item))
 
-        mappedDeployments = self._syncItems(localTypes,remoteTypes,theUrl)
+        mappedDeployments = self._syncItems(localTypes, remoteTypes, theUrl)
         log.debug("Mapped Deployments are {0}".format(mappedDeployments))
 
         self.mappedDeployments = mappedDeployments
@@ -916,7 +944,7 @@ class Pusher(object):
         log.debug("---------------------------------------")
 
         #log.debug("Loading Known Houses from config file")
-        mappingConfig = self.mappingConfig
+        #mappingConfig = self.mappingConfig
 
         #Get the list of deployments that may need updating
         #Deployment = models.Deployment
@@ -932,7 +960,7 @@ class Pusher(object):
 
 
             #Calculate the Deployment Id:
-            mapDep = mappedDeployments.get(item.deploymentId,None)
+            mapDep = mappedDeployments.get(item.deploymentId, None)
             log.debug("-->Maps to deployment {0}".format(mapDep))
 
             params = {"address":item.address,
@@ -940,10 +968,10 @@ class Pusher(object):
             theUrl = "{0}house/?{1}".format(self.restUrl,
                                             urllib.urlencode(params))
             # #Look for the item
-            theBody = item.toDict()
+            theBody = item.dict()
             theBody["deploymentId"] = mapDep
             del theBody["id"]
-            newItem = self.uploadItem(theUrl,theBody)
+            newItem = self.uploadItem(theUrl, theBody)
             log.debug("House {0} maps to {1} ({2}:{3})".format(item,
                                                                newItem,
                                                                item.id,
@@ -957,7 +985,7 @@ class Pusher(object):
         lSess.close()
 
     def sync_locations(self):
-        #Synchronise Locations
+        """ Synchronise Locations between remote and local server """
         log = self.log
         log.debug("----- Syncing Locations ------")
         lSess = self.localsession()
@@ -978,7 +1006,7 @@ class Pusher(object):
                 continue
 
             hId = mappedHouses[item.houseId]
-            rId =mappedRooms.get(item.roomId,None)
+            rId = mappedRooms.get(item.roomId, None)
             log.debug("Mapping for item {0} : House {1} Room {2}".format(item,
                                                                          hId,
                                                                          rId))
@@ -989,7 +1017,7 @@ class Pusher(object):
             theUrl = "{0}location/?{1}".format(self.restUrl,
                                                urllib.urlencode(params))
             #Look for the item
-            theBody = item.toDict()
+            theBody = item.dict()
             theBody["houseId"] = hId
             theBody["roomId"] = rId
             del(theBody["id"])
@@ -1012,6 +1040,10 @@ class Pusher(object):
     def sync_nodes(self):
         """Synchronise Nodes between databases.
 
+        This will:
+          * upload any new nodes to the remote database
+          * update the location id of any new nodes
+
         .. TODO:
 
             Currently the node 'Location' field is not updated,
@@ -1028,6 +1060,17 @@ class Pusher(object):
         log.debug("----- Syncing Nodes ------")
         session = self.localsession()
 
+        #Get a list of all nodes we expect to have with active houses
+        now = datetime.datetime.now()
+        qry = session.query(models.House).filter((models.House.endDate == None) |
+                                                 (models.House.endDate > now))
+        activelocs = []
+        for item in qry:
+            locations = [x.id for x in item.locations]
+            activelocs.extend(locations)
+
+        log.debug("Active Locations {0}".format(activelocs))
+
         #Get Local Nodes
         theQry = session.query(self.Node)
         #Then we want to map and compare our node dictionarys
@@ -1040,43 +1083,71 @@ class Pusher(object):
         #FOO
         remoteNodes = dict([(x.id, x) for x in rNodes])
 
-        theDiff = DictDiff(remoteNodes,localNodes)
+        theDiff = DictDiff(remoteNodes, localNodes)
 
         #Items not in the Local Database
-        log.debug("Dealing with new items in Local DB:")
+        log.debug("Adding new items in Local DB:")
         newItems = theDiff.added()
         log.debug(newItems)
 
-        for item in newItems:
-            thisItem = remoteNodes[item]
-            log.info("Node {0}:{1} Not in Local Database".format(item,
-                                                                 thisItem))
+        # for item in newItems:
+        #     thisItem = remoteNodes[item]
+        #     log.info("Node {0}:{1} Not in Local Database".format(item,
+        #                                                          thisItem))
 
-            #We also need to map this location to that in the local database
-            rloc = self.backmappedLocations.get(thisItem.locationId,None)
-            log.info("Attempting to map location {0} to {1}".format(thisItem.locationId, rloc))
-            thisItem.locationId = rloc
+        #     #We also need to map this location to that in the local database
+        #     rloc = self.backmappedLocations.get(thisItem.locationId,None)
+        #     log.info("Attempting to map location {0} to {1}".format(thisItem.locationId, rloc))
+        #     thisItem.locationId = rloc
 
-            session.add(thisItem)
-            session.flush()
+        #     session.add(thisItem)
+        #     session.flush()
 
-        session.commit()
+        # session.commit()
+
+
         removedItems = theDiff.removed()
         log.debug(removedItems)
 
-        log.debug("Dealing with new items in Remote DB:")
+        log.debug("Adding new items to Remote DB:")
         for item in removedItems:
             thisItem = localNodes[item]
             theUrl = "{0}node/".format(self.restUrl)
             log.info("Node {0} Not in Remote Db, Uploading".format(item))
-            dictItem= thisItem.toDict()
-            rloc = self.mappedLocations.get(thisItem.locationId,None)
-            log.info("Attempting to map location {0} to {1}".format(thisItem.locationId,rloc))
+            dictItem = thisItem.dict()
+            rloc = self.mappedLocations.get(thisItem.locationId, None)
+            log.info("Attempting to map location {0} to {1}".format(thisItem.locationId, rloc))
             dictItem["locationId"] = rloc
-            #dictItem["nodeTypeId"] = None
             log.debug("--> New Node is {0}".format(dictItem))
-            r = requests.post(theUrl,data=json.dumps(dictItem))
+            r = requests.post(theUrl, data = json.dumps(dictItem))
             log.debug(r)
+
+        changeditems = theDiff.changed()
+        log.debug("---- Items that have changed ----")
+        for item in changeditems:
+            log.debug("--> {0}".format(item))
+            ritem = remoteNodes[item]
+            litem = localNodes[item]
+            log.debug("--> Remote Version {0}".format(ritem))
+            log.debug("--> Local  Version {0}".format(litem))
+
+            #Currently we just push the local version and assume it is the most
+            #'up to date' version of the location
+
+            if litem.locationId in activelocs:
+                log.debug("--> Local node location is active updating")
+                #Map the new location
+                dictitem = litem.dict()
+                rloc = self.mappedLocations.get(litem.locationId, None)
+                dictitem["locationId"] = rloc
+                    #r = requests.put("{0}/{1}".format(theUrl, nid),
+                    #                 data=json.dumps(dictitem))
+                r = requests.put(theUrl,
+                                 params = {"id": litem.id},
+                                 data = json.dumps(dictitem))
+                log.debug(r)
+                print r.json
+
 
     def sync_nodeLocations(self, thehouse, lastupdate = None):
         """Synchonise the location of any nodes associated with this house.
@@ -1127,7 +1198,7 @@ class Pusher(object):
                 log.info("Attempting to map location {0} to {1}".format(localnode.locationId,
                                                                         rloc))
                 dictitem["locationId"] = rloc
-                r = requests.post(theUrl, data=json.dumps(dictitem))
+                r = requests.post(theUrl, data = json.dumps(dictitem))
                 log.debug(r)
             else:
                 log.debug("Node exists on system {0}".format(remotenode))
@@ -1151,12 +1222,12 @@ class Pusher(object):
                     #                 data=json.dumps(dictitem))
                     r = requests.put(theUrl,
                                      params={"id": nid},
-                                     data=json.dumps(dictitem))
+                                     data = json.dumps(dictitem))
                     log.debug(r)
                     print r.json
-        pass
 
-    def upload_nodestate(self,thehouse, lastupdate):
+
+    def upload_nodestate(self, thehouse, lastupdate):
         """
         Upload Nodestates between two databases
 
@@ -1170,7 +1241,7 @@ class Pusher(object):
         session = self.localsession()
 
         #Get the last state upload
-        mappingConfig = self.mappingConfig
+        #mappingConfig = self.mappingConfig
 
         #First we want to find the nodes associated with this particular house
         locations = [x.id for x in thehouse.locations]
@@ -1221,7 +1292,7 @@ class Pusher(object):
 
             jsonList = []
             for x in qry:
-                theItem = x.toDict()
+                theItem = x.dict()
                 theItem["id"] = None
                 jsonList.append(theItem)
 
@@ -1234,10 +1305,10 @@ class Pusher(object):
 
             #And Upload
             theUrl = "{0}bulk/".format(self.restUrl)
-            restQry = requests.post(theUrl,data=gzStr)
+            restQry = requests.post(theUrl, data = gzStr)
 
             log.debug("REST QUERY RETURN CODE {0}".format(restQry.status_code))
-            if restQry.status_code== 500:
+            if restQry.status_code == 500:
                 log.warning("Upload of States Fails")
                 log.warning(restQry)
                 raise Exception ("Upload Failed")
@@ -1254,7 +1325,7 @@ class Pusher(object):
 
         log = self.log
         log.info("---- Fetching Last Update for {0} ----".format(theHouse))
-        mappingConfig = self.mappingConfig
+        #mappingConfig = self.mappingConfig
 
 
         #As we should be able to trust the last update field of the config file.
@@ -1269,7 +1340,7 @@ class Pusher(object):
                       "lastUpdate":lastUpdate}
             theUrl = "{0}lastSync/".format(self.restUrl)
 
-            restQuery = requests.get(theUrl,params=params)
+            restQuery = requests.get(theUrl, params=params)
             strDate =  restQuery.json()
 
             log.debug("Str Date {0}".format(strDate))
@@ -1297,7 +1368,7 @@ class Pusher(object):
 
         #Load the Mapped items to the local namespace
         mappedLocations = self.mappedLocations
-        mappedTypes = self.mappedSensorTypes
+        #mappedTypes = self.mappedSensorTypes
         #print mappedTypes
         #Mapping Config
         mappingConfig = self.mappingConfig
@@ -1386,7 +1457,7 @@ class Pusher(object):
             #---theReadings = theReadings.limit(self.pushLimit)
             #theReadings = theReadings.limit(10)
             theReadings = theReadings.limit(self.pushLimit)
-            log.info("Transfering {0} samples to limit of {1}".format(theReadings.count(),self.pushLimit))
+            log.info("Transfering {0} samples to limit of {1}".format(theReadings.count(), self.pushLimit))
             rdgCount = theReadings.count()
             if rdgCount <= 0:
                 log.info("--> No Readings Remain")
@@ -1394,7 +1465,7 @@ class Pusher(object):
 
             transferCount += rdgCount
 
-            log.debug("--> Transfer {0}/{1} Readings to remote DB".format(transferCount,origCount))
+            log.debug("--> Transfer {0}/{1} Readings to remote DB".format(transferCount, origCount))
 
             jsonList = [] #Blank Object to hold readings
 
@@ -1402,7 +1473,7 @@ class Pusher(object):
                 #log.debug(reading)
 
                 #Convert our Readings to REST, and remap to the new locations
-                dictReading = reading.toDict()
+                dictReading = reading.dict()
                 #log.debug("==> {0}".format(dictReading))
                 dictReading['locationId'] = mappedLocations[reading.locationId]
                 #dictReading['typeId'] = mappedTypes[reading.typeId]
@@ -1417,7 +1488,7 @@ class Pusher(object):
              #And then try to bulk upload them
             theUrl = "{0}bulk/".format(self.restUrl)
 
-            restQry = requests.post(theUrl,data=gzStr)
+            restQry = requests.post(theUrl, data = gzStr)
 
             transTime = time.time()
             if restQry.status_code == 500:
@@ -1426,7 +1497,7 @@ class Pusher(object):
                 raise Exception ("Upload Fails")
 
 
-            log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount,origCount))
+            log.info("--> Transferred {0}/{1} Readings to remote DB".format(transferCount, origCount))
             log.info("--> Timings: Local query {0}, Data Transfer {1}, Total {2}".format(qryTime - stTime, transTime -qryTime, transTime - stTime))
             lastUpdate = lastSample
 
