@@ -136,14 +136,14 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedSensorTypes = {} 
         self.pusher.log.setLevel(logging.WARNING)
 
-    @unittest.skip
+    #@unittest.skip
     def test_connection(self):
         """Can we get an connection"""
         
         self.assertTrue(self.pusher.checkConnection(),
                         msg="No Connection to the test server... Is it running?")
 
-    @unittest.skip
+    #@unittest.skip
     def test_nodetypes_remote(self):
         """Can we properly synch nodetypes
 
@@ -234,7 +234,7 @@ class TestClient(unittest.TestCase):
         session.flush()
         session.commit()
 
-    @unittest.skip
+    #@unittest.skip
     def test_nodetypes_fails(self):
         """Does the NodeType fail if we have bad sensortypes"""
         session = self.Session()
@@ -260,7 +260,7 @@ class TestClient(unittest.TestCase):
         session.close()
         
 
-    @unittest.skip
+    #@unittest.skip
     def test_sensortypes_remote(self):
         """Does Synching of sensortypes work as expected
         
@@ -349,7 +349,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         
 
-    @unittest.skip
+    #@unittest.skip
     def test_sensortypes_fails(self):
         """Does the sensortype fail if we have bad sensortypes"""
         session = self.Session()
@@ -375,7 +375,7 @@ class TestClient(unittest.TestCase):
         session.close()
 
 
-    @unittest.skip
+    #@unittest.skip
     def test_sync_roomtypes(self):
         """Does the sync_roomtypes() code work
 
@@ -487,7 +487,7 @@ class TestClient(unittest.TestCase):
 
         self.pusher.mappedRoomTypes = {}
 
-    @unittest.skip
+    #@unittest.skip
     def test_syncRooms(self):
         """Check if sync-rooms works correctly"""
 
@@ -590,7 +590,7 @@ class TestClient(unittest.TestCase):
         self.pusher.mappedRooms = {}
 
 
-    @unittest.skip
+    #@unittest.skip
     def test_syncDeployments(self):
         """Does Syncronising deployments work correctly
 
@@ -693,7 +693,7 @@ class TestClient(unittest.TestCase):
 
         self.pusher.mappedDeployment = {}
 
-    @unittest.skip
+    #@unittest.skip
     def test_loadsavemappings(self):
         """Test the Load / Save mappings function
 
@@ -734,7 +734,7 @@ class TestClient(unittest.TestCase):
         self.assertEqual(pusher.mappedRooms, rooms)
         # #self.Fail()
 
-    @unittest.skip
+    #@unittest.skip
     def test_sync_houses(self):
 
         # Make sure the DB is in a sensible state before we get started
@@ -895,7 +895,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()  
 
-    @unittest.skip
+    #@unittest.skip
     def test_sync_locations(self):
         """Does Synching Locations work as expected.
 
@@ -1279,7 +1279,7 @@ class TestClient(unittest.TestCase):
         session.commit()
         session.close()
 
-    @unittest.skip
+    #@unittest.skip
     def test_getlastupdate(self):
         """Can we get the date of the last update accurately"""
         #Hopefully nothing yet esists
@@ -1292,7 +1292,7 @@ class TestClient(unittest.TestCase):
         #expectdate = None
         self.assertEqual(lastupdate, expectdate)
 
-    @unittest.skip
+    #@unittest.skip
     def test_uploadreadings(self):
         """Does the uploading of readings happen correctly"""
 
@@ -2009,6 +2009,8 @@ class TestClient(unittest.TestCase):
         self.pusher.processRPC(commands[0], commands[1])
 
                             
-        
+    def test_hostname(self):
+        self.pusher.transferHostname()
+
         
         
