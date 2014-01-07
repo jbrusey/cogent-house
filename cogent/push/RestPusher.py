@@ -410,8 +410,8 @@ class Pusher(object):
 
                 log.debug("Attempting to start SSH Process on port {0}".format(theport))
                     #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
-                proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
-                #proc = subprocess.Popen(["./ch-ssh",
+                #proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
+                proc = subprocess.Popen(["./ch-ssh",
                                          "start" ,
                                          "{0}".format(theport)],
                                         stderr=subprocess.PIPE)
@@ -1140,20 +1140,22 @@ class Pusher(object):
         changeditems = theDiff.changed()
         log.debug("---- Items that have changed ----")
         for item in changeditems:
-            log.debug("--> {0}".format(item))
             ritem = remoteNodes[item]
             litem = localNodes[item]
-            log.debug("--> Remote Version {0}".format(ritem))
-            log.debug("--> Local  Version {0}".format(litem))
 
             #Currently we just push the local version and assume it is the most
             #'up to date' version of the location
 
             if litem.locationId in activelocs:
-                log.debug("--> Local node location is active updating")
                 #Map the new location
                 dictitem = litem.dict()
                 rloc = self.mappedLocations.get(litem.locationId, None)
+                
+                if rloc == ritem.locationId:
+                    log.debug("mismatch on location, but mapped location is correct")
+                    continue
+
+                log.debug("--> Local node location is active updating")
                 dictitem["locationId"] = rloc
                     #r = requests.put("{0}/{1}".format(theUrl, nid),
                     #                 data=json.dumps(dictitem))
