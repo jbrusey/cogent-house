@@ -453,9 +453,9 @@ class Pusher(object):
         self.sync_locations()
 
         self.save_mappings()
-
-        #Moved here for the Sampson Version
-        #self.sync_nodes()
+        
+        self.transferHostname()
+        self.sync_nodes()
 
         session = self.localsession()
         houses = session.query(self.House)
@@ -466,7 +466,7 @@ class Pusher(object):
             #Look for the Last update
             lastUpdate = self.get_lastupdate(item)
             log.debug("Last Update was {0}".format(lastUpdate))
-            self.sync_nodeLocations(item) #Update node locations
+            #self.sync_nodeLocations(item) #Update node locations
             out = self.upload_readings(item, lastUpdate)
             log.debug("Upload Readings Returns {0}".format(out))
             self.upload_nodestate(item, lastUpdate)
