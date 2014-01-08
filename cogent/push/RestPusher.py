@@ -1366,7 +1366,10 @@ class Pusher(object):
                 lastDate = None
             else:
                 lastDate = dateutil.parser.parse(strDate)
-                log.info("--> Last Upload Date {0}".format(lastDate))
+                #Bump date to stop colissions
+                lastDate = lastDate + datetime.timedelta(seconds = 1)
+
+            log.info("--> Last Upload Date {0}".format(lastDate))
 
             lastUpdate = lastDate
 
