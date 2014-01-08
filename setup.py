@@ -3,8 +3,12 @@ from setuptools import setup
 import os
 import sys
 
+
+
 #Fix for when a virtualenv is used to install
 here = os.path.abspath(os.path.dirname(__file__))
+README = open(os.path.join(here,"CHANGES.txt")).read()
+CHANGES = open(os.path.join(here,"CHANGES.txt")).read()
 
 #calcualte the prefix to instal data files into to meet debian FHS 
 if sys.prefix  == "/usr":
@@ -39,9 +43,10 @@ setup(name='ch-base',
                 'cogent.report',
                 'cogent.sip',
                 'cogent.node',
-				'cogent.scripts'
-				],
-      package_data={'cogent.base' : ['Calibration/*.csv']},
+		'cogent.scripts'
+                ],
+      #include_package_data=True,
+      #package_data={'cogent.base' : ['Calibration/*.csv']},
       data_files=[('{0}/etc/init'.format(conf_prefix), ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
                   ('{0}/etc/cron.daily'.format(conf_prefix), ['etc/ch-daily-email']),
                   ('{0}/etc/apache2/sites-available'.format(conf_prefix), ['etc/cogent-house']),
@@ -50,6 +55,8 @@ setup(name='ch-base',
                   ('{0}/var/www/style'.format(conf_prefix), ['www/style/ccarc.css']),
                   ("{0}/share/cogent-house/calibration".format(sys.prefix),["cogent/base/Calibration/aq_coeffs.csv",
                                                                             "cogent/base/Calibration/voc_coeffs.csv"]),
+                  #Push Configuration Files
+                  ("{0}/etc/cogent-house/".format(sys.prefix),["/conf/cogent-house"])
                   ],
       entry_points = """\
       [console_scripts]
