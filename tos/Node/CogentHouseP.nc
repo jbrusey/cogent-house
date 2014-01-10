@@ -32,6 +32,7 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadVolt;
     interface SIPController<FilterState *> as ReadCC;
     interface SIPController<FilterState *> as ReadCO2;
+    interface SIPController<FilterState *> as ReadBB;
     interface SIPController<FilterState *> as ReadVOC;
     interface SIPController<FilterState *> as ReadAQ;
     interface SIPController<FilterState *> as ReadOpti;
@@ -388,6 +389,7 @@ implementation
     call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_ALPHA, SIP_HUM_BETA);
     call ReadVolt.init(SIP_BATTERY_THRESH, SIP_BATTERY_MASK, SIP_BATTERY_ALPHA, SIP_BATTERY_BETA);
     call ReadCO2.init(SIP_CO2_THRESH, SIP_CO2_MASK, SIP_CO2_ALPHA, SIP_CO2_BETA);
+    call ReadBB.init(SIP_BB_THRESH, SIP_BB_MASK, SIP_BB_ALPHA, SIP_BB_BETA);
     call ReadVOC.init(SIP_VOC_THRESH, SIP_VOC_MASK, SIP_VOC_ALPHA, SIP_VOC_BETA);
     call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_ALPHA, SIP_AQ_BETA);
     call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
@@ -403,6 +405,8 @@ implementation
     my_settings = &settings.byType[nodeType];
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     my_settings->blink = FALSE;
+
+    // Configure the node for attached sensors.
 
     call Configured.clearAll();
     if (nodeType == 0) { /*base node*/
@@ -457,6 +461,14 @@ implementation
       call Configured.set(RS_TEMPERATURE);
       call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
+      call Configured.set(RS_AC);
+      call ACControl.start();
+    }
+    else if (nodeType == CLUSTER_HEAD_BB_TYPE) { /* clustered BB */
+      call Configured.set(RS_TEMPERATURE);
+      call Configured.set(RS_HUMIDITY);
+      call Configured.set(RS_CO2);
+      call Configured.set(RS_BB);
       call Configured.set(RS_AC);
       call ACControl.start();
     }
@@ -544,6 +556,8 @@ implementation
 	    call ReadGas.read();
    	  else if (i == RS_WINDOW)
 	    call ReadWindow.read();
+   	  else if (i == RS_BB)
+	    call ReadBB.read();
 #endif
 	  else
 	    call ExpectReadDone.clear(i);
@@ -638,6 +652,10 @@ implementation
   
   event void ReadCO2.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
+  }
+
+  event void ReadBB.readDone(error_t result, FilterState* data){
+    do_readDone_filterstate(result, data, RS_BB, SC_BB, SC_D_BB);
   }
 
   event void ReadAQ.readDone(error_t result, FilterState* data){

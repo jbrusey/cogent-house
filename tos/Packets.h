@@ -79,7 +79,9 @@ enum {
   SC_GAS = 43,
   SC_D_OPTI = 44,
   SC_WINDOW = 45,
-  SC_SIZE = 46, // SC_SIZE must be 1 greater than last entry
+  SC_BB = 46,
+  SC_D_BB = 47,
+  SC_SIZE = 48, // SC_SIZE must be 1 greater than last entry
 
   /* procedure for increasing SC_SIZE:
    *
@@ -117,7 +119,8 @@ enum {
   RS_GAS= 15,
   RS_WINDOW= 16,
   RS_AC= 17,
-  RS_SIZE = 18 // must be 1 greater than last entry
+  RS_BB=18,
+  RS_SIZE = 19 // must be 1 greater than last entry
 };
 
 //separate packets structure for mote type
@@ -133,6 +136,7 @@ enum {
   CLUSTER_HEAD_CO2_TYPE = 10,
   CLUSTER_HEAD_VOC_TYPE = 11,
   CLUSTER_HEAD_CC_TYPE = 12,
+  CLUSTER_HEAD_BB_TYPE = 13,
   CLUSTER_HEAD_MIN_ID = 10 << 12 //min cluster head type
 };
 

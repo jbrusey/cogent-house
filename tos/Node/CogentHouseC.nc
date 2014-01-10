@@ -67,6 +67,7 @@ implementation
   components new SensirionSht11C();
   components new VoltageC() as Volt;
   components new CarbonDioxideC() as CarbonDioxide;
+  components new BlackBulbC() as BlackBulb;
   components new VOCC() as VOC;
   components new AQC() as AQ;
   components HplMsp430InterruptP as GIOInterrupt;
@@ -74,13 +75,14 @@ implementation
 
 
   //Sensing Modules
-  components ThermalSensingM, AirQualityM, BatterySensingM;
+  components ThermalSensingM, AirQualityM, BatterySensingM, BlackBulbM;
   components new ACStatusM() as ACStatusM;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
   BatterySensingM.GetVoltage -> Volt;
+  BlackBulbM.GetBB -> BlackBulb;
   AirQualityM.GetCO2 -> CarbonDioxide;
   AirQualityM.GetVOC -> VOC;
   AirQualityM.GetAQ -> AQ;
@@ -194,6 +196,12 @@ implementation
   FilterM.GetSensorValue[RS_CO2]  -> AirQualityM.ReadCO2;
   SIPControllerC.EstimateCurrentState[RS_CO2]  -> FilterM.EstimateCurrentState[RS_CO2];
   CogentHouseP.ReadCO2 -> SIPControllerC.SIPController[RS_CO2];
+
+  // BB Wiring
+  FilterM.Filter[RS_BB]  -> DEWMAC.Filter[RS_BB];
+  FilterM.GetSensorValue[RS_BB]  -> BlackBulbM.ReadBB;
+  SIPControllerC.EstimateCurrentState[RS_BB]  -> FilterM.EstimateCurrentState[RS_BB];
+  CogentHouseP.ReadBB -> SIPControllerC.SIPController[RS_BB];
 
   // AQ Wiring
   FilterM.Filter[RS_AQ]  -> DEWMAC.Filter[RS_AQ];
