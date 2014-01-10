@@ -1,4 +1,4 @@
-PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I ./Filters/PassThrough  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/WindowSensor -I./Sensing/TempADC -I./Sensing/PulseReader  -I./Sensing/ACStatus -I./Sensing/CurrentCost  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I../Util  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I%T/lib/net/drip
+PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I ./Filters/PassThrough  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/WindowSensor -I./Sensing/TempADC -I./Sensing/PulseReader  -I./Sensing/ACStatus -I./Sensing/CurrentCost  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I../Util  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I./Sensing/BlackBulb -I%T/lib/net/drip
 
 COMPONENT=CogentHouseC
 
@@ -57,6 +57,11 @@ CFLAGS += -DSIP_CO2_MASK=1
 CFLAGS += -DSIP_CO2_THRESH=100.
 CFLAGS += -DSIP_CO2_ALPHA=0.2
 CFLAGS += -DSIP_CO2_BETA=0.2
+
+CFLAGS += -DSIP_BB_MASK=1
+CFLAGS += -DSIP_BB_THRESH=0.0025
+CFLAGS += -DSIP_BB_ALPHA=0.2
+CFLAGS += -DSIP_BB_BETA=0.2
 
 CFLAGS += -DSIP_AQ_MASK=1
 CFLAGS += -DSIP_AQ_THRESH=0.1
