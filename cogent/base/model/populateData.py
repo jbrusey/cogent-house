@@ -386,11 +386,11 @@ def populateNodeTypes(session = False):
                   {'id': 12, 'name': "ClusterHead CC",
                    'time': "2011-07-10 00:00:00",
                    'seq': 1,
-                   'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'}      
+                   'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
                 {'id': 13, 'name': "ClusterHead BB",
                    'time': "2011-07-10 00:00:00",
                    'seq': 1,
-                   'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'}      
+                   'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},      
                 ]
                 
 
