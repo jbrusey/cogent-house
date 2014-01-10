@@ -251,6 +251,14 @@ def populateSensorTypes(session = False):
                              code= "ste",
                              units= "ste",
                              c0= 0., c1= 1., c2= 0., c3= 0.),
+                  SensorType(id = 46, name = "Black Bulb",
+                             code = "bb",
+                             units = "v",
+                             c0 = 0., c1 = 0., c2 = 0., c3 = 0.),
+                  SensorType(id = 47, name = "Delta Black Bulb",
+                             code = "d/bb",
+                             units = "v/s",
+                             c0 = 0., c1 = 0., c2 = 0., c3 = 0.),
                   SensorType(id=99, name="Gas Consumption",
                              code="Gas",
                              units="kWh",
@@ -303,6 +311,7 @@ def populateSensorTypes(session = False):
                              code="ws_abs_pressure",
                              units="hpa",
                              c0=0., c1=1., c2=0., c3=0.),
+
                   ]
     
 
@@ -375,6 +384,10 @@ def populateNodeTypes(session = False):
                  'seq': 1,
                  'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'},
                   {'id': 12, 'name': "ClusterHead CC",
+                   'time': "2011-07-10 00:00:00",
+                   'seq': 1,
+                   'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'}      
+                {'id': 13, 'name': "ClusterHead BB",
                    'time': "2011-07-10 00:00:00",
                    'seq': 1,
                    'updated_seq': 0., 'period': 307200., 'blink': 0., 'configured': '31,4'}      
