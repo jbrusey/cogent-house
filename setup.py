@@ -12,9 +12,10 @@ CHANGES = open(os.path.join(here,"CHANGES.txt")).read()
 
 #calcualte the prefix to instal data files into to meet debian FHS 
 if sys.prefix  == "/usr":
-    conf_prefix = "/" #If its a standard "global" instalation
+    conf_prefix = "" #If its a standard "global" instalation
 else :
     conf_prefix = "{0}/".format(sys.prefix)
+
 
 REQUIRES = ['SQLAlchemy',
             "MySQL-python",
