@@ -85,3 +85,15 @@ Version 1.1.4
   * Removed transaction extension codez from models/meta
   * Added Black Bulb to sensor / node types
 
+
+Version 1.1.4a
+----------------
+
+  Intermediate testing relsase for debianisation
+
+  * Added synchronise.conf to MANIFEST.in so it is included in the source distribution
+  * Added alembic to the MANIFEST.in
+  * Removed Calibration from setup.py
+  * Added pushStatus and Server tables from webinterface
+  * Put matplotlib / scipy back in the depends
+  * Updated ch-base / ch-sf to run on pi and modified setup to put them in /etc/init.d/
