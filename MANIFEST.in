@@ -3,3 +3,9 @@ include *.cfg
 recursive-include conf *
 recursive-include etc *
 recursive-include www *
+recursive-include cogent/alembic *
+
+include cogent/push/synchronise.conf
+include cogent/push/ch-ssh
+include cogent/alembic.ini
+
