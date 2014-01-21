@@ -97,3 +97,6 @@ Version 1.1.4a
   * Added pushStatus and Server tables from webinterface
   * Put matplotlib / scipy back in the depends
   * Updated ch-base / ch-sf to run on pi and modified setup to put them in /etc/init.d/
+  * Removed install of ch-base.conf to /etc/init/ as this causes issues with debian install
+  * Removed dependency of python-daemon
+  * Updated setup.py to include package data flag is turned on
