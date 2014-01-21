@@ -26,7 +26,7 @@ REQUIRES = ['SQLAlchemy',
             "pyserial",
             "requests",
             "transaction",
-            "python-daemon",
+            #"python-daemon",
             "alembic",
             "scipy",
             ]
@@ -45,9 +45,9 @@ setup(name='ch-base',
                 'cogent.node',
 		'cogent.scripts'
                 ],
-      #include_package_data=True,
+      include_package_data=True,
       #package_data={'cogent.base' : ['Calibration/*.csv']},
-      data_files=[('{0}/etc/init'.format(conf_prefix), ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
+      data_files=[#('{0}/etc/init'.format(conf_prefix), ['etc/ch-sf.conf', 'etc/ch-base.conf', 'etc/noip2.conf']),
                   ('{0}/etc/init.d'.format(conf_prefix), ["etc/ch-base", "etc/ch-sf"]),
                   ('{0}/etc/cron.daily'.format(conf_prefix), ['etc/ch-daily-email']),
                   ('{0}/etc/apache2/sites-available'.format(conf_prefix), ['etc/cogent-house']),
@@ -57,7 +57,7 @@ setup(name='ch-base',
                   #("{0}/share/cogent-house/calibration".format(sys.prefix),["cogent/base/Calibration/aq_coeffs.csv",
                   #                                                          "cogent/base/Calibration/voc_coeffs.csv"]),
                   #Push Configuration Files
-                  ("{0}/etc/cogent-house/push-script/".format(sys.prefix),["conf/push-script/synchronise.conf"])
+                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["conf/push-script/synchronise.conf"])
                   ],
       entry_points = """\
       [console_scripts]
