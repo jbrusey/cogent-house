@@ -1,5 +1,6 @@
 from sqlalchemy import and_, distinct, func
-from datetime import datetime, timedelta
+import datetime
+#from datetime import datetime, timedelta
 from cogent.base.model import *
 
 def nodesInSet(session, node_set):
@@ -16,8 +17,8 @@ def nodesInSet(session, node_set):
 def lowBat(session,
            bat_thresh=2.6,
            count_thresh=3,
-           end_t=datetime.utcnow(),
-           start_t=(datetime.utcnow() - timedelta(days=1))):
+           end_t=datetime.datetime.utcnow(),
+           start_t=(datetime.datetime.utcnow() - datetime.timedelta(days=1))):
     html = []
 
     last_lowbat = session.query(LastReport).filter(LastReport.name=="low-bat-nodes").first()
@@ -56,9 +57,9 @@ def lowBat(session,
             html.append('<h3>Nodes no longer reporting low battery</h3>')
             html.extend(nodesInSet(session, gone_high))
 
-        
+
         #        s = ','.join([str(a) for a in lowbat_set])
-        
+
         if last_lowbat is None:
             last_lowbat = LastReport(name="low-bat-nodes", value=repr(lowbat_set))
             session.add(last_lowbat)
