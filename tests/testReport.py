@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 #from sqlalchemy.orm import sessionmaker
 import urllib2
 import time
-from datetime import datetime, timedelta
+import datetime
 
 import platform
 import smtplib
@@ -110,7 +110,7 @@ def initDb():
         s.add(Node(id=4098, nodeTypeId=1, location=ll))
         s.add(Node(id=4099, nodeTypeId=1, location=ll))
 
-        t = datetime.utcnow() - timedelta(days=1)
+        t = datetime.datetime.utcnow() - datetime.timedelta(days=1)
         for i in range(288):
             ns = NodeState(time=t,
                            nodeId=23,
@@ -140,7 +140,7 @@ def initDb():
                                 parent=0,
                                 localtime=0,
                                 seq_num=i))
-            t = t + timedelta(minutes=5)
+            t = t + datetime.timedelta(minutes=5)
             
         s.commit()
         print "Object Creation Successfull"
