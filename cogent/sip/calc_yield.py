@@ -25,8 +25,15 @@ def calc_yield(seqcnt, minseq, maxseq, wrap=256):
     """ derive yield from count of received packets, earliest sequence
     number and latest sequence number that wrap around.
     """
-    
+    return calc_missed_and_yield(seqcnt,
+                                 minseq, 
+                                 maxseq,
+                                 wrap)[1]
+
+def calc_missed_and_yield(seqcnt, minseq, maxseq, wrap=256):
     d = maxseq - minseq + 1
-    n = math.ceil((seqcnt - d) / 256.)
+    n = math.ceil((seqcnt - d) / float(wrap))
     
-    return (seqcnt * 100.) / (d + n * 256)
+    yld = (seqcnt * 100.) / (d + n * wrap)
+    m = d + n * wrap - seqcnt
+    return (m, yld)

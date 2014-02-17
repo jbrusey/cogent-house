@@ -6,6 +6,7 @@ from cogent.base.model import (Node,
                                Location,
                                LastReport,
                                NodeState)
+from cogent.sip.calc_yield import calc_missed_and_yield
 
 def table_with_nodes(session, html, node_set):
     """ produce an html table listing a set of nodes
@@ -100,8 +101,9 @@ def packetYield(session,
     for (node_id, maxseq, minseq, seqcnt, last_heard,
          house_name, room_name) in yield_q.all():
 
-        missed = (maxseq - minseq + 257) % 256 - seqcnt
-        y = (seqcnt * 100.) / ((maxseq - minseq + 257) % 256)
+        (missed, y) = calc_missed_and_yield(seqcnt,
+                                            minseq,
+                                            maxseq)
 
         if missed > missed_thresh:
             low_nodes.add(node_id)
