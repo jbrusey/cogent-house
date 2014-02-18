@@ -74,6 +74,8 @@ class DBMerge(object):
             qry = qry.filter(models.Reading.time >= startdate)
         if enddate:
             qry = qry.filter(models.Reading.time <= enddate)
+        if typeid:
+            qry = qry.filter_by(typeid = typeid)
 
         qry = qry.filter(models.Reading.locationId != None)
         qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
@@ -99,9 +101,6 @@ class DBMerge(object):
         #First we fetch counts of all data for these items
         log.debug("--> Fetching remote counts")
         mergecounts = self.getcounts(nodeid)
-        firstreading = mergecounts[0]
-        lastreading = mergecounts[-1]
-
 
         log.debug("--> Fetching Main counts")
         maincounts = self.getcounts(nodeid,
@@ -131,7 +130,7 @@ class DBMerge(object):
             log.info("--- {0} Complete days that need adding ---"
                      .format(len(removed)))
             for thedate in removed:
-                maincount = maindict.get(thedate,0)
+                maincount = maindict.get(thedate, 0)
                 mergecount = mergedict.get(thedate)
                 log.debug("--> {0} {1}/{2} Samples in main".format(thedate,
                                                                    maincount,
@@ -190,17 +189,13 @@ class DBMerge(object):
             log.info("--- {0} days that need merging ---"
                      .format(len(changed)))
             for thedate in changed:
-                maincount = maindict.get(thedate,0)
+                maincount = maindict.get(thedate, 0)
                 mergecount = mergedict.get(thedate)
                 log.debug("--> {0} {1}/{2} Samples in main".format(thedate,
                                                                    maincount,
                                                                    mergecount))
 
-                log.debug("====== {0} {1} {2} {3} {4}".format(maincount,
-                                                              type(maincount),
-                                                              mergecount,
-                                                              type(mergecount),
-                                                              maincount > mergecount))
+
                 if maincount > mergecount:
                     log.warning("For Some Reason there are more items in the main db")
                     continue
@@ -214,7 +209,8 @@ class DBMerge(object):
                                  thedate)
 
 
-                log.debug("--> Total of {0} readings to merge".format(qry.count()))
+                log.debug("--> Total of {0} readings to merge"
+                          .format(qry.count()))
 
                 for reading in qry:
                     #Check if we have mapped the location
@@ -317,6 +313,7 @@ class DBMerge(object):
         return theloc.id
 
     def runall(self):
+        """Run merger for all nodes in the database"""
         log = self.log
         mergesession = self.mergesession()
         qry = mergesession.query(models.Node)
@@ -331,7 +328,6 @@ class DBMerge(object):
         if qry.count() > 0:
             log.info("Nodes that have data but no location")
             log.info(qry.all())
-            sys.exit(0)
 
         for item in nodelist:
             log.debug("Processing {0}".format(item))
