@@ -75,6 +75,7 @@ class DBMerge(object):
         if enddate:
             qry = qry.filter(models.Reading.time <= enddate)
 
+        qry = qry.filter(models.Reading.locationId != None)
         qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
         qry = qry.order_by(sqlalchemy.func.date(models.Reading.time))
 
@@ -90,19 +91,19 @@ class DBMerge(object):
 
         log = self.log
 
-        log.info("Running checks for {0}".format(nodeid))
+        log.info("Running checks for Node: {0}".format(nodeid))
 
         mainsession = self.mainsession()
         mergesession = self.mergesession()
 
         #First we fetch counts of all data for these items
-        log.info("--> Fetching remote counts")
+        log.debug("--> Fetching remote counts")
         mergecounts = self.getcounts(nodeid)
         firstreading = mergecounts[0]
         lastreading = mergecounts[-1]
 
 
-        log.info("--> Fetching Main counts")
+        log.debug("--> Fetching Main counts")
         maincounts = self.getcounts(nodeid,
                                      MAIN)
 
@@ -127,7 +128,7 @@ class DBMerge(object):
         #does not exist in the remote database
 
         if removed:
-            log.info("--- {0} Complete days that need merging ---"
+            log.info("--- {0} Complete days that need adding ---"
                      .format(len(removed)))
             for thedate in removed:
                 maincount = maindict.get(thedate,0)
@@ -136,19 +137,19 @@ class DBMerge(object):
                                                                    maincount,
                                                                    mergecount))
 
+
                 #Get the readings themselves
                 qry = (mergesession.query(models.Reading)
                        .filter_by(nodeId = nodeid))
                 qry = qry.filter(sqlalchemy.func.date(models.Reading.time) ==
                                  thedate)
-                qry = qry.limit(10)
 
                 for reading in qry:
-                    log.debug("Reading is {0}".format(reading))
                     #Check if we have mapped the location
                     if reading.locationId == None:
                         log.warning("Reading {0} has no location !!!!!"
                                     .format(reading))
+                        continue
 
                     maploc = self.locationmap.get(reading.locationId, None)
                     if maploc is None:
@@ -156,7 +157,103 @@ class DBMerge(object):
                                   .format(reading.locationId))
                         maploc = self._maplocation(reading)
 
-                sys.exit(0)
+                    #log.debug("New Location is {0}.".format(maploc))
+                    #make a copy and add to the new session
+                    mainsession.add(models.Reading(time = reading.time,
+                                                   nodeId = reading.nodeId,
+                                                   locationId = maploc,
+                                                   typeId = reading.typeId,
+                                                   value = reading.value))
+
+                #We also want to transfer the relevant nodestates
+                log.info("Transfering NodeStates")
+                qry = (mergesession.query(models.NodeState)
+                       .filter_by(nodeId = nodeid))
+                qry = qry.filter(sqlalchemy.func.date(models.NodeState.time) ==
+                                 thedate)
+                log.debug("{0} Nodestates to transfer".format(qry.count()))
+                for nodestate in qry:
+                    mainsession.add(models.NodeState(time = nodestate.time,
+                                                     nodeId = nodestate.nodeId,
+                                                     parent = nodestate.parent,
+                                                     localtime = nodestate.localtime,
+                                                     seq_num = nodestate.seq_num,
+                                                     rssi = nodestate.rssi))
+                #Close our sessions
+                mainsession.flush()
+                mainsession.close()
+
+        if changed:
+            log.debug("---- Dealing with changed items ----")
+            #For the moment I dont really care about merging and duplicates
+            #We can fix the problem up later (nodestate table bugfix)
+            log.info("--- {0} days that need merging ---"
+                     .format(len(changed)))
+            for thedate in changed:
+                maincount = maindict.get(thedate,0)
+                mergecount = mergedict.get(thedate)
+                log.debug("--> {0} {1}/{2} Samples in main".format(thedate,
+                                                                   maincount,
+                                                                   mergecount))
+
+                log.debug("====== {0} {1} {2} {3} {4}".format(maincount,
+                                                              type(maincount),
+                                                              mergecount,
+                                                              type(mergecount),
+                                                              maincount > mergecount))
+                if maincount > mergecount:
+                    log.warning("For Some Reason there are more items in the main db")
+                    continue
+
+                #Get the readings themselves
+                qry = (mergesession.query(models.Reading)
+                       .filter_by(nodeId = nodeid)
+                       )
+                qry = qry.filter(models.Reading.locationId != None)
+                qry = qry.filter(sqlalchemy.func.date(models.Reading.time) ==
+                                 thedate)
+
+
+                log.debug("--> Total of {0} readings to merge".format(qry.count()))
+
+                for reading in qry:
+                    #Check if we have mapped the location
+                    if reading.locationId == None:
+                        log.warning("Reading {0} has no location !!!!!"
+                                    .format(reading))
+                        continue
+
+                    maploc = self.locationmap.get(reading.locationId, None)
+                    if maploc is None:
+                        log.debug("Location {0} Has not been mapped"
+                                  .format(reading.locationId))
+                        maploc = self._maplocation(reading)
+
+                    #log.debug("New Location is {0}.".format(maploc))
+                    #make a copy and add to the new session
+                    mainsession.merge(models.Reading(time = reading.time,
+                                                   nodeId = reading.nodeId,
+                                                   locationId = maploc,
+                                                   typeId = reading.typeId,
+                                                   value = reading.value))
+
+                #We also want to transfer the relevant nodestates
+                log.info("Transfering NodeStates")
+                qry = (mergesession.query(models.NodeState)
+                       .filter_by(nodeId = nodeid))
+                qry = qry.filter(sqlalchemy.func.date(models.NodeState.time) ==
+                                 thedate)
+                log.debug("{0} Nodestates to transfer".format(qry.count()))
+                for nodestate in qry:
+                    mainsession.merge(models.NodeState(time = nodestate.time,
+                                                     nodeId = nodestate.nodeId,
+                                                     parent = nodestate.parent,
+                                                     localtime = nodestate.localtime,
+                                                     seq_num = nodestate.seq_num,
+                                                     rssi = nodestate.rssi))
+                #Close our sessions
+                mainsession.flush()
+                mainsession.close()
 
     def _maplocation(self, reading):
         """Map a location id for a reading.
@@ -213,14 +310,38 @@ class DBMerge(object):
         if theloc is None:
             log.warning("-->-->No such location on Main Database")
 
+        self.locationmap[reading.locationId] = theloc.id
         log.debug("Location maps to {0}".format(theloc))
+        mainsession.flush()
+        mainsession.close()
         return theloc.id
 
+    def runall(self):
+        log = self.log
+        mergesession = self.mergesession()
+        qry = mergesession.query(models.Node)
+        qry = qry.filter(models.Node.locationId != None)
+        nodelist = [x.id for x in qry]
+        log.debug("List of nodes with location {0}".format(nodelist))
+
+        #And possibly work out nodes without a location
+        qry = mergesession.query(models.NodeState)
+        qry = qry.filter(sqlalchemy.not_(models.NodeState.nodeId.in_(nodelist)))
+        qry = qry.group_by(models.NodeState.nodeId)
+        if qry.count() > 0:
+            log.info("Nodes that have data but no location")
+            log.info(qry.all())
+            sys.exit(0)
+
+        for item in nodelist:
+            log.debug("Processing {0}".format(item))
+            merger.runnode(item)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     merger = DBMerge()
-    merger.runnode(33)
+    merger.runall()
+    #merger.runnode(33)
     #merger.getcounts(33)
     #merger.testmain()
     #print "="*40
