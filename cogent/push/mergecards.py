@@ -3,14 +3,22 @@ Like the push script but much more detailed
 """
 
 import logging
+import urllib
+import json
+import zlib
 
 import sqlalchemy
+import requests
+
+REQUESTS_LOG = logging.getLogger("requests")
+REQUESTS_LOG.setLevel(logging.WARNING)
 
 import cogent.base.model as models
 from cogent.push.dictdiff import DictDiff
 
 MAINURL = "mysql://chuser@localhost/salford"
 MERGEURL = "mysql://chuser@localhost/salford1"
+RESTURL = "http://127.0.0.1:6543/rest"
 
 MAIN = 0
 MERGE = 1
@@ -81,7 +89,7 @@ class DBMerge(object):
         qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
         qry = qry.order_by(sqlalchemy.func.date(models.Reading.time))
 
-        outdata = [[x[1], x[2]] for x in qry]
+        outdata = [[x[1].isoformat(), x[2]] for x in qry]
         return outdata
 
 
@@ -308,7 +316,6 @@ class DBMerge(object):
 
         self.locationmap[reading.locationId] = theloc.id
         log.debug("Location maps to {0}".format(theloc))
-        mainsession.flush()
         mainsession.close()
         return theloc.id
 
@@ -333,10 +340,232 @@ class DBMerge(object):
             log.debug("Processing {0}".format(item))
             merger.runnode(item)
 
+class RestDBMerge(DBMerge):
+    """Version of the DB Merge function that uses the local DB
+    and exisiting Rest interfaces"""
+    def __init__(self, mergeurl=MERGEURL):
+        """Modified Init  to only use local version of the database
+
+        TODO:  It may be a good idea to read the mergeurl from the
+        synchronise.conf file
+        """
+        #We want a local and remote version of the database
+        self.log = logging.getLogger(__name__)
+        log = self.log
+        #Connect to the engines
+
+        log.info("Connecting to Merge Engine at {0}".format(mergeurl))
+        mergeengine = sqlalchemy.create_engine(mergeurl)
+        mergesession = sqlalchemy.orm.sessionmaker(bind=mergeengine)
+        self.mergesession = mergesession
+        self.locationmap = {}
+
+    def getremotecounts(self, nodeid):
+        """Fetch the counts from the remote database"""
+        log = self.log
+        theurl = "{0}/counts/{1}".format(RESTURL,nodeid)
+        log.debug("Fetching remote counts from {0}".format(theurl))
+
+        therequest = requests.get(theurl)
+        log.debug("Request is {0}".format(therequest))
+        output = therequest.json()
+        return output
+
+    def _maplocation(self, reading):
+        """Map a location id for a reading.
+
+        This method will map the location of a sample to be merged to the
+        equivilent location in the main database.
+
+        Additionally, if no such location exists, then it will be created
+
+        :param reading: A reading object that has a location
+        :return: The equivilent location id in the main database
+        """
+
+        log = self.log
+        #For a quick debug
+
+        log.debug("-- Mapping Location {0} --".format(reading))
+
+        theloc = reading.location
+        thehouse = reading.location.house
+        theroom = reading.location.room
+
+        log.debug("--> Loc {0}".format(theloc))
+        log.debug("--> House {0}".format(thehouse))
+        log.debug("--> Room {0}".format(theroom))
+
+        params = urllib.urlencode({"address" : thehouse.address})
+        houseurl = "{0}/house/?{1}".format(RESTURL, params)
+        restqry = requests.get(houseurl)
+        mainhouse = restqry.json()
+        log.debug(mainhouse)
+        if not mainhouse:
+            log.warning("-->--> No House {0} on Main Database".format(thehouse))
+
+        #Work out the Room
+        params = urllib.urlencode({"name" : theroom.name})
+        roomurl = "{0}/room/?{1}".format(RESTURL, params)
+        restqry = requests.get(roomurl)
+        mainroom = restqry.json()
+
+        # qry = mainsession.query(models.Room).filter_by(name=theroom.name)
+        # mainroom = qry.first()
+        if mainroom is None:
+            log.warning("-->-->No Room {0} on Main Database".format(theroom))
+
+        log.debug("-->-->Main House {0} Room {1}".format(mainhouse, mainroom))
+
+
+        #We can now workout the locationId
+        params = urllib.urlencode({"houseId" : mainhouse[0]["id"],
+                                   "roomId" : mainroom[0]["id"]})
+        locurl = "{0}/location/?{1}".format(RESTURL, params)
+        restqry = requests.get(locurl)
+        theloc = restqry.json()
+        if theloc is None:
+            log.warning("-->-->No such location on Main Database")
+
+        self.locationmap[reading.locationId] = int(theloc[0]["id"])
+        log.debug("Location maps to {0}".format(theloc))
+        return theloc[0]["id"]
+
+    def runnode(self, nodeid):
+        """Run an instance for a given node
+
+        This will run the checks for a given node
+        """
+
+        log = self.log
+
+        log.info("Running checks for Node: {0}".format(nodeid))
+
+        mergesession = self.mergesession()
+
+        #First we fetch counts of all data for these items
+        log.debug("--> Fetching remote counts")
+        mergecounts = self.getcounts(nodeid)
+
+        log.debug("--> Fetching Main counts")
+        maincounts = self.getremotecounts(nodeid)
+
+        #Next convert to a dictionary and run a dictdiff
+        maindict = dict(maincounts)
+        mergedict = dict(mergecounts)
+
+        ddiff = DictDiff(maindict, mergedict)
+
+        #Items that are in the Main but not in the Merged
+        added = ddiff.added()
+        #Items that are completely missing from the Merged
+        removed = ddiff.removed()
+        #Items where there is a different count than in the merged
+        changed = ddiff.changed()
+
+        log.debug("--> Added Items {0}".format(added))
+        log.debug("--> Removed Items {0}".format(removed))
+        log.debug("--> Changed Items {0}".format(changed))
+
+        #For this version I dont really care that the removed and changed 
+        #require a merge etc,  higher level code takes care of it
+        #:warning: If the bulk merge functionality changes this may break
+
+        removed = removed.union(changed)
+
+        if removed:
+            log.info("--- {0} Complete days that need adding ---"
+                     .format(len(removed)))
+            for thedate in removed:
+                maincount = maindict.get(thedate, 0)
+                mergecount = mergedict.get(thedate)
+                log.debug("--> {0} {1}/{2} Samples in main".format(thedate,
+                                                                   maincount,
+                                                                   mergecount))
+
+                if maincount > mergecount:
+                    log.warning("For Some Reason there are more items in the main db. Assuming all is well")
+                    continue
+                #Get the readings themselves
+                qry = (mergesession.query(models.Reading)
+                       .filter_by(nodeId = nodeid))
+                qry = qry.filter(sqlalchemy.func.date(models.Reading.time) ==
+                                 thedate)
+
+                datalist = []
+                for reading in qry:
+                    #Check if we have mapped the location
+                    if reading.locationId == None:
+                        log.warning("Reading {0} has no location !!!!!"
+                                    .format(reading))
+                        continue
+
+                    maploc = self.locationmap.get(reading.locationId, None)
+                    if maploc is None:
+                        log.debug("Location {0} Has not been mapped"
+                                  .format(reading.locationId))
+                        maploc = self._maplocation(reading)
+
+                    #log.debug("New Location is {0}.".format(maploc))
+                    dictitem = reading.dict()
+                    dictitem["locationId"] = maploc
+                    datalist.append(dictitem)
+
+                #log.debug("Data List {0}".format(datalist))
+                #log.debug(datalist[:5])
+                jsonStr = json.dumps(datalist)
+                gzStr = zlib.compress(jsonStr)
+
+                #And then try to bulk upload them
+                theurl = "{0}/bulk/".format(RESTURL)
+                restqry = requests.post(theurl, data = gzStr)
+                #log.debug(restqry)
+
+                #We also want to transfer the relevant nodestates
+                log.info("Transfering NodeStates")
+                qry = (mergesession.query(models.NodeState)
+                       .filter_by(nodeId = nodeid))
+                qry = qry.filter(sqlalchemy.func.date(models.NodeState.time) ==
+                                 thedate)
+                #log.debug("{0} Nodestates to transfer".format(qry.count()))
+                datalist = []
+                for nodestate in qry:
+                    dictitem = nodestate.dict()
+                    dictitem["id"] = None
+                    datalist.append(dictitem)
+                    # mainsession.add(models.NodeState(time = nodestate.time,
+                    #                                  nodeId = nodestate.nodeId,
+                    #                                  parent = nodestate.parent,
+                    #                                  localtime = nodestate.localtime,
+                    #                                  seq_num = nodestate.seq_num,
+                    #                                  rssi = nodestate.rssi))
+                #Close our sessions
+                #mainsession.flush()
+                #mainsession.close()
+                #log.debug(datalist[:5])
+                jsonStr = json.dumps(datalist)
+                gzStr = zlib.compress(jsonStr)
+
+                #And then try to bulk upload them
+                theurl = "{0}/bulk/".format(RESTURL)
+                restqry = requests.post(theurl, data = gzStr)
+                log.debug(restqry)
+
+        return
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    merger = DBMerge()
+    #merger = DBMerge()
+
+
+    merger = RestDBMerge()
     merger.runall()
+    #print merger.getcounts(33)
+    #print merger.getremotecounts(1)
+
+    #md = models.Reading(nodeId = 33,
+    #                    locationId = 3)
+    #merger._maplocation(md)
     #merger.runnode(33)
     #merger.getcounts(33)
     #merger.testmain()
