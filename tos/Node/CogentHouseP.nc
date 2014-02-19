@@ -77,6 +77,7 @@ implementation
   bool sending;
   bool shutdown = FALSE;
   bool leafMode = FALSE;
+  bool seen_first_ack = FALSE;
   message_t dataMsg;
   uint16_t message_size;
   uint8_t msgSeq = 0;
@@ -788,6 +789,11 @@ implementation
     }
 #endif
     restartSenseTimer();   
+
+    /* if first time we have been acknowledged, flash the green led 3 times */
+    if (! seen_first_ack) {
+      seen_first_ack = TRUE;
+    }
   }
 
 
@@ -868,12 +874,30 @@ implementation
   // Produce a nice pattern on start-up
   //
   uint8_t blink_state = 0;
+  uint8_t blink_thrice_state = 0;
 
   uint8_t gray[] = { 0, 1, 3, 2, 6, 7, 5, 4 };
 
-  event void BlinkTimer.fired() { 
-    if (blink_state >= 60) { /* 30 seconds */
+  void blinkThrice(bool ok) {
+    if (blink_thrice_state < 6) {
+      blink_thrice_state++;
+      call BlinkTimer.startOneShot(1024L);
+      if (blink_thrice_state == 1) 
+	call Leds.set(0);
+      else if (ok)
+	call Leds.led1Toggle(); /* green */
+      else
+	call Leds.led0Toggle(); /* red */
+    }
+    else 
       call Leds.set(0);
+  }
+
+  event void BlinkTimer.fired() { 
+    if (seen_first_ack)
+      blinkThrice(TRUE);
+    else if (blink_state >= 60) { /* 30 seconds */
+      blinkThrice(FALSE);
     }
     else { 
       blink_state++;
