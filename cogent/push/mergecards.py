@@ -376,9 +376,8 @@ class RestDBMerge(DBMerge):
             log.debug("Read config file from {0}".format(configfile))
             configparser = configobj.ConfigObj(configfile)
         else:
-            log.warning("No Rest config file specified Falling back to template")
-            configfile = os.path.join(configpath,
-                                      "synchronise.template")
+            log.warning("No Config file specified Falling back on local copy")
+            configfile = "synchronise.conf"
 
             configparser = configobj.ConfigObj(configfile)
 
