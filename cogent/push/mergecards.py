@@ -6,9 +6,14 @@ import logging
 import urllib
 import json
 import zlib
+import os
+import sys
+import urlparse
 
 import sqlalchemy
 import requests
+
+import configobj
 
 REQUESTS_LOG = logging.getLogger("requests")
 REQUESTS_LOG.setLevel(logging.WARNING)
@@ -354,16 +359,59 @@ class RestDBMerge(DBMerge):
         log = self.log
         #Connect to the engines
 
+        #Read the configuration file
+        if sys.prefix  == "/usr":
+            conf_prefix = "" #If its a standard "global" instalation
+        else :
+            conf_prefix = "{0}/".format(sys.prefix)
+
+        configpath = os.path.join(conf_prefix,
+                                  "etc",
+                                  "cogent-house",
+                                  "push-script")
+
+        configfile = os.path.join(configpath,
+                                  "synchronise.conf")
+        if os.path.exists(configfile):
+            log.debug("Read config file from {0}".format(configfile))
+            configparser = configobj.ConfigObj(configfile)
+        else:
+            log.warning("No Rest config file specified Falling back to template")
+            configfile = os.path.join(configpath,
+                                      "synchronise.template")
+
+            configparser = configobj.ConfigObj(configfile)
+
+        #Get the merge url
+        generaloptions = configparser["general"]
+        mergeurl = generaloptions["localurl"]
+
         log.info("Connecting to Merge Engine at {0}".format(mergeurl))
         mergeengine = sqlalchemy.create_engine(mergeurl)
         mergesession = sqlalchemy.orm.sessionmaker(bind=mergeengine)
         self.mergesession = mergesession
+
+        #And the Rest url (Just the first active location)
+        locations = configparser["locations"]
+        for item in locations:
+            #Check if we need to synchronise to this location.
+            needsync = locations.as_bool(item)
+            log.debug("Location {0} Needs Sync >{1}".format(item, needsync))
+
+            if needsync: #Enqueue
+                thisloc = configparser[item]["resturl"]
+                break
+
+        log.info("Rest URL is {0}".format(thisloc))
+        self.resturl = thisloc
+
+
         self.locationmap = {}
 
     def getremotecounts(self, nodeid):
         """Fetch the counts from the remote database"""
         log = self.log
-        theurl = "{0}/counts/{1}".format(RESTURL,nodeid)
+        theurl = "{0}counts/{1}".format(self.resturl, nodeid)
         log.debug("Fetching remote counts from {0}".format(theurl))
 
         therequest = requests.get(theurl)
@@ -397,8 +445,9 @@ class RestDBMerge(DBMerge):
         log.debug("--> Room {0}".format(theroom))
 
         params = urllib.urlencode({"address" : thehouse.address})
-        houseurl = "{0}/house/?{1}".format(RESTURL, params)
+        houseurl = "{0}house/?{1}".format(self.resturl, params)
         restqry = requests.get(houseurl)
+
         mainhouse = restqry.json()
         log.debug(mainhouse)
         if not mainhouse:
@@ -406,7 +455,7 @@ class RestDBMerge(DBMerge):
 
         #Work out the Room
         params = urllib.urlencode({"name" : theroom.name})
-        roomurl = "{0}/room/?{1}".format(RESTURL, params)
+        roomurl = "{0}room/?{1}".format(self.resturl, params)
         restqry = requests.get(roomurl)
         mainroom = restqry.json()
 
@@ -421,7 +470,7 @@ class RestDBMerge(DBMerge):
         #We can now workout the locationId
         params = urllib.urlencode({"houseId" : mainhouse[0]["id"],
                                    "roomId" : mainroom[0]["id"]})
-        locurl = "{0}/location/?{1}".format(RESTURL, params)
+        locurl = "{0}location/?{1}".format(self.resturl, params)
         restqry = requests.get(locurl)
         theloc = restqry.json()
         if theloc is None:
@@ -467,7 +516,7 @@ class RestDBMerge(DBMerge):
         log.debug("--> Removed Items {0}".format(removed))
         log.debug("--> Changed Items {0}".format(changed))
 
-        #For this version I dont really care that the removed and changed 
+        #For this version I dont really care that the removed and changed
         #require a merge etc,  higher level code takes care of it
         #:warning: If the bulk merge functionality changes this may break
 
@@ -517,7 +566,7 @@ class RestDBMerge(DBMerge):
                 gzStr = zlib.compress(jsonStr)
 
                 #And then try to bulk upload them
-                theurl = "{0}/bulk/".format(RESTURL)
+                theurl = "{0}bulk/".format(self.resturl)
                 restqry = requests.post(theurl, data = gzStr)
                 #log.debug(restqry)
 
@@ -533,21 +582,12 @@ class RestDBMerge(DBMerge):
                     dictitem = nodestate.dict()
                     dictitem["id"] = None
                     datalist.append(dictitem)
-                    # mainsession.add(models.NodeState(time = nodestate.time,
-                    #                                  nodeId = nodestate.nodeId,
-                    #                                  parent = nodestate.parent,
-                    #                                  localtime = nodestate.localtime,
-                    #                                  seq_num = nodestate.seq_num,
-                    #                                  rssi = nodestate.rssi))
-                #Close our sessions
-                #mainsession.flush()
-                #mainsession.close()
-                #log.debug(datalist[:5])
+
                 jsonStr = json.dumps(datalist)
                 gzStr = zlib.compress(jsonStr)
 
                 #And then try to bulk upload them
-                theurl = "{0}/bulk/".format(RESTURL)
+                theurl = "{0}bulk/".format(self.resturl)
                 restqry = requests.post(theurl, data = gzStr)
                 log.debug(restqry)
 
@@ -561,7 +601,7 @@ if __name__ == "__main__":
     merger = RestDBMerge()
     merger.runall()
     #print merger.getcounts(33)
-    #print merger.getremotecounts(1)
+    #print merger.getremotecounts(33)
 
     #md = models.Reading(nodeId = 33,
     #                    locationId = 3)

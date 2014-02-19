@@ -57,7 +57,7 @@ setup(name='ch-base',
                   #("{0}/share/cogent-house/calibration".format(sys.prefix),["cogent/base/Calibration/aq_coeffs.csv",
                   #                                                          "cogent/base/Calibration/voc_coeffs.csv"]),
                   #Push Configuration Files
-                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["conf/push-script/synchronise.conf"])
+                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["conf/push-script/synchronise.template"])
                   ],
       entry_points = """\
       [console_scripts]
