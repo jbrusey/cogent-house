@@ -34,4 +34,4 @@ remote = 1
 
 #Details of a specific remote server
 [remote]
-resturl = http://127.0.0.1:6543/rest/
+resturl = http://cogentee.coventry.ac.uk/testing/rest/
