@@ -110,32 +110,8 @@ implementation
   CurrentCostM.LocalTime -> HilTimerMilliC;
   
 
-  //Heat Meter Energy Reader
-  components new PulseReaderM() as HMEnergy;
-  HMEnergy.Leds -> LedsC;
-  HMEnergy.Input -> GIO.Port26;
-  HMEnergy.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
+  components PulseGio2C, PulseGio3C;
 
-
-  //Heat Meter Volume Reader
-  components new PulseReaderM() as HMVolume;
-  HMVolume.Leds -> LedsC;
-  HMVolume.Input -> GIO.Port26;
-  HMVolume.Interrupt -> GIOInterrupt.Port23; //set to read from gio3
-
-
-  //Opti Reader
-  components new PulseReaderM() as Opti;
-  Opti.Leds -> LedsC;
-  Opti.Input -> GIO.Port26;
-  Opti.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
-
-  //Gas Reader  
-  components new PulseReaderM() as Gas;
-  Gas.Leds -> LedsC;
-  Gas.Input -> GIO.Port26;
-  Gas.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
-  
   //ADC Temp
   components TempADCM;
   components new Temp_ADC1C() as Temp_ADC1;
@@ -224,32 +200,32 @@ implementation
 
 
   //Heat meter energy Wiring
-  CogentHouseP.HMEnergyControl -> HMEnergy.PulseControl;
+  CogentHouseP.HMEnergyControl -> PulseGio3C.PulseControl;
   FilterM.Filter[RS_HM_ENERGY]  -> Pass.Filter[RS_HM_ENERGY];
-  FilterM.GetSensorValue[RS_HM_ENERGY]  -> HMEnergy.ReadPulse;
+  FilterM.GetSensorValue[RS_HM_ENERGY]  -> PulseGio3C.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_HM_ENERGY]  -> FilterM.EstimateCurrentState[RS_HM_ENERGY] ;
   CogentHouseP.ReadHMEnergy -> SIPControllerC.SIPController[RS_HM_ENERGY] ;
 
 
   //Heat Meter Volume Wiring
-  CogentHouseP.HMVolumeControl -> HMVolume.PulseControl;
+  CogentHouseP.HMVolumeControl -> PulseGio2C.PulseControl;
   FilterM.Filter[RS_HM_VOLUME]  -> Pass.Filter[RS_HM_VOLUME];
-  FilterM.GetSensorValue[RS_HM_VOLUME]  -> HMVolume.ReadPulse;
+  FilterM.GetSensorValue[RS_HM_VOLUME]  -> PulseGio2C.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_HM_VOLUME]  -> FilterM.EstimateCurrentState[RS_HM_VOLUME] ;
   CogentHouseP.ReadHMVolume -> SIPControllerC.SIPController[RS_HM_VOLUME] ;
   
 
   //Opti Smart Wiring
-  CogentHouseP.OptiControl -> Opti.PulseControl;
+  CogentHouseP.OptiControl -> PulseGio3C.PulseControl;
   FilterM.Filter[RS_OPTI]  -> Pass.Filter[RS_OPTI];
-  FilterM.GetSensorValue[RS_OPTI]  -> Opti.ReadPulse;
+  FilterM.GetSensorValue[RS_OPTI]  -> PulseGio3C.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
   CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
 
   //Gas Smart Wiring
-  CogentHouseP.GasControl -> Gas.PulseControl;
+  CogentHouseP.GasControl -> PulseGio3C.PulseControl;
   FilterM.Filter[RS_GAS]  -> Pass.Filter[RS_GAS];
-  FilterM.GetSensorValue[RS_GAS]  -> Gas.ReadPulse;
+  FilterM.GetSensorValue[RS_GAS]  -> PulseGio3C.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_GAS]  -> FilterM.EstimateCurrentState[RS_GAS] ;
   CogentHouseP.ReadGas -> SIPControllerC.SIPController[RS_GAS] ;  
 

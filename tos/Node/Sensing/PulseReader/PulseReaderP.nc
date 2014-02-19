@@ -6,15 +6,18 @@ module PulseReaderP
   uses {
     interface Boot;
     interface Read<float> as ReadPulse;
-    interface SplitControl as PulseControl;
+    interface StdControl as PulseControl;
     interface Timer<TMilli> as SensingTimer;
     interface LocalTime<TMilli>;
+#ifdef DEBUG
     interface Leds;
+#endif
   }
 }
 
 implementation
 {
+  uint32_t sample = 0;
 
   enum {
     PERIOD = 10240
@@ -25,28 +28,29 @@ implementation
     printf("Boot\n");
     call SensingTimer.startOneShot(PERIOD);
     call PulseControl.start();
-  }
-  
-  event void PulseControl.startDone(error_t error) {
-    printf("got start done %u\n", error);
-    printfflush();
-  }
-  
-  event void PulseControl.stopDone(error_t error) {
-    printf("got stop done %u\n", error);
-    printfflush();
-  }
-  
+  }  
   
   event void SensingTimer.fired() {
-    printf("start read\n");
-    call ReadPulse.read();
+    if (sample != 10) {
+      printf("start read %lu\n", ++sample);
+      printfflush();
+      call ReadPulse.read();
+    }
+    else {
+      printf("testing shutting it down\n");
+      printfflush();
+      call PulseControl.stop();
+      call PulseControl.start();
+      call SensingTimer.startOneShot(PERIOD);
+      sample++;
+    }
+
   }
   
   
   event void ReadPulse.readDone(error_t result, float data) {
     if (result == SUCCESS) {
-      printf("interupt count: ");
+      printf("interrupt count: ");
       printfloat(data);
       printf("\n");
     }

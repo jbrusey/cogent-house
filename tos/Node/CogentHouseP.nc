@@ -42,11 +42,11 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadWindow;
     interface SIPController<FilterState *> as ReadTempADC1;
     interface TransmissionControl;
-    interface SplitControl as OptiControl;
-    interface SplitControl as GasControl;
+    interface StdControl as OptiControl;
+    interface StdControl as GasControl;
     interface SplitControl as CurrentCostControl;
-    interface SplitControl as HMEnergyControl;
-    interface SplitControl as HMVolumeControl;
+    interface StdControl as HMEnergyControl;
+    interface StdControl as HMVolumeControl;
 #endif
 
 #ifdef BN
@@ -119,9 +119,7 @@ implementation
 
 
       if (call Configured.get(RS_POWER)){
-#ifdef SIP
         call CurrentCostControl.start();
-#endif
       }
 
 
@@ -224,9 +222,7 @@ implementation
       /* UART0 must be released before the radio can work */
       if (call Configured.get(RS_POWER)) {
 	packet_pending = TRUE;
-#ifdef SIP
 	call CurrentCostControl.stop();
-#endif
       }
       else {
         if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
@@ -409,85 +405,54 @@ implementation
     // Configure the node for attached sensors.
 
     call Configured.clearAll();
-    if (nodeType == 0) { /*base node*/
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_DUTY);
+    call Configured.set(RS_TEMPERATURE);
+    call Configured.set(RS_HUMIDITY);
+    call Configured.set(RS_DUTY);
+    if (nodeType <= NODE_TYPE_WINDOW) { /* battery powered node */
       call Configured.set(RS_VOLTAGE);
     }
-#ifdef SIP
-    else if (nodeType == 4) { /* heat meter */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_DUTY);
-      call Configured.set(RS_VOLTAGE);
-      call Configured.set(RS_OPTI);
+    if (nodeType == NODE_TYPE_HEATMETER) { /* heat meter */
       call Configured.set(RS_HM_ENERGY);
       call Configured.set(RS_HM_VOLUME);
       call HMEnergyControl.start();
       call HMVolumeControl.start();
     }
-    else if (nodeType == 5) { /* energy board */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
-      call Configured.set(RS_DUTY);
-      call Configured.set(RS_VOLTAGE);
+    else if (nodeType == NODE_TYPE_OPTI) { /* energy board */
       call Configured.set(RS_OPTI);
-      call Configured.set(RS_VOLTAGE);
       call OptiControl.start();
     }
-    if (nodeType == 6) { /* Temp ADC0 */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
+    if (nodeType == NODE_TYPE_TEMP) { /* Temp ADC0 */
       call Configured.set(RS_TEMPADC1);
-      call Configured.set(RS_VOLTAGE);
       call Configured.set(RS_DUTY);
     }
-    else if (nodeType == 7) { /* gas board */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
+    else if (nodeType == NODE_TYPE_GAS) { /* gas board */
       call Configured.set(RS_GAS);
-      call Configured.set(RS_VOLTAGE);
       call GasControl.start();
     }
-    else if (nodeType == 8) { /* window board */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
+    else if (nodeType == NODE_TYPE_WINDOW) { /* window board */
       call Configured.set(RS_WINDOW);
-      call Configured.set(RS_VOLTAGE);
     }
-#endif
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_AC);
       call ACControl.start();
     }
     else if (nodeType == CLUSTER_HEAD_BB_TYPE) { /* clustered BB */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_BB);
       call Configured.set(RS_AC);
       call ACControl.start();
     }
     else if (nodeType == CLUSTER_HEAD_VOC_TYPE) { /* clustered VOC */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_CO2);
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
       call Configured.set(RS_AC);
       call ACControl.start();
     }
-#ifdef SIP
     else if (nodeType == CLUSTER_HEAD_CC_TYPE) { /* current cost */
-      call Configured.set(RS_TEMPERATURE);
-      call Configured.set(RS_HUMIDITY);
       call Configured.set(RS_POWER);
     }
-#endif
 
     sending = FALSE;
 
@@ -496,12 +461,9 @@ implementation
     printfflush();
 #endif
     
-    if (CLUSTER_HEAD==TRUE){
-      leafMode=FALSE;
+    leafMode = ! CLUSTER_HEAD;
+    if (CLUSTER_HEAD) 
       call RadioControl.start();
-    }
-    else
-      leafMode=TRUE;
 
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
@@ -551,7 +513,7 @@ implementation
 	  else if (i == RS_HM_ENERGY)
 	    call ReadHMEnergy.read();
 	  else if (i == RS_HM_VOLUME)
-	    call ReadHMEnergy.read();
+	    call ReadHMVolume.read();
    	  else if (i == RS_GAS)
 	    call ReadGas.read();
    	  else if (i == RS_WINDOW)
@@ -605,8 +567,8 @@ implementation
   }
   
   event void ReadAC.readDone(error_t result, bool data) {
-    leafMode=!data;
-    if(!leafMode)
+    leafMode = !data;
+    if (!leafMode)
       call RadioControl.start();
     call ExpectReadDone.clear(RS_AC);
     post checkDataGathered();
@@ -616,20 +578,24 @@ implementation
 
   void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
   {
-    if (result == SUCCESS)
-      packstate_add(state_code, s->x);
-    call ExpectReadDone.clear(raw_sensor);
-    post checkDataGathered();
+    if (call ExpectReadDone.get(raw_sensor)) {
+      if (result == SUCCESS)
+	packstate_add(state_code, s->x);
+      call ExpectReadDone.clear(raw_sensor);
+      post checkDataGathered();
+    }
   }
 
   void do_readDone_filterstate(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
   {
-    if (result == SUCCESS){
-      packstate_add(state_code, s->x);
-      packstate_add(delta_state_code, s->dx);
+    if (call ExpectReadDone.get(raw_sensor)) { 
+      if (result == SUCCESS){
+	packstate_add(state_code, s->x);
+	packstate_add(delta_state_code, s->dx);
+      }
+      call ExpectReadDone.clear(raw_sensor);
+      post checkDataGathered();
     }
-    call ExpectReadDone.clear(raw_sensor);
-    post checkDataGathered();
   }
 
   event void ReadTemp.readDone(error_t result, FilterState* data){
@@ -689,16 +655,6 @@ implementation
   event void ReadWindow.readDone(error_t result, FilterState* data) {
     do_readDone_pass(result, data, RS_WINDOW, SC_WINDOW);
   }
-  
-  event void OptiControl.startDone(error_t error) {}
-  event void OptiControl.stopDone(error_t error) {} 
-  event void GasControl.startDone(error_t error) {}
-  event void GasControl.stopDone(error_t error) {}  
-  event void HMEnergyControl.startDone(error_t error) {}
-  event void HMEnergyControl.stopDone(error_t error) {}  
-  event void HMVolumeControl.startDone(error_t error) {}
-  event void HMVolumeControl.stopDone(error_t error) {}  
-
 
 #endif
 

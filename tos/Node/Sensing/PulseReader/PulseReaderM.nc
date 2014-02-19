@@ -28,6 +28,7 @@ Pulse Reader Module
 The module counts the number of interupts in a sample period from the wired in GPIO port.
 
 :author: Ross Wilkins
+:author: James Brusey
 :email: ross.wilkins87@googlemail.com
 :date:  09/05/2013
 */
@@ -37,25 +38,32 @@ generic module PulseReaderM()
 {
   provides {
     interface Read<float> as ReadPulse;
-    interface SplitControl as PulseControl;
+    interface StdControl as PulseControl;
   }
   uses {	
     interface HplMsp430GeneralIO as Input;
     interface HplMsp430Interrupt as Interrupt;	
+    interface Alarm<TMilli, uint32_t>;
+#ifdef DEBUG
     interface Leds;
+#endif
   }
 }
 implementation
 {
+  enum { 
+    DEBOUNCE_TIME = 100
+  };
+
   uint32_t Count = 0;
+  bool in_debounce = FALSE;
   
   task void readTask() {
-    float te;
-    atomic {
-      te = (float) Count;
-    }
+    uint32_t te;
+    atomic 
+      te = Count;
 
-    signal ReadPulse.readDone(SUCCESS, te);
+    signal ReadPulse.readDone(SUCCESS, (float) te);
   }
 
   command error_t ReadPulse.read() {
@@ -64,28 +72,42 @@ implementation
   }
 
   async event void Interrupt.fired() {
-    //clear the interrupt pending flag then increment the count
-    call Interrupt.clear();
+    bool my_in_debounce;
+    my_in_debounce = in_debounce;
+    in_debounce = TRUE;
+
+    atomic 
+      call Interrupt.clear();
+    if (! my_in_debounce) { 
+      atomic 
+	Count++;
 #ifdef DEBUG
-    call Leds.led2Toggle();
+      call Leds.led2On();
 #endif
-    Count++;
+      call Alarm.start(DEBOUNCE_TIME);
+    }
   }
-  
+
+  async event void Alarm.fired() {
+    atomic 
+      in_debounce = FALSE;
+#ifdef DEBUG
+    call Leds.led2Off();
+#endif
+  }
+
   command error_t PulseControl.start() {
     //Set up pulse
-    atomic{
+    atomic 
       call Interrupt.clear();
-      call Interrupt.enable();
-    }
     call Interrupt.edge(FALSE);
     call Input.makeInput();
-    signal PulseControl.startDone(SUCCESS);
+    atomic
+      call Interrupt.enable();
     return SUCCESS;
   }
   
   command error_t PulseControl.stop() {
-    signal PulseControl.stopDone(SUCCESS);
     return SUCCESS;
   }
        
