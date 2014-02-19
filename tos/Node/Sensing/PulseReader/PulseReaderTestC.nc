@@ -2,27 +2,28 @@
 #include "msp430usart.h"
 #define NEW_PRINTF_SEMANTICS
 #include "printf.h"
-configuration PulseReaderC { }
+configuration PulseReaderTestC { }
 
 implementation
 {
-  components MainC, PulseReaderP, LedsC;
-  components new PulseReaderM() as PulseReaderM;
+  components MainC, PulseReaderP;
+#ifdef DEBUG
+  components LedsC;
+#endif
   components new TimerMilliC() as SensingTimer;
   components HilTimerMilliC;
   components PrintfC, SerialStartC;
   components HplMsp430InterruptP as GIOInterrupt;
   components HplMsp430GeneralIOC as GIO;
-	
+  components new AlarmMilli32C() as MilliAlarm;
+
+  components PulseGio2C;
   
   PulseReaderP.Boot -> MainC.Boot;
-  PulseReaderM.Leds -> LedsC;
-  PulseReaderM.Input -> GIO.Port26;
-  PulseReaderM.Interrupt -> GIOInterrupt.Port26; //set to read from gio3
   
   PulseReaderP.LocalTime -> HilTimerMilliC;
-  PulseReaderP.ReadPulse->PulseReaderM.ReadPulse;
-  PulseReaderP.PulseControl -> PulseReaderM.PulseControl;
+  PulseReaderP.ReadPulse->PulseGio2C.ReadPulse;
+  PulseReaderP.PulseControl -> PulseGio2C.PulseControl;
   PulseReaderP.SensingTimer ->SensingTimer; 
 }
 
