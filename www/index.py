@@ -109,24 +109,26 @@ _navs = [
 
 _sidebars = [
     ("Temperature", "allGraphs?typ=0", "Show temperature graphs for all nodes"),
-    ("Temperature Exposure", "tempExposure", "Show temperature exposure graphs for all nodes"),
+#    ("Temperature Exposure", "tempExposure", "Show temperature exposure graphs for all nodes"),
     ("Humidity", "allGraphs?typ=2", "Show humidity graphs for all nodes"),
-    ("Humidity Exposure", "humExposure", "Show humidity exposure graphs for all nodes"),
+#    ("Humidity Exposure", "humExposure", "Show humidity exposure graphs for all nodes"),
     ("CO<sub>2</sub>", "allGraphs?typ=8", "Show CO2 graphs for all nodes"),
     ("AQ", "allGraphs?typ=9", "Show air quality graphs for all nodes"),
     ("VOC", "allGraphs?typ=10", "Show volatile organic compound (VOC) graphs for all nodes"),
     ("Electricity", "allGraphs?typ=40", "Show electricity usage for all nodes"),
+    ("Gas Meter", "allGraphs?typ=43", "Show gas meter usage for all nodes"),
     ("Battery", "allGraphs?typ=6", "Show node battery voltage"),
     ("Duty cycle", "allGraphs?typ=13", "Show transmission delay graphs"),
-    ("Bathroom v. Elec.", "bathElec", "Show bathroom versus electricity"),
+#    ("Bathroom v. Elec.", "bathElec", "Show bathroom versus electricity"),
 
     ("Network tree", "treePage", "Show a network tree diagram"),
     ("Missing and extra nodes", "missing", "Show unregistered nodes and missing nodes"),
     ("Packet yield", "yield24", "Show network performance"),
-    ("Long term yield", "dataYield", "Show network performance"),
+#    ("Long term yield", "dataYield", "Show network performance"),
     ("Low batteries", "lowbat", "Report any low batteries"),
     ("View log", "viewLog", "View a detailed log"),
     ("Export data", "exportDataForm", "Export data to CSV"),
+    ("Flash node", "flashNodePage", "Rewrite program code to a sensor or base station node")
 
      ]
 
@@ -155,6 +157,44 @@ def _sidebar():
             ''.join(['<li><a href="%s" title="%s">%s</a></li>' % (b,c,a) for (a,b,c) in _sidebars]) +
             '</ul>' +
             '</div>')
+
+
+def _bold(text):
+    """ wrap some text in bold """
+    return '<b>'+text+'</b>'
+
+def _para(text):
+    """ wrap some text in a paragraph """
+    return '<p>'+text+'</p>'
+
+def _row(alist, typ='d'):
+    """ create a table row from a list 
+        use _row(x, typ='h') to make headings
+    """
+    return '<tr>'+''.join(["<t{1}>{0}</t{1}>".format(x,typ) for x in alist])+'</tr>'
+
+def _dropdown(alist, name=''):
+    """ create a dropdown from a list
+    each list element should be a tuple (id, displayname)
+    """
+    return ('<select name="{}">'.format(name) +
+            ''.join(['<option value="{}">{}</option>'.format(a, b) 
+                     for (a,b) in alist]) + 
+            '</select>')
+
+def _input(typ='', name='', value=''):
+    """ create an input field """
+    return ('<input type="{typ}" name="{name}" value="{value}"/>'
+            .format(typ=typ,
+                    name=name,
+                    value=value))
+
+def _form(html, action='', button='ok'):
+    """ create a simple form """
+    return ('<form action="{action}">{html}<p><input type="submit" value="{button}"></p></form>'
+            .format(action=action,
+                    html=html,
+                    button=button))
 
 def _page(title='No title', html=''):
     return (_head(title) +
@@ -1733,3 +1773,101 @@ def bathElecImg(req,
         session.close()
 
 
+def _get_motelist():
+    from subprocess import Popen, PIPE
+    devs = []
+    try:
+        p = Popen('motelist -c', shell=True, bufsize=4096,
+                  stdin=None, stdout=PIPE, close_fds=True)
+
+        for ll in p.stdout:
+            ss = ll.split(',')
+            if len(ss) > 1:
+                devs.append(ss[1])
+    finally:
+        p.stdout.close()
+    return devs
+
+def _flash_device(typ=None, idnum=None, device=None):
+    from subprocess import Popen, PIPE
+    try:
+        p = Popen('/opt/cogent-house/flash-node {} {} {}'
+                  .format(typ, idnum, device),
+                  shell=True, bufsize=4096,
+                  stdin=None, stdout=PIPE, close_fds=True)
+
+        return p.stdout.readlines()
+    finally:
+        p.stdout.close()
+    
+
+def flashNodeConfirm(typ='', idnum='', device=''):
+    devs = _get_motelist()
+    
+    if device in devs:
+        return _page('Flash node confirmation',
+                     _form(_input(typ='hidden',
+                                  name='typ',
+                                  value=typ) + 
+                           _input(typ='hidden',
+                                  name='idnum',
+                                  value=idnum) + _input(typ='hidden',
+                                  name='device',
+                                  value=device) + 
+                           _para('Confirm that you want to flash the node on {} as a {} with id {}'
+                                 .format(device, typ, idnum)),
+                           action='flashNodeGo',
+                           button='Yes, I know what I am doing'))
+    else:
+        return _redirect(_url('flashNodePage',[('err', 'Node disappeared')]))
+
+def flashNodePage(err='', idnum=''):
+
+    devs = _get_motelist()
+
+    if len(devs) == 0:
+        return _page('Flash node', 
+                     _para('Please connect your device and refresh this page'))
+        
+    devlist = zip(devs,devs)
+    s = ''
+    if err != '':
+        s = _para(_bold(err))
+
+    typlist = ['Root', 'Node']
+    typlist = zip(typlist, typlist)
+
+    return _page('Flash node', _form(s +
+                                     _para('Select which device to flash: ' + 
+                                           _dropdown(devlist, 'device')) + 
+                                     _para('Node type: ' + 
+                                           _dropdown(typlist, 'typ')) + 
+                                     _para('Id number: ' + 
+                                           _input(name='idnum', value=idnum)),
+                                     action='flashNodeConfirm',
+                                     button='OK'))
+
+def flashNodeGo(typ='', idnum='', device=''):
+    devs = _get_motelist()
+    if not device in devs: 
+        return _redirect(_url('flashNodePage',[('err', 'Node disappeared')]))
+
+    if not typ in ['Root', 'Node']:
+        return _redirect(_url('flashNodePage',[('err', 'invalid node type')]))
+
+    try:
+        idn = int(idnum)
+        if idn < 1 or idn > 65535 or (typ == 'Root' and idn < 4096*10):
+            raise ValueError()
+    except ValueError:
+        return _redirect(_url('flashNodePage',[('err', 'invalid id number')]))
+
+    report = _flash_device(typ=typ,
+                           idnum=idnum,
+                           device=device)
+
+    return _page('Flash node results', 
+                 '<pre><code>' + 
+                 ''.join(report) + 
+                 '</code></pre>')
+    
