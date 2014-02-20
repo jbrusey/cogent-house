@@ -36,6 +36,7 @@ implementation
   //SIP Components
   components SIPControllerC;
   components DEWMAC as DEWMA; //Filter
+  components PassThroughC as Pass;
   components FilterM;
 
 
@@ -63,7 +64,7 @@ implementation
   ControllerTestP.TEMPSIPRead -> SIPControllerC.SIPController[0];
 
   // Hum Wiring
-  FilterM.Filter[1] -> DEWMA.Filter[1];
+  FilterM.Filter[1] -> Pass.Filter[1];
   FilterM.GetSensorValue[1] -> ThermalSensingM.ReadHum;
   FilterM.LocalTime -> HilTimerMilliC;
   SIPControllerC.EstimateCurrentState[1] -> FilterM.EstimateCurrentState[1];

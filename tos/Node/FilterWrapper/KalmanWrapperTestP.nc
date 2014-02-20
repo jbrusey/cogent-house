@@ -1,5 +1,6 @@
 // -*- c -*-
 #include "printf.h"
+#include "printfloat.h"
 #include <stdint.h>
 #define HIGH_COVARIANCE 1e20
 #include "Filter.h"
@@ -22,42 +23,6 @@ module KalmanWrapperTestP @safe()
 
 implementation
 {
-  void printfloat2( float v) {
-    int i = (int) v;
-    int j;
-
-    if (isnan(v)) {
-      printf("nan");
-      return;
-    }
-    if (isinf(v)) {
-      printf("inf");
-      return;
-    }
-
-    if (v < 0) {
-      printf("-");
-      printfloat2(-v);
-      return;
-    }
-    if (v > 1e9) {
-      printf("big");
-      return;
-    }
-
-    printf("%d.", i);
-
-    v -= i;
-
-    j = 0;
-    while (j < 20 && v > 0.) {
-      v *= 10.;
-      i = (int) v;
-      v -= i;
-      printf("%d", i);  
-      j ++;
-    }
-  }
 
   float abs(float f) {
     if (f < 0)
@@ -122,40 +87,40 @@ implementation
       }
 
       printf("%lu, %d, %d, %d, %d, ", temp.time, temp_event, hum_event, CO2_event, volt_event);
-      printfloat2(temp.x);
+      printfloat(temp.x);
       printf(", ");
-      printfloat2(temp.dx);
+      printfloat(temp.dx);
       printf(", ");
-      printfloat2(temp.z);
+      printfloat(temp.z);
       printf(", ");
-      printfloat2(temp_xs);
-      printf(", ");
-
-      printfloat2(hum.x);
-      printf(", ");
-      printfloat2(hum.dx);
-      printf(", ");
-      printfloat2(hum.z);
-      printf(", ");
-      printfloat2(hum_xs);
+      printfloat(temp_xs);
       printf(", ");
 
-      printfloat2(CO2.x);
+      printfloat(hum.x);
       printf(", ");
-      printfloat2(CO2.dx);
+      printfloat(hum.dx);
       printf(", ");
-      printfloat2(CO2.z);
+      printfloat(hum.z);
       printf(", ");
-      printfloat2(CO2_xs);
+      printfloat(hum_xs);
       printf(", ");
 
-      printfloat2(volt.x);
+      printfloat(CO2.x);
       printf(", ");
-      printfloat2(volt.dx);
+      printfloat(CO2.dx);
       printf(", ");
-      printfloat2(volt.z);
+      printfloat(CO2.z);
       printf(", ");
-      printfloat2(volt_xs);
+      printfloat(CO2_xs);
+      printf(", ");
+
+      printfloat(volt.x);
+      printf(", ");
+      printfloat(volt.dx);
+      printf(", ");
+      printfloat(volt.z);
+      printf(", ");
+      printfloat(volt_xs);
 
       printf("\n");
       printfflush();

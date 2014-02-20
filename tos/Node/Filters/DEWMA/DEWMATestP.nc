@@ -2,6 +2,7 @@
 #include "printf.h"
 #define HIGH_COVARIANCE 1e20
 #include "math.h"
+#include "printfloat.h"
 
 module DEWMATestP @safe()
 {
@@ -18,42 +19,6 @@ implementation
 {
   int tests_run=0;
 
-  void printfloat2( float v) {
-    int i = (int) v;
-    int j;
-
-    if (isnan(v)) {
-      printf("nan");
-      return;
-    }
-    if (isinf(v)) {
-      printf("inf");
-      return;
-    }
-
-    if (v < 0) {
-      printf("-");
-      printfloat2(-v);
-      return;
-    }
-    if (v > 1e9) {
-      printf("big");
-      return;
-    }
-
-    printf("%d.", i);
-
-    v -= i;
-
-    j = 0;
-    while (j < 20 && v > 0.) {
-      v *= 10.;
-      i = (int) v;
-      v -= i;
-      printf("%d", i);  
-      j ++;
-    }
-  }
   
 char * test_dewma_not_using_rate_correctly(void)
 {
@@ -68,9 +33,9 @@ char * test_dewma_not_using_rate_correctly(void)
         call Dewma.filter(z, t, &x);
     }  
 
-    printfloat2(x.x);
+    printfloat(x.x);
     printf("\n");
-    printfloat2(x.dx);
+    printfloat(x.dx);
     printf("\n");
     mu_assert("estimates after 100 iterations are wrong",
 	      fabs(x.x - (121.f+4.5f) ) < 0.0001f);
@@ -94,9 +59,9 @@ char * test_dewma_not_using_rate_correctly(void)
       z = i * 12.1f + 4.5f;
       call Dewma.filter(z, i*1024, &x);
    }
-   printfloat2(x.x);
+   printfloat(x.x);
    printf("\n");
-   printfloat2(x.dx);
+   printfloat(x.dx);
    printf("\n");
    mu_assert("estimates after 100 iterations are wrong",
 	    fabs(x.x  - 1202.40083) < 0.0001);

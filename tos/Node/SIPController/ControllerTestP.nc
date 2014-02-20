@@ -1,4 +1,5 @@
 // -*- c -*-
+#include "printfloat.h"
 
 module ControllerTestP @safe()
 {
@@ -16,47 +17,9 @@ module ControllerTestP @safe()
 implementation
 {
 
-  void printfloat2( float v) {
-    int i = (int) v;
-    int j;
-
-    if (isnan(v)) {
-      printf("nan");
-      return;
-    }
-    if (isinf(v)) {
-      printf("inf");
-      return;
-    }
-
-    if (v < 0) {
-      printf("-");
-      printfloat2(-v);
-      return;
-    }
-    if (v > 1e9) {
-      printf("big");
-      return;
-    }
-
-    printf("%d.", i);
-
-    v -= i;
-
-    j = 0;
-    while (j < 20 && v > 0.) {
-      v *= 10.;
-      i = (int) v;
-      v -= i;
-      printf("%d", i);  
-      j ++;
-    }
-  }
-
-
   event void Boot.booted(){
-    call TEMPSIPRead.init(0.25, TRUE, 0., 0., FALSE, 0.1, 0.1);
-    call HUMSIPRead.init(0.25, TRUE, 0., 0., FALSE, 0.1, 0.1);
+    call TEMPSIPRead.init(0.25, 1, 0.1, 0.1);
+    call HUMSIPRead.init(0.25, 1, 0.1, 0.1);
     call SenseTimer.startPeriodic(DEF_SENSE_PERIOD);
   }
 
