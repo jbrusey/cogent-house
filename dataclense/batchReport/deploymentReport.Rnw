@@ -1,0 +1,537 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[OT1]{fontenc}
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{include/tabu/tabu}
+\usepackage{rotating}
+
+<<setup,include=FALSE>>=
+
+   #fig.path="figure/manual-",
+
+opts_chunk$set(           
+   dev="pdf", 
+   fig.path = paste("figure/", houseStr, sep = ""),
+   fig.lp = "fig:",
+   out.width=".9\\textwidth",
+   fig.keep="high",
+   fig.show="hold",
+   fig.align="center",
+   fig.width=6.5,
+   fig.height=3.5,
+   comment=NA)
+
+
+
+opts_chunk$set(aliases=c(h='fig.height', w='fig.width',
+                 cap='fig.cap', scap='fig.scap'))
+
+
+@ 
+
+<<initR, include=FALSE>>=
+require(lubridate)
+require(reshape)
+require(plyr)
+require(RMySQL)
+require(ggplot2)
+require(RColorBrewer)
+require(scales) 
+require(xtable)
+@ 
+
+<<include=FALSE>>=
+
+#COMMENT THIS TO REMOVE DATABASE STARTUP STUFF
+## THEDB <- "transferTest"
+## drv <- dbDriver("MySQL")
+## #con <- dbConnect(drv,dbname="mainStore",user="chuser")
+## con <- dbConnect(drv,dbname=THEDB,user="chuser")
+## houses <- dbReadTable(con,"House")
+## #Remove the Error Data
+## houses <- subset(houses,address != "ERROR-DATA")
+## thisHouse <- houses[7,]
+
+## ##Get Calibration and other such stuff
+## calibrationData <- dbReadTable(con,"Sensor")
+
+## sensorType <- dbReadTable(con,"SensorType")
+## sensorType <- subset(sensorType,select=c(id,name,units))
+
+## ##Sensors we are interested in (For Yield Calculateions)
+## sensorTypeList <- subset(sensorType,
+##                          name=="Temperature" |
+##                          name=="Humidity" |
+##                          name=="Light PAR" |
+##                          name=="Light TSR" |
+##                          name=="CO2" |
+##                          name=="Air Quality" |
+##                          name=="VOC" |                        
+##                          name=="Power" |
+##                          name=="Power pulses"
+##                          )
+
+
+@ 
+
+<<initdb, include=FALSE>>=
+
+
+
+thisHouse$sd <- tryCatch({as.POSIXlt(thisHouse$startDate,tz="GMT")},
+                        error=function(e){
+                          NA
+                        }
+                        )
+
+thisHouse$ed <- tryCatch({as.POSIXlt(thisHouse$endDate,tz="GMT")},
+                        error=function(e){
+                          
+                          NA
+                        }
+                        )
+@ 
+
+<<fetchData, include=FALSE>>=
+# ===========================================
+#
+# Locations for the house we are working with
+#
+# ============================================
+
+#Fetch Locations Associated with this house
+locQry <- paste(" SELECT * FROM Location as L ",
+                " LEFT OUTER JOIN Room as R ",
+                " ON L.roomId = R.id ",
+                " WHERE houseId = ",
+                thisHouse$id,
+                sep="")
+
+locations <- dbGetQuery(con,statement=locQry)
+
+#And Remove any locations where the location is not specifed
+locations <- locations[!is.na(locations$name),]
+
+locIds <-  paste(locations$id,collapse=",")
+
+# ============================================
+#
+# Data
+#
+# =============================================
+
+dataQry <- paste("SELECT * from Reading ",
+                 " WHERE locationId IN (",
+                 locIds,
+                 ")",
+                 " AND type IN (",
+                 paste(sensorTypeList$id,collapse=","),
+                 ")",
+                 " ORDER BY time",
+                 sep="")
+
+theData <- dbGetQuery(con,statement=dataQry)
+theData$ts <- as.POSIXct(theData$time,tz="GMT")
+theData$Date <- as.Date(theData$ts)
+@ 
+
+<<calibrateAndLocs, include=FALSE>>=
+# ==============================================
+#
+# Calibrate and update locations
+#
+# ==============================================
+
+#Merge to get the sensors types
+tmp <- merge(theData,sensorType,by.x=c("type"),by.y=c("id"),all.x=TRUE)
+
+#And Locations
+locList <- subset(locations,select=c(id,name))
+names(locList) <- c("id","location")
+
+tmp <- merge(tmp,locList,by.x=c("locationId"),by.y=c("id"),all.x=TRUE)
+
+#and calibrate
+calib <- merge(tmp,calibrationData,by.x=c("nodeId","type"),by.y=c("nodeId","sensorTypeId"),all.x=TRUE)
+
+#Where no value is available
+calib$calibValue <- calib$value
+
+dataStart <- min(theData$ts)
+dataEnd <- max(theData$ts)
+dateRange <- interval(dataStart,dataEnd)
+expectedSamples <- dateRange %/% minutes(5)
+@ 
+
+\title{Deployment Report: \Sexpr{thisHouse[['address']]}}
+
+\begin{document}
+\maketitle
+\section{Deployment Overview}
+This section gives an overview of the deployment.
+First  a summary of the deployment is given, the next section gives details of
+the nodes included in the deployment and the location these nodes were
+placed. Finally the section concludes with a summary of node yield.
+
+%First we need to gather all the data
+
+\subsection{Data Summary}
+\begin{description}
+\item[Deployment Id:] \Sexpr{thisHouse[['id']]}
+\item[DB Start Date] \Sexpr{thisHouse[['startDate']]}
+\item[DB End Date] \Sexpr{thisHouse[['endDate']]}
+\item[Data Start Date] \Sexpr{dataStart}
+\item[Data End Date] \Sexpr{dataEnd}
+\item[Data Length] \Sexpr{as.period(dateRange) %/% days(1)} Days
+\end{description}
+
+\subsection{Node Summary}
+<<sumCalcs,include=FALSE>>=
+nodeSum <- ddply(calib,
+                 .(nodeId,location,locationId),
+                 summarise,
+                 count = length(unique(type)))
+
+names(nodeSum) <- c("Node Id","Location","Location Id","Sensors")
+@ 
+
+Table \ref{tab:nodeLoc} gives details of all deployed nodes and their locations.
+In total there were {\Sexpr{nrow(nodeSum)} nodes, deployed in
+  \Sexpr{length(unique(nodeSum$locationId))} locations.
+    
+<<sumTable,echo=FALSE,results='asis'>>=
+print(xtable(nodeSum,align="llXXX",caption="Summary of Node Locations",label="tab:nodeLoc"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+
+\clearpage
+\section{Yield Summary}
+This next section gives details of the node yield. 
+
+This is expressed as a percentage of the total expected samples per node
+received and stored at the base station.  
+
+Given the standard 5 minute sampling period it is expected that the base station
+will receive \emph{288} samples per node per day. The daily yield per sensor is calculated
+through $(\text{received samples} \ 288) \times 100$
+
+When examining daily yield it is important to note that the first and last days
+of the deployment will show yield below 100\%, this is due to the equpment being
+installed or removed on these days, and thus a incomplete dataset for that day
+being available.
+
+<<yieldCalcs,include=FALSE>>=
+
+#Strip out flow and return shizzle from the yield table
+yieldData <- subset(calib,location!="Flow" & location!="Return" & location!="HotWater" & location!="ColdWater")
+
+#nodeSum <- ddply(calib,
+nodeSum <- ddply(yieldData,
+                 .(nodeId,location,type),
+                 summarise,
+                 count = length(ts),
+                 numsensors = length(unique(type)))
+
+#Yield
+nodeSum$yield = (nodeSum$count / expectedSamples) * 100.0
+avgYield = mean(nodeSum$yield)
+
+#Table of outputs
+yieldTable <- ddply(nodeSum,
+                    .(nodeId,location),
+                    summarise,
+                    Yield = mean(yield))
+
+#Heatmap
+yieldHeatmap <- ddply(yieldData,
+                    .(nodeId,location,Date),
+                    summarise,
+                    count = length(ts),
+                    numsensors = length(unique(type)))
+
+yieldHeatmap$yield <- yieldHeatmap$count / (288 * yieldHeatmap$numsensors) * 100
+
+#Days with > 90% yield
+yieldDays <- ddply(yieldHeatmap,
+                   .(Date),
+                   summarise,
+                   count = sum(count),
+                   numsensors = sum(numsensors),
+                   avgYield = mean(yield))
+
+yieldDays$yield <- yieldDays$count / (288* yieldDays$numsensors) * 100
+totDays <- nrow(yieldDays)
+yldDays <- nrow(subset(yieldDays,yield>=90))
+@ 
+
+
+Table \ref{tab:nodeYield} gives an overview of the per node yield. The average
+yield for the deployment is \textbf{\Sexpr{avgYield}}. There were
+\Sexpr{yldDays}/ \Sexpr{totDays} days where the yield was above 90\%.  
+
+Figure \ref{fig:nodeYield} shows the overall percentage of data collected by
+each node.  
+
+<<yieldTable,echo=FALSE,results='asis'>>=
+#Lets format that so its how expected
+
+names(yieldTable) <- c("Node Id","Location","Yield")
+print(xtable(yieldTable,align="lXXX",caption="Node Yield Summary",label="tab:nodeYield"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+
+
+<<nodeYield, fig.cap="Per Node Yield", echo=FALSE>>=
+#And an Overview Graph
+plt <- ggplot(yieldTable,aes(Location,Yield))
+plt <- plt+geom_bar(stat="identity",fill="white",color="darkgreen")
+plt <- plt+geom_hline(yintercept=90)
+plt <- plt+theme_bw()
+plt <- plt+theme(axis.text.x=element_text(angle=90))
+#plt <- plt + opts(axis.text.x=element_text(angle=90))
+plt
+@ 
+
+Figure \ref{fig:yieldHeatmap} shows the heat map of the daily node yield.
+The use of a heatmap can make it easier to identify nodes or periods with lower
+than expected yield. In this type of plot, darker regions indicate lower yield.
+It is expected that the first and last columns will show lower than 100\% yield.
+
+<<yieldHeatmap, fig.cap="Yield Heatmap", echo=FALSE>>=
+#Graph of Yield by Expected vs 
+
+plt <- ggplot(yieldHeatmap,aes(Date,location,fill=yield))
+plt <- plt+geom_tile(color="white")
+plt <- plt+xlab("Date") + ylab("Location")
+plt <- plt + scale_fill_gradient(limits=c(0,110))
+plt
+@ 
+
+\cleardoublepage
+\pagebreak
+\section{Temperature}
+
+\subsection{Temperature Data}
+Table \ref{tab:tempOverview} gives an overview of temperature data.
+
+<<tempData,include=FALSE,output='asis'>>=
+ss <- subset(calib,type==0)
+summary <-  ddply(subset(ss),
+                  .(nodeId,location),
+                  summarise,
+                  avgvalue = mean(calibValue),
+                  minvalue = min(calibValue),
+                  maxvalue = max(calibValue)
+                  )
+
+degC <- expression(paste(" ",degree,"C"))
+names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
+
+#And Calculate Comfort
+tempLabels = c("Health Risk","Cold","Comfortable","Warm","Overheating")
+
+ss$comfort <- cut(ss$calibValue,breaks=c(0,16,18,22,27,100),
+           labels=c("Health Risk <16","Cold 16-18","Comfortable 18-22","Warm 22-27","Overheating 27+"))
+
+#ss$locationLab <- paste(ss$nodeId,"_",ss$location)
+ss$locationLab <- ss$location
+
+#Freq for all
+foo <- count(ss,vars=c('comfort'))
+foo$pc <- foo$freq / sum(foo$freq) * 100.0
+
+## #Give PlyR a go.
+## #Count Values
+foo <- count(ss,vars=c('locationLab','comfort'))
+#Calc Percentages
+foo <- ddply(foo,.(locationLab),transform,p=freq/sum(freq))
+foo<- ddply(foo,.(locationLab),transform,tpos = cumsum(p) - 0.5*p)
+
+fooLab <- subset(foo,comfort=="Comfortable 18-22")
+fooLab$label <- paste(round(fooLab$p * 100 ,digits=2),"%",sep="")
+
+@ 
+
+<<tempTable,echo=FALSE,results='asis'>>=
+print(xtable(summary,align="llXXXX",caption="Temperature Data Overview",label="tab:tempOverview"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+
+<<tempGraph,fig.cap="Temperature Data Summary",echo=FALSE,fig.label="fig:tempOverview",fig.height=6>>=
+#,fig.env="sidewaysfigure",fig.width=8,fig.height=6.5
+
+#foo = subset(calib,type==0 & locationId == 111)
+#plt <- ggplot(foo,aes(ts,calibValue,color=factor(nodeId)))
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_line()
+plt <- plt+xlab("Date") + ylab("Temperature")
+plt <- plt + theme_bw()
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd)))
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed)))
+plt <- plt + facet_grid(location~.)
+plt <- plt + theme(strip.text.y = element_text(angle=0),legend.position="none")
+plt
+@ 
+
+\cleardoublepage
+\subsection{Temperature Exposure}
+
+Temperature exposure is defined as the percentage of samples that fall into each
+comfort band (as defined by the ASHRE standard). Figure
+\ref{fig:tempExposeGraph} shows the comfort levels for each room in the property. 
+
+<<comfortTempCalcs,echo=FALSE,results='asis'>>=
+melted <- subset(melt(foo,id=c("locationLab","comfort")),variable=="p")
+melted$value <- melted$value * 100.0
+flat <- cast(melted,locationLab~comfort)
+print(xtable(flat,align="llXXXXX",caption="Temperature Exposure",label="tab:tempExposrue"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+<<tempExposeGraph,echo=FALSE, fig.cap="Temperature Exposure Graph",fig.height=5>>=
+#tempExposeGraph,echo=FALSE, fig.cap="Temperature Exposure Graph",fig.env="sidewaysfigure",fig.width=12,fig.height=6.5
+plt <- ggplot(foo,aes(locationLab,p,fill=comfort))
+#plt <- ggplot(foo,aes(location,p,fill=comfort))
+plt <- plt+geom_bar(stat="identity")
+plt <- plt+geom_text(data=fooLab,aes(locationLab,tpos,label=label,size=8))
+#plt <- plt+geom_text(aes(label=comfort,y=count),size=3,position="stack")
+#plt <- plt+geom_text(aes(label=p,y=freq),size=3,position="stack")
+plt <- plt+scale_fill_manual("Comfort Level",values=rev(brewer.pal(n=6, "RdYlBu")))
+plt <- plt+xlab("Room")
+plt <- plt+ylab("Percentage of samples at this level")
+plt <- plt+guides(size=FALSE)
+plt <- plt+theme_bw()
+plt <- plt+theme(legend.position="top",axis.text.x=element_text(angle=90),legend.title=element_blank())
+plt
+@ 
+
+\cleardoublepage
+\pagebreak
+\section{Humidity}
+\subsection{Humidity Data}
+Table \ref{tab:humOverview} gives an overview of the humidity values recorded during the deployment
+
+<<humTable,echo=FALSE,results='asis'>>=
+ss <- subset(calib,type==2)
+summary <-  ddply(subset(ss),
+                  .(nodeId,location),
+                  summarise,
+                  avgvalue = mean(calibValue),
+                  minvalue = min(calibValue),
+                  maxvalue = max(calibValue)
+                  )
+
+degC <- expression(paste(" ",degree,"C"))
+names(summary) <- c("Node Id","Location","Average","Minimum","Maximum")
+
+print(xtable(summary,align="lXXXXX",caption="Humidity Data Overview",label="tab:humOverview"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+<<humGraph,fig.cap="Humidity Data Summary",echo=FALSE,fig.caption="Humidity Data Overview",fig.height=6>>=
+#,fig.env="sidewaysfigure",fig.width=8,fig.height=6.5
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_line()
+plt <- plt+xlab("Date") + ylab("Humidity")
+plt <- plt + theme_bw()
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd)))
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed)))
+plt <- plt + facet_grid(location~.)
+#plt <- plt + opts(strip.text.x = element_text(size = 8, colour = "red", angle = 90)
+plt <- plt + theme(strip.text.y = element_text(angle=0),legend.position="none")
+plt
+@ 
+
+<<comfortHumCalcs,include=FALSE>>=
+ss$comfort <- cut(ss$calibValue,breaks=c(0,45,65,85,100),
+                  labels=c("Dry","Comfort","Damp","Risk"))
+#ss$locationLab <- paste(ss$nodeId,"_",ss$location)
+ss$locationLab <- ss$location
+
+foo <- count(ss,vars=c('locationLab','comfort'))
+#Calc Percentages
+foo <- ddply(foo,.(locationLab),transform,p=freq/sum(freq))
+foo<- ddply(foo,.(locationLab),transform,tpos = cumsum(p) - 0.5*p)
+#foo <- ddply(foo,.(locationLab),transform,p=freq/sum(freq),tpos = cumsum(p) - 0.5*p)
+
+fooLab <- subset(foo,comfort=="Comfort")
+fooLab$label <- paste(round(fooLab$p * 100 ,digits=2),"%",sep="")
+@ 
+
+\cleardoublepage
+\subsection{Humidity Exposure}
+
+<<humExposeGraph,echo=FALSE, fig.cap="Humidity Exposure Graph",fig.height=6>>=
+#fig.env="sidewaysfigure",fig.width=12,
+plt <- ggplot(foo,aes(locationLab,p,fill=comfort))
+#plt <- ggplot(foo,aes(location,p,fill=comfort))
+plt <- plt+geom_bar(stat="identity")
+plt <- plt+geom_text(data=fooLab,aes(locationLab,tpos,label=label,size=8))
+#plt <- plt+geom_text(aes(label=comfort,y=count),size=3,position="stack")
+#plt <- plt+geom_text(aes(label=p,y=freq),size=3,position="stack")
+plt <- plt+scale_fill_manual("Comfort Level",values=rev(brewer.pal(n=6, "RdYlBu")))
+plt <- plt+xlab("Room")
+plt <- plt+ylab("Percentage of samples at this level")
+plt <- plt+guides(size=FALSE) #Remove Legend for Size
+plt <- plt+theme_bw() #Change Base Size
+plt <- plt+theme(legend.position="top",axis.text.x=element_text(angle=90),legend.title=element_blank())
+plt
+@ 
+
+<<comfortHumTable,echo=FALSE,results='asis'>>=
+melted <- subset(melt(foo,id=c("locationLab","comfort")),variable=="p")
+melted$value <- melted$value * 100.0
+flat <- cast(melted,locationLab~comfort)
+print(xtable(flat,align="llXXXX",caption="Humidity Exposure",label="tab:humExposrue"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+\cleardoublepage
+\pagebreak
+\section{Co2 / VOC}
+
+Table \ref{tab:otherOverview} presents an overview of other data types collected
+during the deployment
+
+<<co2Table,echo=FALSE,results='asis'>>=
+ss <- subset(calib,type>=8 & type <= 10)
+summary <-  ddply(subset(ss),
+                  .(nodeId,location,name),
+                  summarise,
+                  avgvalue = mean(calibValue),
+                  minvalue = min(calibValue),
+                  maxvalue = max(calibValue)
+                  )
+
+degC <- expression(paste(" ",degree,"C"))
+names(summary) <- c("Node Id","Location","SensorType","Average","Minimum","Maximum")
+
+print(xtable(summary,align="llXXXXX",caption="Other Data Overview",label="tab:otherOverview"),tabular.environment="tabu",include.rownames=FALSE)
+@ 
+
+
+<<otherGraph,fig.cap="Other Data Summary",echo=FALSE,fig.height=6>>=
+#,fig.env="sidewaysfigure",fig.width=8,fig.height=6.5
+plt <- ggplot(ss,aes(ts,calibValue,color=factor(nodeId)))
+plt <- plt+geom_line()
+plt <- plt+xlab("Date") + ylab("Reading")
+plt <- plt + theme_bw()
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$sd))) #Average Line
+plt <- plt+geom_vline(aes(xintercept=as.numeric(thisHouse$ed))) #Average Line
+plt <- plt + facet_grid(location~name)
+#plt <- plt + opts(strip.text.x = element_text(size = 8, colour = "red", angle = 90)
+plt <- plt + theme(strip.text.y = element_text(angle=0),legend.position="none")
+plt
+@ 
+
+<<include=FALSE>>=
+ss <- subset(calib,type==11)
+doelec = FALSE
+if (nrow(ss) > 0){
+  doelec = TRUE
+}
+
+@ 
+
+<<doelec, child = if(doelec==TRUE)'electric.Rnw' else 'noElectric.Rnw'>>=
+@ 
+
+\end{document}
+

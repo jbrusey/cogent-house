@@ -1,0 +1,21 @@
+==================================
+README FOR THE ORBIT WEBINTERFACE
+===================================
+
+I have removed the Orbit version of the webinterface from this repository.
+
+The latest version of the webinterface can be found at 
+
+https://launchpad.net/cogent-house
+
+And can be installed following the instrucions at
+
+http://cogent-viewer.readthedocs.org/en/latest/
+
+
+General Notes
+================
+
+At some point the upload URL table has been removed, There is no point in having
+this in future versions of the code as the push script functions in a different
+way.
