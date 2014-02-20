@@ -1,5 +1,6 @@
 // -*- c -*-
 #include "minunit.h"
+#include "printfloat.h"
 module LowBatteryTestP @safe()
 {
   uses {
@@ -16,42 +17,6 @@ implementation
 
 
 
-  void printfloat2( float v) {
-    int i = (int) v;
-    int j;
-
-    if (isnan(v)) {
-      printf("nan");
-      return;
-    }
-    if (isinf(v)) {
-      printf("inf");
-      return;
-    }
-
-    if (v < 0) {
-      printf("-");
-      printfloat2(-v);
-      return;
-    }
-    if (v > 1e9) {
-      printf("big");
-      return;
-    }
-
-    printf("%d.", i);
-
-    v -= i;
-
-    j = 0;
-    while (j < 20 && v > 0.) {
-      v *= 10.;
-      i = (int) v;
-      v -= i;
-      printf("%d", i);  
-      j ++;
-    }
-  }
 
   event void LowBatt.readDone(error_t result, float data) {
     //read in value from data
@@ -60,23 +25,15 @@ implementation
   
  
   static char* testLowBattery(void){
-     call LowBatt.read();
-     printf("\nReading is : "); printfloat2(var);
-     call LowBatt.read();
-     printf("\nReading is : "); printfloat2(var);
-     call LowBatt.read();
-     printf("\nReading is : "); printfloat2(var);
-     call LowBatt.read();
-     printf("\nReading is : "); printfloat2(var);
-     call LowBatt.read();
-     printf("\nReading is : "); printfloat2(var);
-     call LowBatt.read();
-     printf("\nReading is : "); printfloat2(var);
-     call LowBatt.read();
-     printf("\nReading is : "); printfloat2(var);
-     mu_assert("\nReading: var != 10", var < 2.31);
-     mu_assert("\nLow batt detected", call LowBatt.hasEvent());
-
+    int i;
+    for (i = 0; i < 7; i++) { 
+      call LowBatt.read();
+      printf("\nReading is : "); printfloat(var);
+    }
+    printf("\nReading is : "); printfloat(var);
+    mu_assert("\nReading: var < 2.31", var < 2.31);
+    mu_assert("\nLow batt detected", call LowBatt.hasEvent());
+    return 0;
   }
      
   static char* all_tests(void) { 

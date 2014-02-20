@@ -1,5 +1,6 @@
 // -*- c -*-
 #include "printf.h"
+#include "printfloat.h"
 #include <stdint.h>
 #define HIGH_COVARIANCE 1e20
 #include "Filter.h"
@@ -27,42 +28,6 @@ module DEWMAWrapperTestP @safe()
 
 implementation
 {
-  void printfloat2( float v) {
-    int i = (int) v;
-    int j;
-
-    if (isnan(v)) {
-      printf("nan");
-      return;
-    }
-    if (isinf(v)) {
-      printf("inf");
-      return;
-    }
-
-    if (v < 0) {
-      printf("-");
-      printfloat2(-v);
-      return;
-    }
-    if (v > 1e9) {
-      printf("big");
-      return;
-    }
-
-    printf("%d.", i);
-
-    v -= i;
-
-    j = 0;
-    while (j < 20 && v > 0.) {
-      v *= 10.;
-      i = (int) v;
-      v -= i;
-      printf("%d", i);  
-      j ++;
-    }
-  }
 
   float abs(float f) {
     if (f < 0)
