@@ -30,21 +30,21 @@ implementation
 
   event void TEMPSIPRead.readDone(error_t result, FilterState* data){
     printf("Temp: ");
-    printfloat2(data->x);
+    printfloat(data->x);
     printf(", ");
-    printfloat2(data->dx);
+    printfloat(data->dx);
     printf(", ");
-    printfloat2(data->z);
+    printfloat(data->z);
     printf("\n");
   }
 
   event void HUMSIPRead.readDone(error_t result, FilterState* data){
     printf("Hum: ");
-    printfloat2(data->x);
+    printfloat(data->x);
     printf(", ");
-    printfloat2(data->dx);
+    printfloat(data->dx);
     printf(", ");
-    printfloat2(data->z);
+    printfloat(data->z);
     printf("\n");
     printf("To Send: %u\n", call TransmissionControl.hasEvent());
     printfflush();
