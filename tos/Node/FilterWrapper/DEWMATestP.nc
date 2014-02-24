@@ -4,6 +4,7 @@
 #include <stdint.h>
 #define HIGH_COVARIANCE 1e20
 #include "Filter.h"
+#include <stdlib.h>
 
 module DEWMAWrapperTestP @safe()
 {
@@ -28,13 +29,6 @@ module DEWMAWrapperTestP @safe()
 
 implementation
 {
-
-  float abs(float f) {
-    if (f < 0)
-      return -f;
-    else 
-      return f;
-  }
 
   event void Boot.booted()
   {
