@@ -93,7 +93,7 @@ implementation
   CogentHouseP.ACControl -> ACStatusM.ACControl;
   CogentHouseP.ReadAC->ACStatusM.ReadAC;
   
-#ifdef SIP
+#ifndef BN
 
   // CC Wiring
   components CurrentCostM,CurrentCostSerialC;
@@ -133,7 +133,7 @@ implementation
   CogentHouseP.CRCCalc -> CrcC;
 
 
-#ifdef SIP
+#ifndef BN
   /************* SIP CONFIG ***********/
   //SIP Components
   components SIPControllerC, PredictC;
@@ -243,10 +243,7 @@ implementation
 
   //Transmission Control
   CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;
-#endif
-
-
-#ifdef BN
+#else /* BN */
   /************* BN CONFIG ***********/
 
   components new TimerMilliC() as HeartBeatTimer;
@@ -300,6 +297,6 @@ implementation
   VOCExposure.GetValue -> AirQualityM.ReadVOC;
   VOCBN.ExposureRead -> VOCExposure.Read;
   CogentHouseP.ReadVOC -> VOCBN.BNController;
-#endif
+#endif /* BN */
 
 }

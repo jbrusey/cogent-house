@@ -25,7 +25,7 @@ module CogentHouseP
     interface StdControl as DisseminationControl;
     interface DisseminationValue<AckMsg> as AckValue;
 
-#ifdef SIP
+#ifndef BN
     //SIP Modules
     interface SIPController<FilterState *> as ReadTemp;
     interface SIPController<FilterState *> as ReadHum;
@@ -119,9 +119,11 @@ implementation
 #endif
 
 
+#ifndef BN
       if (call Configured.get(RS_POWER)){
         call CurrentCostControl.start();
       }
+#endif
 
 
     //Calculate the next interval
@@ -221,11 +223,13 @@ implementation
       call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
 
       /* UART0 must be released before the radio can work */
+#ifndef BN
       if (call Configured.get(RS_POWER)) {
 	packet_pending = TRUE;
 	call CurrentCostControl.stop();
       }
       else {
+#endif
         if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
@@ -233,7 +237,9 @@ implementation
 #endif
 	  sending = TRUE;
         }
+#ifndef BN
       }
+#endif
     }
   }
 
@@ -280,7 +286,7 @@ implementation
 	printfflush();
 #endif
 	
-#ifdef SIP
+#ifndef BN
     	if (call TransmissionControl.hasEvent()){
           if (!CLUSTER_HEAD || leafMode){
 	    radio_status = call RadioControl.start();
@@ -380,7 +386,7 @@ implementation
     call Heartbeat.init();
 #endif
 
-#ifdef SIP
+#ifndef BN
     //Inititalise filters -- Configured in the makefile
     call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
     call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_ALPHA, SIP_HUM_BETA);
@@ -506,7 +512,7 @@ implementation
 	    call ReadVolt.read();
 	  else if (i == RS_AC)
 	    call ReadAC.read();
-#ifdef SIP
+#ifndef BN
    	  else if (i == RS_POWER)
 	    call ReadCC.read();
    	  else if (i == RS_OPTI)
@@ -542,7 +548,7 @@ implementation
 	call ExpectReadDone.set(i);
 	if (i == RS_CO2)
 	  call ReadCO2.read();
-#ifdef SIP
+#ifndef BN
 	else if (i == RS_TEMPADC1)
 	  call ReadTempADC1.read();
 #endif
@@ -575,7 +581,7 @@ implementation
     post checkDataGathered();
   }
 
-#ifdef SIP
+#ifndef BN
 
   void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
   {
@@ -713,7 +719,7 @@ implementation
 #endif
 
       if (call Configured.get(RS_POWER)){
-#ifdef SIP
+#ifndef BN
 	call CurrentCostControl.start();
 #endif
       }
@@ -763,7 +769,7 @@ implementation
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     
 
-#ifdef SIP
+#ifndef BN
     call TransmissionControl.transmissionDone();
 #endif
 
@@ -837,7 +843,7 @@ implementation
   }
 
 
-#ifdef SIP
+#ifndef BN
   event void CurrentCostControl.startDone(error_t error) {
 #ifdef DEBUG
     printf("Current cost start at %lu\n", call LocalTime.get());
