@@ -11,6 +11,8 @@ device=$3
 
 tmp=$(mktemp -d)
 
+hg --cwd $CH_DIR summary
+
 cp -r $CH_DIR/tos $CH_DIR/cogent $tmp
 
 . /home/james/tinyos-main/tinyos.sh
