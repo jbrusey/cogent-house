@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Script to flash node from www-data user
+# - assumes that current user has dialout
+CH_DIR=/opt/cogent-house
+TOS_ENV=/opt/tinyos-main/tinyos.sh
+
+typ=$1
+nodeid=$2
+device=$3
+
+tmp=$(mktemp -d)
+
+cp -r $CH_DIR/tos $CH_DIR/cogent $tmp
+
+. /home/james/tinyos-main/tinyos.sh
+make -C $tmp/tos/$typ telosb install.$nodeid bsl,$device
+echo "Compilation exited with code $?"
+rm -rf $tmp
