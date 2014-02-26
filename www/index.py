@@ -1794,12 +1794,18 @@ def _flash_device(typ=None, idnum=None, device=None):
         p = Popen('/opt/cogent-house/flash-node {} {} {}'
                   .format(typ, idnum, device),
                   shell=True, bufsize=4096,
-                  stdin=None, stdout=PIPE, close_fds=True)
+                  stdin=None, 
+                  stdout=PIPE, 
+                  stderr=PIPE, close_fds=True)
+#        result = p.stdout.readlines()
+#        result.extend(p.stderr.readlines())
+        (sod, sed) = p.communicate()
+        result = [sod, sed]
 
-        return p.stdout.readlines()
+        return result
     finally:
         p.stdout.close()
-    
+        p.stderr.close()
 
 def flashNodeConfirm(typ='', idnum='', device=''):
     devs = _get_motelist()
