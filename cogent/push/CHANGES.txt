@@ -1,0 +1,98 @@
+Notes
+======
+
+Modified version of the push script that will fetch all items,
+convert to JSON and (eventually) transfer across REST
+
+This replaces the ssh tunnel database access currently used to transfer samples.
+
+    .. note::
+
+        I currently add 1 second to the time the last sample was transmitted,
+        this means that there is no chance that the query to get readings will
+        return an item that has all ready been synced, leading to an integrity
+        error.
+
+        I have tried lower values (0.5 seconds) but this pulls the last synced
+        item out, this is possibly a error induced by mySQL's datetime not
+        holding microseconds.
+
+
+ChangeList 
+===========
+
+    .. since 0.1.0::
+
+       Moved ssh port forwarding to paramiko (see sshclient class) This should
+       stop the errors when there is a connection problem.
+
+    .. since 0.1.1::
+
+       * Better error handling
+       * Pagination for sync results, transfer at most PUSH_LIMIT items at a
+         time.
+
+    .. since 0.1.2::
+
+       Moved Nodestate Sync into the main readings sync class, this should stop
+       duplicate nodestates turning up if there is a failure
+
+    .. since 0.2.0::
+
+       Overhaul of the system to make use of REST to upload samples rather than
+       transfer data across directly.
+
+    .. since 0.2.1::
+
+       Make use of an .ini style config file to set everything up
+
+       Split functionality into a Daemon, and Upload classes.  This should
+       make maintenance of any local mappings a little easier to deal with.
+
+   .. since 0.2.2::
+       
+       New Functionality to manually sync a database from scratch
+       Some Changes to logging functionality
+
+   .. since 0.3.0::
+   
+      Changed to upload readings by house.
+      Modified initialisation to be a little more same
+   
+   .. since 0.3.1::
+   
+      Mapping configuration file added
+      0.7.1  Update so logging also goes to file
+      0.7.2  Bigfix for Null items in HouseId etc
+   
+   .. since 0.3.2::
+
+      Some Code broken into seperate functions, to make interitance for the Samson Pusher class a little easier.
+      Examples of this include Pusher.CreateEngine() and Pusher.Queue()
+
+   .. since 0.3.3::
+   
+      Moved from rest_client to requests,  This should avoid the "broken pipe" error.
+
+   .. since 0.3.4::
+   
+      Now use GZIP compression for bulk uploads
+   
+
+   .. since 0.3.5::
+
+      General Code Tidyup,  Broke code into relevant modules
+
+
+   .. since 0.3.6::
+
+      Added a function to synchronise a nodes location Id with the sink independently
+      Removed calls to depricated toDict() function
+
+      Modified sync_nodes function:
+          No longer pulls nodes from the remote server
+	  Updates location Id's to the remote server
+	  Updated test cases to reflect these changes
+
+      
+      
