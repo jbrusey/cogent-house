@@ -344,12 +344,6 @@ implementation
   }
 
   event void SendTimeOutTimer.fired() {
-    //reset errors - need to avoid getting inf --Check with JB
-    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-      last_errno = last_errno / last_transmitted_errno;
-    else
-      last_errno = 1.;
-
     reportError(ERR_NO_ACK);
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
 
@@ -765,6 +759,15 @@ implementation
     else
       send_time = (stop_time - send_start_time);
     last_duty = (float) send_time;
+
+    /* the error code has been transmitted and so can now be reset.
+       The method of resetting used here allows for errors to have
+       occurred between sending the message and receiving
+       acknowledgement. */
+    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
+      last_errno = last_errno / last_transmitted_errno;
+    else
+      last_errno = 1.;
    
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     
