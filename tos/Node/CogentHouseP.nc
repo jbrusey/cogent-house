@@ -88,7 +88,7 @@ implementation
 
   bool packet_pending = FALSE;
   float last_duty = 0.;
-  uint32_t last_errno = 1.;
+  uint32_t last_errno = 1;
   uint32_t last_transmitted_errno;
 
   task void powerDown(){
