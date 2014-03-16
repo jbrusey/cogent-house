@@ -1,0 +1,79 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[OT1]{fontenc}
+\usepackage{Sweave}
+
+\title{Document title}
+\author{D Goldsmith + R + Latex}
+
+\begin{document}
+\maketitle
+
+Lets try Embedding R code in a Latex file
+Hopefully this can Automate some data generation
+
+So First Lets Fetch Some Data
+
+\begin{Schunk}
+\begin{Sinput}
+> library(RMySQL)
+> library(ggplot2)
+> drv <- dbDriver("MySQL")
+> con <- dbConnect(drv,dbname="mainStore",user="root",password="Ex3lS4ga")
+> allHouses <-  dbGetQuery(con,statement="SELECT * FROM House WHERE address != 'ERROR-DATA'")
+\end{Sinput}
+\end{Schunk}
+
+This should show something, 
+Next we have a boxplot
+
+\begin{Schunk}
+\begin{Sinput}
+> print(allHouses)
+\end{Sinput}
+\begin{Soutput}
+   id deploymentId                    address           startDate
+1  11            1                 5 Elm Road 2011-12-19 00:00:00
+2  12            1     158 Trevelyan Crescent 2011-12-19 00:00:00
+3  13            1                1 Avon Road 2012-01-13 12:30:00
+4  14            1         10 Southam Gardens 2012-01-13 00:00:00
+5  15            1          73 St Peters Road 2012-01-13 00:00:00
+6  16            1           28 Hastings Road 2012-01-13 00:00:00
+7  17            1              2 Berryfields 2012-02-09 00:00:00
+8  18            1         Mrs Brown  Southam 2012-02-09 00:00:00
+9  19            1 14 George Street, Stockton 2012-02-09 00:00:00
+10 20            3                 7 New Park 2012-03-08 00:00:00
+11 21            3                20 New Park 2012-03-08 00:00:00
+12 22            3                26 New Park 2012-03-08 00:00:00
+13 23            3                25 New Park 2012-03-08 00:00:00
+14 24            3                27 New Park 2012-03-08 00:00:00
+15 25            4                 Brays lane                <NA>
+16 26            4                 131Jodrell 2011-12-12 00:00:00
+17 27            4                 155Jodrell 2011-10-12 00:00:00
+18 28            4              227FoleshillA 2011-07-21 00:00:00
+19 29            4                30Newdigate 2011-08-10 00:00:00
+20 30            4                    Rooftop                <NA>
+               endDate
+1  2012-01-09 00:00:00
+2  2012-01-09 00:00:00
+3  2012-02-02 00:00:00
+4  2012-02-02 00:00:00
+5  2012-02-02 00:00:00
+6  2012-02-02 00:00:00
+7  2012-02-23 00:00:00
+8  2012-02-23 00:00:00
+9  2012-02-23 00:00:00
+10 2012-04-04 22:00:00
+11 2012-04-04 22:00:00
+12 2012-05-14 22:00:00
+13 2012-05-14 22:00:00
+14 2012-04-13 22:00:00
+15                <NA>
+16 2012-02-17 00:00:00
+17 2011-11-15 00:00:00
+18 2011-09-08 00:00:00
+19 2011-08-25 00:00:00
+20                <NA>
+\end{Soutput}
+\end{Schunk}
+
+\end{document}
