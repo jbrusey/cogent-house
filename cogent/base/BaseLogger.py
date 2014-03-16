@@ -19,6 +19,7 @@ successfully written to the database.
 import logging
 import sys
 import os
+import math
 from optparse import OptionParser
 
 if "TOSROOT" not in os.environ:
@@ -175,6 +176,8 @@ class BaseLogger(object):
 
             for i, value in pack_state.d.iteritems():
                 type_id = i
+                if math.isinf(value) or math.isnan(value):
+                    value = None
 
                 r = Reading(time=current_time,
                             nodeId=node_id,
