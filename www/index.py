@@ -1369,10 +1369,9 @@ def lowbat(bat="2.6"):
                                Reading.time > t))
                   .order_by(Reading.nodeId)):
             r = r[0]
-            u = _url("graph", [('node', r),
+            u = _url("nodeGraph", [('node', r),
                                ('typ', 6),
-                               ('minsago', 60),
-                               ('duration', 60)])
+                               ('period', 'day')])
                                
             s.append('<p><a href="%s">%d</a></p>' % (u, r))
             empty = False
