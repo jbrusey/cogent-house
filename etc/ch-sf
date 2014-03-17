@@ -22,7 +22,34 @@ DAEMON_ARGS="net.tinyos.sf.SerialForwarder -no-output -comm serial@/dev/ttyUSB0:
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
+#Updates to path required for TinyOS
+if [ -d "/opt/tinyos-2.1.2/" ]; then
+    echo "Tos Base path is /opt/tinyos-2.1.2"
+    export TOSROOT="/opt/tinyos-2.1.2/"
+fi
 
+if [ -d "/opt/tinyos-main-read-only/" ]; then
+    echo "Tos Base path is tinyos-main-read-only"
+    export TOSROOT="/opt/tinyos-main-read-only/"
+fi
+
+
+if [ -d "/opt/tinyos-release-2_1_2/" ]; then
+    echo "Tos Base path is tinys-release-2_1_2"
+    export TOSROOT="/opt/tinyos-release-2_1_2/"
+fi
+
+export TOSDIR="$TOSROOT/tos"
+export CLASSPATH=$CLASSPATH:$TOSROOT/support/sdk/java/tinyos.jar
+export MAKERULES="$TOSROOT/support/make/Makerules"
+export PYTHONPATH=$PYTHONPATH:$TOSROOT/support/sdk/python
+export VIRTUAL_ENV="TinyOS"
+
+
+# Extend path for java
+type java >/dev/null 2>/dev/null || PATH=`/usr/bin/tos-locate-jre --java`:$PATH
+type javac >/dev/null 2>/dev/null || PATH=`/usr/bin/tos-locate-jre --javac`:$PATH
+#echo $PATH | grep -q /usr/bin ||  PATH=/usr/bin:$PATH
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
@@ -52,21 +79,6 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-
-        #We need to source the tinyos stuff
-    export TOSROOT="/opt/tinyos-2.1.2/"
-    export TOSDIR="$TOSROOT/tos"
-    export CLASSPATH=$CLASSPATH:$TOSROOT/support/sdk/java/tinyos.jar
-    export MAKERULES="$TOSROOT/support/make/Makerules"
-    export PYTHONPATH=$PYTHONPATH:$TOSROOT/support/sdk/python
-    export VIRTUAL_ENV="TinyOS"
-
-
-# Extend path for java
-    type java >/dev/null 2>/dev/null || PATH=`/usr/bin/tos-locate-jre --java`:$PATH
-    type javac >/dev/null 2>/dev/null || PATH=`/usr/bin/tos-locate-jre --javac`:$PATH
-#echo $PATH | grep -q /usr/bin ||  PATH=/usr/bin:$PATH
-
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
 		|| return 1
 	#start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
