@@ -105,4 +105,14 @@ Version 1.1.5
 ---------------
 
  * Added a function to the pushscript section that allows merging of databases
- 
+ * Created config files in /etc/cogent-house/pushscript/
+ * Added script to allow user to flash node from webinterace (/etc/cogent-house/flashnode)
+
+
+Version 1.1.6
+--------------
+
+ * Various Upstream changes (JB)
+ * Removed dependency on Scipy from Setup.py
+ * Updated setup.py to ensure flash-node script is included in install
+ * Removed WSN Check from Cron

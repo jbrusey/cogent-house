@@ -8,4 +8,4 @@ recursive-include cogent/alembic *
 include cogent/push/synchronise.conf
 include cogent/push/ch-ssh
 include cogent/alembic.ini
-
+include flash-node
