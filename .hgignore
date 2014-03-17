@@ -21,3 +21,6 @@ dataclense/*
 *.html
 *.db
 dist
+testcover/*
+pylintrc
+pylint.out

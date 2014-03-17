@@ -116,3 +116,5 @@ Version 1.1.6
  * Removed dependency on Scipy from Setup.py
  * Updated setup.py to ensure flash-node script is included in install
  * Removed WSN Check from Cron
+ * Fixed path issues in /etc/init.d/ch-base and /etc/init.d/ch-sf where epected tinyos path was different on production and developemnt systems.
+
