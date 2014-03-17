@@ -88,8 +88,8 @@ implementation
 
   bool packet_pending = FALSE;
   float last_duty = 0.;
-  float last_errno = 1.;
-  float last_transmitted_errno;
+  uint32_t last_errno = 1;
+  uint32_t last_transmitted_errno;
 
   task void powerDown(){
     call SenseTimer.stop();
@@ -154,11 +154,15 @@ implementation
    * @param errno error code
    */
   void reportError(uint8_t errno) {
+    uint32_t errno_cubed;
 #ifdef DEBUG
     printf("Error message: %u\n", errno);
     printfflush();
 #endif
-    last_errno *= errno;
+    errno_cubed = errno;
+    errno_cubed = errno_cubed * errno_cubed * errno_cubed;
+    if (last_errno % errno_cubed != 0)
+      last_errno *= errno;
   }
 
 
@@ -344,12 +348,6 @@ implementation
   }
 
   event void SendTimeOutTimer.fired() {
-    //reset errors - need to avoid getting inf --Check with JB
-    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0.)
-      last_errno = last_errno / last_transmitted_errno;
-    else
-      last_errno = 1.;
-
     reportError(ERR_NO_ACK);
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
 
@@ -494,8 +492,8 @@ implementation
 #endif
       call ExpectReadDone.clearAll();
       call PackState.clear();
-      if (last_errno != 1.)
-	packstate_add(SC_ERRNO, last_errno);
+      if (last_errno != 1)
+	packstate_add(SC_ERRNO, (float) last_errno);
       last_transmitted_errno = last_errno;
 
       phase_two_sensing = FALSE;
@@ -765,6 +763,15 @@ implementation
     else
       send_time = (stop_time - send_start_time);
     last_duty = (float) send_time;
+
+    /* the error code has been transmitted and so can now be reset.
+       The method of resetting used here allows for errors to have
+       occurred between sending the message and receiving
+       acknowledgement. */
+    if (last_transmitted_errno < last_errno && last_transmitted_errno != 0)
+      last_errno = last_errno / last_transmitted_errno;
+    else
+      last_errno = 1;
    
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     

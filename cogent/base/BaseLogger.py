@@ -19,6 +19,7 @@ successfully written to the database.
 import logging
 import sys
 import os
+import math
 from optparse import OptionParser
 
 if "TOSROOT" not in os.environ:
@@ -175,6 +176,8 @@ class BaseLogger(object):
 
             for i, value in pack_state.d.iteritems():
                 type_id = i
+                if math.isinf(value) or math.isnan(value):
+                    value = None
 
                 r = Reading(time=current_time,
                             nodeId=node_id,
@@ -277,8 +280,8 @@ if __name__ == '__main__': # pragma: no cover
                       metavar="LEVEL")
 
     parser.add_option("-f", "--log-file",
-                      help="Log file to use (Default /var/log/ch/Baselogging.log",
-                      default="/var/log/ch/BaseLogging.log")
+                      help="Log file to use (Default /var/log/ch/Baselogger.log",
+                      default="/var/log/ch/BaseLogger.log")
 
     parser.add_option("-t", "--log-terminal",
                       help="Echo Logging output to terminal",
@@ -301,7 +304,6 @@ if __name__ == '__main__': # pragma: no cover
 
     logfile = options.log_file
 
-    #logging.basicConfig(filename="/var/log/ch/BaseLogging.log"
     logging.basicConfig(filename=logfile,
                         filemode="a",
                         format="%(asctime)s %(levelname)s %(message)s",
