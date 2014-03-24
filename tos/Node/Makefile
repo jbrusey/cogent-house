@@ -9,12 +9,17 @@ CLEAN_EXTRA += $(PYTHON_TGTS)
 
 #Configuration
 #CFLAGS += -DBN
-
 # turn on leds for debugging?
 # use "make telosb install.2 debug=1" to turn on debug
 ifdef debug
 CFLAGS += -DBLINKY
 CFLAGS += -DDEBUG
+endif
+
+# if ac-powered node does not have ac-sensor but should still act as a
+# cluster-head use "make ... missing_ac_sensor=1"
+ifdef missing_ac_sensor
+CFLAGS += -DMISSING_AC_SENSOR
 endif
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
