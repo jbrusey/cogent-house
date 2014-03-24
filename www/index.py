@@ -261,13 +261,23 @@ def tree(req, period='day', debug=''):
               stdin=PIPE, stdout=PIPE, close_fds=True)
         
         with p.stdin as dotfile:
-            dotfile.write("digraph {")
-            for (ni,pa,rssi) in session.query(NodeState.nodeId,
-                                            NodeState.parent,
-                                            func.avg(NodeState.rssi)
-                                            ).group_by(NodeState.nodeId, NodeState.parent).filter(NodeState.time > t):
+            dotfile.write('digraph { rankdir="LR";')
+            seen_nodes = set()
+            for (ni, hi, rm, pa,rssi) in (session.query(NodeState.nodeId,
+                                                        Location.houseId,
+                                                        Room.name,
+                                                        NodeState.parent,
+                                                        func.avg(NodeState.rssi))
+                                          .join(Node, Location, Room)
+                                          .group_by(NodeState.nodeId, NodeState.parent)
+                                          .filter(and_(NodeState.time > t, NodeState.parent != 65535))):
                 
-                dotfile.write('{}->{} [label="{}"];'.format(ni, pa, float(rssi)))
+                dotfile.write('{0}->{1} [label="{2}"];'.format(ni, pa, float(rssi)))
+                if not ni in seen_nodes:
+                    seen_nodes.add(ni)
+                    dotfile.write('{ni} [label="{ni}:{hi}:{rm}"];'
+                                  .format(ni=ni, hi=hi, rm=rm))
+                    
             dotfile.write("}")
 
         return p.stdout.read()
@@ -767,11 +777,11 @@ def getData(req,sensorType=None, StartDate=None, EndDate=None):
         if len(exportData) == 0:
             return _redirect(_url("exportDataForm", [('err', 'nodata')]))
         req.content_type = "text/csv"
-        csv_file = ['# cogent-house export of {} from {} to {}\n'
+        csv_file = ['# cogent-house export of {0} from {1} to {2}\n'
                     .format(_get_y_label(st, session=session),
                             sd, ed),
                             '#node id, house, room, time, value\n']
-        csv_file.extend(['{},"{}","{}",{},{}\n'.format(n, ha, rn, t, v) for n, t, v, ha, rn in exportData])
+        csv_file.extend(['{0},"{1}","{2}",{3},{4}\n'.format(n, ha, rn, t, v) for n, t, v, ha, rn in exportData])
         return "".join(csv_file)
     finally:
         session.close()
@@ -1347,7 +1357,7 @@ def addNewRoomTypeSubmit(ref=None, name=None):
         h = RoomType(name=name)
         session.add(h)
         session.commit()
-        return _redirect('{}&roomType={}'.format(ref, h.id))
+        return _redirect('{0}&roomType={1}'.format(ref, h.id))
     except Exception, e:
         session.rollback()
         return _page('Add new room type error', '<p>%s</p>' % str(e))
@@ -1599,7 +1609,7 @@ def _plot_splines(node_id,
 
     if debug:
         return [_CONTENT_TEXT,
-                "px={}\npy={}"
+                "px={0}\npy={1}"
                 .format(px, py)]
     else:
         return  [_CONTENT_PLOT, image.getvalue()]
