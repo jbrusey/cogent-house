@@ -548,12 +548,16 @@ implementation
     for (i = 0; i < RS_SIZE; i++) { 
       if (call Configured.get(i)) {
 	call ExpectReadDone.set(i);
-	if (i == RS_CO2)
-	  call ReadCO2.read();
 #ifndef BN
-	else if (i == RS_TEMPADC1)
+	if (i == RS_TEMPADC1)
 	  call ReadTempADC1.read();
+	else
 #endif
+	if (leafMode)
+	  /* if leafMode, avoid polling high power sensors below */
+	  call ExpectReadDone.clear(i);
+	else if (i == RS_CO2)
+	  call ReadCO2.read();
 	else if (i == RS_AQ)
 	  call ReadAQ.read();
 	else if (i == RS_VOC)
