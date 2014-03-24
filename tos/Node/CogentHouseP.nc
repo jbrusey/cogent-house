@@ -350,7 +350,6 @@ implementation
   }
 
   event void SendTimeOutTimer.fired() {
-    reportError(ERR_NO_ACK);
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
 
     //if packet not through after 3 times get through recompute routes
