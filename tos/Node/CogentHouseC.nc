@@ -76,7 +76,6 @@ implementation
 
   //Sensing Modules
   components ThermalSensingM, AirQualityM, BatterySensingM, BlackBulbM;
-  components new ACStatusM() as ACStatusM;
 
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
@@ -89,9 +88,12 @@ implementation
   AirQualityM.CO2On -> GIO.Port23; //set to gio2
   AirQualityM.WarmUpTimer -> WarmUpTimer;
 
+#ifndef MISSING_AC_SENSOR
+  components new ACStatusM() as ACStatusM;
   ACStatusM.ACInput -> GIO.Port26;
   CogentHouseP.ACControl -> ACStatusM.ACControl;
   CogentHouseP.ReadAC->ACStatusM.ReadAC;
+#endif
   
 #ifndef BN
 
