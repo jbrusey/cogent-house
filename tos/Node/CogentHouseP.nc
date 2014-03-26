@@ -59,8 +59,10 @@ module CogentHouseP
     interface BNController<float *> as ReadAQ;
 #endif
    
+#ifndef MISSING_AC_SENSOR
     interface Read<bool> as ReadAC;
     interface SplitControl as ACControl;
+#endif
     
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
@@ -348,7 +350,6 @@ implementation
   }
 
   event void SendTimeOutTimer.fired() {
-    reportError(ERR_NO_ACK);
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
 
     //if packet not through after 3 times get through recompute routes
@@ -439,26 +440,26 @@ implementation
     }
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
       call Configured.set(RS_CO2);
-      call Configured.set(RS_AC);
-      call ACControl.start();
     }
     else if (nodeType == CLUSTER_HEAD_BB_TYPE) { /* clustered BB */
       call Configured.set(RS_CO2);
       call Configured.set(RS_BB);
-      call Configured.set(RS_AC);
-      call ACControl.start();
     }
     else if (nodeType == CLUSTER_HEAD_VOC_TYPE) { /* clustered VOC */
       call Configured.set(RS_CO2);
       call Configured.set(RS_AQ);
       call Configured.set(RS_VOC);
-      call Configured.set(RS_AC);
-      call ACControl.start();
     }
     else if (nodeType == CLUSTER_HEAD_CC_TYPE) { /* current cost */
       call Configured.set(RS_POWER);
     }
 
+#ifndef MISSING_AC_SENSOR
+    if (nodeType >= CLUSTER_HEAD_MIN_ID) {
+      call Configured.set(RS_AC);
+      call ACControl.start();
+    }
+#endif
     sending = FALSE;
 
 #ifdef DEBUG
@@ -508,8 +509,10 @@ implementation
 	    call ReadHum.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
+#ifndef MISSING_AC_SENSOR
 	  else if (i == RS_AC)
 	    call ReadAC.read();
+#endif
 #ifndef BN
    	  else if (i == RS_POWER)
 	    call ReadCC.read();
@@ -544,12 +547,16 @@ implementation
     for (i = 0; i < RS_SIZE; i++) { 
       if (call Configured.get(i)) {
 	call ExpectReadDone.set(i);
-	if (i == RS_CO2)
-	  call ReadCO2.read();
 #ifndef BN
-	else if (i == RS_TEMPADC1)
+	if (i == RS_TEMPADC1)
 	  call ReadTempADC1.read();
+	else
 #endif
+	if (leafMode)
+	  /* if leafMode, avoid polling high power sensors below */
+	  call ExpectReadDone.clear(i);
+	else if (i == RS_CO2)
+	  call ReadCO2.read();
 	else if (i == RS_AQ)
 	  call ReadAQ.read();
 	else if (i == RS_VOC)
@@ -571,6 +578,7 @@ implementation
     post checkDataGathered();
   }
   
+#ifndef MISSING_AC_SENSOR
   event void ReadAC.readDone(error_t result, bool data) {
     leafMode = !data;
     if (!leafMode)
@@ -578,6 +586,7 @@ implementation
     call ExpectReadDone.clear(RS_AC);
     post checkDataGathered();
   }
+#endif
 
 #ifndef BN
 
@@ -878,11 +887,12 @@ implementation
   
 #endif
 
-
+#ifndef MISSING_AC_SENSOR
   event void ACControl.startDone(error_t error) {}
   
   event void ACControl.stopDone(error_t error) {}
-  
+#endif
+
   ////////////////////////////////////////////////////////////
   // Produce a nice pattern on start-up
   //
