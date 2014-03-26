@@ -1791,7 +1791,8 @@ def _get_motelist():
 def _flash_device(typ=None, idnum=None, device=None):
     from subprocess import Popen, PIPE
     try:
-        p = Popen('/opt/cogent-house/flash-node {} {} {}'
+        #p = Popen('/opt/cogent-house/flash-node {} {} {}'
+        p = Popen('/opt/cogent-house/cogent/scripts/flash-node {} {} {}'
                   .format(typ, idnum, device),
                   shell=True, bufsize=4096,
                   stdin=None, 

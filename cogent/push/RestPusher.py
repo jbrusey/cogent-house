@@ -16,6 +16,7 @@ import os
 import datetime
 import re
 import zlib
+import sys
 
 import subprocess
 
@@ -210,9 +211,9 @@ class PushServer(object):
         log.info("Running Full Syncronise Cycle")
         for item in self.synclist:
             log.info("Synchronising {0}".format(item))
-            hostname, commands = item.checkRPC()
-            if commands:
-                item.processRPC(hostname, commands)
+            #hostname, commands = item.checkRPC()
+            #if commands:
+            #    item.processRPC(hostname, commands)
             #TODO Uncomment this after testing
             item.sync()
 
@@ -337,91 +338,36 @@ class Pusher(object):
         log.debug(jsonBody)
         
 
-    def checkRPC(self, hostname = None):
-        """Check if this server has any RPC
-
-        :param hostname: Host name (<name><id>) to use when checking for RPC
-        :return: hostname, list of functions returned by the server
-        """
-        log = self.log
-        log.info("Checking for RPC")
-
-        theUrl = "{0}rpc/".format(self.restUrl)
-
-        #Work out my hostname
-        if hostname is None:
-            hostname = os.uname()[1]
-            log.debug("Hostname {0}".format(hostname))
-        #hostname = "salford21"
-        # try:
-        #     #Quick and simple for the moment
-        #     #theport = int(hostname[-2:])
-        #     theport = int(re.findall(r"\d+", hostname)[0])
-        #     log.debug("Port to use is {0}".format(theport))
-        # except ValueError:
-        #     log.warning("Unable to get port from hostname {0}".format(hostname))
-        #     theport = 0
-
-        #Fetch All room Types the Remote Database knows about
-        log.debug("Fetching data from {0}".format(theUrl))
-        try:
-            remoteqry = requests.get(theUrl, timeout=60)
-        except requests.exceptions.Timeout:
-            log.warning("Timeout on connection to cogentee")
-            return
-
-        jsonbody = remoteqry.json()
-        log.debug(jsonbody)
-
-        allcommands = []
-        for item in jsonbody:
-            host, command = item
-            if host.lower() == hostname.lower():
-                log.debug("Host has RPC queued {0}".format(command))
-                allcommands.append(command)
-
-        print "== {0}".format(allcommands)
-        return hostname, allcommands
-
-    def processRPC(self, hostname, commands):
-        """Process any remote procedure calls
-
-        :param hostname: Hostname we are connecting under
-        :param commands: List of RPC commands for this particualr server
-        """
-        log = self.log
-        log.debug("Processing RPC")
-        #Go through the JSON and see if we have any RPC
-        for item in commands:
-#        for item in jsonbody:
-            log.debug(item)
-#            host, command = item
-#            if host.lower() == hostname.lower():
-#                log.info("RPC COMMAND {0}".format(command))
-            if item == "tunnel":
+#         for item in commands:
+# #        for item in jsonbody:
+#             log.debug(item)
+# #            host, command = item
+# #            if host.lower() == hostname.lower():
+# #                log.info("RPC COMMAND {0}".format(command))
+#             if item == "tunnel":
 
 
-                try:
-                    theport = int(re.findall(r"\d+", hostname)[0])
-                    log.debug("Port to use is {0}".format(theport))
-                except ValueError:
-                    log.warning("Unable to get port from hostname {0}".format(hostname))
-                    theport = 0
+#                 try:
+#                     theport = int(re.findall(r"\d+", hostname)[0])
+#                     log.debug("Port to use is {0}".format(theport))
+#                 except ValueError:
+#                     log.warning("Unable to get port from hostname {0}".format(hostname))
+#                     theport = 0
 
-                log.debug("Attempting to start SSH Process on port {0}".format(theport))
-                    #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
-                #proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
-                proc = subprocess.Popen(["./ch-ssh",
-                                         "start" ,
-                                         "{0}".format(theport)],
-                                        stderr=subprocess.PIPE)
+#                 log.debug("Attempting to start SSH Process on port {0}".format(theport))
+#                     #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
+#                 #proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
+#                 proc = subprocess.Popen(["./ch-ssh",
+#                                          "start" ,
+#                                          "{0}".format(theport)],
+#                                         stderr=subprocess.PIPE)
 
-                for line in iter(proc.stderr.readline, ''):
-                    log.debug("E-> {0}".format(line.strip()))
+#                 for line in iter(proc.stderr.readline, ''):
+#                     log.debug("E-> {0}".format(line.strip()))
 
-                log.debug("Killing existing SSH Process")
-                    #Wait for Exit then Kill
-                subprocess.check_output(["./ch-ssh stop"], shell=True)
+#                 log.debug("Killing existing SSH Process")
+#                     #Wait for Exit then Kill
+#                 subprocess.check_output(["./ch-ssh stop"], shell=True)
 
 
     def sync_simpletypes(self):
@@ -1531,6 +1477,33 @@ class Pusher(object):
 
 if __name__ == "__main__":
     logging.debug("Testing Push Classes")
+    log = logging.getLogger("__name__")
 
-    server = PushServer()
+    #Code to load the config file
+    if sys.prefix  == "/usr":
+        conf_prefix = "/" #If its a standard "global" instalation
+    else :
+        conf_prefix = "{0}/".format(sys.prefix)
+        
+    configpath = os.path.join(conf_prefix,
+                              "etc",
+                              "cogent-house",
+                              "push-script")
+
+    configfile = os.path.join(configpath,
+                              "synchronise.conf")
+
+    log.debug("Checking for Config file in {0}".format(configfile))
+    if os.path.exists(configfile):
+        log.debug("Read config file from {0}".format(configfile))
+        #configparser = configobj.ConfigObj(configfile)
+    else:
+        log.warning("No Config file specified Falling back on local copy")
+        configfile = "synchronise.conf"
+
+        #configparser = configobj.ConfigObj(configfile)
+
+
+
+    server = PushServer(configfile = configfile)
     server.sync()

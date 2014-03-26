@@ -3,9 +3,12 @@ include *.cfg
 recursive-include conf *
 recursive-include etc *
 recursive-include www *
-recursive-include cogent/alembic *
+recursive-include cogent/alembic *.py 
 
 include cogent/push/synchronise.conf
 include cogent/push/ch-ssh
 include cogent/alembic.ini
-include flash-node
+include cogent/scripts/flash-node
+
+global-exclude *~
+global-exclude *.pyc

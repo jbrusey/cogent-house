@@ -41,7 +41,8 @@ setup(name='ch-base',
                 'cogent.report',
                 'cogent.sip',
                 'cogent.node',
-		'cogent.scripts'
+		'cogent.scripts',
+                'cogent.alembic'
                 ],
       include_package_data=True,
       data_files=[('{0}/etc/init.d'.format(conf_prefix), ["etc/ch-base", "etc/ch-sf"]),
@@ -51,7 +52,8 @@ setup(name='ch-base',
                   ('{0}/var/www/scripts'.format(conf_prefix), ['www/scripts/datePicker.js']),
                   ('{0}/var/www/style'.format(conf_prefix), ['www/style/ccarc.css']),
                   #Push Configuration Files
-                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["conf/push-script/synchronise.template"])
+                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["conf/push-script/synchronise.template"]),
+                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["cogent/push/ch-ssh"])
                   ],
       entry_points = """\
       [console_scripts]

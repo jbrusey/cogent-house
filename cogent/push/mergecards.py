@@ -361,7 +361,7 @@ class RestDBMerge(DBMerge):
 
         #Read the configuration file
         if sys.prefix  == "/usr":
-            conf_prefix = "" #If its a standard "global" instalation
+            conf_prefix = "/" #If its a standard "global" instalation
         else :
             conf_prefix = "{0}/".format(sys.prefix)
 
