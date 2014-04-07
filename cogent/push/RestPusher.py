@@ -329,7 +329,7 @@ class Pusher(object):
         log.debug("Transfer Hostname")
         hostname = os.uname()[1]
         theitem = {"hostname": hostname,
-                   "localtime": datetime.datetime.now().isoformat()}
+                   "localtime": datetime.datetime.utcnow().isoformat()}
         theurl = "{0}pushstatus/".format(self.restUrl)
         
         restQry = requests.post(theurl, data = json.dumps(theitem))
@@ -1022,7 +1022,7 @@ class Pusher(object):
         session = self.localsession()
 
         #Get a list of all nodes we expect to have with active houses
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         qry = session.query(models.House).filter((models.House.endDate == None) |
                                                  (models.House.endDate > now))
         activelocs = []

@@ -149,7 +149,7 @@ class ModelTestCase(BaseTestCase):
         """Test Conversion to a dictionary"""
         theItem = self._serialobj()
         theDict = self._dictobj()
-        # now = datetime.datetime.now()
+        # now = datetime.datetime.utcnow()
 
 
         objDict = theItem.dict()

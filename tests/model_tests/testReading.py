@@ -10,7 +10,7 @@ import tests.base as base
 
 import json
 
-NOW = datetime.datetime.now()
+NOW = datetime.datetime.utcnow()
 
 class TestReading(base.ModelTestCase):
 
@@ -90,7 +90,7 @@ class TestReading(base.ModelTestCase):
 
         self.assertEqual(item1,item2)
 
-        item2.time = datetime.datetime.now()
+        item2.time = datetime.datetime.utcnow()
         self.assertReallyNotEqual(item1,item2)
 
         item2.time = item1.time
@@ -123,7 +123,7 @@ class TestReading(base.ModelTestCase):
 
         self.assertEqual(item1,item2)
 
-        item2.time = datetime.datetime.now()
+        item2.time = datetime.datetime.utcnow()
         self.assertGreater(item2,item1)
 
     #     item1 = models.Reading(id=1,

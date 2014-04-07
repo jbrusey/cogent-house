@@ -129,7 +129,7 @@ class test_baselogger(base.BaseTestCase):
     #@unittest.skip
     def testStore(self):
         """Store State without queuing"""
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         #Create our bitmask
         bs = Bitset(size=Packets.SC_SIZE)
         #Try to setup a temperature sample
@@ -171,7 +171,7 @@ class test_baselogger(base.BaseTestCase):
     #@unittest.skip
     def testRcv(self):
         """Test a single receive"""
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         #Create our bitmask
         bs = Bitset(size = Packets.SC_SIZE)
@@ -217,7 +217,7 @@ class test_baselogger(base.BaseTestCase):
     def test_Rcv_Node(self):
         """Does Recieve work when that node is not in the DB"""
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         #Create our bitmask
         bs = Bitset(size = Packets.SC_SIZE)
@@ -265,7 +265,7 @@ class test_baselogger(base.BaseTestCase):
     def test_Rcv_Sensor(self):
         """Does Recieve work when that sensortype is not in the DB"""
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         #Create our bitmask
         bs = Bitset(size = Packets.SC_SIZE)
         #Try to setup a temperature sample
@@ -326,7 +326,7 @@ class test_baselogger(base.BaseTestCase):
     #@unittest.skip
     def testDuplicate(self):
         """What about duplicate packets"""
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         #Create our bitmask
         bs = Bitset(size=Packets.SC_SIZE)
@@ -371,7 +371,7 @@ class test_baselogger(base.BaseTestCase):
         output = self.blogger.mainloop()
         self.assertTrue(output)
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         #Check the duplicate function
 
         #session = self.blogger.getSession()
@@ -402,7 +402,7 @@ class test_baselogger(base.BaseTestCase):
     #@unittest.skip
     def testrecvCombined(self):
         """Can we correctly recieve and packets with multiple readings"""
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         #Create our bitmask
         bs = Bitset(size=Packets.SC_SIZE)

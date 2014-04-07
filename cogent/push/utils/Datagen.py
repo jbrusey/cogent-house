@@ -135,13 +135,13 @@ class Datagen(object):
         session = meta.Session()
         localCount = 0
         stateOne = True
-        fakeTime = datetime.now()
+        fakeTime = datetime.utcnow()
 
         node37 = self.node37
         node38 = self.node38
 
         #Work out a better start time
-        currentTime = datetime.now()
+        currentTime = datetime.utcnow()
         #Calculate total seconds for samples
         deploymentSeconds = (BULK_SAMPLES*READING_GAP)*BULK_OFFSET
         fakeTime = currentTime - timedelta(seconds=deploymentSeconds)
@@ -257,16 +257,16 @@ class Datagen(object):
         try:
             while True:
                 #Add a reading every N seconds
-                log.debug("Adding New Reading {0}".format(datetime.now()))
+                log.debug("Adding New Reading {0}".format(datetime.utcnow()))
 
-                theReading = models.Reading(time = datetime.now(),
+                theReading = models.Reading(time = datetime.utcnow(),
                                             nodeId = node37.id,
                                             locationId = node37.locationId,
                                             value = localCount,
                                             typeId = 0)
                 session.add(theReading)
 
-                theReading = models.Reading(time = datetime.now(),
+                theReading = models.Reading(time = datetime.utcnow(),
                                             nodeId = node38.id,
                                             locationId = node38.locationId,
                                             value = 100-localCount,
@@ -279,25 +279,25 @@ class Datagen(object):
 
                     #Add a node state
                     if stateOne:
-                        theState = models.NodeState(time=datetime.now(),
+                        theState = models.NodeState(time=datetime.utcnow(),
                                                     nodeId=node37.id,
                                                     parent = 1024,
                                                     localtime = 0)
                         session.add(theState)
 
-                        theState = models.NodeState(time=datetime.now(),
+                        theState = models.NodeState(time=datetime.utcnow(),
                                                     nodeId=node38.id,
                                                     parent = 1024,
                                                     localtime = 0)
                         session.add(theState)        
                     else:
-                        theState = models.NodeState(time=datetime.now(),
+                        theState = models.NodeState(time=datetime.utcnow(),
                                                     nodeId=node37.id,
                                                     parent = node38.id,
                                                     localtime = 0)
                         session.add(theState)
 
-                        theState = models.NodeState(time=datetime.now(),
+                        theState = models.NodeState(time=datetime.utcnow(),
                                                     nodeId=node38.id,
                                                     parent = 1024,
                                                     localtime = 0)

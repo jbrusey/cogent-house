@@ -293,7 +293,7 @@ class PloggCollector(object):
             #Get Consumption
             #RMS Current
             #System Uptime
-            timestamp = datetime.now()
+            timestamp = datetime.utcnow()
             watts=(float(int(str(ha[7]+ha[8]+ha[9]+ha[10]),16))/1000)
             kwhCon=(float(int(str(ha[15]+ha[16]+ha[17]+ha[18]),16))/10000)
             rmsc=(float(int(str(ha[27]+ha[28]+ha[29]+ha[30]),16))/1000)
