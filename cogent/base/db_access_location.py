@@ -215,7 +215,7 @@ def get_nodeId_by_location(session, loc_id, start_time, end_time, type_id=0):
     return nid
 
 
-def get_data_by_location_and_type(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, with_deltas=False):
+def get_data_by_location_and_type(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
      
@@ -244,7 +244,7 @@ def get_data_by_location_and_type(session, loc_id, reading_type, start_time = da
     return data
 
 
-def get_location_types(session, loc_id, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+def get_location_types(session, loc_id, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow()):
     theQuery =  session.query(distinct(Reading.typeId)).filter(and_(
         Reading.time >= start_time,
         Reading.time < end_time,
@@ -258,7 +258,7 @@ def get_location_types(session, loc_id, start_time = datetime.fromtimestamp(0), 
 
 
 
-def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True):
+def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
      
@@ -281,7 +281,7 @@ def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, st
 
 
 
-def get_data_by_type_location(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now(), postprocess=True, with_deltas=False):
+def get_data_by_type_location(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
 
@@ -365,7 +365,7 @@ def _get_outlier_thresholds(data):
     return (ub, lb)
 
 
-def get_yield_location(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+def get_yield_location(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow()):
     days = int((end_time - start_time).days)
     expected_rows = float(days * 288.)
     
@@ -374,7 +374,7 @@ def get_yield_location(session, loc_id, reading_type, start_time = datetime.from
    
     return (row_count * 100.0) / expected_rows
     
-def get_yield_by_nodes_and_date(session, hnum, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.now()):
+def get_yield_by_nodes_and_date(session, hnum, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow()):
 
     yields={}
     expected_rows = 288.

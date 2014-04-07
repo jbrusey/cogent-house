@@ -168,7 +168,7 @@ class Cleaner(object):
 
     def uploadFakeReadings(self):
         import datetime
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         session = self.localSession()
         for x in range(100000):
             thisTime = now + datetime.timedelta(seconds = x)

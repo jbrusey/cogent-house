@@ -51,4 +51,4 @@ class PushStatus(meta.Base, meta.InnoDBMix):
                 #And set our variable
             setattr(self, col.name, value)
 
-        self.time = datetime.datetime.now()
+        self.time = datetime.datetime.utcnow()
