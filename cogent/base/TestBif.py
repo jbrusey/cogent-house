@@ -29,9 +29,9 @@ class TestBif(object):
         """
         self.queue.put(msg)
 
-    def sendMsg(self, msg):
+    def sendMsg(self, msg, dest=0xffff):
         """ support sending (from BaseLogger) of any messages """
-        print "sendMsg", msg
+        print "sendMsg", msg, "to", dest
 
     def finishAll(self):
         """ finish - currently just a dummy """
@@ -90,7 +90,6 @@ def main():
     # 'mysql://localhost/ch')
     base_logger.create_tables()
     base_logger.run()
-
 
 
 if __name__ == '__main__':
