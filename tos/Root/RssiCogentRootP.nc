@@ -1,3 +1,5 @@
+// -*- c -*-
+#include <stddef.h>
 #include "../Packets.h"  
 
 module RssiCogentRootP {
@@ -7,13 +9,17 @@ module RssiCogentRootP {
 } implementation {
 
   uint16_t getRssi(message_t *msg);
-  uint16_t RSSI_OFFSET = 45;
+  enum {
+   RSSI_OFFSET = 45
+  };
   
   event bool RssiMsgIntercept.forward(message_t *msg,
 				      void *payload,
 				      uint8_t len) {
-    StateMsg *state = (StateMsg*) payload;
-    state->rssi = getRssi(msg);
+    if (len >= offsetof(StateMsg, packed_state)) {
+      StateMsg *state = (StateMsg*) payload;
+      state->rssi = getRssi(msg);
+    }
     
     return TRUE;
   }
