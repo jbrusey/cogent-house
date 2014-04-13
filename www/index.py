@@ -1711,7 +1711,8 @@ def _get_value_and_delta(node_id,
                                     Reading.nodeId == node_id,
                                     Reading.time >= sd,
                                     Reading.time <= ed
-                                    )))
+                                    ))
+                       .order_by(Reading.time))
     finally:
         session.close()
 
