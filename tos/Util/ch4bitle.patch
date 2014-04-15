@@ -1,16 +1,6 @@
-diff -u /home/james/tinyos-main/tos/lib/net/4bitle/LinkEstimatorP.nc ./LinkEstimatorP.nc
 --- /home/james/tinyos-main/tos/lib/net/4bitle/LinkEstimatorP.nc	2014-02-21 23:04:38.137322195 +0000
-+++ ./LinkEstimatorP.nc	2014-02-16 09:19:18.762564469 +0000
-@@ -207,6 +202,8 @@
- 
-   // find the index to the worst neighbor if the eetx
-   // estimate is greater than the given threshold
-+  // modified to prioritise removing leaf nodes
-+  // from the neighbour table
-   uint8_t findWorstNeighborIdx(uint8_t thresholdETX) {
-     uint8_t i, worstNeighborIdx;
-     uint16_t worstETX, thisETX;
-@@ -226,7 +223,14 @@
++++ LinkEstimatorP.nc	2014-04-15 14:20:10.049915712 +0100
+@@ -226,6 +226,11 @@
  	dbg("LI", "Pinned entry, so continuing\n");
  	continue;
        }
@@ -20,22 +10,17 @@ diff -u /home/james/tinyos-main/tos/lib/net/4bitle/LinkEstimatorP.nc ./LinkEstim
 +	continue;
 +      }	
        thisETX = NeighborTable[i].etx;
-       
        if (thisETX >= worstETX) {
  	worstNeighborIdx = i;
- 	worstETX = thisETX;
-@@ -444,7 +453,15 @@
+@@ -444,6 +449,11 @@
    // return bi-directional link quality to the neighbor
    command uint16_t LinkEstimator.getLinkQuality(am_addr_t neighbor) {
      uint8_t idx;
-+    
 +    //return max etx value if its a leaf path
 +    if (!CLUSTER_HEAD && ((neighbor) <  CLUSTER_HEAD_MIN_ID)){
 +      dbg("LI", "updateNeighborTableEst: Set etx to max where leaf path\n");
 +      return VERY_LARGE_ETX_VALUE;
 +    }
-+      
      idx = findIdx(neighbor);
      if (idx == INVALID_RVAL) {
        return VERY_LARGE_ETX_VALUE;
-     } else {
