@@ -1,4 +1,29 @@
-PFLAGS += -I . -I ./Predict -I ./Heartbeat -I ./Filters/ -I ./Filters/DEWMA -I ./Filters/PassThrough  -I./Sensing/AirQuality -I./Sensing/Base -I./Sensing/WindowSensor -I./Sensing/TempADC -I./Sensing/PulseReader  -I./Sensing/ACStatus -I./Sensing/CurrentCost  -I%T/lib/printf -I./PackState -I./AccessibleBitVector -I./FilterWrapper -I./EventDetector -I./SIPController  -I../Util/HashMap  -I../Util  -I%T/lib/net/ctp -I%T/lib/net -I../Util/ch4bitle -I../Util/HashMap -I./Exposure -I./BNController -I ./LowBatteryDetector  -I./Sensing/BlackBulb -I%T/lib/net/drip
+PFLAGS += -I . \
+	-I %T/lib/net \
+	-I %T/lib/net/4bitle \
+	-I %T/lib/net/ctp \
+	-I %T/lib/net/drip \
+	-I %T/lib/printf \
+	-I ../Util  \
+	-I ../Util/HashMap  \
+	-I ./AccessibleBitVector \
+	-I ./EventDetector \
+	-I ./FilterWrapper \
+	-I ./Filters/ \
+	-I ./Filters/DEWMA \
+	-I ./Filters/PassThrough  \
+	-I ./Heartbeat \
+	-I ./PackState \
+	-I ./Predict \
+	-I ./SIPController  \
+	-I ./Sensing/ACStatus \
+	-I ./Sensing/AirQuality \
+	-I ./Sensing/Base \
+	-I ./Sensing/BlackBulb \
+	-I ./Sensing/CurrentCost  \
+	-I ./Sensing/PulseReader  \
+	-I ./Sensing/TempADC \
+	-I ./Sensing/WindowSensor 
 
 COMPONENT=CogentHouseC
 
@@ -8,7 +33,6 @@ BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
 #Configuration
-#CFLAGS += -DBN
 # turn on leds for debugging?
 # use "make telosb install.2 debug=1" to turn on debug
 ifdef debug
@@ -26,7 +50,12 @@ PFLAGS +=-DTOSH_DATA_LENGTH=76
 #PFLAGS += -DCC2420_DEF_RFPOWER=3
 #CFLAGS += -DCC2420_DEF_CHANNEL=15
 
-CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP #51 days BN
+CFLAGS += -DLOW_POWER_LISTENING
+CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=1024
+CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
+CFLAGS += -DDELAY_AFTER_RECEIVE=20
+
+CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP 
 CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
 
 # default sensing period 307200 = 5 mins
@@ -106,13 +135,6 @@ CFLAGS += -DSIP_WINDOW_MASK=1
 CFLAGS += -DSIP_WINDOW_THRESH=1
 CFLAGS += -DSIP_WINDOW_ALPHA=0
 CFLAGS += -DSIP_WINDOW_BETA=0
-
-CFLAGS += -DBN_GAMMA=0.9999868213
-CFLAGS += -DBN_TEMP_BAND_THRESH=5.
-CFLAGS += -DBN_HUM_BAND_THRESH=5.
-CFLAGS += -DBN_CO2_BAND_THRESH=5.
-CFLAGS += -DBN_VOC_BAND_THRESH=5.
-CFLAGS += -DBN_AQ_BAND_THRESH=5.
 
 include $(MAKERULES)
 

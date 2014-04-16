@@ -25,7 +25,6 @@ module CogentHouseP
     interface StdControl as DisseminationControl;
     interface DisseminationValue<AckMsg> as AckValue;
 
-#ifndef BN
     //SIP Modules
     interface SIPController<FilterState *> as ReadTemp;
     interface SIPController<FilterState *> as ReadHum;
@@ -47,17 +46,6 @@ module CogentHouseP
     interface SplitControl as CurrentCostControl;
     interface StdControl as HMEnergyControl;
     interface StdControl as HMVolumeControl;
-#endif
-
-#ifdef BN
-    interface Heartbeat;
-    interface BNController<float *> as ReadTemp;
-    interface BNController<float *> as ReadHum;
-    interface BNController<float> as ReadVolt;
-    interface BNController<float *> as ReadCO2;
-    interface BNController<float *> as ReadVOC;
-    interface BNController<float *> as ReadAQ;
-#endif
    
 #ifndef MISSING_AC_SENSOR
     interface Read<bool> as ReadAC;
@@ -78,7 +66,6 @@ implementation
   uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
   bool shutdown = FALSE;
-  bool leafMode = FALSE;
   bool seen_first_ack = FALSE;
   message_t dataMsg;
   uint16_t message_size;
@@ -121,18 +108,13 @@ implementation
 #endif
 
 
-#ifndef BN
       if (call Configured.get(RS_POWER)){
         call CurrentCostControl.start();
       }
-#endif
 
 
     //Calculate the next interval
-      if (stop_time < sense_start_time) // deal with overflow
-	send_time = ((UINT32_MAX - sense_start_time) + stop_time + 1);
-      else
-	send_time = (stop_time - sense_start_time);
+      send_time = subtract_time(stop_time, sense_start_time);
     
       if (my_settings->samplePeriod < send_time)
 	next_interval = 0;
@@ -229,13 +211,11 @@ implementation
       call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
 
       /* UART0 must be released before the radio can work */
-#ifndef BN
       if (call Configured.get(RS_POWER)) {
 	packet_pending = TRUE;
 	call CurrentCostControl.stop();
       }
       else {
-#endif
         if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	  printf("sending begun at %lu\n", call LocalTime.get());
@@ -243,9 +223,7 @@ implementation
 #endif
 	  sending = TRUE;
         }
-#ifndef BN
       }
-#endif
     }
   }
 
@@ -272,9 +250,6 @@ implementation
    */
   task void checkDataGathered() {
     error_t radio_status;
-#ifdef BN
-    bool toSend = FALSE;
-#endif
     bool allDone = TRUE;
     uint8_t i;
 
@@ -292,54 +267,11 @@ implementation
 	printfflush();
 #endif
 	
-#ifndef BN
     	if (call TransmissionControl.hasEvent()){
-          if (!CLUSTER_HEAD || leafMode){
-	    radio_status = call RadioControl.start();
-	    if (radio_status == EALREADY)
-	      sendState();
-	  }
-	  else
-	    sendState();
+	  sendState();
 	}
 	else
 	  restartSenseTimer();
-#endif
-
-#ifdef BN
-	// only include phase one sensing here
-	for (i = 0; i < RS_SIZE; i++) { 
-	  if (call Configured.get(i)) {
-	    if (i == RS_TEMPERATURE)
-	      toSend = call ReadTemp.hasEvent();
-	    else if (i == RS_HUMIDITY)
-	      toSend = call ReadHum.hasEvent();
-	    else if (i == RS_VOLTAGE)
-	      toSend = call ReadVolt.hasEvent();
-	    else if (i == RS_CO2)
-	      toSend = call ReadCO2.hasEvent();
-	    else if (i == RS_AQ)
-	      toSend = call ReadAQ.hasEvent();
-	    else if (i == RS_VOC)
-	      toSend = call ReadVOC.hasEvent();
-	    else
-	      continue;
-	    if (toSend)
-	      break;
-	  }
-	}
-	if  (toSend || call Heartbeat.triggered()){
-          if (!CLUSTER_HEAD || leafMode){
-	    radio_status = call RadioControl.start();
-	    if (radio_status == EALREADY)
-	      sendState();
-	  }
-	  else
-	    sendState();
-	}
-	else
-	  restartSenseTimer();
-#endif
 
       }
       else { /* phase one complete - start phase two */
@@ -352,21 +284,11 @@ implementation
   event void SendTimeOutTimer.fired() {
     my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
 
-    //if packet not through after 3 times get through recompute routes
-    if (missedPKT >= 5){
-      call CtpInfo.recomputeRoutes();
-      missedPKT = 0;
-    }
-    else
-      missedPKT += 1;
-
 #ifdef DEBUG
     printf("ack receving failed %lu\n", call LocalTime.get());
     printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
     printfflush();
 #endif
-    if (!CLUSTER_HEAD || leafMode)
-      call RadioControl.stop();
     restartSenseTimer();
   }
 
@@ -381,11 +303,6 @@ implementation
     
     call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
 
-#ifdef BN
-    call Heartbeat.init();
-#endif
-
-#ifndef BN
     //Inititalise filters -- Configured in the makefile
     call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
     call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_ALPHA, SIP_HUM_BETA);
@@ -401,7 +318,6 @@ implementation
     call ReadWindow.init(SIP_WINDOW_THRESH, SIP_WINDOW_MASK, SIP_WINDOW_ALPHA, SIP_WINDOW_BETA);
     call ReadCC.init(SIP_CC_THRESH, SIP_CC_MASK, SIP_CC_ALPHA, SIP_CC_BETA);
     call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
-#endif
 
     nodeType = TOS_NODE_ID >> 12;
     my_settings = &settings.byType[nodeType];
@@ -467,10 +383,6 @@ implementation
     printfflush();
 #endif
     
-    leafMode = ! CLUSTER_HEAD;
-    if (CLUSTER_HEAD) 
-      call RadioControl.start();
-
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
   }
 
@@ -513,7 +425,6 @@ implementation
 	  else if (i == RS_AC)
 	    call ReadAC.read();
 #endif
-#ifndef BN
    	  else if (i == RS_POWER)
 	    call ReadCC.read();
    	  else if (i == RS_OPTI)
@@ -528,7 +439,6 @@ implementation
 	    call ReadWindow.read();
    	  else if (i == RS_BB)
 	    call ReadBB.read();
-#endif
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -547,14 +457,8 @@ implementation
     for (i = 0; i < RS_SIZE; i++) { 
       if (call Configured.get(i)) {
 	call ExpectReadDone.set(i);
-#ifndef BN
 	if (i == RS_TEMPADC1)
 	  call ReadTempADC1.read();
-	else
-#endif
-	if (leafMode)
-	  /* if leafMode, avoid polling high power sensors below */
-	  call ExpectReadDone.clear(i);
 	else if (i == RS_CO2)
 	  call ReadCO2.read();
 	else if (i == RS_AQ)
@@ -580,15 +484,11 @@ implementation
   
 #ifndef MISSING_AC_SENSOR
   event void ReadAC.readDone(error_t result, bool data) {
-    leafMode = !data;
-    if (!leafMode)
-      call RadioControl.start();
     call ExpectReadDone.clear(RS_AC);
     post checkDataGathered();
   }
 #endif
 
-#ifndef BN
 
   void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
   {
@@ -670,49 +570,7 @@ implementation
     do_readDone_pass(result, data, RS_WINDOW, SC_WINDOW);
   }
 
-#endif
 
-
-#ifdef BN
-  void do_readDone_exposure(error_t result, float* data,  uint raw_sensor,  uint state_count, uint state_first){
-    int i;
-
-    if (result == SUCCESS){
-      for(i = 0; i < state_count; i++){
-	packstate_add(state_first+i,data[i]);
-      }
-    }
-    call ExpectReadDone.clear(raw_sensor);
-    post checkDataGathered();
-  }
-
-
-  event void ReadTemp.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_TEMPERATURE, SC_BN_TEMP_COUNT, SC_BN_TEMP_FIRST);
-  }
-
-  event void ReadHum.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_HUMIDITY, SC_BN_HUM_COUNT, SC_BN_HUM_FIRST);
-  }
-
-  event void ReadVolt.readDone(error_t result, float data){
-    do_readDone(result, data, RS_VOLTAGE, SC_VOLTAGE);
-    if (data < LOW_VOLTAGE)
-      post powerDown();
-  }
-
-  event void ReadCO2.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_CO2, SC_BN_CO2_COUNT, SC_BN_CO2_FIRST);
-  }
-
-  event void ReadAQ.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_AQ, SC_BN_AQ_COUNT, SC_BN_AQ_FIRST);
-  }
-
-  event void ReadVOC.readDone(error_t result, float* data){
-    do_readDone_exposure(result, data, RS_VOC, SC_BN_VOC_COUNT, SC_BN_VOC_FIRST);
-  }
-#endif
 
   /*********** Radio Control *****************/
 
@@ -726,12 +584,8 @@ implementation
 #endif
 
       if (call Configured.get(RS_POWER)){
-#ifndef BN
 	call CurrentCostControl.start();
-#endif
       }
-      if (!CLUSTER_HEAD || leafMode)
-	  sendState();
     }
     else
       call RadioControl.start();
@@ -753,24 +607,15 @@ implementation
   void ackReceived(){
     uint32_t stop_time;
     uint32_t send_time;
-#ifdef BN
-    int i;
-#endif
 #ifdef BLINKY
     call Leds.led2Toggle();
 #endif
 
-    if (!CLUSTER_HEAD || leafMode)
-      call RadioControl.stop();
- 
     call SendTimeOutTimer.stop();
 
     stop_time = call LocalTime.get();
     //Calculate the next interval
-    if (stop_time < send_start_time) // deal with overflow
-      send_time = ((UINT32_MAX - send_start_time) + stop_time + 1);
-    else
-      send_time = (stop_time - send_start_time);
+    send_time = subtract_time(stop_time, send_start_time);
     last_duty = (float) send_time;
 
     /* the error code has been transmitted and so can now be reset.
@@ -785,31 +630,8 @@ implementation
     my_settings->samplePeriod = DEF_SENSE_PERIOD;
     
 
-#ifndef BN
     call TransmissionControl.transmissionDone();
-#endif
 
-
-#ifdef BN
-    for (i = 0; i < RS_SIZE; i++) { 
-      if (call Configured.get(i)) {
-	if (i == RS_TEMPERATURE)
-	  call ReadTemp.transmissionDone();
-	else if (i == RS_HUMIDITY)
-	  call ReadHum.transmissionDone();
-	else if (i == RS_VOLTAGE)
-	  call ReadVolt.transmissionDone();
-	else if (i == RS_CO2)
-	  call ReadCO2.transmissionDone();
-	else if (i == RS_AQ)
-	  call ReadAQ.transmissionDone();
-	else if (i == RS_VOC)
-	  call ReadVOC.transmissionDone();
-	else
-	  continue;
-      }
-    }
-#endif
     restartSenseTimer();   
 
     /* if first time we have been acknowledged, flash the green led 3 times */
@@ -851,15 +673,12 @@ implementation
     if (crc == ackMsg->crc)
       if (TOS_NODE_ID == ackMsg->node_id)
 	if (expSeq == ackMsg->seq){
-	  if (!CLUSTER_HEAD || leafMode)
-           call RadioControl.stop();
     	  ackReceived();
     	}
     return;
   }
 
 
-#ifndef BN
   event void CurrentCostControl.startDone(error_t error) {
 #ifdef DEBUG
     printf("Current cost start at %lu\n", call LocalTime.get());
@@ -885,7 +704,6 @@ implementation
       
   }
   
-#endif
 
 #ifndef MISSING_AC_SENSOR
   event void ACControl.startDone(error_t error) {}
