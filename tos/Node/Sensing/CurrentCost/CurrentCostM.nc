@@ -185,16 +185,11 @@ implementation
   {
     uint32_t tw;
     uint16_t sc;
-    uint16_t ma, mi;
-    uint32_t lic;
     //ccStruct results;
     
     atomic {
       tw = totalWatts;
       sc = sampleCount;
-      ma = max_watts;
-      mi = min_watts;
-      lic = lastImpCount;
       totalWatts = 0;
       sampleCount = 0;
       max_watts = 0;

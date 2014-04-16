@@ -4,7 +4,7 @@
 #include "./Sensing/PolyClass/horner.c"
 #include "./Sensing/CurrentCost/cc_struct.h"
 #include "Filter.h"
-#include "./Exposure/exposure.h"
+#include "subtracttime.h"
 #include <stdint.h>
 #ifdef DEBUG
 #define NEW_PRINTF_SEMANTICS
@@ -95,8 +95,6 @@ implementation
   CogentHouseP.ReadAC->ACStatusM.ReadAC;
 #endif
   
-#ifndef BN
-
   // CC Wiring
   components CurrentCostM,CurrentCostSerialC;
   components new TimerMilliC() as TimeoutTimer;
@@ -123,7 +121,7 @@ implementation
   components new WindowC() as Window;
   components WindowM;
   WindowM.GetWindow  -> Window;
-#endif
+
   /*********** ACK CONFIG *************/
 
   components DisseminationC;
@@ -135,7 +133,6 @@ implementation
   CogentHouseP.CRCCalc -> CrcC;
 
 
-#ifndef BN
   /************* SIP CONFIG ***********/
   //SIP Components
   components SIPControllerC, PredictC;
@@ -245,60 +242,5 @@ implementation
 
   //Transmission Control
   CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;
-#else /* BN */
-  /************* BN CONFIG ***********/
-
-  components new TimerMilliC() as HeartBeatTimer;
-  components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
-  HeartbeatC.HeartbeatTimer -> HeartBeatTimer;
-  CogentHouseP.Heartbeat -> HeartbeatC;
-  
-  // Temp Wiring
-  components new ExposureControllerC(TEMP_BAND_LEN,BN_TEMP_BAND_THRESH) as TempBN;
-  components new ExposureC(TEMP_BAND_LEN, RS_TEMPERATURE, BN_GAMMA) as TempExposure;
-
-  TempExposure.GetValue -> ThermalSensingM.ReadTemp;
-  TempBN.ExposureRead -> TempExposure.Read;
-  CogentHouseP.ReadTemp -> TempBN.BNController;
-
-  // Hum Wiring
-  components new ExposureControllerC(HUM_BAND_LEN, BN_HUM_BAND_THRESH) as HumBN;
-  components new ExposureC(HUM_BAND_LEN, RS_HUMIDITY, BN_GAMMA) as HumExposure;
-
-  HumExposure.GetValue -> ThermalSensingM.ReadHum;
-  HumBN.ExposureRead -> HumExposure.Read;
-  CogentHouseP.ReadHum -> HumBN.BNController;
-
-  // Battery Wiring
-  components LowBatteryC;  
-  LowBatteryC.BatteryRead -> BatterySensingM.ReadBattery;
-  CogentHouseP.ReadVolt -> LowBatteryC.BNController;
-
-  // CO2 Wiring
-  components new ExposureControllerC(CO2_BAND_LEN,BN_CO2_BAND_THRESH) as CO2BN;
-  components new ExposureC(CO2_BAND_LEN, RS_CO2, BN_GAMMA) as CO2Exposure;
-  
-  CO2Exposure.GetValue -> AirQualityM.ReadCO2;
-  CO2BN.ExposureRead -> CO2Exposure.Read;
-  CogentHouseP.ReadCO2 -> CO2BN.BNController;
-
-
-  // AQ Wiring
-  components new ExposureControllerC(AQ_BAND_LEN,BN_AQ_BAND_THRESH) as AQBN;
-  components new ExposureC(AQ_BAND_LEN, RS_AQ, BN_GAMMA) as AQExposure;
-
-  AQExposure.GetValue -> AirQualityM.ReadAQ;
-  AQBN.ExposureRead -> AQExposure.Read;
-  CogentHouseP.ReadAQ -> AQBN.BNController;
-
-
-  // VOC Wiring
-  components new ExposureControllerC(VOC_BAND_LEN, BN_VOC_BAND_THRESH) as VOCBN;
-  components new ExposureC(VOC_BAND_LEN, RS_VOC, BN_GAMMA) as VOCExposure;
-
-  VOCExposure.GetValue -> AirQualityM.ReadVOC;
-  VOCBN.ExposureRead -> VOCExposure.Read;
-  CogentHouseP.ReadVOC -> VOCBN.BNController;
-#endif /* BN */
 
 }
