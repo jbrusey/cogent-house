@@ -249,7 +249,6 @@ implementation
    * - only transmit data once all sensors have been read
    */
   task void checkDataGathered() {
-    error_t radio_status;
     bool allDone = TRUE;
     uint8_t i;
 
@@ -378,12 +377,7 @@ implementation
 #endif
     sending = FALSE;
 
-#ifdef DEBUG
-    printf("CLUSTER HEAD %u\n", CLUSTER_HEAD);
-    printfflush();
-#endif
-    
-    call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
+    call RadioControl.start();
   }
 
   /* SenseTimer.fired
@@ -578,6 +572,7 @@ implementation
     if (ok == SUCCESS){
       call CollectionControl.start();
       call DisseminationControl.start();
+      call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
 #ifdef DEBUG
       printf("Radio On %lu\n", call LocalTime.get());
       printfflush();
