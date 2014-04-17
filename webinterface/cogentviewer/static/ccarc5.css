@@ -1,0 +1,222 @@
+/* Modified for HMTL5 */
+
+/* header, footer, aside, nav, article { */
+/* 	display: block; */
+/* } */
+
+/* @font-face{ */
+/*     font-family: Ubuntu; */
+/*     src: url(Ubuntu/Ubuntu-Light.ttf); */
+/* } */
+
+/* html { */
+/*     font-family: Ubuntu,sans-serif; */
+/*     margin:0; */
+/*     padding:0; */
+/*     color:#000; */
+/*     height:100%; */
+/*     /\*overflow:hidden;*\/ */
+/* } */
+
+
+
+/* body { */
+/*     width:95%; */
+/*     height:100%; */
+/*     margin:0 auto; */
+/*     padding:0; */
+
+/*     /\*overflow:hidden;*\/ */
+/*     /\* */
+/*     width:95%; */
+/*     height:800px; */
+/*     margin:0 auto; */
+/*     background-color:#fdfdfd; */
+/*     /\*border:1px solid #71a1f1;*\/ */
+/*     /\* */
+/*     -moz-box-shadow: 0 0 5px #888; */
+/*     -webkit-box-shadow: 0 0 5px#888; */
+/*     box-shadow: 0 0 5px #888; */
+/*     border-bottom-left-radius:10px; */
+/*     border-bottom-right-radius:10px; */
+/*     *\/ */
+/* } */
+
+/* #borderContainer { */
+/*   width: 100%; */
+/*   height: 100%; */
+/* }     */
+
+/* header { */
+/*     padding-top:5px; */
+/*     padding-bottom:5px; */
+/*     color:#000; */
+/*     background-color:#fff; */
+/* } */
+/* /\* h1 {  *\/ */
+/* /\*     margin: 0;   *\/ */
+/* /\* } *\/ */
+/* /\* h1 {  *\/ */
+/* /\*     font-size: 2em; *\/ */
+/* /\*     font-weight: lighter; /\\* remove for normal weight *\\/  *\/ */
+/* /\* } *\/ */
+
+/* /\* Navigation for the Header *\/ */
+/* /\*header nav { */
+/*     padding:5px 10px; */
+/*     background-color:#dfe6f1; */
+/* } */
+/* header nav ul { */
+/*     margin:0; */
+/*     padding:0; */
+/*     list-style:none; */
+/* } */
+/* header nav li { */
+/*     display:inline; */
+/*     margin:0; */
+/*     padding:0; */
+/* } */
+/* *\/ */
+
+/* /\* New Navigation *\/ */
+/* nav { */
+/*     border: 1px solid; */
+/*     background-color:#dfe6f1; */
+/*     margin:0; */
+/*     padding:0; */
+    
+/* } */
+
+/* nav ul { */
+/*     padding: 6px 10px 7px; */
+/*     margin: -1px; */
+/*     height: 30px; */
+/*     } */
+
+/* nav ul li{ */
+/*     height: 30px; */
+/*     line-height: 30px; */
+/*     float:left; */
+/*     list-style: none; */
+/*     padding-left: 10px; */
+/*     padding-right: 10px; */
+/*     border-right:1px solid; */
+/* } */
+
+/* nav ul li a { */
+/*     display: block; */
+/*     text-decoration: none; */
+/*     font-weight: bold; */
+/* } */
+
+
+/* aside { */
+/*     font-size:Small; */
+/*     /\*width:200px; */
+/*     padding:7px; */
+/*     background-color:#d1d4d9;*\/ */
+/*     padding-left:0px; */
+/*     padding-top:0px; */
+/*     /\*margin-right:10px;*\/ */
+/* } */
+/* aside li{ */
+/*     list-style-type:none; */
+/*     margin:0; */
+/* } */
+
+/* /\* */
+/* #main { */
+/*     float:right; */
+/*     width:700px; */
+/*     padding:4px; */
+/*     background-color:#fdfdfd; */
+    
+/* } */
+/* #main p{ */
+/*     margin:0; */
+/*     margin-bottom:2px; */
+/*     padding:0; */
+/* } */
+/* h2 { */
+/*     margin:0 0 1em; */
+/* }*\/ */
+
+
+/* section { */
+/*     /\*float:right;*\/ */
+/*     /\*width:800px;*\/ */
+/*     /\*padding:px;*\/ */
+/*     margin:10px; */
+/*     background-color:#fdfdfd; */
+    
+/* } */
+/* section p{ */
+/*     margin:0; */
+/*     margin-bottom:2px; */
+/*     padding:0; */
+/* } */
+/* h2 { */
+/*     margin:0 0 1em; */
+/* } */
+
+/* .claro .footerPanel { */
+/*     background-color:#dfe6f1; */
+/* } */
+
+
+/* footer { */
+/*     background-color:#dfe6f1; */
+/*     width:100%; */
+/*     height:100%; */
+/*     /\*clear:both; */
+/*     /\*padding:5px 10px; */
+/*     background-color:#dfe6f1; */
+/*     border-bottom-left-radius:10px; */
+/*     border-bottom-right-radius:10px; */
+/*     font-size:13px;*\/ */
+/* } */
+/* footer p { */
+/*     margin:0; */
+/* } */
+
+/* * html footer { */
+/*     height:1px; */
+/* } */
+/* a { */
+/* color:#2155ab; */
+/* text-decoration:none; */
+/* } */
+/* a:hover{ */
+/* color:#3b7be5; */
+/* text-decoration:none; */
+/* } */
+
+.deployIcon
+{
+    /*background-image: url(${request.static_url('cogentviewer:static/icons/dark/16_structure.png')});*/
+    background-image: url('icons/dark/16_structure.png');
+    background-repeat: no-repeat; 
+    background-position: center center; 
+    width: 16px; 
+    height: 16px;
+}
+
+.houseDarkIcon
+{
+    /*background-image: url(${request.static_url('cogentviewer:static/icons/dark/16_home.png')});*/
+    background-image: url('icons/dark/16_home.png');
+    background-repeat: no-repeat; 
+    background-position: center center; 
+    width: 16px; 
+    height: 16px;
+}
+
+  .locDarkIcon
+  {
+      /*background-image: url(${request.static_url('cogentviewer:static/icons/dark/16_statistics.png')});*/
+      background-image: url('icons/dark/16_statistics.png');
+      background-repeat: no-repeat; 
+      background-position: center center; 
+      width: 16px; 
+      height: 16px;
+  }
