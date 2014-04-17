@@ -120,3 +120,10 @@ Version 1.1.6
  * Fixed manifest file so only .py files are added to alembic folder
  * Moved flash-node script to scripts directoy
  
+
+Version 1.1.7
+---------------
+
+ * Fix issue 59 with baselogger.
+ * Added code to push script to transfer version number during update
+ * Added Jitter value (5 mins) to runpush cron job to ease some load on server

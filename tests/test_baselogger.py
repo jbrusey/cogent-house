@@ -126,6 +126,8 @@ class test_baselogger(base.BaseTestCase):
         with self.assertRaises(Exception):
             self.blogger.store_state(packet)
 
+    
+
     #@unittest.skip
     def testStore(self):
         """Store State without queuing"""
@@ -452,3 +454,5 @@ class test_baselogger(base.BaseTestCase):
         qry = qry.first()
         self.assertEqual(qry.nodeId, 100)
         self.assertAlmostEqual(qry.value, 2.45)
+
+

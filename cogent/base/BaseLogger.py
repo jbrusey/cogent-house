@@ -49,6 +49,7 @@ DBFILE = "mysql://chuser@localhost/ch"
 #DBFILE = "sqlite:///test.db"
 
 from sqlalchemy import create_engine, and_
+import sqlalchemy
 
 QUEUE_TIMEOUT = 10
 
@@ -92,7 +93,7 @@ class BaseLogger(object):
         models.initialise_sql(self.engine)
         #self.metadata = Base.metadata
 
-        if bif is None:
+        if bif is None: 
             self.bif = BaseIF("sf@localhost:9002")
         else:
             self.bif = bif
@@ -126,8 +127,8 @@ class BaseLogger(object):
         ack_msg.set_node_id(dest)
         
         self.bif.sendMsg(ack_msg, dest)
-        LOGGER.debug("Sending Ack %s to %s" %
-                     (seq, dest))
+        self.log.debug("Sending Ack %s to %s" %
+                       (seq, dest))
 
 
     def store_state(self, msg):
@@ -188,8 +189,9 @@ class BaseLogger(object):
                     session.add(r)
                     session.flush()
 
-                except sqlalchemy.exc.IntegrityError:
+                except sqlalchemy.exc.IntegrityError, e:
                     self.log.error("Unable to store, checking if node type exists")
+                    self.log.error(e)
                     session.rollback()
                     s = session.query(SensorType).filter_by(id=i).first()
                     if s is None:

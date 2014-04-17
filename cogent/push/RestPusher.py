@@ -62,6 +62,29 @@ INIT_COMMENT = ["this file holds details of mappings",
                 "if changes are made"
                 ]
 
+def get_version_string():
+    """Get a version String that we can return to the server
+    
+    """
+    print("Fetching Version String")
+    import pkg_resources
+    import platform
+    try:
+        version = pkg_resources.require("ch-base")[0].version
+    except pkg_resources.DistributionNotFound, e:
+        print "Version Error {0}".format(e)
+        version = 0.0
+
+    plat = platform.uname()[2]
+    # platform_str = "{0} {1}".format(plat[2], 
+    #                                " ".join(plat[3].split(" ")[:2])
+    #                                )
+    
+
+    # print("CH-Version {0}".format(version))
+    # print("Platform St {0}".format(plat))
+    return "{0} : {1}".format(version,plat)
+
 class MappingError(Exception):
     """Exception raised for errors when Mapping Items.
 
@@ -329,7 +352,8 @@ class Pusher(object):
         log.debug("Transfer Hostname")
         hostname = os.uname()[1]
         theitem = {"hostname": hostname,
-                   "localtime": datetime.datetime.utcnow().isoformat()}
+                   "localtime": datetime.datetime.utcnow().isoformat(),
+                   "version": get_version_string() }
         theurl = "{0}pushstatus/".format(self.restUrl)
         
         restQry = requests.post(theurl, data = json.dumps(theitem))
@@ -1504,6 +1528,6 @@ if __name__ == "__main__":
         #configparser = configobj.ConfigObj(configfile)
 
 
-
+    #print get_version_string()
     server = PushServer(configfile = configfile)
     server.sync()
