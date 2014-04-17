@@ -38,7 +38,7 @@ class TestSensorType(base.ModelTestCase):
 
 
     def testEq(self):
-        """Test for Equality"""
+        #"""Test for Equality"""
         #Test Equality
         item1 = models.SensorType(id=1,
                                   name="Temperture",

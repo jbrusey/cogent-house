@@ -23,17 +23,6 @@ import cogentviewer.tests.base as base
 class TestViews(base.FunctionalTest):
     """Testing for all views,  basic does the page load"""
 
-    def setUp(self):
-        super(base.FunctionalTest, self).setUp()
-        res = self.testapp.post("/login",
-                                {"username":"test",
-                                 "password":"test",
-                                 "submit":""})
-
-    def tearDown(self):
-        super(base.FunctionalTest, self).tearDown()
-        res = self.testapp.get("/logout")
-
     def testHome(self):
         """Testing Homepage View"""
         #Does our homepage load as expected
@@ -47,17 +36,19 @@ class TestViews(base.FunctionalTest):
         self.testapp.get("/logout")
 
         res = self.testapp.get("/")
-        res.mustcontain("<title>Login</title>")
+        res.mustcontain("<title>Authentication Error</title>")
 
         res = self.testapp.get("/timeseries")
         self.assertEqual(res.status_int, 200)
         self.assertEqual(res.content_type, "text/html")
-        res.mustcontain("<title>Login</title>")
+        res.mustcontain("<title>Authentication Error</title>")
+#        res.mustcontain("<title>Login</title>")
 
         res = self.testapp.get("/export")
         self.assertEqual(res.status_int, 200)
         self.assertEqual(res.content_type, "text/html")
-        res.mustcontain("<title>Login</title>")
+        res.mustcontain("<title>Authentication Error</title>")
+#        res.mustcontain("<title>Login</title>")
 
     def testTimeseries(self):
         res = self.testapp.get("/timeseries", extra_environ=dict(group='user'))

@@ -15,6 +15,7 @@ from pyramid.paster import (
 import cogentviewer.models as models
 from ..models import meta as meta
 from ..models import user
+import cogentviewer.utils.security as security
 
 Base = meta.Base
 #DBSession = meta.Session()
@@ -51,7 +52,7 @@ def populateUser():
     #Setup a new User
     thisUser = user.User(username=newUser,
                          email=userEmail,
-                         password=meta.pwdContext.encrypt(passOne),
+                         password=security.pwdContext.encrypt(passOne),
                          level="user"
                          )
     session.add(thisUser)

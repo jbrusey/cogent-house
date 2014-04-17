@@ -12,6 +12,7 @@ from pyramid.paster import (
     )
 
 from ..models import meta as meta
+import cogentviewer.utils.security as security
 
 Base = meta.Base
 #DBSession = meta.Session()
@@ -77,7 +78,7 @@ def populateUser():
         #Setup a new User
         thisUser = user.User(username=newUser,
                              email=userEmail,
-                             password=meta.pwdContext.encrypt(passOne),
+                             password=security.pwdContext.encrypt(passOne),
                              level="root"
                              )
         session.add(thisUser)
@@ -98,7 +99,7 @@ def main(argv=sys.argv):
     Base.metadata.create_all(engine)
 
     #We also want any alembic scripts to be executed
-    alembic_cfg = Config("alembic.ini") #TODO: WARNING RELATIVE PATH
+    alembic_cfg = Config(config_uri) #TODO: WARNING RELATIVE PATH
     command.stamp(alembic_cfg,"head")
 
     DBSession = meta.Session()

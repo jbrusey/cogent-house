@@ -6,6 +6,7 @@
 
 import logging
 import time
+import json
 
 import dateutil
 
@@ -58,9 +59,8 @@ class Reading(meta.Base, meta.InnoDBMix):
                         index=True)
 
     value = Column(Float)
-    #Add a compoite Index
-    __table_args__ = (Index('r_1','nodeId','type','locationId'),
-                      )
+    #Add a composite Index
+    #__table_args__ = (Index('r_1', 'nodeId', 'type', 'locationId'))
 
 
     def __eq__(self, other):
@@ -157,14 +157,15 @@ class Reading(meta.Base, meta.InnoDBMix):
         #Find the Sensor
         session = meta.Session()
         thesensor = session.query(sensor.Sensor)
-        thesensor = thesensor.filter_by(sensorTypeId = self.typeId,
-                                        nodeId = self.nodeId).first()
+        thesensor = thesensor.filter_by(sensorTypeId=self.typeId,
+                                        nodeId=self.nodeId).first()
 
         if thesensor is None:
             return self.time, self.value
 
         #Otherwise Calibrate
-        value = (self.value * thesensor.calibrationSlope) + thesensor.calibrationOffset
+        value = (self.value * thesensor.calibrationSlope)
+        value += thesensor.calibrationOffset
         return (self.time, value)
 
     def dict(self):
@@ -192,7 +193,7 @@ class Reading(meta.Base, meta.InnoDBMix):
         for col in self.__table__.columns:
             try:
                 if col.name == "type":
-                    value = getattr(self,"typeId")
+                    value = getattr(self, "typeId")
                 else:
                     value = getattr(self, col.name)
             except AttributeError, e:
@@ -238,6 +239,15 @@ class Reading(meta.Base, meta.InnoDBMix):
                 else:
                     setattr(self, col.name, newValue)
 
+    def pandas(self):
+        """Convert to pandas object"""
+        return {"time":self.time,
+                "nodeId" : self.nodeId,
+                "typeId" : self.typeId,
+                "locationId" : self.locationId,
+                "value" : self.value
+                }
+
 
 
 def calibrateReadings(theQuery):
@@ -253,21 +263,27 @@ def calibrateReadings(theQuery):
 
     for reading in theQuery:
 
-        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
-        LOG.debug("Orig Reading {0} Sensor is {1}".format(reading,theSensor))
+        theSensor = sensorParams.get((reading.nodeId, reading.typeId), None)
+        LOG.debug("Orig Reading {0} Sensor is {1}".format(reading, theSensor))
         if not theSensor:
-            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
+            theSensor = session.query(sensor.Sensor)
+            theSensor = theSensor.filter_by(nodeId=reading.nodeId,
+                                            sensorTypeId=reading.typeId).first()
             if theSensor is None:
-                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
-            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+                theSensor = sensor.Sensor(calibrationSlope=1.0,
+                                          calibrationOffset=0.0)
+            sensorParams[(reading.nodeId, reading.typeId)] = theSensor
 
 
         #Then add the offset etc
+        cvalue = (theSensor.calibrationSlope * reading.value)
+        cvalue += theSensor.calibrationOffset
+
         cReading = Reading(time=reading.time,
-                           nodeId = reading.nodeId,
-                           typeId = reading.typeId,
-                           locationId = reading.locationId,
-                           value = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
+                           nodeId=reading.nodeId,
+                           typeId=reading.typeId,
+                           locationId=reading.locationId,
+                           value=cvalue,
                            )
 
         yield cReading
@@ -285,22 +301,28 @@ def calibJSON(theQuery):
 
     for reading in theQuery:
 
-        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
-        #LOG.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        theSensor = sensorParams.get((reading.nodeId, reading.typeId), None)
+
         if not theSensor:
             #theSensor = "FOO"
-            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
+            theSensor = session.query(sensor.Sensor)
+            theSensor = theSensor.filter_by(nodeId=reading.nodeId,
+                                            sensorTypeId=reading.typeId).first()
             if theSensor is None:
-                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
-            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+                theSensor = sensor.Sensor(calibrationSlope=1.0,
+                                          calibrationOffset=0.0)
+            sensorParams[(reading.nodeId, reading.typeId)] = theSensor
 
 
         #Then add the offset etc
+        cvalue = (theSensor.calibrationSlope * reading.value)
+        cvalue += theSensor.calibrationOffset
+
         cReading = {"time":reading.time.isoformat(),
                     "nodeId" : reading.nodeId,
                     "typeId" : reading.typeId,
                     "locationId" : reading.locationId,
-                    "value" : theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
+                    "value" : cvalue
                     }
 
         yield cReading
@@ -319,24 +341,34 @@ def calibPandas(theQuery):
 
     for reading in theQuery:
 
-        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
-        #LOG.debug("Original Reading {0} Sensor is {1}".format(reading,theSensor))
+        theSensor = sensorParams.get((reading.nodeId, reading.typeId), None)
+
         if not theSensor:
             #theSensor = "FOO"
-            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,sensorTypeId = reading.typeId).first()
+            theSensor = session.query(sensor.Sensor)
+            theSensor = theSensor.filter_by(nodeId=reading.nodeId,
+                                            sensorTypeId=reading.typeId).first()
             if theSensor is None:
-                theSensor = sensor.Sensor(calibrationSlope = 1.0,calibrationOffset = 0.0)
-            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+                theSensor = sensor.Sensor(calibrationSlope=1.0,
+                                          calibrationOffset=0.0)
+            sensorParams[(reading.nodeId, reading.typeId)] = theSensor
 
 
         #Then add the offset etc
+        cvalue = (theSensor.calibrationSlope * reading.value)
+        cvalue += theSensor.calibrationOffset
+
+        locstr = "Node {0}: {1} {2}".format(reading.nodeId,
+                                            reading.location.room.name,
+                                            reading.sensorType.name)
+
         cReading = {"time":reading.time,
                     "nodeId" : reading.nodeId,
                     "typeId" : reading.typeId,
                     "locationId" : reading.locationId,
                     "locationStr": reading.location.room.name,
-                    "value" : theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value),
-                    "location" : "Node {0}: {1} {2}".format(reading.nodeId,reading.location.room.name,reading.sensorType.name),
+                    "value" : cvalue,
+                    "location" : locstr
                     }
 
         yield cReading
@@ -353,20 +385,22 @@ def calibratePairs(theQuery):
     sensorParams = {}
 
     for reading in theQuery:
-        theSensor = sensorParams.get((reading.nodeId,reading.typeId),None)
+        theSensor = sensorParams.get((reading.nodeId, reading.typeId), None)
         LOG.debug("Original Reading {0} Sensor is {1}".format(reading,
                                                               theSensor))
         if not theSensor:
-            theSensor = session.query(sensor.Sensor).filter_by(nodeId = reading.nodeId,
-                                                               sensorTypeId = reading.typeId).first()
+            theSensor = session.query(sensor.Sensor)
+            theSensor = theSensor.filter_by(nodeId=reading.nodeId,
+                                            sensorTypeId=reading.typeId).first()
             if theSensor is None:
-                theSensor = sensor.Sensor(calibrationSlope = 1.0,
-                                          calibrationOffset = 0.0)
-            sensorParams[(reading.nodeId,reading.typeId)] = theSensor
+                theSensor = sensor.Sensor(calibrationSlope=1.0,
+                                          calibrationOffset=0.0)
+            sensorParams[(reading.nodeId, reading.typeId)] = theSensor
 
         theTime = time.mktime(reading.time.timetuple())*1000.0
         #theTime = reading.time.isoformat()
-        theValue = theSensor.calibrationOffset + (theSensor.calibrationSlope * reading.value)
+        theValue = (theSensor.calibrationSlope * reading.value)
+        theValue += theSensor.calibrationOffset
         #theValue = reading.value
 
-        yield (theTime,theValue)
+        yield (theTime, theValue)

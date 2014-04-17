@@ -3,36 +3,37 @@ This metaclass stops the need for the Base function being initiated by all
 models, That saves the poor things getting confused with scope.
 """
 
-import warnings
+#Functions provided by from meta import *
+__all__ = ['Base', 'Session']
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import scoped_session, sessionmaker
+import warnings
+import json
 
 import logging
 LOG = logging.getLogger(__name__)
 
+import dateutil.parser
 
-#Security
-from pyramid.security import (
-    Allow,
-    Everyone,
-    )
+import sqlalchemy
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
 
-from passlib.context import CryptContext
+# #Security
+# from pyramid.security import (
+#     Allow,
+#     Everyone,
+#     )
 
-#Global Pasword Hashing Algorithm
-pwdContext = CryptContext(
-    #Schemes to Support
-    schemes=["sha256_crypt", "md5_crypt"],
-    default = "sha256_crypt"
-    )
-     
+# from passlib.context import CryptContext
 
-#Functions provided by from meta import *
-__all__ = ['Base', 'Session']
+# #Global Pasword Hashing Algorithm
+# pwdContext = CryptContext(
+#     #Schemes to Support
+#     schemes=["sha256_crypt", "md5_crypt"],
+#     default = "sha256_crypt"
+#     )
 
 
-#PYRAMID IMPORTS (COMMENT THESE FOR NON PYRAMID OPERATION)
 try:
     from zope.sqlalchemy import ZopeTransactionExtension
     Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
@@ -44,18 +45,15 @@ except ImportError:
 # SQLAlchemy session manager. Updated by model.init_model()
 #Session = scoped_session(sessionmaker())
 
-import sqlalchemy
-
-import dateutil.parser
-
-import json
-
 # The declarative Base
 Base = declarative_base()
 
-import warnings
-  
 class SerialiseMixin(object):
+    """Set of functions to allow serialisation of SQLA objects.
+
+    This mixin class allows serialisation to and from dictionary
+    and json objects
+    """
 
     def update(self, **kwargs):
         """
@@ -79,16 +77,16 @@ class SerialiseMixin(object):
         """
         Method to convert a row from an SQLAlchemy table to a dictionary.
 
-        This will return a dictionary repreentation of the row, 
-        To aid with identifing which table the serialised object has come from, the table name is appended 
-        to the dictionay under the "__table__" key.
+        This will return a dictionary repreentation of the row,
+        To aid with identifing which table the serialised object has come from,
+        the table name is appended to the dictionay under the "__table__" key.
 
         .. note::  As this is intended to simplify conversion to and from JSON,
                    datetimes are converted using .isoformat()
 
         :return:: A dictionary of {__table__:<tablename> .. (key,value)* pairs}
         """
-        
+
         out = {"__table__": self.__tablename__}
 
         #Iterate through each column in our table
@@ -110,15 +108,16 @@ class SerialiseMixin(object):
         return out
 
     def json(self):
+        """Return a json representation of this object"""
         return json.dumps(self.dict())
 
     def toDict(self):
         """
         Method to convert a row from an SQLAlchemy table to a dictionary.
 
-        This will return a dictionary repreentation of the row, 
-        To aid with identifing which table the serialised object has come from, the table name is appended 
-        to the dictionay under the "__table__" key.
+        This will return a dictionary repreentation of the row,
+        To aid with identifing which table the serialised object has come from,
+        the table name is appended to the dictionay under the "__table__" key.
 
         .. note::  As this is intended to simplify conversion to and from JSON,
                    datetimes are converted using .isoformat()
@@ -126,12 +125,12 @@ class SerialiseMixin(object):
         :return:: A dictionary of {__table__:<tablename> .. (key,value)* pairs}
 
         .. deprecated:: 0.2.0
-             toDict() will be removed in favor of the dict() method, (prepare for transistion to restAlchmey)
+             toDict() will be removed in favor of the dict() method,
+             (prepare for transistion to restAlchmey)
         """
 
         LOG.warning("toDict Depricated, please use dict() function instead")
-        #Appending a table to the dictionary could help us when unpacking objects
-        warnings.warn("meta.toDict() method has been depricated, please use meta.dict() instead",
+        warnings.warn("meta.toDict() is depricated, please use meta.dict()",
                       DeprecationWarning)
 
         return self.dict()
@@ -140,14 +139,14 @@ class SerialiseMixin(object):
 #        """Update the object given a dictionary of <key>,<value> pairs
 #        """
 
-    def from_dict(self,jsonList):
+    def from_dict(self, jsonList):
         """Update the object using a dictionary
 
         :var jsonDict:: A dictionary containing key,value pairs (from asDict())
 
         :return:  A copy of the original object
         """
-        
+
         return self.from_json(jsonList)
 
     def from_json(self, jsonobj):
@@ -167,7 +166,7 @@ class SerialiseMixin(object):
         for col in self.__table__.columns:
             #Check to see if the item exists in our dictionary
             value = jsonobj.get(col.name, None)
-            
+
             #Fix missing values
             #if col.name == "locationId":
             #    setattr(self,col.name,newValue)
@@ -180,7 +179,7 @@ class SerialiseMixin(object):
                 #And set our variable
             setattr(self, col.name, value)
 
-    def fromJSON(self,jsonDict):
+    def fromJSON(self, jsonDict):
         """Update the object using a JSON string
 
         :var jsonDict:: Either a JSON string (from json.dumps) or dictionary
@@ -189,7 +188,7 @@ class SerialiseMixin(object):
         :return:  A copy of the original object
         """
 
-        warnings.warn("meta.fromJSON() method has been depricated, please use meta.from_json() instead",
+        warnings.warn("meta.fromJSON method is depricated use meta.from_json",
                       DeprecationWarning)
 
         return self.from_json(jsonDict)
@@ -204,35 +203,32 @@ class InnoDBMix(SerialiseMixin):
     Addtionally this class defines standard functionality that should
     be included in all modules.
     """
-    __table_args__ = {'mysql_engine': 'InnoDB',
-                      'mysql_charset':'utf8'}
+    __table_args__ = {'mysql_engine' : 'InnoDB',
+                      'mysql_charset' : 'utf8'}
 
 
-import user
+# class RootFactory(object):
+#     """New Root Factory Object to assign permissions
+#     And control the ACL
+#     """
 
+#     __acl__ = [(Allow,Everyone, "logout"),
+#                (Allow,"group:user", "view"),
+#                (Allow,"group:root", "view")]
 
-class RootFactory(object):
-    """New Root Factory Object to assign permissions
-    And control the ACL
-    """
+#     def __init__(self, request):
+#         pass
 
-    __acl__ = [(Allow,Everyone,"logout"),
-               (Allow,"group:user","view"),
-               (Allow,"group:root","view")]
+# def groupfinder(userid,request):
+#     LOG.debug("-----> Group Finder Called {0}".format(userid))
+#     session = Session()
+#     theUser = session.query(user.User).filter_by(id=userid).first()
+#     if theUser is None:
+#         return ["group:none"]
 
-    def __init__(self, request):
-        pass
+#     if theUser.level == "root":
+#         return["group:root"]
+#     elif theUser.level == "user":
+#         return ["group:user"]
 
-def groupfinder(userid,request):
-    LOG.debug("-----> Group Finder Called {0}".format(userid))
-    session = Session()
-    theUser = session.query(user.User).filter_by(id=userid).first()
-    if theUser is None:
-        return ["group:none"]
-
-    if theUser.level == "root":
-        return["group:root"]
-    elif theUser.level == "user":
-        return ["group:user"]
-
-    return ["group:none"]
+#     return ["group:none"]

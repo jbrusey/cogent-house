@@ -22,7 +22,7 @@ class TestLocation(base.ModelTestCase):
         return theDict
 
     def testEq(self):
-        """Test for Equality"""
+        #"""Test for Equality"""
         item1 = models.Location(id=1,
                             houseId = 2,
                             roomId = 3)
@@ -64,11 +64,7 @@ class TestLocation(base.ModelTestCase):
 
 
     def testCmp(self):
-        """Test Compaison function
-
-        (actually __lt__ for Py3K Comat)"""
-
-
+        #"""Test Compaison function
         item1 = models.Location(id=1,
                             houseId = 2,
                             roomId = 3)

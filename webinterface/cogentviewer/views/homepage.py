@@ -24,6 +24,7 @@ from pyramid.response import Response
 from pyramid.renderers import render_to_response
 from pyramid.view import notfound_view_config
 from pyramid.view import view_config
+from pyramid.view import forbidden_view_config
 from pyramid.security import authenticated_userid
 from pyramid.security import forget
 from pyramid.httpexceptions import HTTPFound
@@ -47,21 +48,30 @@ NAVBAR = [("Home","home","Homepage"),
             #("Report","report","Generate Reports"),
             #("Electricity","electricity","Electricity Use"),
             #("Status","status","Deployment Status"),
-            ("Admin","admin","Admin"),
+            #("Admin","admin","Admin"),
             #("Browser","databrowser","Examine Data"),
             #("Upload","upload","Upload Data"),
             ("Server","server","Show Server Status"),
+            ("housestatus","housestatus","Show House Status"),
             ]
 
-def genHeadUrls(request):
+ADMIN_NAVBAR = [("Admin","admin","Admin"),
+                ("PushStatus","pushdebug","PushStatus"),
+                
+               ]
+
+def genHeadUrls(request, user=None):
     """Generate the Urls for the Homepage"""
-    #headLinks = [("Home",pyramid.url.route_url("home",request))]
-    #headLinks = [("Home",request.route_url("home"))]
     headLinks = []
 
+    #log.debug("User {0}".format(request.root))
     for item in NAVBAR:
         headLinks.append([item[0],pyramid.url.route_url(item[1],request),item[2]])  
 
+    if user:
+        if user.level == "root":
+            for item in ADMIN_NAVBAR:
+                headLinks.append([item[0],pyramid.url.route_url(item[1],request),item[2]])  
     return headLinks
     
 def genSideUrls(request):
@@ -80,10 +90,9 @@ def getUser(request):
 
     session = meta.Session()
     thisUser = session.query(models.User).filter_by(id=userId).first()
-    log.debug("User from homepage.getUser {0}".format(thisUser))
+    #log.debug("User from homepage.getUser {0}".format(thisUser))
     if thisUser is None:
         headers = forget(request)
-
         return HTTPFound(location=request.route_url("home"),
                          headers=headers)
     return thisUser
@@ -170,16 +179,21 @@ def homepage(request):
     #deployments = session.query(models.deployment.Deployment).all()
 
     outDict = {}
-    outDict["headLinks"] = genHeadUrls(request)
+
+    #Get authenticated user
+    user = getUser(request)
+    if type(user) == HTTPFound:
+        return user
+    else:
+        outDict["user"] = user.username
+
+    outDict["showadmin"] = user.level == "root"
+    outDict["headLinks"] = genHeadUrls(request, user)
     outDict["sideLinks"] = genSideUrls(request)
     outDict["pgTitle"] = "Homepage"
 
-    #Get authenticated user
-    theUser = getUser(request)
-    if type(theUser) == HTTPFound:
-        return theUser
-    else:
-        outDict["user"] = theUser.username
+
+
 
 
     now = datetime.datetime.now()
@@ -241,13 +255,11 @@ def getNodeDropdowns():
     #Get Deployments we know about
     outDict = {}    
 
-
     deployments = session.query(models.deployment.Deployment).all()
     for item in deployments:
         outDict[item.name] = item
-
-    import pprint
-    pprint.pprint(outDict)
+    return outDict
+        
     
     
 def chartTest(request):
@@ -264,4 +276,9 @@ def chartTest(request):
 #Add a 404
 @notfound_view_config(renderer="cogentviewer:templates/404.mak")
 def notfound(request):
+    return {}
+
+
+@forbidden_view_config(renderer="cogentviewer:templates/forbidden.mak")
+def forbiddenview(request):
     return {}

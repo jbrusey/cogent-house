@@ -30,13 +30,14 @@ class TestHouse(base.ModelTestCase):
                    "id":1,
                    "deploymentId" :  1,
                    "address" : "10 Test Address",
+                   "serverid": None,
                    "startDate" : NOW.isoformat(),
                    "endDate" : NOW.isoformat(),
                    }
         return theDict
 
     def testEq(self):
-        """Test for Equality"""
+        #"""Test for Equality"""
         item1 = models.House(id=1,
                              deploymentId =  1,
                              address = "10 Test Address",
@@ -61,7 +62,6 @@ class TestHouse(base.ModelTestCase):
         self.assertReallyEqual(item1, item2)
 
     def testNEQ(self):
-
         item1 = models.House(id=1,
                              deploymentId =  1,
                              address = "10 Test Address",
@@ -93,10 +93,7 @@ class TestHouse(base.ModelTestCase):
 
 
     def testCmp(self):
-        """Test Compaison function
-
-        (actually __lt__ for Py3K Comat)"""
-
+        #Test Comparison
         item1 = models.House(id=1,
                              deploymentId =  1,
                              address = "10 Test Address",

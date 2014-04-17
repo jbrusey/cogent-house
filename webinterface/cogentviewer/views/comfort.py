@@ -10,7 +10,7 @@ import pyramid.url
 
 import cogentviewer.models.meta as meta
 import cogentviewer.models as models
-import cogentviewer.views.rrdstore as rrdstore
+
 
 from pyramid.view import view_config
 

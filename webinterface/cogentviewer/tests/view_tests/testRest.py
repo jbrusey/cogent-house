@@ -3,7 +3,7 @@ Test REST interface functionality
 """
 
 import datetime
-
+import unittest2 as unittest
 
 from cogentviewer.views import homepage
 import cogentviewer.tests.base as base
@@ -356,8 +356,8 @@ class RestTest(base.FunctionalTest):
         res = self.testapp.get("/rest/room/",
                                {"sort(-roomTypeId)":None})
         thedata = res.json
-        self.assertEqual(thedata[0]["name"], "Hallway")
-        self.assertEqual(thedata[2]["name"], "Utility Room")
+        self.assertEqual(thedata[0]["name"], "Spare Room")
+        self.assertEqual(thedata[1]["name"], "Utility Room")
 
         #And by a couple of things (a different sort order to above)
         res = self.testapp.get("/rest/room/",
@@ -366,6 +366,7 @@ class RestTest(base.FunctionalTest):
         self.assertEqual(thedata[0]["name"], "Hallway")
         self.assertEqual(thedata[2]["name"], "Upstairs Hallway")
 
+    @unittest.skip
     def test_getversion(self):
         """Check REST supplies the correct versions"""
         res = self.testapp.get("/rest/version/")

@@ -21,6 +21,7 @@ log = logging.getLogger(__name__)
 from pyramid.config import Configurator
 from paste.deploy.loadwsgi import appconfig
 from pyramid import testing
+import transaction
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import engine_from_config
@@ -28,9 +29,11 @@ from sqlalchemy import engine_from_config
 import cogentviewer.models.meta as meta
 import cogentviewer.models as models
 
+
+
 #Setup the Testing to load pyramid settings from the test.ini file
 ROOT_PATH = os.path.dirname(__file__)
-SETTINGS_PATH = os.path.join(ROOT_PATH, "../../","test.ini")
+SETTINGS_PATH = os.path.join(ROOT_PATH, "../../","jenkins.ini")
 
 log.info("")
 log.info("------------- TESTING START -------------")
@@ -68,11 +71,11 @@ def initDatabase():
 
 #Check to see if we have a database all ready initialised (Avoids bug where the
 #test overrides everything)
-if meta.Base.metadata.bind is None:
-    log.info("--> No Database Initiated")
-    initDatabase()
-    #populatedata()
-    print "====================="
+#if meta.Base.metadata.bind is None:
+#    log.info("--> No Database Initiated")
+#    initDatabase()
+#    #populatedata()
+#    print "====================="
 
 class BaseTestCase(unittest.TestCase):
     """Base class for testing"""
@@ -124,8 +127,10 @@ class FunctionalTest(BaseTestCase):
 
         #Load settings from predefined .ini file
         settings = appconfig('config:' + SETTINGS_PATH)
-        cls.engine = engine_from_config(settings, prefix='sqlalchemy.')
-        cls.Session = sessionmaker()
+        #cls.engine = engine_from_config(settings, prefix='sqlalchemy.')
+        #cls.Session = sessionmaker()
+        #cls.Session = meta.Session
+        #print meta.Session
 
         #super(BaseTestCase, cls).setUp()
         from cogentviewer import main
@@ -136,24 +141,27 @@ class FunctionalTest(BaseTestCase):
 
     def setUp(self):
         """Setup Transaction"""
+        testing.setUp()
         self.testapp.post("/login",
                           {"username":"test",
                            "password":"test",
                            "submit":""})
-
-        connection = self.engine.connect()
+        self.session = meta.Session()
+        #self.sp = transaction.savepoint()
+        #connection = self.engine.connect()
         #Begin the Transaction
-        self.transaction = connection.begin()
+        #self.transaction = connection.begin()
         #And bind the session
-        self.session = self.Session(bind=connection)
+        #self.session = self.Session(bind=connection)
+        #self.session = meta.Session(bind=connection)
 
     def tearDown(self):
         """Rollback and teardown transaction"""
         self.testapp.get("/logout")
-        print "Rollback transaction"
+        #self.sp.rollback()
         testing.tearDown()
-        self.transaction.rollback()
-        self.session.close()
+        #self.transaction.rollback()
+        #self.session.close()
 
 
 class ModelTestCase(BaseTestCase):
@@ -208,7 +216,7 @@ class ModelTestCase(BaseTestCase):
         self.fail("You need to implement a serialObj method for this class")
 
     def testSerialise(self):
-        """Test Serialisation of objects"""
+        #"""Test Serialisation of objects"""
         theObj = self._serialobj()
 
         #convert to dictionary
@@ -219,7 +227,7 @@ class ModelTestCase(BaseTestCase):
         self.assertEqual(theObj, newObj)
 
     def testDict(self):
-        """Test Conversion to a dictionary"""
+        #"""Test Conversion to a dictionary"""
         theItem = self._serialobj()
         theDict = self._dictobj()
 

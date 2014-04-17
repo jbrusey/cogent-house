@@ -25,7 +25,7 @@ class TestNode(base.ModelTestCase):
         return theDict
 
     def testEq(self):
-        """Test for Equality"""
+        #"""Test for Equality"""
         item1 = models.Node(id=1,
                             locationId = 2,
                             nodeTypeId = 3)
@@ -72,10 +72,7 @@ class TestNode(base.ModelTestCase):
         self.assertReallyNotEqual(item1, item2)
 
     def testCmp(self):
-        """Test Comparison function
-
-        (actually __lt__ for Py3K Comat)"""
-
+        #"""Test Comparison function
 
         item1 = models.Node(id=1,
                             locationId = 2,

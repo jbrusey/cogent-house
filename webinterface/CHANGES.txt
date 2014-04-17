@@ -81,3 +81,17 @@
   - Added database table for server (and correcsponding alembic)
   - Added new node types / sensor types from cogent.base
 
+0.4.4
+------
+
+  -  Updated pushstatus table to contain a version string
+  -  updated server table to contain a RPC bitmask value (prep for moving RPC to DB control)
+  -  Removed All references to RRD graphs as they do not work the SIP
+  -  Removed old remotemodels class from Views as this is not used anymore.
+  -  FIX bug in graphing where out of sequence data is not shown
+  -  Added a get counts function to the rest service to allow the push "merge" functionlity
+  -  Modified House to contain a server reference rather than holding a link to house in the server table.
+     This should allow multiple houses to be linked to a given server rather than just a single one.
+  -  Modified Nodestate table to remove id primary key and key on (time, nodeId, seq_num)
+  -  Remapped Node.Statehistoy to order by Nodestate.time rather than NodeState.id
+  

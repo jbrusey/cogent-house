@@ -21,6 +21,8 @@ class PushStatus(meta.Base, meta.InnoDBMix):
     #Hostname of push script
     hostname = sqlalchemy.Column(sqlalchemy.String(25))
 
+    #Version string
+    version = sqlalchemy.Column(sqlalchemy.String(20))
 
 
     def from_json(self, jsonobj):
@@ -52,3 +54,10 @@ class PushStatus(meta.Base, meta.InnoDBMix):
             setattr(self, col.name, value)
 
         self.time = datetime.datetime.now()
+
+    def pandas(self):
+        """Format object for conversion to pandas"""
+        outdict = {"hostname": self.hostname,
+                   "time": self.time,
+                   "localtime": self.localtime}
+        return outdict

@@ -25,7 +25,7 @@ class TestRoom(base.ModelTestCase):
         return theDict
 
     def testEq(self):
-        """Test for Equality"""
+        #"""Test for Equality"""
         item1 = models.Room(id=1,
                             name="Test Room",
                             roomTypeId = 1)
@@ -59,10 +59,7 @@ class TestRoom(base.ModelTestCase):
         item2.roomTypeId = 2
 
     def testCmp(self):
-        """Test Compaison function
-
-        (actually __lt__ for Py3K Comat)"""
-
+        #Test Compaison function
         item1 = models.Room(id=1,
                             name="Test Room",
                             roomTypeId = 1)
@@ -89,7 +86,7 @@ class TestRoom(base.ModelTestCase):
 
 
     def testAssociations(self):
-        """Test if backrefs and foriegn keys work correctly"""
+        #"""Test if backrefs and foriegn keys work correctly"""
         session = self.session
 
         roomtype = models.RoomType(name = "Foo Type")
@@ -107,13 +104,6 @@ class TestRoom(base.ModelTestCase):
         #And then do the check the backrefs etc
         qryroom = session.query(models.Room).filter_by(name="Test Room").first()
 
-        print "-"
-        print "-"*70
-        print "OR RM: ",room
-        print "NE RM: ",qryroom
-        print "OR TY: ",roomtype
-        print "TY ID: ",qryroom.roomTypeId
-        print "-"*70
 
         self.assertEqual(room,qryroom)
 

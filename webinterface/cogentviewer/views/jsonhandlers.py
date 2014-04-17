@@ -367,7 +367,6 @@ def fetchLocationData(sensorType,
     log.debug("Searching for Location {0} == {1}".format(locationId,
                                                          theLocation))
     log.debug("--> Location Room {0}".format(theLocation.room))
-    log.debug("--> Loc Room Name".format(theLocation.room.name))
 
     log.debug("Location is {0} ({1}".format(theLocation,
                                             locationId))
@@ -387,6 +386,10 @@ def fetchLocationData(sensorType,
         theQry = session.query(models.Reading).filter_by(locationId=locationId)
         theQry = theQry.filter_by(typeId = sensorTypeId)
         theQry = theQry.filter_by(nodeId = nodeId[0])
+        theQry = theQry.order_by(models.Reading.time)
+
+        #startDate = datetime.datetime(2013,12,26,00,00,00)
+        #endDate = datetime.datetime(2013,12,30,00,00,00)
 
         log.debug("--> Start {0} End {1}".format(startDate, endDate))
         if startDate:
@@ -397,6 +400,7 @@ def fetchLocationData(sensorType,
             theQry = theQry.filter(models.Reading.time <= endDate)
 
         theCount = theQry.count()
+        log.debug("The Query as SQL {0}".format(theQry))
         log.debug("Total Count of Samples {0}".format(theCount))
         if theCount == 0:
             log.debug("Location Room Name {0}".format(theLocation.room.name))
@@ -405,7 +409,9 @@ def fetchLocationData(sensorType,
                                                         theLocation.room.name,
                                                         sensorType.name),
                        "data":[],
-                       "id":"{0}_{1}".format(theLocation.houseId,theLocation.id)
+                       "id":"{0}_{1}".format(theLocation.houseId,theLocation.id),
+                       "lineWidth": 0,
+                       "marker":{"enabled":True, "radius":2},
                        }
         else:
             theGenerator = models.calibratePairs(theQry)
@@ -416,59 +422,60 @@ def fetchLocationData(sensorType,
                        "data":theData,
                        "id":"{0}_{1}".format(theLocation.houseId,
                                              theLocation.id),
-                       #"marker":{"enabled":True, "radius":3}
+                       "lineWidth": 0,
+                       "marker":{"enabled":True, "radius":2}
                        }
 
-            #Check to see if this is SIP data.
-            if sensorType.id in [0, 2]:
-                log.debug("--> Sensor Type is possible SIP")
-                lastSample = theQry[-1]
-                log.debug("--> Last Sample is {0}".format(lastSample))
-                sipQry = session.query(models.Reading)
-                sipQry = sipQry.filter_by(time=lastSample.time,
-                                          nodeId=lastSample.nodeId,
-                                          typeId = lastSample.typeId+1,
-                                          locationId = lastSample.locationId)
-                sipQry = sipQry.first()
-                log.debug("Sip Query is {0}".format(sipQry))
-                if sipQry:
-                    log.debug("Estimating SIP Values")
-                    #Get Calibrated version
-                    calib = lastSample.getCalibValues()
-                    log.debug("--> Calibrated {0}".format(calib))
+            # #Check to see if this is SIP data.
+            # if sensorType.id in [0, 2]:
+            #     log.debug("--> Sensor Type is possible SIP")
+            #     lastSample = theQry[-1]
+            #     log.debug("--> Last Sample is {0}".format(lastSample))
+            #     sipQry = session.query(models.Reading)
+            #     sipQry = sipQry.filter_by(time=lastSample.time,
+            #                               nodeId=lastSample.nodeId,
+            #                               typeId = lastSample.typeId+1,
+            #                               locationId = lastSample.locationId)
+            #     sipQry = sipQry.first()
+            #     log.debug("Sip Query is {0}".format(sipQry))
+            #     if sipQry:
+            #         log.debug("Estimating SIP Values")
+            #         #Get Calibrated version
+            #         calib = lastSample.getCalibValues()
+            #         log.debug("--> Calibrated {0}".format(calib))
 
-                    currentTime = datetime.datetime.now()
-                    lastTime = lastSample.time
+            #         currentTime = datetime.datetime.now()
+            #         lastTime = lastSample.time
 
-                    timeDiff = currentTime - sipQry.time
-                    if timeDiff.days > 0 or  timeDiff.seconds >= (60*60*8):
-                        timeDiff = datetime.timedelta(hours=8)
-                        #timeDiff = currentTime - datetime.timedelta(hours=8)
-                        lastTime = currentTime - timeDiff
+            #         timeDiff = currentTime - sipQry.time
+            #         if timeDiff.days > 0 or  timeDiff.seconds >= (60*60*8):
+            #             timeDiff = datetime.timedelta(hours=8)
+            #             #timeDiff = currentTime - datetime.timedelta(hours=8)
+            #             lastTime = currentTime - timeDiff
 
-                    td = (timeDiff.seconds + (timeDiff.days * 24 * 3600))
+            #         td = (timeDiff.seconds + (timeDiff.days * 24 * 3600))
 
-                    #Forward predict
-                    endValue = calib[1] + (sipQry.value * td)
-                    log.debug("--> Estimted Value is {0}".format(endValue))
+            #         #Forward predict
+            #         endValue = calib[1] + (sipQry.value * td)
+            #         log.debug("--> Estimted Value is {0}".format(endValue))
 
-                    data = [[time.mktime(lastTime.timetuple())*1000.0,
-                            calib[1]],
-                           [time.mktime(currentTime.timetuple())*1000.0,
-                             endValue],
-                           ]
-                    log.debug("SIP Output is {0}".format(data))
+            #         data = [[time.mktime(lastTime.timetuple())*1000.0,
+            #                 calib[1]],
+            #                [time.mktime(currentTime.timetuple())*1000.0,
+            #                  endValue],
+            #                ]
+            #         log.debug("SIP Output is {0}".format(data))
 
-                    nodeStr = "({0}) {1}<br>{2}".format(nodeId[0],
-                                                        theLocation.room.name,
-                                                        sensorType.name)
+            #         nodeStr = "({0}) {1}<br>{2}".format(nodeId[0],
+            #                                             theLocation.room.name,
+            #                                             sensorType.name)
 
-                    sipDict = {"name":nodeStr,
-                               "data":data,
-                               "dashStyle":"longdash",
-                               #"marker":{"enabled":True, "radius":3}
-                              }
-                    outList.append(sipDict)
+            #         sipDict = {"name":nodeStr,
+            #                    "data":data,
+            #                    "dashStyle":"longdash",
+            #                    #"marker":{"enabled":True, "radius":3}
+            #                   }
+            #         outList.append(sipDict)
 
         outList.append(theDict)
     outList.reverse()
