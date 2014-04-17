@@ -2,9 +2,9 @@
 
 # Wrapper script for RestPusher - attempts to push the ch db every hour includes checks on 3g connectivity
 
-#select random time within 10 mins of call
-RTIME=`shuf -i 0-600 -n 1`
-sleep $RTIME
+#select random time within 5 mins of call
+WAIT=(($RANDOM %= 300))
+sleep $WAIT
 
 SIP="8.8.8.8"
 TIMEOUT=30
