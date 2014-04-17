@@ -7,12 +7,12 @@
 
 
 <!DOCTYPE html>  
-<!-- <html lang="en"> RM New Style-->
+<html lang="en">
 
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=en> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang=en> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9" lang=en> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang=en> <!--<![endif]-->
+<!--[if gt IE 8]><!--> <!-- <html class="no-js" lang=en> --> <!--<![endif]-->
 
 <head>  
   <meta charset="utf-8">
@@ -113,6 +113,7 @@
 	    % for link in headLinks:
 	        <li><a href="${link[1]}">${link[0]}</a></li>
             % endfor
+		
           </ul>
 	  
 	  <p class="navbar-text pull-right">
@@ -122,8 +123,8 @@
 	        <a href="${request.route_url('login')}">Login</a>
 	    %endif
 	  </p>
-
 	</div><!--/.nav-collapse -->
+
 
       </div> <!-- Container -->
     </div> <!-- Nav Inner -->

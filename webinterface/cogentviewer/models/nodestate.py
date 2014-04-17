@@ -28,14 +28,26 @@ class NodeState(meta.Base, meta.InnoDBMix):
 
     __tablename__ = "NodeState"
 
-    id = Column(Integer,
-                primary_key=True)
-    time = Column(DateTime)
+    #id = Column(Integer,
+    #            primary_key=True)
+    time = Column(DateTime,
+                  primary_key = True,
+                  nullable = False,
+                  autoincrement = False,
+                  index = True)
     nodeId = Column(Integer,
-                    ForeignKey('Node.id'))
+                    ForeignKey('Node.id'),
+                    primary_key = True,
+                    nullable = False,
+                    autoincrement = False,
+                    index = True)
     parent = Column(Integer)
     localtime = Column(BigInteger)
-    seq_num = Column(Integer)
+    seq_num = Column(Integer,
+                     primary_key = True,
+                     nullable = False,
+                     autoincrement = False,
+                     index = True)
     rssi = Column(Integer)
 
     #Add a named index
@@ -47,7 +59,6 @@ class NodeState(meta.Base, meta.InnoDBMix):
 
     def __repr__(self):
         return ("NodeState(" +
-                str(self.id) + "," +
                 str(self.time) + "," +
                 str(self.nodeId) + "," +
                 str(self.parent) + "," +
@@ -68,9 +79,10 @@ class NodeState(meta.Base, meta.InnoDBMix):
         """Return this object as something suitable for pandas"""
         
         #Igonre parent / rssi as we dont really use them
-        return {"id":self.id,
-                "localtime":self.localtime,
+        return {"localtime":self.localtime,
                 "nodeId":self.nodeId,
                 "seq_num":self.seq_num,
+                "rssi": self.rssi,
+                "parent": self.parent,
                 "time":self.time}
                 

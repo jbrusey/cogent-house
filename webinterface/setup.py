@@ -38,7 +38,7 @@ requires = [
 
 
 setup(name='cogent-viewer',
-      version='0.4.3',
+      version='0.4.4',
       description='cogent-viewer',
       long_description=README + '\n\n' +  CHANGES,
       classifiers=[

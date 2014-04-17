@@ -22,7 +22,7 @@ try:
 except:
     import unittest
 
-@unittest.skip("Base Class, Skip for most purposes")
+#@unittest.skip("Base Class, Skip for most purposes")
 class TestStub(base.BaseTestCase):
     """
     Deal with tables in the deployment module
@@ -36,14 +36,23 @@ class TestStub(base.BaseTestCase):
         #This should not exist in the database after the tests are run
         session = self.session
 
-        theDeployment = models.Deployment(name="test")
+        theDeployment = models.Deployment(name="testA")
 
         session.add(theDeployment)
         session.flush()
         session.commit()
 
+        qry = session.query(models.Deployment)
+        for item in qry:
+            print item
+
     def testCreate(self):
         #Test Creation of Objects
+        session = self.session
+
+        qry = session.query(models.Deployment)
+        for item in qry:
+            print item
         pass
 
     def testUpdate(self):

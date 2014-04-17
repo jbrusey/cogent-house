@@ -23,7 +23,7 @@ class TestRoomType(base.ModelTestCase):
         return theDict
 
     def testEq(self):
-        """Test for Equality"""
+        #"""Test for Equality"""
         item1 = models.RoomType(id=1,
                                 name="Test Room")
         item2 = models.RoomType(id=1,
@@ -50,10 +50,7 @@ class TestRoomType(base.ModelTestCase):
         self.assertReallyNotEqual(item1, item2)
 
     def testCmp(self):
-        """Test Compaison function
-
-        (actually __lt__ for Py3K Comat)"""
-
+        #"""Test Compaison function
         item1 = models.RoomType(id=1,
                                 name="Test Room")
         item2 = models.RoomType(id=1,

@@ -2,6 +2,8 @@
 Test Yield script functionality
 """
 
+import unittest
+
 import datetime
 
 #from cogentviewer.views import homepage
@@ -82,7 +84,6 @@ class yieldTest(base.FunctionalTest):
 
         self.assertEqual(desc, thedesc)
 
-
     def test_calculate(self):
         """Can we calculate yield correctly
 
@@ -109,6 +110,7 @@ class yieldTest(base.FunctionalTest):
         self.assertAlmostEqual(datayield, 100, 0)
         self.assertAlmostEqual(packetyield, 100, 0)
         self.assertEqual(lastsample, lastdate)
+
 
     def test_calculate_sip_1061(self):
         """Can we calcualte SIP nodes correrctly (node 1061)

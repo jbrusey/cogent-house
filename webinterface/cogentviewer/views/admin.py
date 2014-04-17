@@ -57,7 +57,7 @@ def status(request):
                               request=request)
 
 
-@view_config(route_name='admin', renderer='cogentviewer:templates/admin.mak', permission="view")
+@view_config(route_name='admin', renderer='cogentviewer:templates/admin.mak', permission="admin")
 def admin(request):
     """
     Show Admin Page
@@ -76,8 +76,8 @@ def admin(request):
     theQry = session.query(models.User)
     userList = []
     for item in theQry:
-        print item
-        print "{0} {1} {2}".format(item.id,item.username,item.password)
+        #print item
+        #print "{0} {1} {2}".format(item.id,item.username,item.password)
         userList.append([item.username,item.email,request.route_url("user",id=item.id)])
 
     outDict["userList"] = userList

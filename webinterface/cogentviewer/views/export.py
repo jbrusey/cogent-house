@@ -244,7 +244,7 @@ def processExport(houseId,
     #print dataList
     #print dataList
     df = pandas.DataFrame(dataList)
-    #print df.head()
+
     #print df.tail()
     
     #df.to_pickle('rawdata.pkl')
@@ -445,10 +445,12 @@ def calculateCurrent(df,aggregate=None):
     #outelec.colums = ["location","time","value"]
     outelec.rename(columns={"kWh":"value"},inplace=True)
 
+    print elec.head()
+
     #Append the kWh
     outelec["location"] = outelec["location"].map(lambda x: "{0} (kWh)".format(x))
     df = df.append(outelec)
-    
+
 
     locationStr = elec.iloc[0]['location']
     if aggregate:
@@ -465,13 +467,25 @@ def calculateCurrent(df,aggregate=None):
 def currentFunc(theRow):   
     delta = theRow["delta"]
     if delta is None:
+        print "Skipping row without time"
         return
 
+
+
+
     kW = theRow["value"] / 1000.0
-    #Convert from nanoseconds
+    if kW == 0:
+        return 0
+    #Convert to Seconds from nanoseconds
     delta =  delta / 1000000000.0
     #And to Hours
     hours = delta / (60*60)
-    return hours / kW
+
+
+    KwH = kW * hours
+
+    if theRow["time"] < datetime.datetime(2014,02,02,19,10,00):
+        print "Row {0}  Delta {1}  Hours {2} Kw {3} == {4}".format(theRow,delta,hours,kW, KwH)
+    return KwH
     #delta = s["delta"]
     #value = s["value"]

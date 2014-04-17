@@ -23,13 +23,6 @@ import homepage
 from ..models import meta
 import cogentviewer.models as models
 
-#RRD Graphing
-import pyrrd
-import pyrrd.graph as graph
-
-#RRD_LOC="/home/dang/cogent-house-Main/djgoldsmith-devel/cogent/base"
-RRD_LOC = "/usr/share/cogent-house/"
-#RRD_LOC = "~/cogent-house-Main/djgoldsmith-devel/cogent/base/"
 import os.path
 
 @view_config(route_name='node', renderer='cogentviewer:templates/node.mak',permission="view")
@@ -113,36 +106,10 @@ def node(request):
         if item.typeId == 6:
             outDict["batLevel"] = item.value
 
-        
+            sType = item.sensorType.name
+            sUnits = item.sensorType.units
 
-        #And RRD Based Graphing
-        #rrdFile = "{0}_{1}_{2}.rrd".format(theNode.id,theNode.locationId,item.typeId)
-        rrdFile = "{0}_{1}_{2}.rrd".format(theNode.id,1000,item.typeId)
-        log.debug("RRD file will be {0}".format(rrdFile))
-        thePath = os.path.join(RRD_LOC,rrdFile)
-        log.debug("Path is {0} Exists {1}".format(thePath,os.path.isfile(thePath)))
-        if os.path.isfile(thePath):
-            if item.sensorType:
-                sType = item.sensorType.name
-                sUnits = item.sensorType.units
-            else:
-                sType = "Type {0}".format(item.typeId)
-                sUnits = ""
-            #Work out the DEFS
-            def1 = pyrrd.graph.DEF(rrdfile = thePath,vname="reading",dsName="reading")
-            line1 = pyrrd.graph.LINE(defObj=def1, color="#ff0000", legend=sType)
-
-            outFile = os.path.join("cogentviewer","static","rrdGraphs","{0}.png".format(item.typeId))
-            theURL = request.static_url('cogentviewer:static/rrdGraphs/{0}.png'.format(item.typeId))
-            log.debug("The URL will be {0}".format(theURL))
-
-        
-            theGraph = graph.Graph(outFile,
-                                   vertical_label=sUnits,
-                                   start=glength
-                                   )
-            theGraph.data.extend([def1,line1])
-            theGraph.write()
+            theURL = None
             outReadings.append([sType, item.value,theURL])
 
     outDict["allReadings"] = outReadings

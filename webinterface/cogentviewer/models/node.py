@@ -38,7 +38,7 @@ class Node(meta.Base, meta.InnoDBMix):
                         nullable=True)
 
     stateHistory = relationship("NodeState",
-                                order_by="NodeState.id",
+                                order_by="NodeState.time",
                                 backref="node")
     nodeHistory = relationship("NodeHistory",
                                backref="node")

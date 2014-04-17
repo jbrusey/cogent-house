@@ -47,7 +47,7 @@
 
 <%block name="pagecontent">
     <section>
-    <h1>Server Status</h1>
+    <h1>Server Status at ${currenttime}</h1>
 
 
       <table class="table table-hover table-bordered">
@@ -57,8 +57,10 @@
 	    <th>Base Id</th>
 	    <th>Address</th>
 	    <th>Last Push</th>
-	    <td>Local Time</th>
 	    <th>Last Reading</th>
+	    <th>Skew</th>	   
+	    <th>Registed Nodes</th>
+	    <th>Reporting Nodes</th>
 	  </tr>
 	</thead>
 	<tbody>
@@ -69,9 +71,24 @@
 	    <td>${row["baseid"]}</td>
 	    <td>${row["address"]}</td>
 	    <td class=${row["push_state"]}>${row["lastpush"]}</td>
-	    <td class=${row["local_state"]}>${row["localtime"]}</td>
 	    <td class=${row["state_state"]}>${row["laststate"]}</td>
+	    <td class=${row["skew_state"]}>${row["skew"]}</td>
 	  </tr>
+	    %for node in row["nodes"]:
+	        <tr>
+		  <td></td>
+		  <td></td>
+		  <td></td>
+		  <td></td>
+		  <td></td>
+		  <td></td>
+		  <td class=${node[2]}> ${node[0]}</td>
+		  <td class=${node[2]}> ${node[1]}</td>
+		</tr>
+	    %endfor
+	    ##<td>${row["nodes"]}</td>
+	    ##<td>${row["reportingnodes"]}</td>
+
 	  
 	  %endfor
 	</tbody>
@@ -123,8 +140,9 @@
 	    %endif
 	%endfor
       </tbody>
-
-
     </table>
- 
+
+    <h3>Network Map</h3>
+    
+    <img src="${request.static_url('cogentviewer:static/netmap.png')}"/>
 </%block>

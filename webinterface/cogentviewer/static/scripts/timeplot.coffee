@@ -40,7 +40,7 @@ require(["dojo/topic","dojo/io/script"],
         plotTS = (theData) ->
             console.log("Building Time Series ",theData)
             #console.log("Title",theData.title)
-            console.log("Seires",theData.series)
+            console.log("Series",theData.series)
             options = {
                 chart:
                     renderTo: "theGraph"

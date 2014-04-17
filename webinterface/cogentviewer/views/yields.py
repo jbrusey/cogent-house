@@ -7,6 +7,7 @@ import datetime
 import logging
 
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.WARNING)
 
 from pyramid.response import Response
 from pyramid.renderers import render_to_response
@@ -18,10 +19,12 @@ import sqlalchemy
 import pandas
 import numpy
 
-
 import homepage
 import cogentviewer.models as models
 import cogentviewer.models.meta as meta
+
+SAMPLE_RATE_MINUTES = 5.0
+SAMPLE_RATE_DAY = (60*24) / SAMPLE_RATE_MINUTES
 
 @view_config(route_name='yield',
              renderer='cogentviewer:templates/yield.mak',
@@ -141,7 +144,6 @@ def exportYield():
 
     #outDict["yieldtable"] = yieldtable
     df = pandas.DataFrame(yieldtable)
-    print df.head()
     df.to_csv("yieldreport.csv")
 
 def queuenodes(houseid):
@@ -230,7 +232,8 @@ def calcyield(nodeid, startdate=None, enddate=None):
     :return:  Dictionary containing Yield Statistics
     """
 
-    LOG.debug("------- CALCUALTE YIELD FOR NODE {0} -----------".format(nodeid))
+    
+    LOG.debug("{1} CALCUALTE YIELD FOR NODE {0} {1}".format(nodeid,"="*20))
 
     lastsample = None
     datayield = 0
@@ -242,17 +245,21 @@ def calcyield(nodeid, startdate=None, enddate=None):
     session = meta.Session()
     qry = session.query(models.NodeState).filter_by(nodeId = nodeid)
     qry = qry.filter(models.NodeState.seq_num != None)
+    qry = qry.order_by(models.NodeState.time)
     if startdate:
         qry = qry.filter(models.NodeState.time >= startdate)
     if enddate:
         qry = qry.filter(models.NodeState.time <= enddate)
+    
+    qry = qry.group_by(models.NodeState.time, models.NodeState.seq_num)
+
 
     #Convert to pandas
     df = pandas.DataFrame([x.pandas() for x in qry])
     #df.to_pickle("nodestate.pkl")
 
     if len(df) == 0:
-        LOG.warning("No Data for this node")
+        LOG.warning("No Data for this node {0}")
         return "No Data", 0.0, 0.0
     elif len(df) == 1:
         LOG.warning("Single Sample for this Node")
@@ -262,28 +269,34 @@ def calcyield(nodeid, startdate=None, enddate=None):
     lastsample = df.irow(-1)["time"]
 
     duration = lastsample - firstsample
-    expected = duration.days * 288.0
-    expected += duration.seconds / (5*60)
+    #Work out how many are expected for complete days
+    expected = duration.days * SAMPLE_RATE_DAY 
+    expected += duration.seconds / (SAMPLE_RATE_MINUTES*60)
 
-    LOG.debug("First {0} Last {1} Expected {2}".format(firstsample,
-                                                       lastsample,
-                                                       expected))
+    LOG.debug("First {0} Last {1} Duration {2} Expected {3}".format(firstsample,
+                                                                    lastsample,
+                                                                    duration,
+                                                                    expected))
     if expected < 1.0:
         LOG.warning("Single Sample for th")
         return lastsample, "N/A", "N/A"
 
 
     """
-    #So the simple way of calculating datayield is
+    #So the simple way of calculating packetyield is
     # Nrows / Rxpected * 100.0
+    # This should give us the "compression factor"
     """
+
+    nrows = float(len(df))
+    LOG.debug("{0} Compression Factor {0}".format("-"*10))
     LOG.debug("Nrows {0} Expected {1}".format(len(df), expected))
 
     packetyield = (len(df) / expected) * 100.0
 
-    LOG.debug("Data Yield {0} {1} {2}".format(len(df),
-                                              expected,
-                                              packetyield))
+    LOG.debug("Compression Factor {0} {1} {2}".format(len(df),
+                                                      expected,
+                                                      packetyield))
 
     """
     And packet yield is
@@ -299,11 +312,18 @@ def calcyield(nodeid, startdate=None, enddate=None):
     df["expected"] = df.time_dif.apply(lambda x : round(x / numpy.timedelta64(datetime.timedelta(minutes=5))),0)
     df["new_dif"] = df.seq_dif
 
+    #Check if the localtime is not ascending
+    df["localtime_diff"] = df.localtime.diff()
+
     #Work out the time difference when we wrap around
     df.new_dif[df.new_dif < 0] = 255 + df.new_dif
     df["bad_samples"] = df.new_dif - 1
     df["good_samples"] = df.expected - df.bad_samples
-    print df.head()
+
+    #For the moment, I am going to assume that all the data up to the reset is Good.
+    df.good_samples[df.localtime_diff < 0] = df.expected
+    df.bad_samples[df.localtime_diff < 0] = 0
+
     #And if we have more than 8 hours of data between samples (96)
     LOG.debug("Total with more than 8 hours of data {0}".format(len(df[df.good_samples>96])))
     df.bad_samples[df.good_samples > 96] =  df.good_samples
@@ -332,6 +352,168 @@ def calcyield(nodeid, startdate=None, enddate=None):
                                                                              sumgood,
                                                                              sumbad,
                                                                              datayield))
-    df.to_csv("yielddump.csv")
-    df.to_pickle("yielddump.pkl")
+    df.to_csv("yielddumpOrd.csv")
+    df.to_pickle("yielddumpOrd.pkl")
     return lastsample, datayield, packetyield
+
+
+
+
+def calcyieldNew(nodeid, startdate=None, enddate=None):
+    """
+    Alternate method of calculating Yield
+
+    Method to calcualate Yield for a given node Id.
+    Upto the current date
+
+    This will return a dictionaty containing various yield
+    Statistics
+
+
+
+    {firstTx,
+     lastTx,
+     number of samples,
+     data yield (calculated based on "good" data)
+     packet yield (based on number of packets)
+     nodeResets (How many times the local clock has moved backwards)
+     }
+
+    :param nodeId:  Id of node we want to calcualte yield for
+    :param startdate: Date to limit start of yield to
+    :param enddate: Date to limit end of yield to
+    :return:  Dictionary containing Yield Statistics
+    """
+
+    
+    LOG.debug("{1} CALCUALTE YIELD FOR NODE {0} {1}".format(nodeid,"="*20))
+
+    lastsample = None
+    datayield = 0
+    packetyield = 0
+
+    outdict = {}
+
+    #Fetch samples
+    session = meta.Session()
+    qry = session.query(models.NodeState).filter_by(nodeId = nodeid)
+    qry = qry.filter(models.NodeState.seq_num != None)
+    qry = qry.order_by(models.NodeState.time)
+    if startdate:
+        qry = qry.filter(models.NodeState.time >= startdate)
+    if enddate:
+        qry = qry.filter(models.NodeState.time <= enddate)
+    
+    qry = qry.group_by(models.NodeState.time, models.NodeState.seq_num)
+
+    #Convert to pandas
+    df = pandas.DataFrame([x.pandas() for x in qry])
+    #df.to_pickle("nodestate.pkl")
+
+    if len(df) == 0:
+        LOG.warning("No Data for node {0}".format(nodeid))
+        return "No Data", 0.0, 0.0, 0.0
+    elif len(df) == 1:
+        LOG.warning("Single Sample for this Node")
+        return df.irow(-1)["time"], 0.0, 0.0, 0.0
+
+    if startdate:
+        firstsample = startdate
+    else:
+        firstsample = df.irow(0)["time"]
+    if enddate:
+        lastsample = enddate
+    else:
+        lastsample = datetime.datetime.now()
+        #lastsample = df.irow(-1)["time"] #This calculated based on the data we had
+
+    duration = lastsample - firstsample
+    #Work out how many are expected for complete days
+    expected = duration.days * SAMPLE_RATE_DAY 
+    expected += duration.seconds / (SAMPLE_RATE_MINUTES*60)
+
+    LOG.debug("First {0} Last {1} Duration {2} Expected {3}".format(firstsample,
+                                                                    lastsample,
+                                                                    duration,
+                                                                    expected))
+    if expected < 1.0:
+        LOG.warning("Single Sample for th")
+        return lastsample, 0, 0, 0
+
+
+    """
+    #So the simple way of calculating packetyield is
+    # Nrows / Rxpected * 100.0
+    # This should give us the "compression factor"
+    """
+
+    nrows = float(len(df))
+    LOG.debug("{0} Compression Factor {0}".format("-"*10))
+    LOG.debug("Nrows {0} Expected {1}".format(len(df), expected))
+
+    packetyield = (len(df) / expected) * 100.0
+
+    LOG.debug("Compression Factor {0} {1} {2}".format(len(df),
+                                                      expected,
+                                                      packetyield))
+
+    """
+    And packet yield is
+    Total Packets - (Diff Sequence > 1)
+    """
+
+    #Calculate Diffs
+    df["time_dif"] = df.time.diff()
+    df.time_dif = df.time_dif.fillna(0)
+    #df["expected"] = df.time.diff.total_seconds() / (5*60)
+    df["seq_dif"] = df.seq_num.diff()
+    df.seq_dif = df.seq_dif.fillna(1)
+    df["expected"] = df.time_dif.apply(lambda x : round(x / numpy.timedelta64(datetime.timedelta(minutes=5))),0)
+    df["new_dif"] = df.seq_dif
+
+    #Check if the localtime is not ascending
+    df["localtime_diff"] = df.localtime.diff()
+
+    #Work out the time difference when we wrap around
+    df.new_dif[df.new_dif < 0] = 255 + df.new_dif
+    df["bad_samples"] = df.new_dif - 1
+    df["good_samples"] = df.expected - df.bad_samples
+
+    #For the moment, I am going to assume that all the data up to the reset is Good.
+    df.good_samples[df.localtime_diff < 0] = df.expected
+    df.bad_samples[df.localtime_diff < 0] = 0
+
+    #And if we have more than 8 hours of data between samples (96)
+    LOG.debug("Total with more than 8 hours of data {0}".format(len(df[df.good_samples>96])))
+    df.bad_samples[df.good_samples > 96] =  df.good_samples
+    df.good_samples[df.good_samples > 96] = 0
+
+
+    #Delivered Packets
+    delivered = len(df)
+    totalretries = len(df[df.new_dif > 1])
+    LOG.debug("--> Total Retries {0}".format(totalretries))
+    failed = df.new_dif[df.new_dif > 1].sum() - totalretries
+
+    sumgood = df.good_samples.sum()
+    sumbad = df.bad_samples.sum()
+    datayield = sumgood / expected * 100.0
+
+    #How many times has our clock reset
+    noderesets = df[df.localtime_diff < 0].count()[0]
+
+    # LOG.debug("--------")
+    # print df.head()
+    # LOG.debug("Delivered Packets {0}".format(delivered))
+    # LOG.debug("Failed Packets {0}".format(failed))
+
+
+    # packetyield = (1 - (failed / expected)) * 100.0
+    LOG.debug("Deliviered {0} Failed {1} Good {2}  Bad {3} Yield {4}".format(delivered,
+                                                                             failed,
+                                                                             sumgood,
+                                                                             sumbad,
+                                                                             datayield))
+    df.to_csv("yielddumpOrd.csv")
+    df.to_pickle("yielddumpOrd.pkl")
+    return lastsample, datayield, packetyield, noderesets

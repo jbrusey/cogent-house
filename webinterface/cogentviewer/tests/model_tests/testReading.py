@@ -33,13 +33,14 @@ class TestReading(base.ModelTestCase):
         return theDict
 
     def testAdict(self):
+        #Dictionary Conversion
         foo = self._serialobj()
         bar = self._dictobj()
         foo = foo.dict()
         self.assertEqual(foo,bar)
 
     def testEq(self):
-        """Test for Equality"""
+        #"""Test for Equality"""
         item1 = models.Reading(time = NOW,
                                nodeId = 1,
                                typeId = 2,
@@ -65,7 +66,7 @@ class TestReading(base.ModelTestCase):
 
 
     def testNEQ(self):
-        """Test for Inequality"""
+        #"""Test for Inequality"""
         item1 = models.Reading(time = NOW,
                                nodeId = 1,
                                typeId = 2,

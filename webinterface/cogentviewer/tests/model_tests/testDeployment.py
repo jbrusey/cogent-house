@@ -26,7 +26,7 @@ class TestDeployment(base.ModelTestCase):
 
     #GENERAL TESTS
     def testCreate(self):
-        """Can we Create Deployments"""
+        #Can we Create Deployments
         thisDeployment = models.Deployment()
         self.assertIsInstance(thisDeployment, models.Deployment)
 
@@ -58,7 +58,6 @@ class TestDeployment(base.ModelTestCase):
         return theDict
 
     def testEq(self):
-        """Test for Equality"""
         #Test Equality
         item1 = models.Deployment(id=1, name="Test Deployment")
         item2 = models.Deployment(id=1, name="Test Deployment")

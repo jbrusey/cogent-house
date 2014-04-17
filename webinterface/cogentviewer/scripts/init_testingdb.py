@@ -27,6 +27,7 @@ Base = meta.Base
 from alembic.config import Config
 from alembic import command
 
+import cogentviewer.utils.security as security
 from cogentviewer.models import populateData as populateData
 import cogentviewer.models as models
 from cogentviewer.models import (
@@ -69,7 +70,7 @@ def populateUser():
     
     newuser = user.User(username="test",
                         email="test",
-                        password=meta.pwdContext.encrypt("test"),
+                        password=security.pwdContext.encrypt("test"),
                         level="root")
 
     session.merge(newuser)
@@ -235,6 +236,7 @@ def populatedata():
             ns = models.NodeState(nodeId = nid,
                                   parent = 1,
                                   time = thetime,
+                                  localtime = seqnum,
                                   seq_num = seqnum)
 
             session.add(ns)
@@ -283,7 +285,7 @@ def main(argv=sys.argv):
     Base.metadata.create_all(engine)
 
     #We also want any alembic scripts to be executed
-    alembic_cfg = Config("alembic.ini") #TODO: WARNING RELATIVE PATH
+    alembic_cfg = Config(config_uri) #TODO: WARNING RELATIVE PATH
     command.stamp(alembic_cfg,"head")
 
     DBSession = meta.Session()

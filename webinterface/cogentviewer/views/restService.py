@@ -1,7 +1,5 @@
 """
 Class to deal with REST Requests
-
-
 """
 
 from pyramid.response import Response
@@ -10,7 +8,6 @@ import pyramid.url
 
 import cogentviewer.models.meta as meta
 import cogentviewer.models as models
-import cogentviewer.views.rrdstore as rrdstore
 import homepage
 
 import logging
@@ -27,8 +24,6 @@ import datetime
 import time
 import zlib
 import json
-
-RRD_DICT =  {}
 
 def _getDeploymentTree(request):
     """Fetch a tree to be used for navigation"""
@@ -264,17 +259,32 @@ def _wrappedRest(request):
     if theType.lower() == "houserooms":
         return getHouseRooms(request)
 
+    if theType.lower() == "counts":
+        return getcounts(request)
+
+    if theType.lower() == "heatmap":
+        return getheatmap(request)
+
     if theType.lower() == "rpc":
-        return [("salford21","tunnel")]
+        qry = session.query(models.Server)
+        outlist = []
+        for item in qry:
+            if item.rpc == 1:
+                outlist.append((item.hostname,"tunnel"))
+        #return [("salford21","tunnel")]
+        return outlist
         #return [("salford21","tunnel"),
+
+    if theType.lower() == "network":
+        return getnetwork(request)
+
+    if theType.lower() == "topology":
+        return gettopology(request)
 
     #Deal with "BULK" uploads
     if theType.lower() == "bulk":
         log.debug("BULK UPLOAD")
         #parameters = request.json_body
-
-        #Start an RRD Server
-        rrdServer = rrdstore.RRDServer()
 
         parameters = request.body
         #log.debug(parameters)
@@ -309,7 +319,7 @@ def _wrappedRest(request):
         except Exception,e:
             log.warning("Bulk Upload Error")
             log.warning(e)
-            sb.rollback()
+            sp.rollback()
             #Try doing as a merge instead
             objGen = models.clsFromJSON(jsonBody)
             for item in objGen:
@@ -332,7 +342,6 @@ def _wrappedRest(request):
         log.debug("Bulk Upload Success")
         #session.commit()
         #session.close()
-        rrdServer.shutdown()
         return []
         #return [x.id for x in objGen]
     elif theType.lower() == "deploymenttree":
@@ -443,15 +452,15 @@ def _wrappedRest(request):
         #If we have updated a pushstatus make sure the server is logged in our db
         if theType.lower() == "pushstatus":
             log.debug("Push Status Sent from Server {0}".format(newObj.hostname))
-            
+
             qry = session.query(models.Server).filter_by(hostname = newObj.hostname).first()
             if qry is None:
                 log.info("Update from New Server {0}".format(newObj))
                 newserver = models.Server(hostname = newObj.hostname)
                 session.add(newserver)
                 session.flush()
-                         
-            
+
+
 
         #And Return the new object
 
@@ -596,6 +605,175 @@ def _wrappedRest(request):
 
         #session.close()
 
+def getheatmap(request):
+    """
+    Return the nodestates to be used as a heatmap
+    """
+    log.debug("Heatmap data requested")
+    nodeid = request.matchdict.get("id",None)
+    log.debug("Node Id >{0}< {1}".format(nodeid, type(nodeid)))
+    if nodeid == "":
+        log.debug("No Node Id Supplied")
+        #nodeid = None
+        nodeid = 28931
+
+    session = meta.Session()
+    qry = session.query(models.NodeState.nodeId,
+                        sqlalchemy.func.date(models.NodeState.time),
+                        sqlalchemy.func.count(models.NodeState.nodeId),
+                        )
+    #if nodeid:
+    #    qry = qry.filter(models.NodeState.nodeId == nodeid)
+    #qry = qry.filter(models.NodeState.nodeId.in_([33,34,65,66]))
+    qry = qry.filter(models.NodeState.time >= datetime.date(2013,12,01))
+    #Possibly add dates etc.
+    qry = qry.group_by(models.NodeState.nodeId,
+                       sqlalchemy.func.date(models.NodeState.time))
+
+    import pandas
+    df = pandas.DataFrame(qry.all(),
+                          columns=["nodeid", "date", "count"],
+                          )
+
+    df = df.convert_objects(convert_dates='coerce', convert_numeric=True)
+    print df
+    print df.head()
+
+    #Reindex
+    multidf = df.set_index(["date","nodeid"])
+    wide = multidf.unstack(0) #Date runs across the top
+    wide.fillna(0,inplace=True)
+
+    outdict = {}
+    
+    #Now we know the dates
+    datelist = [x[1].isoformat() for x in wide.columns]
+    outdict["datelist"] = datelist
+    #print datelist
+
+    #And Nodes
+    nodelist = [int(x) for x in wide.index.tolist()]
+    outdict["nodelist"] = nodelist
+
+    #And Data
+    datalist = wide.values.tolist()
+    outdict["data"] = datalist
+
+    #Finally 
+    outdict["min"] = int(df["count"].min())
+    outdict["max"] = int(df["count"].max())
+
+
+
+
+    #Far to Complex :)
+    # #Work out a multiple index
+    # multidf = df.set_index(["date","nodeid"])
+    # #Then a panel 
+    # thepanel = multidf.to_panel()
+
+    # #Work out which nodes we are dealing with
+    # nodelist = [int(x) for x in thepanel.minor_axis.tolist()]
+    # datelist = [x.isoformat() for x in thepanel.major_axis.tolist()]
+
+    # #df.to_pickle("data.pkl")
+    # #Manually convert JSON 
+    # #outlist = [[x[0], x[1].isoformat(), x[2]] for x in qry]
+    # outdict = {"nodes":nodelist,
+    #            "dates":datelist,
+    #            }
+
+
+
+    return outdict
+
+    
+
+
+def getcounts(request):
+    """Get a count of the readings for a given node id
+
+    This function will count the number of samples for a given node on each day
+    returning these values as a list of [<date> : <count>] pairs
+
+    The function will take an additional parameter (typeid)
+    that will filter the response to a specific type of data
+    """
+    log.debug("{0} Counts Requested {0}".format("-"*20))
+    nodeid = request.matchdict.get("id",None)
+    log.debug("Node Id is {0}".format(nodeid))
+
+    parameters = request.params
+    log.debug("Parameters are {0}".format(parameters))
+    typeid = parameters.get("typeid",None)
+
+    session = meta.Session()
+    qry = session.query(models.Reading,
+                        sqlalchemy.func.date(models.Reading.time),
+                        sqlalchemy.func.count(models.Reading),
+                        ).filter_by(nodeId = nodeid)
+
+    if typeid:
+        log.debug("Filter by type id {0}".format(typeid))
+        qry = qry.filter_by(typeId = typeid)
+
+    qry = qry.filter(models.Reading.locationId != None)
+    qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
+    qry = qry.order_by(sqlalchemy.func.date(models.Reading.time))
+
+    outdata = [[x[1].isoformat(), x[2]] for x in qry]
+    print outdata
+    return outdata
+
+
+ # def getcounts(self, nodeid,
+ #                  thesession=MERGE,
+ #                  startdate=None,
+ #                  enddate=None,
+ #                  typeid = None):
+ #        """Get daily counts of the number of samples for a given
+ #        node.
+
+ #        This function summarises the number of samples each day for a given node
+ #        and returns the values as a list of {<date> : <count>} pairs.
+
+
+ #        :param nodeId: Node Id to get counts for
+ #        :param thesession: Which session (MEREGE / MAIN) to get data for
+ #        :param startdate: Optional startdate
+ #        :param enddate: Optional enddate
+ #        :param typeid: Limit to a specific sensor type
+ #        :return: List of (<date>, <count>) pairs
+ #        """
+
+ #        log = self.log
+ #        if thesession == MAIN:
+ #            session = self.mainsession()
+ #        elif thesession == MERGE:
+ #            session = self.mergesession()
+ #        else:
+ #            log.warning("No Such Session")
+ #            return False
+
+ #        #Work out the query
+ #        qry = session.query(models.Reading,
+ #                            sqlalchemy.func.date(models.Reading.time),
+ #                            sqlalchemy.func.count(models.Reading),
+ #                            ).filter_by(nodeId = nodeid)
+ #        #qry = qry.filter_by(typeId = 0) #All nodes have temperature
+ #        if startdate:
+ #            qry = qry.filter(models.Reading.time >= startdate)
+ #        if enddate:
+ #            qry = qry.filter(models.Reading.time <= enddate)
+ #        if typeid:
+ #            qry = qry.filter_by(typeid = typeid)
+
+ #        qry = qry.filter(models.Reading.locationId != None)
+ #        qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
+ #        qry = qry.order_by(sqlalchemy.func.date(models.Reading.time))
+
+ #        outdata = [[x[1], x[2]] for x in qry]
+ #        return outdata
 
 def filterQuery(theModel, theQuery, params):
     """
@@ -1370,7 +1548,7 @@ def lastnodesync(request):
 
     :return: either the date of the last sample or None
     """
-    
+
     nodeid = request.matchdict.get("id",None)
     log.debug( "---- NODE ID >{0}< {1} {2}".format(nodeid,type(nodeid), nodeid==""))
     if (nodeid == u'') or (nodeid is None):
@@ -1384,15 +1562,15 @@ def lastnodesync(request):
         return None
 
     session = meta.Session()
-    
+
     qry = session.query(sqlalchemy.func.max(models.Reading.time))
     qry = qry.filter_by(nodeId = nodeid).first()[0]
     print "{0} {1} {0}".format("="*30, qry)
     if qry is not None:
         return qry.isoformat()
     return None
-        
-    
+
+
 
 
 def lastSync(request):
@@ -1435,3 +1613,187 @@ def lastSync(request):
         return reading_query.isoformat()
     else:
         return reading_query
+
+
+def getnetwork(request):
+    """Return a simple network map"""
+
+    """Data structure should be something like
+    { "nodes" : [ {"name":x, ...},]
+      "links" : [ {"source": "id_1" , "target" : "id_2"}]
+    }
+    """
+
+    #Get our nodelist
+    session = meta.Session()
+    nodeqry = session.query(models.Node)
+
+    nodelist = [{"name":"Base",
+                 "count":0,
+                 "id":0,
+                 "depth":0}
+                ]
+    linklist = []
+
+    graphtype = "current"
+
+    #For Every node in the simulation
+    for node in nodeqry:
+
+
+        
+        #Work out the links between each node (FOR ALLL)
+        if graphtype == "all":
+            qry = session.query(models.NodeState,
+                                sqlalchemy.func.count(models.NodeState.nodeId))
+            qry = qry.filter_by(nodeId = node.id)
+            qry = qry.group_by(models.NodeState.parent)
+        #TODO (Add filters by time here)
+
+        if graphtype == "current":
+            qry = session.query(models.NodeState,
+                                sqlalchemy.func.count(models.NodeState.nodeId))
+            qry = qry.filter_by(nodeId = node.id)
+            qry = qry.filter(models.NodeState.time >= (datetime.datetime.now() - datetime.timedelta(minutes=7)))
+            qry = qry.order_by(models.NodeState.time.desc())
+
+            qry = qry.limit(1)
+
+        statecount = 0
+
+        for state in qry:
+            if state[0] is None:
+                log.debug("No Nodestate for Id {0}".format(node.id))
+                continue
+            statecount += state[1]
+            #We need to stick a guard in here for 4252
+            if state[0].parent == 4252:
+                continue
+
+            linklist.append({"source":node.id,
+                             "target":state[0].parent,
+                             "type": "path",
+                             "count":state[1]}
+                            )
+
+            #And any visable neigbors
+            qry = session.query(models.Reading).filter_by(nodeId = node.id,
+                                                          time = state[0].time)
+            #And show neigbors
+            qry = qry.filter(models.Reading.typeId >= 2000)
+            qry = qry.filter(models.Reading.typeId <= 2006)
+            for neighbor in qry:
+                log.debug("Neighbor is {0}".format(neighbor))
+                # linklist.append({"source":node.id,
+                #                  "target":neighbor.value,
+                #                  "type": "neighbor",
+                #                  "count": 0})
+            
+            #I also want the average depth of the node
+            qry = session.query(sqlalchemy.func.avg(models.Reading.value)).filter_by(nodeId = node.id)
+            qry = qry.filter_by(typeId = 1001) #MAGIC No
+
+            avgdepth = qry.first()
+            if avgdepth[0] is None:
+                avgdepth = 0
+            else:
+                avgdepth = avgdepth[0] + 1
+
+    
+            nodelist.append({"name": "{0}".format(node.id,state[0].time),
+                             "count":statecount,
+                             "id":node.id,
+                             "depth":avgdepth})
+
+    return {"nodes":nodelist,
+            "links":linklist}
+    
+
+def gettopology(request):
+    """Work out network topology changes"""
+    session = meta.Session()
+
+    #All Nodes
+    nodeqry = session.query(models.Node)
+    
+    startdate = None
+    enddate = None
+
+    nodelist = []
+    changedict = {} #Dictionary object to hold all changes
+    log.debug("--- Node List ---")
+    for node in nodeqry[:2]:
+        log.debug(node)
+
+
+        #Check for dates with more than one parent
+        parentqry = session.query(models.NodeState,
+                                  sqlalchemy.func.count(models.NodeState.nodeId),
+                                  sqlalchemy.func.count(sqlalchemy.func.distinct(models.NodeState.parent)),
+                                  ).filter_by(nodeId=node.id)
+        parentqry = parentqry.group_by(sqlalchemy.func.date(models.NodeState.time))
+
+        changes = []
+
+        
+        lastparent = None
+        for item in parentqry:
+            if item[2] == 1:
+                if startdate is None:
+                    startdate = item[0].time
+                    enddate =item[0].time
+                elif item[0].time < startdate:
+                    startdate = item[0].time
+                elif item[0].time > enddate:
+                    enddate = item[0].time
+                    
+                currentparent = item[0].parent
+                if (lastparent is None) or (lastparent != currentparent):
+                    lastparent = currentparent
+                    log.info("Change Triggered {0}".format(item))
+                    changes.append([str(item[0].time.date()),item[0].parent])
+
+                    ditem = changedict.get(item[0].time.date().isoformat(),[])
+                    #print "-->",ditem
+                    #ditem.append({"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.date().isoformat()})
+                    ditem = {"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.date().isoformat()}
+                    changedict[item[0].time.date().isoformat()] = ditem
+                # elif lastparent != currentparent:
+                #     lastparent = currentparent
+                #     log.info("Toplology change")
+                #     changes.append([str(item[0].time.date()),item[0].parent])
+            else:
+                #We have multiple parents
+                subquery = session.query(models.NodeState).filter_by(nodeId = node.id)
+                subquery = subquery.filter(sqlalchemy.func.date(models.NodeState.time) == item[0].time.date())
+                #print subquery.all()
+                for subitem in subquery:
+                    currentparent = subitem.parent
+                    if (lastparent is None) or (lastparent != currentparent):
+                        lastparent = currentparent
+                        log.info("Sub Data change triggered ")
+                        changes.append([str(subitem.time),subitem.parent])
+                        ditem = changedict.get(item[0].time.isoformat(),[])
+                        #ditem.append({"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.isoformat()})
+                        ditem = {"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.isoformat()}
+                        changedict[item[0].time.isoformat()] = ditem
+
+                    #or (lastparent != currentparent):
+                    
+                    #lastparent = currentparent
+                #changes.append([str(item[0].time.date()),item[0].parent])
+
+
+                
+        #changes = [(str(x[0].time),x[1], x[2]) for x in parentqry]
+
+        nodelist.append({"node":node.id,"changes":changes})        
+    for key,item in changedict.iteritems():
+        print key,item
+    
+    
+
+    return {"startdate": (startdate - datetime.timedelta(days=7)).isoformat(),
+            "enddate": enddate.isoformat(),
+            "nodes":nodelist,
+            "topolo": changedict}
