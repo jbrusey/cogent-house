@@ -49,7 +49,7 @@ module CogentHouseP
    
 #ifndef MISSING_AC_SENSOR
     interface Read<bool> as ReadAC;
-    interface SplitControl as ACControl;
+    interface StdControl as ACControl;
 #endif
     
     //Bitmask and packstate
@@ -60,8 +60,7 @@ module CogentHouseP
 }
 implementation
 {
-  ConfigMsg settings;
-  ConfigPerType * ONE my_settings;
+  uint32_t sample_period;
 
   uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
@@ -116,10 +115,10 @@ implementation
     //Calculate the next interval
       send_time = subtract_time(stop_time, sense_start_time);
     
-      if (my_settings->samplePeriod < send_time)
+      if (sample_period < send_time)
 	next_interval = 0;
       else
-	next_interval = my_settings->samplePeriod - send_time;
+	next_interval = sample_period - send_time;
 
 #ifdef DEBUG
       printf("startOneShot at %lu\n", call LocalTime.get());
@@ -128,8 +127,6 @@ implementation
 #endif
       call SenseTimer.startOneShot(next_interval);
       
-      if (my_settings->blink)
-	call Leds.led1Off();
     }
   }
 
@@ -281,11 +278,11 @@ implementation
   }
 
   event void SendTimeOutTimer.fired() {
-    my_settings->samplePeriod = DEF_BACKOFF_SENSE_PERIOD;
+    sample_period = DEF_BACKOFF_SENSE_PERIOD;
 
 #ifdef DEBUG
     printf("ack receving failed %lu\n", call LocalTime.get());
-    printf("Sample Period to be used %lu\n", my_settings->samplePeriod);
+    printf("Sample Period to be used %lu\n", sample_period);
     printfflush();
 #endif
     restartSenseTimer();
@@ -319,9 +316,7 @@ implementation
     call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
 
     nodeType = TOS_NODE_ID >> 12;
-    my_settings = &settings.byType[nodeType];
-    my_settings->samplePeriod = DEF_SENSE_PERIOD;
-    my_settings->blink = FALSE;
+    sample_period = DEF_SENSE_PERIOD;
 
     // Configure the node for attached sensors.
 
@@ -622,7 +617,7 @@ implementation
     else
       last_errno = 1;
    
-    my_settings->samplePeriod = DEF_SENSE_PERIOD;
+    sample_period = DEF_SENSE_PERIOD;
     
 
     call TransmissionControl.transmissionDone();
@@ -699,12 +694,6 @@ implementation
       
   }
   
-
-#ifndef MISSING_AC_SENSOR
-  event void ACControl.startDone(error_t error) {}
-  
-  event void ACControl.stopDone(error_t error) {}
-#endif
 
   ////////////////////////////////////////////////////////////
   // Produce a nice pattern on start-up

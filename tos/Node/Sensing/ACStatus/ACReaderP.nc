@@ -6,7 +6,7 @@ module ACReaderP
   uses {
     interface Boot;
     interface Read<bool> as ReadAC;
-    interface SplitControl as ACControl;
+    interface StdControl as ACControl;
     interface Timer<TMilli> as SensingTimer;
     interface LocalTime<TMilli>;
     interface Leds;
@@ -22,23 +22,15 @@ implementation
   
   event void Boot.booted()
   {
+    error_t error;
     printf("Boot\n");
     printfflush();
-    call ACControl.start();
-  }
-  
-  event void ACControl.startDone(error_t error) {
-    printf("got start done %u\n", error);
+    error = call ACControl.start();
+    printf("got start result %u\n", error);
     printfflush();
     call ReadAC.read();
     call SensingTimer.startPeriodic(PERIOD);
   }
-  
-  event void ACControl.stopDone(error_t error) {
-    printf("got stop done %u\n", error);
-    printfflush();
-  }
-  
   
   event void SensingTimer.fired() {
     printf("start read\n");
