@@ -161,7 +161,7 @@ enum {
 }; //root errors (only in range 1-7)
 
 enum {
-  NODE_TYPE_MAX = 10
+  NODE_TYPE_MAX = 15
 };
 
 
@@ -184,7 +184,7 @@ typedef nx_struct ConfigPerType {
 
 typedef nx_struct ConfigMsg {
   nx_uint8_t typeCount;
-  ConfigPerType byType [NODE_TYPE_MAX];
+  ConfigPerType byType [NODE_TYPE_MAX + 1];
   nx_uint8_t special;
 } ConfigMsg;
 

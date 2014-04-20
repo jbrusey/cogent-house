@@ -37,7 +37,7 @@ generic module ACStatusM()
 {
   provides {
     interface Read<bool> as ReadAC;
-    interface SplitControl as ACControl;
+    interface StdControl as ACControl;
   }
   uses {	
     interface HplMsp430GeneralIO as ACInput;
@@ -45,6 +45,8 @@ generic module ACStatusM()
 }
 implementation
 { 
+  bool has_started = FALSE;
+
   task void readTask() {
     bool state;
     state = call ACInput.get();
@@ -52,18 +54,22 @@ implementation
   }
 
   command error_t ReadAC.read() {
-    post readTask();
-    return SUCCESS;
+    if (has_started) {
+      post readTask();
+      return SUCCESS;
+    }
+    else
+      return FAIL;
   }
   
   command error_t ACControl.start() {
     call ACInput.makeInput();
-    signal ACControl.startDone(SUCCESS);
+    has_started = TRUE;
     return SUCCESS;
   }
   
   command error_t ACControl.stop() {
-    signal ACControl.stopDone(SUCCESS);
+    has_started = FALSE;
     return SUCCESS;
   }
        
