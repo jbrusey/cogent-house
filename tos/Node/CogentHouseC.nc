@@ -118,9 +118,8 @@ implementation
   TempADCM.GetTempADC1 -> Temp_ADC1;
 
   //Window Sensor
-  components new WindowC() as Window;
-  components WindowM;
-  WindowM.GetWindow  -> Window;
+  components new WindowM() as WindowM;
+  WindowM.WindowInput -> GIO.Port23;
 
   /*********** ACK CONFIG *************/
 
@@ -235,6 +234,7 @@ implementation
   CogentHouseP.ReadTempADC1 -> SIPControllerC.SIPController[RS_TEMPADC1];
 
   //Window Wiring
+  CogentHouseP.WindowControl -> WindowM.WindowControl;
   FilterM.Filter[RS_WINDOW]  -> Pass.Filter[RS_WINDOW];
   FilterM.GetSensorValue[RS_WINDOW]  -> WindowM.ReadWindow;
   SIPControllerC.EstimateCurrentState[RS_WINDOW]  -> FilterM.EstimateCurrentState[RS_WINDOW];

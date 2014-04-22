@@ -43,6 +43,7 @@ module CogentHouseP
     interface TransmissionControl;
     interface StdControl as OptiControl;
     interface StdControl as GasControl;
+    interface StdControl as WindowControl;
     interface SplitControl as CurrentCostControl;
     interface StdControl as HMEnergyControl;
     interface StdControl as HMVolumeControl;
@@ -347,6 +348,7 @@ implementation
     }
     else if (nodeType == NODE_TYPE_WINDOW) { /* window board */
       call Configured.set(RS_WINDOW);
+      call WindowControl.start();
     }
     else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
       call Configured.set(RS_CO2);
