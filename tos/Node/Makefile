@@ -23,7 +23,7 @@ PFLAGS += -I . \
 	-I ./Sensing/CurrentCost  \
 	-I ./Sensing/PulseReader  \
 	-I ./Sensing/TempADC \
-	-I ./Sensing/WindowSensor 
+	-I ./Sensing/WindowStatus 
 
 COMPONENT=CogentHouseC
 

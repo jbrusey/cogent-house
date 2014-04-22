@@ -1,5 +1,5 @@
 /* -*- c -*-
-   ACStatusM.nc -Check the status of AC power
+   WindowM.nc -Check the status of Window sensor
 
    Copyright (C) 2011 Ross Wilkins
 
@@ -22,25 +22,25 @@
 
 
 =====================================
-AC Status Module
+Window Status Module
 =====================================
 
-The module check the status of powered nodes to see if they are AC or battery powered
+The module check the status the Window sensor
 
 :author: Ross Wilkins
 :email: ross.wilkins87@googlemail.com
-:date:  09/05/2013
+:date:  22/04/2014
 */
 
 
-generic module ACStatusM()
+generic module WindowM()
 {
   provides {
-    interface Read<bool> as ReadAC;
-    interface StdControl as ACControl;
+    interface Read<float> as ReadWindow;
+    interface StdControl as WindowControl;
   }
   uses {	
-    interface HplMsp430GeneralIO as ACInput;
+    interface HplMsp430GeneralIO as WindowInput;
   }
 }
 implementation
@@ -48,27 +48,27 @@ implementation
   bool has_started = FALSE;
 
   task void readTask() {
-    bool state;
-    if (has_started) { 
-      state = call ACInput.get();
-      signal ReadAC.readDone(SUCCESS, state);
+    float state;
+    if (has_started) {
+      state = (float) call WindowInput.get();
+      signal ReadWindow.readDone(SUCCESS, state);
     }
     else
-      signal ReadAC.readDone(FAIL, FALSE);
+      signal ReadWindow.readDone(FAIL, 0.f);
   }
 
-  command error_t ReadAC.read() {
+  command error_t ReadWindow.read() {
     post readTask();
     return SUCCESS;
   }
   
-  command error_t ACControl.start() {
-    call ACInput.makeInput();
+  command error_t WindowControl.start() {
+    call WindowInput.makeInput();
     has_started = TRUE;
     return SUCCESS;
   }
   
-  command error_t ACControl.stop() {
+  command error_t WindowControl.stop() {
     has_started = FALSE;
     return SUCCESS;
   }
