@@ -351,9 +351,7 @@ implementation
     call Configured.set(RS_TEMPERATURE);
     call Configured.set(RS_HUMIDITY);
     call Configured.set(RS_DUTY);
-    if (nodeType <= NODE_TYPE_WINDOW) { /* battery powered node */
-      call Configured.set(RS_VOLTAGE);
-    }
+    call Configured.set(RS_VOLTAGE);
     if (nodeType == NODE_TYPE_HEATMETER) { /* heat meter */
       call Configured.set(RS_HM_ENERGY);
       call Configured.set(RS_HM_VOLUME);
