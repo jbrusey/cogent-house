@@ -1,6 +1,5 @@
 PFLAGS += -I . \
 	-I %T/lib/net \
-	-I %T/lib/net/4bitle \
 	-I %T/lib/net/ctp \
 	-I %T/lib/net/drip \
 	-I %T/lib/printf \
@@ -25,6 +24,18 @@ PFLAGS += -I . \
 	-I ./Sensing/TempADC \
 	-I ./Sensing/WindowStatus 
 
+# use "make telosb install.2 cluster_based=1" to turn on cluster-based code
+ifdef cluster_based
+PFLAGS += -I ../Util/ch4bitle
+BUILD_EXTRA_DEPS += ../Util/ch4bitle/LinkEstimatorP.nc
+CFLAGS += -DCLUSTER_BASED
+else # not cluster_based
+PFLAGS += -I %T/lib/net/4bitle
+CFLAGS += -DLOW_POWER_LISTENING
+CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=1024
+CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
+CFLAGS += -DDELAY_AFTER_RECEIVE=20
+endif
 COMPONENT=CogentHouseC
 
 PYTHON_TARGET_DIR=../../cogent/node
@@ -47,13 +58,6 @@ CFLAGS += -DMISSING_AC_SENSOR
 endif
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
-#PFLAGS += -DCC2420_DEF_RFPOWER=3
-#CFLAGS += -DCC2420_DEF_CHANNEL=19
-
-CFLAGS += -DLOW_POWER_LISTENING
-CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=1024
-CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
-CFLAGS += -DDELAY_AFTER_RECEIVE=20
 
 CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP 
 CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
@@ -150,3 +154,7 @@ $(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
 $(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
 	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
 
+../Util/ch4bitle/LinkEstimatorP.nc: ../Util/ch4bitle.patch
+	-rm -rf ../Util/ch4bitle
+	cp -r $(TOSROOT)/tos/lib/net/4bitle ../Util/ch4bitle
+	(cd ../Util/ch4bitle/ && patch -p0) < $<
