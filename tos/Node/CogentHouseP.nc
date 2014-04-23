@@ -66,6 +66,10 @@ implementation
   uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
   bool shutdown = FALSE;
+#ifdef CLUSTER_BASED
+  bool leaf_mode = FALSE;
+  bool send_state_pending = FALSE;
+#endif
   bool seen_first_ack = FALSE;
   message_t dataMsg;
   uint16_t message_size;
@@ -247,6 +251,7 @@ implementation
    * - only transmit data once all sensors have been read
    */
   task void checkDataGathered() {
+    error_t radio_status;
     bool allDone = TRUE;
     uint8_t i;
 
@@ -264,8 +269,22 @@ implementation
 	printfflush();
 #endif
 	
-    	if (call TransmissionControl.hasEvent()){
-	  sendState();
+    	if (call TransmissionControl.hasEvent()) {
+#ifdef CLUSTER_BASED
+	  if (leaf_mode) {
+	    /* if running in leaf_mode, radio may not be turned on, so
+	       we mark it to be turned on and set a flag to say that a
+	       send is pending */
+	    send_state_pending = TRUE;
+	    radio_status = call RadioControl.start();
+	    if (radio_status == EALREADY) {
+	      send_state_pending = FALSE;
+	      sendState();
+	    }
+	  }
+	  else
+#endif /* CLUSTER_BASED */
+	    sendState();
 	}
 	else
 	  restartSenseTimer();
@@ -285,6 +304,10 @@ implementation
     printf("ack receving failed %lu\n", call LocalTime.get());
     printf("Sample Period to be used %lu\n", sample_period);
     printfflush();
+#endif
+#ifdef CLUSTER_BASED
+    if (leaf_mode)
+      call RadioControl.stop();
 #endif
     restartSenseTimer();
   }
@@ -318,6 +341,9 @@ implementation
 
     nodeType = TOS_NODE_ID >> 12;
     sample_period = DEF_SENSE_PERIOD;
+#ifdef CLUSTER_BASED
+    leaf_mode = ! CLUSTER_HEAD;
+#endif
 
     // Configure the node for attached sensors.
 
@@ -450,6 +476,11 @@ implementation
 	call ExpectReadDone.set(i);
 	if (i == RS_TEMPADC1)
 	  call ReadTempADC1.read();
+#ifdef CLUSTER_BASED
+	else if (leaf_mode)
+	  /* if leaf_mode, avoid polling high power sensors below */
+	  call ExpectReadDone.clear(i);
+#endif
 	else if (i == RS_CO2)
 	  call ReadCO2.read();
 	else if (i == RS_AQ)
@@ -475,6 +506,12 @@ implementation
   
 #ifndef MISSING_AC_SENSOR
   event void ReadAC.readDone(error_t result, bool data) {
+#ifdef CLUSTER_BASED
+    /* if were in leaf mode and we now receive power, start radio */
+    if (data && leaf_mode) 
+      call RadioControl.start();
+    leaf_mode = ! data;
+#endif
     call ExpectReadDone.clear(RS_AC);
     post checkDataGathered();
   }
@@ -578,6 +615,12 @@ implementation
       if (call Configured.get(RS_POWER)){
 	call CurrentCostControl.start();
       }
+#ifdef CLUSTER_BASED
+      if (leaf_mode && send_state_pending) {
+	send_state_pending = FALSE;
+	sendState();
+      }
+#endif
     }
     else
       call RadioControl.start();
@@ -604,6 +647,11 @@ implementation
 #endif
 
     call SendTimeOutTimer.stop();
+    
+#ifdef CLUSTER_BASED
+    if (leaf_mode) 
+      call RadioControl.stop();
+#endif
 
     stop_time = call LocalTime.get();
     //Calculate the next interval
