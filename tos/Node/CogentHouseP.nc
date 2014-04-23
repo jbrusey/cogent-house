@@ -662,12 +662,12 @@ implementation
 #endif 
     
     //check crc's, nid and seq match
-    if (crc == ackMsg->crc)
-      if (TOS_NODE_ID == ackMsg->node_id)
-	if (expSeq == ackMsg->seq){
-    	  ackReceived();
-    	}
-    return;
+    if (crc != ackMsg->crc) {
+      reportError(ERR_ACK_CRC_CORRUPT);
+    }
+    else if (TOS_NODE_ID == ackMsg->node_id &&
+	     expSeq == ackMsg->seq)
+      ackReceived();
   }
 
 
