@@ -57,6 +57,13 @@ ifdef missing_ac_sensor
 CFLAGS += -DMISSING_AC_SENSOR
 endif
 
+# radio channel
+# use "make ... rf_channel=19" to get a radio channel of 19
+ifdef rf_channel
+CFLAGS += -DCC2420_DEF_CHANNEL=$(rf_channel)
+endif
+
+
 PFLAGS +=-DTOSH_DATA_LENGTH=76
 
 CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP 
