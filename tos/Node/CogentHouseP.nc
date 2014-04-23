@@ -66,6 +66,7 @@ implementation
   uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
   bool sending;
   bool shutdown = FALSE;
+  bool first_period_pending = FALSE;
 #ifdef CLUSTER_BASED
   bool leaf_mode = FALSE;
   bool send_state_pending = FALSE;
@@ -84,11 +85,12 @@ implementation
   uint32_t last_errno = 1;
   uint32_t last_transmitted_errno;
 
+  /** prototypes **/
+  void radioStop(void);
+
   task void powerDown(){
     call SenseTimer.stop();
-    call CollectionControl.stop();
-    call DisseminationControl.stop();
-    call RadioControl.stop();
+    radioStop();
   }
 
   /** Restart the sense timer as a one shot. Using a one shot here
@@ -307,7 +309,7 @@ implementation
 #endif
 #ifdef CLUSTER_BASED
     if (leaf_mode)
-      call RadioControl.stop();
+      radioStop();
 #endif
     restartSenseTimer();
   }
@@ -398,6 +400,7 @@ implementation
 #endif
     sending = FALSE;
 
+    first_period_pending = TRUE;
     call RadioControl.start();
   }
 
@@ -604,7 +607,10 @@ implementation
     if (ok == SUCCESS){
       call CollectionControl.start();
       call DisseminationControl.start();
-      call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
+      if (first_period_pending) {
+	call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
+	first_period_pending = FALSE;
+      }
 #ifdef DEBUG
       printf("Radio On %lu\n", call LocalTime.get());
       printfflush();
@@ -624,8 +630,18 @@ implementation
       call RadioControl.start();
   }
 
-  event void RadioControl.stopDone(error_t ok) { 
+  /* instead of stopping the radio directly, this method takes care of
+     stopping collection and dissemination prior to stopping the
+     radio.
+   */
+  void radioStop() {
     call DisseminationControl.stop();
+    call CollectionControl.stop();
+    call RadioControl.stop();
+  }
+
+
+  event void RadioControl.stopDone(error_t ok) { 
 #ifdef DEBUG
     printf("Radio Off %lu\n", call LocalTime.get());
     printfflush();
@@ -647,8 +663,8 @@ implementation
     call SendTimeOutTimer.stop();
     
 #ifdef CLUSTER_BASED
-    if (leaf_mode) 
-      call RadioControl.stop();
+    if (leaf_mode)
+      radioStop();
 #endif
 
     stop_time = call LocalTime.get();
