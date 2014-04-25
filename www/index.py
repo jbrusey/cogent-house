@@ -1016,17 +1016,36 @@ def lastreport():
         session.close()
 
 
-def yield24():
+def yield24(sort='house'):
+    """ web page displaying yield for last 24 hours
+    """
     try:
         session = Session()
         s = []
 
         s.append("<table border=\"1\">")
-        s.append("<tr>")
-        headings = ["Node", "House", "Room", "Message count",
-                    "Min seq", "Max seq", "Last heard", "Yield"]
-        s.extend(["<th>%s</th>" % x for x in headings])
-        s.append("</tr>")
+        s.append(_row([_href('Node',
+                             _url('yield24',
+                                  sort='id')),
+                       _href('House',
+                             _url('yield24',
+                                  sort='house')),
+                       _href('Room',
+                             _url('yield24',
+                                  sort='room')),
+                       _href('Message count',
+                             _url('yield24',
+                                  sort='msgcnt')),
+                       _href('Min seq',
+                             _url('yield24',
+                                  sort='minseq')),
+                       _href('Max seq',
+                             _url('yield24',
+                                  sort='maxseq')),
+                       _href('Last heard',
+                             _url('yield24',
+                                  sort='last')),
+                       'Yield'], typ='h'))
 
         start_t = datetime.utcnow() - timedelta(days=1)
 
@@ -1079,8 +1098,22 @@ def yield24():
                           .join(seqcnt_q,
                                 maxseq_q.c.nodeId == seqcnt_q.c.nodeId)
                           .join(Node, Node.id == maxseq_q.c.nodeId)
-                          .join(Location, House, Room)
-                          .order_by(House.address, Room.name))
+                          .join(Location, House, Room))
+        if sort == 'id':
+            yield_q = yield_q.order_by(Node.id)
+        elif sort == 'room':
+            yield_q = yield_q.order_by(Room.name)
+        elif sort == 'msgcnt':
+            yield_q = yield_q.order_by(seqcnt_q.c.cnt)
+        elif sort == 'minseq':
+            yield_q = yield_q.order_by(minseq_q.c.seq_num)
+        elif sort == 'maxseq':
+            yield_q = yield_q.order_by(maxseq_q.c.seq_num)
+        elif sort == 'last':
+            yield_q = yield_q.order_by(maxseq_q.c.time)
+        else:
+            yield_q = yield_q.order_by(House.address,
+                                       Room.name)
 
         for (node_id, maxseq, minseq, seqcnt, last_heard,
              house_name, room_name) in yield_q.all():
