@@ -551,7 +551,7 @@ implementation
 
   event void ReadVolt.readDone(error_t result, FilterState* data){
     do_readDone_filterstate(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
-    if (data->x < LOW_VOLTAGE)
+    if (result == SUCCESS && data->x < LOW_VOLTAGE)
       post powerDown();
   }
 
