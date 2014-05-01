@@ -1,36 +1,46 @@
-#!/usr/bin/env python
-#
-# Sipsim - named tuple version 
-#
-# cogent.sip.sipsim
+"""
 
+ Sipsim - named tuple version
+
+ cogent.sip.sipsim
+
+Versions:
+
+0.1a1 jpb 27/4/14 use sequence numbers to identify which paths should
+be shown as dashed.
+
+"""
 import random
 import sys
 import csv
 import types
 from collections import namedtuple
 from math import sqrt
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-""" PhenomTuple consists of:
+__version__ = "0.1a1"
 
-sp - spline approximation to the original value
-ev - True if a SIP event occurred
-ls - last smoothed value (at the event)
-lt - last smoothed delta
-s - estimated / smoothed value
-t - estimated / smoothed delta
-xn - value with noise
-x - original value (if simulating)
-v - velocity or rate of change
+# PhenomTuple consists of:
 
-"""
-PhenomTuple = namedtuple('PhenomTuple', 'dt, sp, ev, ls, lt, s, t, xn, x, v')
+# sp - spline approximation to the original value
+# ev - True if a SIP event occurred
+# ls - last smoothed value (at the event)
+# lt - last smoothed delta
+# s - estimated / smoothed value
+# t - estimated / smoothed delta
+# xn - value with noise
+# x - original value (if simulating)
+# v - velocity or rate of change
+# dashed - whether or not path up to here should be dashed
+#          due to sequence number issues.
 
-""" null_phenom can be used to make a new tuple using _replace to only
-supply certain elements.
-"""
-null_phenom = (PhenomTuple(
+PhenomTuple = namedtuple('PhenomTuple',
+                         'dt, sp, ev, ls, lt, s, t, xn, x, v, dashed')
+
+# NULL_PHENOM can be used to make a new tuple using _replace to only
+# supply certain elements.
+
+NULL_PHENOM = (PhenomTuple(
     dt=None,
     x=None,
     v=None,
@@ -40,8 +50,10 @@ null_phenom = (PhenomTuple(
     lt=None,
     s=None,
     t=None,
-    xn=None
+    xn=None,
+    dashed=None
     ))
+
 
 class Phenom(object):
     """ Phenom generates a randomly walking phenomena data stream
@@ -49,35 +61,38 @@ class Phenom(object):
     """
     def __init__(self,
                  init_x=0.,
-                 init_v = 0.,
-                 accel_var = 0.):
+                 init_v=0.,
+                 accel_var=0.):
         self.init_x = init_x
         self.init_v = init_v
         self.accel_var = accel_var
 
     def __iter__(self):
         while True:
-            yield null_phenom._replace(x=self.init_x,
+            yield NULL_PHENOM._replace(x=self.init_x,
                               v=self.init_v)
             self.init_x += self.init_v
             self.init_v += (20 - self.init_x) * 0.01
             self.init_v += random.gauss(0, self.accel_var)
 
+
 class PhenomCsvFile(object):
-    """ PhenomCsvFile generates a data stream based on a single column of an input file.
+    """ PhenomCsvFile generates a data stream based on a single column
+    of an input file.
     Outputs: xn
     """
     def __init__(self,
                filename=None,
                delimiter=',',
                column=0):
-        self.f = csv.reader(open(filename, 'rb'), delimiter=delimiter)
+        self.file = csv.reader(open(filename, 'rb'), delimiter=delimiter)
         self.column = column
 
     def __iter__(self):
-        for row in self.f:
+        for row in self.file:
             # assumed we know noisy value but not true value or velocity
-            yield null_phenom._replace(xn=float(row[self.column]))
+            yield NULL_PHENOM._replace(xn=float(row[self.column]))
+
 
 class Noise(object):
     """ Noise takes a raw phenom input and adds noise
@@ -87,12 +102,13 @@ class Noise(object):
     def __init__(self,
                  src=None,
                  var=0.):
-        self.phen=src
+        self.phen = src
         self.var = var
 
     def __iter__(self):
-        for pt in self.phen:
-            yield pt._replace(xn=pt.x + random.gauss(0, self.var))                 
+        for pt1 in self.phen:
+            yield pt1._replace(xn=ptup.x + random.gauss(0, self.var))
+
 
 class Dewma(object):
     """ Dewma takes a noisy phenomena input and provides a smoothed
@@ -111,14 +127,14 @@ class Dewma(object):
         self.ti = None
 
     def __iter__(self):
-        for pt in self.src:
+        for ptup in self.src:
             if self.si is None:
-                si = pt.xn
+                si = ptup.xn
                 ti = 0.
             else:
-                si = self.alpha * pt.xn + (1 - self.alpha) * (self.si + self.ti)
+                si = self.alpha * ptup.xn + (1 - self.alpha) * (self.si + self.ti)
                 ti = self.beta * (si - self.si) + (1 - self.beta) * self.ti
-            yield pt._replace(s=si,
+            yield ptup._replace(s=si,
                               t=ti)
             self.si = si
             self.ti = ti
@@ -137,14 +153,14 @@ class Event(object):
         self.last = None
 
     def __iter__(self):
-        for pt in self.src:
-            if self.last is None or abs(self.last[0] - pt.s) > self.threshold:
-                yield pt._replace(ev=True,
-                                  ls=pt.s,
-                    lt=pt.t)
-                self.last = (pt.s + pt.t, pt.t)
+        for ptup in self.src:
+            if self.last is None or abs(self.last[0] - ptup.s) > self.threshold:
+                yield ptup._replace(ev=True,
+                                  ls=ptup.s,
+                    lt=ptup.t)
+                self.last = (ptup.s + ptup.t, ptup.t)
             else:
-                yield pt._replace(ev=False,
+                yield ptup._replace(ev=False,
                                   ls=self.last[0],
                     lt=self.last[1])
                 (s1, t1) = self.last
@@ -155,10 +171,12 @@ class SipPhenom(object):
     """ expand out SIP data from the database into a time series to
     allow a reconstruction
 
-    If the sequence numbers do not follow (modulo SEQ_MAX) then 
-    
+    If a gap in sequence numbers is detected, it could be because of
+    missed packets or due to a reset (if the sequence number goes to
+    zero).
+
     Input: tuple with (datetime, value, delta, seq)
-    Output: PhenomTuple with dt, ev, ls, lt, s, t
+    Output: PhenomTuple with dt, ev, ls, lt, s, t, dashed
     """
     def __init__(self,
                  src=None,
@@ -168,49 +186,56 @@ class SipPhenom(object):
         self.src = src
         self.interval = interval
         self.duplicate_interval = duplicate_interval
-        self.seq_max = 256
+        self.seq_max = seq_max
 
     def __iter__(self):
         first = True
         last_dt = None
-        for (dt, value, delta, seq) in self.src:
+        last_seq = None
+        for (date, value, delta, seq) in self.src:
             if first:
-                yield null_phenom._replace(ev=True,
-                                               ls=value,
-                                               lt=delta,
-                                               s=value,
-                                               t=delta,
-                                               dt=dt
-                    )
-                (ls, lt) = (value, delta)
-                first = False
-
-            elif (dt - last_dt > self.duplicate_interval):
-                # yield records for each period from last_dt until < dt
-                while dt - last_dt > self.interval + self.duplicate_interval:
-                    ls += lt
-                    last_dt = last_dt + self.interval
-                    yield null_phenom._replace(ev=False,
-                                               ls=ls,
-                                               lt=lt,
-                                               dt=last_dt
-                        )
-
-                yield null_phenom._replace(ev=True,
+                yield NULL_PHENOM._replace(ev=True,
                                            ls=value,
                                            lt=delta,
                                            s=value,
                                            t=delta,
-                                           dt=dt
-                    )
-                (ls, lt) = (value, delta)
+                                           dt=date,
+                                           dashed=False
+                                           )
+                (last_s, last_t) = (value, delta)
+                first = False
 
-            last_dt = dt
+            elif date - last_dt > self.duplicate_interval:
+                # yield records for each period from last_dt until < dt
+                expected_seq = (last_seq + 1) % self.seq_max
+                dashed = seq != expected_seq
+                while date - last_dt > self.interval + self.duplicate_interval:
+                    last_s += last_t
+                    last_dt = last_dt + self.interval
+                    yield NULL_PHENOM._replace(ev=False,
+                                               ls=last_s,
+                                               lt=last_t,
+                                               dt=last_dt,
+                                               dashed=dashed
+                                               )
+
+                yield NULL_PHENOM._replace(ev=True,
+                                           ls=value,
+                                           lt=delta,
+                                           s=value,
+                                           t=delta,
+                                           dt=date,
+                                           dashed=dashed
+                                           )
+                (last_s, last_t) = (value, delta)
+            last_seq = seq
+
+            last_dt = date
 
 #------------------------------------------------------------
 # spline calculations
 #------------------------------------------------------------
-                
+
 class Spline(object):
     """ Spline - virtual class that helps with calculating polynomial
     and generating the resulting value
@@ -218,7 +243,7 @@ class Spline(object):
     def __init__(self, poly, steps):
         self.poly = poly
         self.steps = steps
-        
+
     def calc_poly(self, t):
         total = 0.
         for v in self.poly:
@@ -235,7 +260,7 @@ class QuadStartSpline(Spline):
     b - end point (x_{n-1})
     c - gradient at start point (\dot{x}_0)
     steps - number of steps to generate over
-    """ 
+    """
     def __init__(self, a, b, c, steps):
         c *= steps
         Spline.__init__(self,
@@ -288,17 +313,17 @@ class Reconstruct(object):
         self.last = None
 
     def __iter__(self):
-        for pt in self.src:
-            self.stack.append(pt)
-            if pt.ev:
+        for ptup in self.src:
+            self.stack.append(ptup)
+            if ptup.ev:
                 if self.last is not None:
                     # reconstruct spline between last and current
                     spline = CubicSpline(self.last[0],
                                          self.last[1],
-                        pt.s,
-                        pt.t,
+                        ptup.s,
+                        ptup.t,
                         len(self.stack))
-                        
+
                     for v in spline:
                         pt1 = self.stack.pop(0)
                         yield pt1._replace(sp=v)
@@ -307,8 +332,8 @@ class Reconstruct(object):
                     for pt1 in self.stack:
                         yield pt1._replace(sp=pt1.s)
                     self.stack = []
-                        
-                self.last = (pt.s, pt.t)
+
+                self.last = (ptup.s, ptup.t)
 
 
 class PartSplineReconstruct(object):
@@ -318,55 +343,62 @@ class PartSplineReconstruct(object):
     - given (a) x0 and xdot0 giving initial linear extrapolation
     - (b) xn and xdotn giving eventful end point
     - and threshold (epsilon)
-    - calculate (c) extrapolated limits to x(n-1) based on threshold and x0, xdot0
+    - calculate (c) extrapolated limits to x(n-1) based on threshold
+    and x0, xdot0
     - calculate (d) reverse extrapolated estimate of x(n-1) from xn, xdotn
     - if d < c^- use c^-, if > c+ use c+, else use d
     - calculate spline that goes through d, xn and has slope xdotn at xn
     Input: ev, ls, lt, s, t
     Output: sp
     """
-    
+
     def __init__(self,
-                 src = None,
-                 threshold=None): 
+                 src=None,
+                 threshold=None):
         self.src = src
         self.stack = []
         self.last = None
         self.threshold = threshold
 
     def __iter__(self):
-        for pt in self.src:
-            self.stack.append(pt)
-            if pt.ev:
-                if self.last is not None:
-
+        for ptup in self.src:
+            self.stack.append(ptup)
+            if ptup.ev:
+                if ptup.dashed:
+                    # linear interpolate
+                    start_x = self.stack[0].ls
+                    gradient = (ptup.ls - start_x) / len(self.stack)
+                    for i in range(len(self.stack)):
+                        yield ptup._replace(sp=gradient * i + start_x)
+                    # for ptup in self.stack:
+                    #     yield ptup._replace(sp=ptup.ls)
+                    self.stack = []
+                elif self.last is not None:
                     # find xhat_1
-                    (lx, lxdot) = (pt.ls, pt.lt)
+                    (lx, lxdot) = (ptup.ls, ptup.lt)
                     lx_1 = lx - lxdot
                     lx_1upper = lx_1 + self.threshold
                     lx_1lower = lx_1 - self.threshold
 
-                    xhat_1 = pt.s - pt.t
+                    xhat_1 = ptup.s - ptup.t
                     # bound
                     if xhat_1 > lx_1upper:
                         xhat_1 = lx_1upper
                     elif xhat_1 < lx_1lower:
                         xhat_1 = lx_1lower
 
-                    
-                    
                     # reconstruct spline between initial point and gradient and
-                    # n-1 point                    
+                    # n-1 point
 
                     start_spline = QuadStartSpline(self.last[0],
                                                    xhat_1,
                                                    self.last[1],
                                                    len(self.stack)-1)
                     end_spline = QuadEndSpline(xhat_1,
-                                               pt.s,
-                                               pt.t,
+                                               ptup.s,
+                                               ptup.t,
                                                1)
-                    
+
                     for v in start_spline:
                         yield self.stack.pop(0)._replace(sp=v)
                     for v in end_spline:
@@ -374,11 +406,11 @@ class PartSplineReconstruct(object):
 
                     assert len(self.stack) == 0
                 else:
-                    for pt in self.stack:
-                        yield pt._replace(sp=pt.s)
+                    for ptup in self.stack:
+                        yield ptup._replace(sp=ptup.s)
                     self.stack = []
-                        
-                self.last = (pt.s, pt.t)
+
+                self.last = (ptup.s, ptup.t)
 
 
 class QuarticSpline(Spline):
@@ -407,7 +439,7 @@ class QuarticSpline(Spline):
 
 class ReconstructQuartic(object):
     """ Spline with power 4 polynomial
-    
+
     """
     def __init__(self,
                  src = None,
@@ -419,15 +451,15 @@ class ReconstructQuartic(object):
         self.last = None
 
     def __iter__(self):
-        for pt in self.src:
-            self.stack.append(pt)
-            if pt.ev:
+        for ptup in self.src:
+            self.stack.append(ptup)
+            if ptup.ev:
                 if self.last is not None:
                     # reconstruct spline between last and current
 
                     steps = len(self.stack)
-                    
-                    spline = CubicSpline(self.last[0], self.last[1], pt.s, pt.t, steps)
+
+                    spline = CubicSpline(self.last[0], self.last[1], ptup.s, ptup.t, steps)
 
                     k1 = (steps // 2)
 
@@ -437,7 +469,7 @@ class ReconstructQuartic(object):
 
                     if h > r + self.threshold:
                         e = r + self.threshold
-                                               
+
                     elif h < r - self.threshold:
                         e = r - self.threshold
                     else:
@@ -446,13 +478,12 @@ class ReconstructQuartic(object):
                     if e is not None:
                         spline = QuarticSpline(self.last[0],
                                                self.last[1],
-                                               pt.s,
-                                               pt.t,
+                                               ptup.s,
+                                               ptup.t,
                                                e,
                                                xk1,
                                                steps)
-                        
-                    for v in spline:                        
+                    for v in spline:
                         yield self.stack.pop(0)._replace(sp=v)
 
                     assert len(self.stack) == 0
@@ -460,26 +491,27 @@ class ReconstructQuartic(object):
                     for pt1 in self.stack:
                         yield pt1._replace(sp=pt1.s)
                     self.stack = []
-                        
-                self.last = (pt.s,pt.t)
+                self.last = (ptup.s, ptup.t)
 
 
-def flat(x):
-    l = []
-    for v in x:
-        if type(v) is types.TupleType:
-            l.extend(flat(v))
+def flat(ilist):
+    """ flatten a list of tuples within tuples """
+    rlist = []
+    for item in ilist:
+        if type(item) is types.TupleType:
+            rlist.extend(flat(item))
         else:
-            l.append(v)
-    return l
-                                                           
+            rlist.append(item)
+    return rlist
 
-if __name__ == "__main__":
+
+def test():
+    """ testing method """
     i = 0
     random.seed(1000)
     sse = 0.
     sse2 = 0.
-    for pt in (Reconstruct(
+    for pt1 in (Reconstruct(
             src=Event(
                 src=Dewma(alpha=0.1,
                                 beta=0.4,
@@ -487,15 +519,19 @@ if __name__ == "__main__":
                   src=Phenom(init_x=23.,
                              init_v=0.1,
                              accel_var=0.0005)))))):
-        err = pt.sp - pt.s 
-        
-        err2 = pt.ls - pt.s
+        err = pt1.sp - pt1.s
+
+        err2 = pt1.ls - pt1.s
         sse += err * err
         sse2 += err2 * err2
-        #print " ".join([str(ss) for ss in flat(pt)])
+        #print " ".join([str(ss) for ss in flat(pt1)])
         i += 1
         if i > 100000:
             break
 
     print >>sys.stderr, ("rmse in spline = {}, rmse in linear interp = {}"
                          .format(sqrt(sse/i), sqrt(sse2/i)))
+
+
+if __name__ == "__main__":
+    test()
