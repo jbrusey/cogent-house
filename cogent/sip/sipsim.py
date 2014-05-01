@@ -18,7 +18,7 @@ from collections import namedtuple
 from math import sqrt
 from datetime import timedelta
 
-__version__ = "0.1a1"
+__version__ = "0.1a2"
 
 # PhenomTuple consists of:
 
@@ -366,12 +366,13 @@ class PartSplineReconstruct(object):
             if ptup.ev:
                 if ptup.dashed:
                     # linear interpolate
-                    start_x = self.stack[0].ls
-                    gradient = (ptup.ls - start_x) / len(self.stack)
-                    for i in range(len(self.stack)):
-                        yield ptup._replace(sp=gradient * i + start_x)
-                    # for ptup in self.stack:
-                    #     yield ptup._replace(sp=ptup.ls)
+                    if self.last is not None:
+                        start_x = self.last[0]
+                    else:
+                        start_x = self.stack[0].ls
+                    gradient = (ptup.ls - start_x) * 1. / len(self.stack)
+                    for i, item in enumerate(self.stack):
+                        yield item._replace(sp=gradient * (i+1) + start_x)
                     self.stack = []
                 elif self.last is not None:
                     # find xhat_1
