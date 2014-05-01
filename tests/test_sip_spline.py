@@ -19,18 +19,23 @@ class TestSipSpline(unittest.TestCase):
             data.append((now + timedelta(minutes=1*t), v, d, s))
 
         last_dt = None
-        for ptup in (PartSplineReconstruct
+        result = list(PartSplineReconstruct
                      (src=SipPhenom(src=data,
                                     interval=timedelta(minutes=1)), 
-                      threshold=0.1)):
+                      threshold=0.1))
+        for ptup in result:
             self.assertTrue(ptup.dashed is not None)
             intvl = int((ptup.dt - now).total_seconds() /
-                        timedelta(minutes=5).total_seconds())
+                        timedelta(minutes=1).total_seconds())
             if intvl >= 7 and intvl <= 20:
-                self.assertTrue(ptup.sp == 3)
+                self.assertEquals(ptup.sp, 3)
             if intvl > 20 and intvl <= 25:
-                self.assertTrue(ptup.sp == (intvl - 20) * (1.-3.)/(24-20) + 3)
+                self.assertEquals(ptup.sp, (intvl - 20) * (1.-3.)/(24-20) + 3)
 
             last_dt = ptup.dt
-
+            
+        for i, ptup in enumerate(result):
+            intvl = int((ptup.dt - now).total_seconds() /
+                        timedelta(minutes=1).total_seconds())
+            self.assertEquals(i, intvl)
         
