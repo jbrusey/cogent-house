@@ -21,7 +21,6 @@ import cogentviewer.models as models
 #import cogentviewer.views.homepage
 import homepage
 
-import cogentviewer.utils.security as security
 
 import logging
 log = logging.getLogger(__name__)
@@ -63,7 +62,7 @@ def user(request):
         theUser.email = usermail
         
         #Encode and store password
-        theUser.password = security.pwdContext.encrypt(userpass)
+        theUser.password = meta.pwdContext.encrypt(userpass)
         theUser.level = "root"
         
         session.flush()

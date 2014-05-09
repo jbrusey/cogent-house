@@ -95,3 +95,10 @@
   -  Modified Nodestate table to remove id primary key and key on (time, nodeId, seq_num)
   -  Remapped Node.Statehistoy to order by Nodestate.time rather than NodeState.id
   
+0.4.5
+------
+
+  - Updated code to use UTC rather than local time
+  - Modified Homepage to only show Active Houses (No Nodes)
+  - Modified Server Status page to only show relevant information
+  - Removed Network Map form the Server Status page untill I find a sane way of represening it.

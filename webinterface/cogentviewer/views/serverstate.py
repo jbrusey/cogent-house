@@ -24,12 +24,12 @@ def generate_netmap():
     """Generate a network map of all deployments"""
     session = meta.Session()
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
 
-    #now = datetime.datetime(2014,01,07,16,45,00)
+
 
     #Query for nodestates
-    #now = datetime.datetime(2014,01,07,16,45,00)
+
     qry = session.query(models.NodeState.parent,
                         models.NodeState.nodeId,
                         func.max(models.NodeState.time),
@@ -183,9 +183,9 @@ def showserver(request):
 
     session = meta.Session()
     servers = session.query(models.Server)
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
 
-    now = datetime.datetime(2014,02,06,11,00,00)
+
     outDict["currenttime"] = now
 
     for server in servers:
@@ -196,43 +196,74 @@ def showserver(request):
         thisrow["lastpush"] = None #When the last push happend
         thisrow["laststate"] = None #When the last state was reported
         thisrow["skew"] = None #What (if any clock skew there is)
-        thisrow["nodes"] = []
+        thisrow["nodes"] = None
         thisrow["node_state" ] = None
+        thisrow["reportingnodes"] = None
 
         thisrow["push_state"] = "warning" #Formatting for the pushstate
         thisrow["state_state"] = None #Formatting for the nodestate
         thisrow["skew_state"] = "warning" #Formatting for the skew state
         rowstate = ""
         #if server.houseid:
-        if False:
-            #qry = session.query(models.House).filter_by(id=server.houseid).first()
-            qry = None
-            if qry:
-                thisrow["address"] = qry.address
+        houseqry = session.query(models.House).filter_by(serverid = server.id)
 
-                #Nodes associated with this house
-                houselocations = qry.locations
-                housenodes = []
-                for loc in houselocations:
-                    locnodes = loc.nodes
-                    #if locnodes:
-                    for x in locnodes:
-                        lastreport = session.query(models.NodeState).filter_by(nodeId = x.id).order_by(models.NodeState.time.desc()).first()
-                        if lastreport is not None:
-                            lasttime = lastreport.time
-                            nodestate = "error"
-                            reportdelta = now - lasttime
-                            if reportdelta.days < 1:
-                                nodestate = "info"
-                                if reportdelta.seconds < 8*(60*60):
-                                    nodestate = "success"
-                            housenodes.append(["{1} : {2}".format(loc.id,loc.room.name, x.id), lasttime, nodestate])
+        heartbeat_time = datetime.datetime.now() - datetime.timedelta(hours = 8)
+        if houseqry.count() > 0:
+            thisrow["address"] = houseqry.count()
+            #Work out locations assocatated with these houses
+            
+            all_locs = []
+            for house in houseqry:
+                all_locs.extend(house.locations)
 
-                        else:
-                            housenodes.append(["{1} : {2}".format(loc.id,loc.room.name, x.id), None, None])
+            print all_locs
+            
+            nodecount = 0
+            reportingcount = 0
+
+            for loc in all_locs:
+                for node in loc.nodes:
+                    #Increment the number of nodes
+                    nodecount +=1
+                    #Check if we have data
+
+                    lastreport = session.query(models.NodeState).filter_by(nodeId = node.id).filter(models.NodeState.time > heartbeat_time).first()
+                    if lastreport:
+                        reportingcount +=1
+                        
+            thisrow["nodes"] = nodecount
+            thisrow["reportingnodes"] = reportingcount
+            # if False:
+                
+                
+                
+            #     #thisrow["address"] = qry.address
+
+                
+                
+            #     #Nodes associated with this house
+            #     houselocations = qry.locations
+            #     housenodes = []
+            #     for loc in houselocations:
+            #         locnodes = loc.nodes
+            #         #if locnodes:
+            #         for x in locnodes:
+            #             lastreport = session.query(models.NodeState).filter_by(nodeId = x.id).order_by(models.NodeState.time.desc()).first()
+            #             if lastreport is not None:
+            #                 lasttime = lastreport.time
+            #                 nodestate = "error"
+            #                 reportdelta = now - lasttime
+            #                 if reportdelta.days < 1:
+            #                     nodestate = "info"
+            #                     if reportdelta.seconds < 8*(60*60):
+            #                         nodestate = "success"
+            #                 housenodes.append(["{1} : {2}".format(loc.id,loc.room.name, x.id), lasttime, nodestate])
+
+            #             else:
+            #                 housenodes.append(["{1} : {2}".format(loc.id,loc.room.name, x.id), None, None])
 
 
-                thisrow["nodes"] = housenodes
+            #     thisrow["nodes"] = housenodes
 
 
             #--- Nodestate (last push) Details ----
@@ -307,8 +338,8 @@ def showserver(request):
 
     outDict["servertable"] = servertable
     outDict["serverlist"] = []
-    netlist, netmap = generate_netmap()
-    outDict["serverlist"] = netlist
-    outDict["servermap"] = netmap
+    #netlist, netmap = generate_netmap()
+    #outDict["serverlist"] = netlist
+    #outDict["servermap"] = netmap
 
     return outDict

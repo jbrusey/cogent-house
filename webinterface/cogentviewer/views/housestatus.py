@@ -65,8 +65,8 @@ def housestatus(request):
     #So we want a list of active houses
     session = meta.Session()
 
-    now = datetime.datetime.now()
-    now = datetime.datetime(2014, 02, 13, 10, 00, 00)
+    now = datetime.datetime.utcnow()
+    #now = datetime.datetime(2014, 02, 13, 10, 00, 00)
 
     qry = session.query(models.House)
     qry = qry.filter(sqlalchemy.or_(models.House.endDate >= now,
@@ -256,8 +256,8 @@ def housedetails(request):
     nodedetails = []
     checkednodes = []
     nodepairs = [] #Pair of node / locations
-    now = datetime.datetime.now()
-    now = datetime.datetime(2014, 02, 13, 11, 00)
+    now = datetime.datetime.utcnow()
+    #now = datetime.datetime(2014, 02, 13, 11, 00)
     yieldtime = now - datetime.timedelta(days=7)
 
     for location in thishouse.locations:

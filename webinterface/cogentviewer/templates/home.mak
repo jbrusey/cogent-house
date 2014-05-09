@@ -59,6 +59,8 @@
      <a class="btn" href="${newLink}">Start New Deployment</a>
 
      <hr>
+
+     <%doc>
      <section>
        <h2>Node Status</h2>
        
@@ -112,6 +114,7 @@
 	 </tbody>
        </table>
      </section>
+     </%doc>
 </%block>  
 
 <%block name="scripts">

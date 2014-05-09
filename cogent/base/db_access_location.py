@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, and_, distinct, select, alias, distinct
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
-from datetime import datetime, timedelta
+#from datetime import datetime, timedelta
+import datetime
 import os.path
 import csv
 import scipy.stats as stats
@@ -9,6 +10,9 @@ import sys
 
 from cogent.base.model import *
 
+
+def get_calibration(session, node_id, reading_type):
+    return (1.0, 0.0)
 
 # A list that we can store metadata about (the reading_type for the data it
 # contains for example).
@@ -215,7 +219,7 @@ def get_nodeId_by_location(session, loc_id, start_time, end_time, type_id=0):
     return nid
 
 
-def get_data_by_location_and_type(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True, with_deltas=False):
+def get_data_by_location_and_type(session, loc_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, cal_func=get_calibration, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
      
@@ -244,7 +248,7 @@ def get_data_by_location_and_type(session, loc_id, reading_type, start_time = da
     return data
 
 
-def get_location_types(session, loc_id, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow()):
+def get_location_types(session, loc_id, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow()):
     theQuery =  session.query(distinct(Reading.typeId)).filter(and_(
         Reading.time >= start_time,
         Reading.time < end_time,
@@ -258,7 +262,7 @@ def get_location_types(session, loc_id, start_time = datetime.fromtimestamp(0), 
 
 
 
-def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True):
+def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
      
@@ -281,7 +285,7 @@ def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, st
 
 
 
-def get_data_by_type_location(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True, with_deltas=False):
+def get_data_by_type_location(session, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
 
@@ -365,7 +369,17 @@ def _get_outlier_thresholds(data):
     return (ub, lb)
 
 
-def get_yield_location(session, loc_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow()):
+def get_yield(session, node_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow()):
+    days = int((end_time - start_time).days)
+    expected_rows = float(days * 288.)
+
+    return 100.0
+    row_count = _query_by_node_and_type(session, node_id, reading_type, start_time, end_time).count()
+
+    return (row_count * 100.0) / expected_rows
+
+
+def get_yield_location(session, loc_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow()):
     days = int((end_time - start_time).days)
     expected_rows = float(days * 288.)
     
@@ -374,11 +388,11 @@ def get_yield_location(session, loc_id, reading_type, start_time = datetime.from
    
     return (row_count * 100.0) / expected_rows
     
-def get_yield_by_nodes_and_date(session, hnum, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow()):
+def get_yield_by_nodes_and_date(session, hnum, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow()):
 
     yields={}
     expected_rows = 288.
-    d = timedelta(days=1)
+    d = datetime.timedelta(days=1)
     locations = get_locations_by_house(session, hnum)
     
 
@@ -413,4 +427,13 @@ def get_houses(session):
 
 def node_is_battery_powered(node_id):
     return node_id < 2000
+
+
+
+def node_has_co2(session, node_id):
+    #Fuck It
+    #co2 is type 8
+    qry = session.query(Reading).filter_by(nodeId = node_id,
+                                           typeId = 8)
+    return qry.first()
 

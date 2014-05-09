@@ -66,8 +66,7 @@ def pushstatus(request):
         elif skew.seconds > 60*5:
             serverdict["rowcolor"] = "warning"
         
-        now = datetime.datetime.now()
-        now = datetime.datetime(2014,02,14,15,20,00)
+        now = datetime.datetime.utcnow()
         
         pushdelta = now - lastpush.time
         if pushdelta.days > 0:
@@ -183,6 +182,6 @@ def heatmap(request):
 @view_config(route_name='netmap',
              renderer='cogentviewer:templates/netmap.mak',permission="view")
 def netmap(request):
-    return {"time":datetime.datetime.now()}
+    return {"time":datetime.datetime.utcnow()}
 
 

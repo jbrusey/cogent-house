@@ -1149,7 +1149,7 @@ def _getRegistered(theId,parameters,reqType,request):
     theHouse = session.query(models.House).filter_by(id=houseId).first()
     log.debug("House Id {0} => {1}".format(houseId,theHouse))
 
-    currenttime = datetime.datetime.now()
+    currenttime = datetime.datetime.utcnow()
     cuttime = currenttime - datetime.timedelta(hours=1)
 
     #Otherwise Fetch the Base Items
@@ -1291,7 +1291,7 @@ def _getStatus(nodeId,parameters,reqType,request):
         heardQuery = session.query(sqlalchemy.distinct(models.NodeState.nodeId))
 
         if cutTime:
-            cutTime = datetime.datetime.now() - datetime.timedelta(days=int(cutTime))
+            cutTime = datetime.datetime.utcnow() - datetime.timedelta(days=int(cutTime))
             log.info("== Processing Cuttof Time {0}".format(cutTime))
             heardQuery = heardQuery.filter(models.NodeState.time >= cutTime)
 
@@ -1369,7 +1369,7 @@ def _getStatus(nodeId,parameters,reqType,request):
             log.debug("--> Item {0}".format(theItem))
 
             #Finally work out the Status
-            timeDiff = datetime.datetime.now() - lastTime.time
+            timeDiff = datetime.datetime.utcnow() - lastTime.time
             #log.debug("--> {0}".format(timeDiff))
 
             if theLoc:
@@ -1654,7 +1654,7 @@ def getnetwork(request):
             qry = session.query(models.NodeState,
                                 sqlalchemy.func.count(models.NodeState.nodeId))
             qry = qry.filter_by(nodeId = node.id)
-            qry = qry.filter(models.NodeState.time >= (datetime.datetime.now() - datetime.timedelta(minutes=7)))
+            qry = qry.filter(models.NodeState.time >= (datetime.datetime.utcnow() - datetime.timedelta(minutes=7)))
             qry = qry.order_by(models.NodeState.time.desc())
 
             qry = qry.limit(1)

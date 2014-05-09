@@ -55,8 +55,8 @@ def yieldpage(request):
     #houses =  session.query(models.House).filter_by(address ="69 longford road")
     #houses =  session.query(models.House).filter_by(address ="c4 59 radnormere drive")
 
-    now = datetime.datetime.now()
-    #now = datetime.datetime(2013,11,18,15,00,00)
+    now = datetime.datetime.utcnow()
+
 
     for house in houses:
         houseyield = {"house":house.address}
@@ -74,8 +74,7 @@ def yieldpage(request):
                         "nodeid": node["nodeid"],
                         "room": node["room"]}
             #And work out yields
-            #yieldinfo = calcyield(node["nodeid"],startdate=datetime.datetime(2013,11,5,00,00,00))
-            yieldinfo = calcyield(node["nodeid"],startdate=datetime.datetime(2013,12,1,00,00,00))
+            yieldinfo = calcyield(node["nodeid"],startdate=datetime.datetime.utcnow())
             yieldrow["lasttx"] = yieldinfo[0]
             #Class  /Highlighting for the last transmision
 
@@ -136,7 +135,7 @@ def exportYield():
                         "nodeid": node["nodeid"],
                         "room": node["room"]}
             #And work out yields
-            yieldinfo = calcyield(node["nodeid"], startdate=datetime.datetime(2013,11,4,00,00,00))
+            yieldinfo = calcyield(node["nodeid"], startdate=datetime.datetime.utcnow())
             #yieldinfo = calcyield(node["nodeid"])
             yieldrow["lasttx"] = yieldinfo[0]
             yieldrow["yield"] = yieldinfo[1]
@@ -424,7 +423,7 @@ def calcyieldNew(nodeid, startdate=None, enddate=None):
     if enddate:
         lastsample = enddate
     else:
-        lastsample = datetime.datetime.now()
+        lastsample = datetime.datetime.utcnow()
         #lastsample = df.irow(-1)["time"] #This calculated based on the data we had
 
     duration = lastsample - firstsample

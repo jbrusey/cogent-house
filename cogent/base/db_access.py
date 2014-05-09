@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, and_, distinct, select, alias
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.orm.query
-from datetime import datetime
+#from datetime import datetime
+import datetime
 import os.path
 import csv
 import scipy.stats as stats
@@ -276,7 +277,7 @@ def get_node_locations_by_house(session, house_id, include_external=True):
 
 
 
-def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True, with_deltas=False):
+def get_data_by_type(session, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
 
@@ -311,7 +312,7 @@ def get_data_by_type(session, reading_type, start_time = datetime.fromtimestamp(
     return data
 
 
-def get_data_by_node_and_type(session, node_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow(), postprocess=True, cal_func=get_calibration, with_deltas=False):
+def get_data_by_node_and_type(session, node_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, cal_func=get_calibration, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
         print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
      
@@ -393,7 +394,7 @@ def _get_outlier_thresholds(data):
     return (ub, lb)
 
 
-def get_yield(session, node_id, reading_type, start_time = datetime.fromtimestamp(0), end_time = datetime.utcnow()):
+def get_yield(session, node_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow()):
     days = int((end_time - start_time).days)
     expected_rows = float(days * 288.)
     
