@@ -388,9 +388,6 @@ def fetchLocationData(sensorType,
         theQry = theQry.filter_by(nodeId = nodeId[0])
         theQry = theQry.order_by(models.Reading.time)
 
-        #startDate = datetime.datetime(2013,12,26,00,00,00)
-        #endDate = datetime.datetime(2013,12,30,00,00,00)
-
         log.debug("--> Start {0} End {1}".format(startDate, endDate))
         if startDate:
             log.debug("-- Filter to start {0}".format(startDate))

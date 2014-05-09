@@ -196,7 +196,7 @@ def homepage(request):
 
 
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
 
     session = meta.Session()
     activeHouses = session.query(models.House).order_by(models.House.startDate.desc())
@@ -207,42 +207,42 @@ def homepage(request):
     outDict["newLink"] = request.route_url("house",id="")
 
 
-    #I Want A List of all recently heard nodes (Last Day)
-    #7 Hours is Rosses
-    t1 = time.time()
-    #Distinct is a bit of a bugger but we can use group by as a cheat
-    theQry = session.query(models.NodeState, func.max(models.NodeState.time)).group_by(models.NodeState.nodeId)
-    theQry = theQry.filter(models.NodeState.time > datetime.datetime.now() - datetime.timedelta(hours=8))
-    theQry = theQry.order_by(func.max(models.NodeState.time).desc())
+    # #I Want A List of all recently heard nodes (Last Day)
+    # #7 Hours is Rosses
+    # t1 = time.time()
+    # #Distinct is a bit of a bugger but we can use group by as a cheat
+    # theQry = session.query(models.NodeState, func.max(models.NodeState.time)).group_by(models.NodeState.nodeId)
+    # theQry = theQry.filter(models.NodeState.time > datetime.datetime.utcnow() - datetime.timedelta(hours=8))
+    # theQry = theQry.order_by(func.max(models.NodeState.time).desc())
     
-    outDict["nodeStates"] = _procNodeQuery(theQry)
-    t2 = time.time()
-    log.info("------> Time Taken to fetch recent node states {0}".format(t2-t1))
-    #Lets try to get the registered nodes that havent reported in a time
-    #Houses that are required
-    now = datetime.datetime.utcnow()
+    # outDict["nodeStates"] = _procNodeQuery(theQry)
+    # t2 = time.time()
+    # log.info("------> Time Taken to fetch recent node states {0}".format(t2-t1))
+    # #Lets try to get the registered nodes that havent reported in a time
+    # #Houses that are required
+    # now = datetime.datetime.utcnow()
 
 
-    t1 = time.time()
-    theQry = session.query(models.House).filter(sqlalchemy.or_(models.House.endDate == None,
-                                                               models.House.endDate > now))
+    # t1 = time.time()
+    # theQry = session.query(models.House).filter(sqlalchemy.or_(models.House.endDate == None,
+    #                                                            models.House.endDate > now))
 
-    missingNodes = []
-    for item in theQry:
-        for loc in item.locations:
-            missingNodes.extend(x.id for x in loc.nodes)
+    # missingNodes = []
+    # for item in theQry:
+    #     for loc in item.locations:
+    #         missingNodes.extend(x.id for x in loc.nodes)
 
-    if missingNodes:
-        theQry = session.query(models.NodeState, func.max(models.NodeState.time)).group_by(models.NodeState.nodeId)
-        theQry = theQry.filter(models.NodeState.nodeId.in_(missingNodes))
-        theQry = theQry.having(func.max(models.NodeState.time) <= datetime.datetime.now() - datetime.timedelta(hours=8))
-        theQry = theQry.order_by(func.max(models.NodeState.time).desc())
+    # if missingNodes:
+    #     theQry = session.query(models.NodeState, func.max(models.NodeState.time)).group_by(models.NodeState.nodeId)
+    #     theQry = theQry.filter(models.NodeState.nodeId.in_(missingNodes))
+    #     theQry = theQry.having(func.max(models.NodeState.time) <= datetime.datetime.utcnow() - datetime.timedelta(hours=8))
+    #     theQry = theQry.order_by(func.max(models.NodeState.time).desc())
 
-        outDict["missingNodes"] = _procNodeQuery(theQry)
-    else:
-        outDict["missingNodes"] = []
-    t2 = time.time()
-    log.info("------> Time Taken to fetch missing node states {0}".format(t2-t1))
+    #     outDict["missingNodes"] = _procNodeQuery(theQry)
+    # else:
+    #     outDict["missingNodes"] = []
+    # t2 = time.time()
+    # log.info("------> Time Taken to fetch missing node states {0}".format(t2-t1))
 
     return outDict
 

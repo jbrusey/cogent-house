@@ -55,7 +55,7 @@
 	  <tr>
 	    <th>Server</th>
 	    <th>Base Id</th>
-	    <th>Address</th>
+	    <th>Registered Houses</th>
 	    <th>Last Push</th>
 	    <th>Last Reading</th>
 	    <th>Skew</th>	   
@@ -73,21 +73,23 @@
 	    <td class=${row["push_state"]}>${row["lastpush"]}</td>
 	    <td class=${row["state_state"]}>${row["laststate"]}</td>
 	    <td class=${row["skew_state"]}>${row["skew"]}</td>
+	    <td>${row["nodes"]}</td>
+	    <td>${row["reportingnodes"]}</td>
+
 	  </tr>
-	    %for node in row["nodes"]:
-	        <tr>
-		  <td></td>
-		  <td></td>
-		  <td></td>
-		  <td></td>
-		  <td></td>
-		  <td></td>
-		  <td class=${node[2]}> ${node[0]}</td>
-		  <td class=${node[2]}> ${node[1]}</td>
-		</tr>
-	    %endfor
-	    ##<td>${row["nodes"]}</td>
-	    ##<td>${row["reportingnodes"]}</td>
+##	    %for node in row["nodes"]:
+##	        <tr>
+##		  <td></td>
+##		  <td></td>
+##		  <td></td>
+##		  <td></td>
+##		  <td></td>
+##		  <td></td>
+##		  <td class=${node[2]}> ${node[0]}</td>
+##		  <td class=${node[2]}> ${node[1]}</td>
+##		</tr>
+##	    %endfor
+
 
 	  
 	  %endfor
@@ -144,5 +146,5 @@
 
     <h3>Network Map</h3>
     
-    <img src="${request.static_url('cogentviewer:static/netmap.png')}"/>
+    ##<img src="${request.static_url('cogentviewer:static/netmap.png')}"/>
 </%block>
