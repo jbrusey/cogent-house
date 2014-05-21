@@ -22,6 +22,7 @@ PFLAGS += -I . \
 	-I ./Sensing/CurrentCost  \
 	-I ./Sensing/PulseReader  \
 	-I ./Sensing/TempADC \
+        -I ./Sensing/WallSensors \
 	-I ./Sensing/WindowStatus 
 
 # use "make telosb install.2 lpl_based=1" to turn on lpl-based code
@@ -146,6 +147,17 @@ CFLAGS += -DSIP_WINDOW_MASK=1
 CFLAGS += -DSIP_WINDOW_THRESH=1
 CFLAGS += -DSIP_WINDOW_ALPHA=0
 CFLAGS += -DSIP_WINDOW_BETA=0
+
+
+CFLAGS += -DSIP_WALL_TEMP_MASK=1
+CFLAGS += -DSIP_WALL_TEMP_THRESH=-1
+CFLAGS += -DSIP_WALL_TEMP_ALPHA=0
+CFLAGS += -DSIP_WALL_TEMP_BETA=0
+
+CFLAGS += -DSIP_WALL_HUM_MASK=1
+CFLAGS += -DSIP_WALL_HUM_THRESH=-1
+CFLAGS += -DSIP_WALL_HUM_ALPHA=0
+CFLAGS += -DSIP_WALL_HUM_BETA=0
 
 include $(MAKERULES)
 

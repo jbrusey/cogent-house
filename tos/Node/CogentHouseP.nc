@@ -40,6 +40,8 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadHMVolume;
     interface SIPController<FilterState *> as ReadWindow;
     interface SIPController<FilterState *> as ReadTempADC1;
+    interface SIPController<FilterState *> as ReadWallTemp;
+    interface SIPController<FilterState *> as ReadWallHum;
     interface TransmissionControl;
     interface StdControl as OptiControl;
     interface StdControl as GasControl;
@@ -339,7 +341,9 @@ implementation
     call ReadHMVolume.init(SIP_HMV_THRESH, SIP_HMV_MASK, SIP_HMV_ALPHA, SIP_HMV_BETA);
     call ReadWindow.init(SIP_WINDOW_THRESH, SIP_WINDOW_MASK, SIP_WINDOW_ALPHA, SIP_WINDOW_BETA);
     call ReadCC.init(SIP_CC_THRESH, SIP_CC_MASK, SIP_CC_ALPHA, SIP_CC_BETA);
-    call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);
+    call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);   
+    call ReadWallTemp.init(SIP_WALL_TEMP_MASK, SIP_WALL_TEMP_THRESH, SIP_WALL_TEMP_ALPHA, SIP_WALL_TEMP_BETA);
+    call ReadWallHum.init(SIP_WALL_HUM_MASK, SIP_WALL_HUM_THRESH, SIP_WALL_HUM_ALPHA, SIP_WALL_HUM_BETA);
 
     nodeType = TOS_NODE_ID >> 12;
     sample_period = DEF_SENSE_PERIOD;
@@ -390,6 +394,10 @@ implementation
     }
     else if (nodeType == CLUSTER_HEAD_CC_TYPE) { /* current cost */
       call Configured.set(RS_POWER);
+    }
+    else if (nodeType == CLUSTER_HEAD_WALL_TYPE) { /* wall temp/moisture sensor */
+      call Configured.set(RS_WALL_TEMP);
+      call Configured.set(RS_WALL_HUM); 
     }
 
 #ifndef MISSING_AC_SENSOR
@@ -443,6 +451,7 @@ implementation
 	  else if (i == RS_AC)
 	    call ReadAC.read();
 #endif
+
    	  else if (i == RS_POWER)
 	    call ReadCC.read();
    	  else if (i == RS_OPTI)
@@ -455,8 +464,6 @@ implementation
 	    call ReadGas.read();
    	  else if (i == RS_WINDOW)
 	    call ReadWindow.read();
-   	  else if (i == RS_BB)
-	    call ReadBB.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -477,17 +484,24 @@ implementation
 	call ExpectReadDone.set(i);
 	if (i == RS_TEMPADC1)
 	  call ReadTempADC1.read();
+	else if (i == RS_WALL_TEMP)
+	  call ReadWallTemp.read();
+	else if (i == RS_WALL_HUM)
+	  call ReadWallHum.read();
 #ifdef CLUSTER_BASED
 	else if (leaf_mode)
 	  /* if leaf_mode, avoid polling high power sensors below */
 	  call ExpectReadDone.clear(i);
 #endif
+
 	else if (i == RS_CO2)
 	  call ReadCO2.read();
 	else if (i == RS_AQ)
 	  call ReadAQ.read();
 	else if (i == RS_VOC)
 	  call ReadVOC.read();
+	else if (i == RS_BB)
+	    call ReadBB.read();
 	else
 	  call ExpectReadDone.clear(i);
       }
@@ -597,6 +611,14 @@ implementation
 
   event void ReadWindow.readDone(error_t result, FilterState* data) {
     do_readDone_pass(result, data, RS_WINDOW, SC_WINDOW);
+  }
+  
+  event void ReadWallTemp.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_WALL_TEMP, SC_WALL_TEMP, SC_D_WALL_TEMP);
+  }
+
+  event void ReadWallHum.readDone(error_t result, FilterState* data) {
+    do_readDone_filterstate(result, data, RS_WALL_HUM, SC_WALL_HUM, SC_D_WALL_HUM);
   }
 
 
