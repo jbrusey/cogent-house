@@ -120,6 +120,15 @@ implementation
   //Window Sensor
   components new WindowM() as WindowM;
   WindowM.WindowInput -> GIO.Port23;
+  
+  //Wall sensors
+  components WallTempM;
+  components new WallTempC() as WallTemp;
+  WallTempM.GetWallTemp -> WallTemp;
+  
+  components WallHumM;
+  components new WallHumC() as WallHum;
+  WallHumM.GetWallHum -> WallHum;
 
   /*********** ACK CONFIG *************/
 
@@ -239,6 +248,18 @@ implementation
   FilterM.GetSensorValue[RS_WINDOW]  -> WindowM.ReadWindow;
   SIPControllerC.EstimateCurrentState[RS_WINDOW]  -> FilterM.EstimateCurrentState[RS_WINDOW];
   CogentHouseP.ReadWindow -> SIPControllerC.SIPController[RS_WINDOW];
+  
+  //Wall Temp
+  FilterM.Filter[RS_WALL_TEMP]  -> Pass.Filter[RS_WALL_TEMP];
+  FilterM.GetSensorValue[RS_WALL_TEMP]  -> WallTempM.ReadWallTemp;
+  SIPControllerC.EstimateCurrentState[RS_WALL_TEMP]  -> FilterM.EstimateCurrentState[RS_WALL_TEMP];
+  CogentHouseP.ReadWallTemp -> SIPControllerC.SIPController[RS_WALL_TEMP];
+  
+  //Wall Hum
+  FilterM.Filter[RS_WALL_HUM]  -> Pass.Filter[RS_WALL_HUM];
+  FilterM.GetSensorValue[RS_WALL_HUM]  -> WallHumM.ReadWallHum;
+  SIPControllerC.EstimateCurrentState[RS_WALL_HUM]  -> FilterM.EstimateCurrentState[RS_WALL_HUM];
+  CogentHouseP.ReadWallHum -> SIPControllerC.SIPController[RS_WALL_HUM];
 
   //Transmission Control
   CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;

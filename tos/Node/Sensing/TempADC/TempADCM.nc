@@ -11,7 +11,7 @@ module TempADCM
 }
 implementation
 {
-	const float vref=3.3;
+	const float vref=2.5;
 	const float maxAdc=4096.0;
 	//temp=100x-50
 	float TempCoeffs[] = {-50, 100};

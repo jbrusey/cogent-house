@@ -63,6 +63,10 @@ enum {
   SC_D_CO2 = 20,
   SC_D_VOC = 21,
   SC_D_AQ = 22,
+  SC_WALL_TEMP = 23,
+  SC_D_WALL_TEMP = 24,
+  SC_WALL_HUM = 25,
+  SC_D_WALL_HUM = 26, 
   SC_OPTI = 40,
   SC_TEMPADC1 = 41,
   SC_D_TEMPADC1 = 42,
@@ -110,7 +114,9 @@ enum {
   RS_WINDOW= 16,
   RS_AC= 17,
   RS_BB=18,
-  RS_SIZE = 19 // must be 1 greater than last entry
+  RS_WALL_TEMP=19,
+  RS_WALL_HUM=20,
+  RS_SIZE = 21 // must be 1 greater than last entry
 };
 
 //separate packets structure for mote type
@@ -133,6 +139,7 @@ enum {
   CLUSTER_HEAD_VOC_TYPE = 11,
   CLUSTER_HEAD_CC_TYPE = 12,
   CLUSTER_HEAD_BB_TYPE = 13,
+  CLUSTER_HEAD_WALL_TYPE = 14,
   CLUSTER_HEAD_MIN_ID = 10 << 12 //min cluster head type
 };
 
