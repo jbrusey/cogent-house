@@ -393,7 +393,7 @@ implementation
     }
 
 #ifndef MISSING_AC_SENSOR
-    if (nodeType >= CLUSTER_HEAD_MIN_ID) {
+    if (CLUSTER_HEAD) {
       call Configured.set(RS_AC);
       call ACControl.start();
     }
