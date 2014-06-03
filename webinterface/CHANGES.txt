@@ -98,7 +98,8 @@
 0.4.5
 ------
 
-  - Updated code to use UTC rather than local time
-  - Modified Homepage to only show Active Houses (No Nodes)
+  - Updated code to use UTC rather than local time (Closes 49/42)
+  - Modified Homepage to only show Active Houses (Closes 78)
   - Modified Server Status page to only show relevant information
-  - Removed Network Map form the Server Status page untill I find a sane way of represening it.
+  - Removed Network Map from the Server Status page untill I find a sane way of represening it.
+  - Remove Debug Code from Server State Page (Closes 81)
