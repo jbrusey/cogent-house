@@ -10,13 +10,14 @@ from datetime import datetime, timedelta
 #So I will too.
 #from cogent.base.model.Bitset import Bitset
 
-try:
-    import cogent
-except ImportError:
-    #Assume we are running from the test directory
-    print "Unable to Import Cogent Module Appending Path"
-    import sys
-    sys.path.append("../")
+import cogent
+# try:
+#     import cogent
+# except ImportError:
+#     #Assume we are running from the test directory
+#     print "Unable to Import Cogent Module Appending Path"
+#     import sys
+#     sys.path.append("../")
 
 
 from cogent.base.model import *
@@ -76,8 +77,8 @@ class TestNodeType(base.BaseTestCase):
             session.commit()
             self.assertTrue( r.configured[3] and r.configured[13] )
         except Exception,e:
-            print e
             session.rollback()
+            raise e
         finally:
             session.close()
 
@@ -99,8 +100,8 @@ class TestNodeType(base.BaseTestCase):
             session.add(r)
             session.commit()
         except Exception,e:
-            print e
             session.rollback()
+            raise e
         finally:
             session.close()
 

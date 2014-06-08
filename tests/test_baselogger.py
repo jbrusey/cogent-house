@@ -23,7 +23,8 @@ class TestBif(object):
 
     def sendMsg(self, msg, addr=None):
         # assumption is that msg is a ConfigMsg
-        print "sendMsg",msg
+        # print "sendMsg",msg
+        pass
 
     def finishAll(self):
         pass
@@ -54,7 +55,7 @@ class test_baselogger(base.BaseTestCase):
         super(test_baselogger, cls).setUpClass()
 
         #Create a baseIF
-        print "Creating BaseLogger"
+        # print "Creating BaseLogger"
         testbif = TestBif()
         blogger = BaseLogger.BaseLogger(bif=testbif,
                                         dbfile="sqlite:///test.db")

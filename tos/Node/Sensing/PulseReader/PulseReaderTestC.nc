@@ -18,12 +18,15 @@ implementation
   components new AlarmMilli32C() as MilliAlarm;
 
   components PulseGio2C;
+  components PulseGio3C;
   
   PulseReaderP.Boot -> MainC.Boot;
   
   PulseReaderP.LocalTime -> HilTimerMilliC;
   PulseReaderP.ReadPulse->PulseGio2C.ReadPulse;
   PulseReaderP.PulseControl -> PulseGio2C.PulseControl;
+  PulseReaderP.ReadPulse2->PulseGio3C.ReadPulse;
+  PulseReaderP.PulseControl2 -> PulseGio3C.PulseControl;
   PulseReaderP.SensingTimer ->SensingTimer; 
 }
 

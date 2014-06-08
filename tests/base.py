@@ -44,12 +44,12 @@ def initDatabase():
 #test overrides everything)
 if meta.Base.metadata.bind is None:
     log.info("No Database Initiated")
-    print
-    print "====================="
-    print "Initialise Database"
+    # print
+    # print "====================="
+    # print "Initialise Database"
     initDatabase()
     models.populateData.init_data()
-    print "====================="
+    # print "====================="
 
 class BaseTestCase(unittest.TestCase):
     """Base class for testing"""

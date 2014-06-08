@@ -9,13 +9,13 @@ import platform
 import smtplib
 import re
 
-try:
-    import cogent
-except ImportError:
-    #Assume we are running from the test directory
-    print "Unable to Import Cogent Module Appending Path"
-    import sys
-    sys.path.append("../")
+# try:
+import cogent
+# except ImportError:
+#     #Assume we are running from the test directory
+#     print "Unable to Import Cogent Module Appending Path"
+#     import sys
+#     sys.path.append("../")
 
 
 from cogent.base.model import *
@@ -74,7 +74,7 @@ class TestReport(base.BaseTestCase):
             #print x
             y = packetYield(s)
             #self.assertTrue(len(y) == 0)
-            print y
+            # print y
         finally:
             s.close()
 
@@ -82,9 +82,9 @@ class TestReport(base.BaseTestCase):
         try:
             s = Session()
             x = ccYield(s)
-            print x
+            # print x
             y = ccYield(s)
-            print y
+            # print y
             #self.assertTrue(len(y) == 0)
         finally:
             s.close()
@@ -92,7 +92,7 @@ class TestReport(base.BaseTestCase):
 
 def initDb():
     """Create some initial items in our database"""
-    print "Creating Database Objects"
+    # print "Creating Database Objects"
     try:
         s = Session()
         h = House(address="Test house")
@@ -143,7 +143,7 @@ def initDb():
             t = t + datetime.timedelta(minutes=5)
             
         s.commit()
-        print "Object Creation Successfull"
+        # print "Object Creation Successfull"
     finally:
         s.close()
 
