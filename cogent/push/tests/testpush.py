@@ -2,7 +2,7 @@
 
 
 NOTE:  Not as atomic as they should be.  However, testing becomes a tad tricksy
-       when you cannot garuentee that the code runs in order
+       when you cannot guarantee that the code runs in order
 """
 
 
