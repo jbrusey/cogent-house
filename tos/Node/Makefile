@@ -25,18 +25,20 @@ PFLAGS += -I . \
         -I ./Sensing/WallSensors \
 	-I ./Sensing/WindowStatus 
 
-# use "make telosb install.2 lpl_based=1" to turn on lpl-based code
-ifdef lpl_based
+# use "make telosb install.2 cluster_based=1" to turn on cluster-based code
+
+ifdef cluster_based
+PFLAGS += -I ../Util/ch4bitle
+BUILD_EXTRA_DEPS += ../Util/ch4bitle/LinkEstimatorP.nc
+CFLAGS += -DCLUSTER_BASED
+else #lpl based
 PFLAGS += -I %T/lib/net/4bitle
 CFLAGS += -DLOW_POWER_LISTENING
 CFLAGS += -DLPL_DEF_LOCAL_WAKEUP=1024
 CFLAGS += -DLPL_DEF_REMOTE_WAKEUP=1024
 CFLAGS += -DDELAY_AFTER_RECEIVE=20
-else # not lpl_based
-PFLAGS += -I ../Util/ch4bitle
-BUILD_EXTRA_DEPS += ../Util/ch4bitle/LinkEstimatorP.nc
-CFLAGS += -DCLUSTER_BASED
 endif
+
 COMPONENT=CogentHouseC
 
 PYTHON_TARGET_DIR=../../cogent/node
