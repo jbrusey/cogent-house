@@ -1,4 +1,4 @@
-module HumADCM
+module WallHumM
 {
 	provides 
 	{
@@ -29,7 +29,6 @@ implementation
 	//Convert raw adc to Hum
 	event void GetWallHum.readDone(error_t result, uint16_t data) {
 		float voltage;
-		float Hum;
 		voltage=(data/maxAdc)*vref;
 		signal ReadWallHum.readDone(SUCCESS, voltage);
 	}

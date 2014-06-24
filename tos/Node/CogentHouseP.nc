@@ -255,7 +255,9 @@ implementation
    * - only transmit data once all sensors have been read
    */
   task void checkDataGathered() {
+#ifdef CLUSTER_BASED
     error_t radio_status;
+#endif
     bool allDone = TRUE;
     uint8_t i;
 
