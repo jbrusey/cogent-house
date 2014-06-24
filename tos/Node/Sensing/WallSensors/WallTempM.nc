@@ -1,4 +1,4 @@
-module TempADCM
+module WallTempM
 {
 	provides 
 	{
@@ -29,7 +29,6 @@ implementation
 	//Convert raw adc to temp
 	event void GetWallTemp.readDone(error_t result, uint16_t data) {
 		float voltage;
-		float temp;
 		voltage=(data/maxAdc)*vref;
 		signal ReadWallTemp.readDone(SUCCESS, voltage);
 	}
