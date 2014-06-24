@@ -178,7 +178,7 @@ class PullServer(object):
                           
         while True:
             event = screen.getch()
-            if event == "q":
+            if event == ord("q"):
                 return False
             elif event == ord("f"):
                 if current_offset < total_pages:
@@ -250,6 +250,7 @@ class PullServer(object):
         #Fetch Relevant deployment (Which should have been synched allready)
         if thehouse.deploymentId is None:
             subwin.addstr(5, 1, "Deployment:  None")
+
         else:
             theurl="{0}deployment/{1}".format(self.resturl, thehouse.deploymentId)
             therequest = requests.get(theurl)
@@ -263,16 +264,18 @@ class PullServer(object):
                 thedeployment.id = None
                 session.add(thedeployment)
                 session.flush()
+                thehouse.deploymentId = thedeployment.id
             else:
                 #matchstr = "({0}) {1}".format(qry.id, qry.name)
-                thedeploymet = qry
+                thedeployment = qry
+                thehouse.deploymentId = qry.id
 
-            thehouse.deploymentid = thedeployment.id
 
         #And Update our House / Deployment Strings
         session.flush()
-        subwin.addstr(4, 1, "House: {0} (Local) {1} {2}".format(str(thehouse.address), thehouse.id, thehouse.address))
-        subwin.addstr(5, 1, "Deployment: {0}  (Local) {1} {2}".format(thedeployment.name, thedeployment.id, thedeployment.name))
+        subwin.addstr(4, 1, "House: {0} (Local) {1} {2} {3}".format(str(thehouse.address), thehouse.id, thehouse.address, thehouse.deploymentId))
+        if thehouse.deploymentId is not None:
+            subwin.addstr(5, 1, "Deployment: {0}  (Local) {1} {2}".format(thedeployment.name, thedeployment.id, thedeployment.name))
 
         #Fetch Locations
         params = urllib.urlencode({"houseId" : originalid})
