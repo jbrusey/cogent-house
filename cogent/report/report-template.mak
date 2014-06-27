@@ -1,5 +1,6 @@
-<!DOCTYPE html>  
-<html land="en">
+<!DOCTYPE html>
+
+<html lang="en">
 
   <head>  
     <meta charset="utf-8">
@@ -80,18 +81,18 @@
 	<tr>
 	  <td class="left">Deployed servers that Have pushed this week</td>
 	  <td class="right">${push_week}</td>
-	  <td class="right">${(float(deployed_serv) / push_week) * 100}%</td>
+	  <td class="right">${"{0:.2f}".format(float(push_week) / (float(deployed_serv)) * 100)}%</td>
 	</tr>
 
 	<tr>
 	  <td class="left">Deployed Servers that have pushed today</td>
 	  <td class="right">${push_today}</td>
-	  <td class="right">${(float(deployed_serv) / push_today) * 100}%</td>
+	  <td class="right">${"{0:.2f}".format((float(push_today) / deployed_serv) * 100)}%</td>
 	</tr>
 	<tr>
 	  <td class="left">Houses with data in the Past 24 hours</td>
 	  <td class="right">${houses_today}</td>
-	  <td class="right">${(float(deployed_houses) / houses_today) * 100}%</td>
+	  <td class="right">${"{0:.2f}".format((float(houses_today) / deployed_houses) * 100)}%</td>
 	</tr>
       </tbody>
     </table>
@@ -134,13 +135,13 @@
 	<tr>
 	  <td class="left">Total Nodes in last Week</td>
 	  <td class="right">${node_week}</td>
-	  <td class="right">${"{0:.2f}".format((float(node_week) / deployed_nodes))}%</td>
+	  <td class="right">${"{0:.2f}".format((float(node_week) / deployed_nodes) * 100)}%</td>
 	</tr>
 
 	<tr>
 	  <td class="left">Total Nodes In last 24 Hours</td>
 	  <td class="right">${node_today}</td>
-	  <td class="right">${"{0:.2f}".format((float(node_today) / deployed_nodes))}%</td>
+	  <td class="right">${"{0:.2f}".format((float(node_today) / deployed_nodes) * 100)}%</td>
 	</tr>
 
 
@@ -161,6 +162,7 @@
   </div>
 </div>
 </div>
+
 <div id="postamble" class="status">
   <p class="author">Author: Daniel Goldsmith</p>
 </div>
