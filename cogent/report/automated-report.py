@@ -12,6 +12,8 @@ import cogentviewer.models.meta as meta
 
 from mako.template import Template
 
+import smtplib
+
 
 
 Base = meta.Base
@@ -20,6 +22,7 @@ FAKEDATE = datetime.datetime(2014,6,12)
 
 class OwlsReporter(object):
     def __init__(self, enginestr, reportdate=datetime.datetime.utcnow()):
+        self.enginestr = enginestr
         engine = sqlalchemy.create_engine(enginestr, echo=False)
         meta.Session.configure(bind=engine)
         Base.metadata.bind = engine
@@ -212,9 +215,10 @@ class OwlsReporter(object):
     def render_report(self):
         """Render the report"""
         
+        projectstring = self.enginestr.split("/")[-1]
         currentdate = self.reportdate
         #Dictionary to hold our output
-        outdict = {"project": "OWLS",
+        outdict = {"project": projectstring,
                    "date": currentdate
         }
        
@@ -261,7 +265,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Automated Report Generation")
     parser.add_argument("-db",
                         "--database", 
-                        help="SQLA db string to connect to",
+                        help="SQLA db string to connect to (for example mysql://chuser@localhost/owls)",
                         default="mysql://chuser@localhost/owls"
     )
 
@@ -278,14 +282,20 @@ if __name__ == "__main__":
                         required=False
     )
 
+    parser.add_argument("-e",
+                        "--email",
+                        help="Email addresses to send to",
+                        required=False)
+
     args = parser.parse_args()
-    print args
+
+
     thedate = args.date
     if type(thedate) == str:
         parts = [int(x) for x in thedate.split("-")]
-        thedate = datetime.datetime(parts[2],parts[1],parts[0])
+        thedate = datetime.datetime(parts[2], parts[1], parts[0])
     
-    print thedate
+
     reporter = OwlsReporter(args.database,
                             thedate
     )
@@ -293,12 +303,35 @@ if __name__ == "__main__":
     output = reporter.render_report()
     
     if args.output:
-        fd = open(args.output)
-        fd.write(out)
+        fd = open(args.output, "w")
+        fd.write(output)
         fd.close()
     else:
-        print output
+        pass
+    #print output
     # reporter.render_report()
         # fd = open("owlsreport.html","w")
         # fd.write(out)
         # fd.close()
+
+    if args.email:
+        addresses = args.email.split(",")
+        print "Sending Email"
+        s = smtplib.SMTP('localhost')
+        sender = "nobody@cogentee.coventry.ac.uk"
+        receivers = ["dang@cogentee.coventry.ac.uk"]
+
+        Header = ["From: Automated Reporting <nobody@cogentee.coventry.ac.uk>",
+                  "To: dang <reports@cogentee.coventry.ac.uk>",
+                  "MIME-Version: 1.0",
+                  "Content-type: text/html",
+                  "Subject: Automated Deployment Status Report {0}".format(datetime.datetime.now()),
+                  "",
+                  ]
+
+        theheader = "\n".join(Header)
+        message = "{0} \n\n{1}".format(theheader,output)
+        s.sendmail(sender, addresses, message)
+        print addresses
+        
+        
