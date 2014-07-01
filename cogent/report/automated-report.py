@@ -3,7 +3,7 @@ import datetime
 import sqlalchemy
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 import argparse #Apparently this is installed in 2.6 (at least on cogentee)
 
@@ -19,8 +19,6 @@ import smtplib
 
 
 Base = meta.Base
-
-FAKEDATE = datetime.datetime(2014,6,12)
 
 class OwlsReporter(object):
     def __init__(self, enginestr, reportdate=datetime.datetime.utcnow()):
@@ -140,9 +138,9 @@ class OwlsReporter(object):
             if house_nodes != len(nodeids):
                 logging.debug("---> House is missing nodes {0}".format(house.address))
                 
-                outlist = ["{0} Has {1} Nodes reporting Expected {2}".format(house.address,
-                                                                                        house_nodes,
-                                                                                        len(nodeids))]                
+                outlist = ["{0} has {1} nodes reporting expected {2}".format(house.address,
+                                                                             house_nodes,
+                                                                             len(nodeids))]                
                 missingNodes = []
                 
 
