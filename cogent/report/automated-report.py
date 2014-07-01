@@ -9,6 +9,8 @@ import argparse #Apparently this is installed in 2.6 (at least on cogentee)
 
 import cogentviewer.models as models
 import cogentviewer.models.meta as meta
+#import cogent.base.model as models
+#import cogent.base.model.meta as meta
 
 from mako.template import Template
 
@@ -129,7 +131,8 @@ class OwlsReporter(object):
             qry = qry.group_by(models.NodeState.nodeId)
             
             house_nodes = qry.count()
-            
+            qrynodes = [x.nodeId for x in qry.all()]
+
             if house_nodes > 0:
                 houses_today += 1
 
@@ -137,13 +140,29 @@ class OwlsReporter(object):
             if house_nodes != len(nodeids):
                 logging.debug("---> House is missing nodes {0}".format(house.address))
                 
-                houses_missing.append("{0} Has {1} Nodes reporting Expected {2}".format(house.address,
+                outlist = ["{0} Has {1} Nodes reporting Expected {2}".format(house.address,
                                                                                         house_nodes,
-                                                                                        len(nodeids)))
+                                                                                        len(nodeids))]                
+                missingNodes = []
+                
 
+                for nid in nodeids:
+                    if nid not in qrynodes:
+                        #Run a query
+                        missingNodes.append(nid)
+
+                outlist.append(missingNodes)
+                #Work out and append the difference
+                outlist.append(len(nodeids) - house_nodes)
+                houses_missing.append(outlist)
+
+
+        sorted_houses = sorted(houses_missing, key = lambda thekey: thekey[2], reverse=True)
+        logging.debug("MISSING {0} \n SORTED {1}".format(houses_missing, sorted_houses))
+        
         logging.debug("Houses Reporting today {0}".format(houses_today))
         return {"houses_today": houses_today,
-                "houses_missing": houses_missing}
+                "houses_missing": sorted_houses}
                                         
 
         
@@ -275,6 +294,11 @@ if __name__ == "__main__":
                         required=False
     )
 
+    parser.add_argument("-t",
+                        "--term",
+                        help="output to terminal",
+                        required=False)
+
     parser.add_argument("-d",
                         "--date",
                         help="Optional date to run report for <DD>-<MM>-<YYYY>",
@@ -306,17 +330,13 @@ if __name__ == "__main__":
         fd = open(args.output, "w")
         fd.write(output)
         fd.close()
-    else:
-        pass
-    #print output
-    # reporter.render_report()
-        # fd = open("owlsreport.html","w")
-        # fd.write(out)
-        # fd.close()
+    elif args.term:
+
+        print output
 
     if args.email:
         addresses = args.email.split(",")
-        print "Sending Email"
+        logging.debug("Sending E-Mail")
         s = smtplib.SMTP('localhost')
         sender = "nobody@cogentee.coventry.ac.uk"
         receivers = ["dang@cogentee.coventry.ac.uk"]
@@ -332,6 +352,5 @@ if __name__ == "__main__":
         theheader = "\n".join(Header)
         message = "{0} \n\n{1}".format(theheader,output)
         s.sendmail(sender, addresses, message)
-        print addresses
         
         
