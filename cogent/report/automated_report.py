@@ -1,74 +1,49 @@
-"""
-Module for automated reporting of server status
-
-:module-author: Dan Goldsmith <djgoldsmith@googlemail.com>
-"""
-
 import datetime
+
+import sqlalchemy
+
 import logging
 logging.basicConfig(level=logging.INFO)
 
 import argparse #Apparently this is installed in 2.6 (at least on cogentee)
-import smtplib
-
-import sqlalchemy
 
 import cogentviewer.models as models
 import cogentviewer.models.meta as meta
+#import cogent.base.model as models
+#import cogent.base.model.meta as meta
 
 from mako.template import Template
+
+import smtplib
+
 
 
 Base = meta.Base
 
 class OwlsReporter(object):
-    """Class to generated automated reports of full deployment status.
-
-    This class will run the 'standard' set of tests used when reporting on a
-    deployment status.
-
-    1) General overview of deployment (total nodes / servers etc)
-    2) Current Status of Servers (Who is talking to cogentee)
-    3) List of properties with issues
-    4) Overview of node status (what is talking)
-    5) Sanity check of pulse nodes
-
-    NOTE: While we can generate reports retrospectivly, it will give some issues
-    in the node / server counts as there is no history associated with the nodes
-    IE if a new deployment has followed then the stats will still be calculated
-    based on the most recent state of the system.
-    """
-
     def __init__(self, enginestr, reportdate=datetime.datetime.utcnow()):
-        """Init function.
-
-        :param enginestr:  SQLA String to connect to DB
-        :param reportdate: Date to generate report for
-        """
-
-        #Create Engine / Session / Metatdata
         self.enginestr = enginestr
         engine = sqlalchemy.create_engine(enginestr, echo=False)
         meta.Session.configure(bind=engine)
         Base.metadata.bind = engine
         self.reportdate = reportdate
+        # qry = session.query(models.House)
+        # for item in qry:
+        #     print item
+
+        # qry = session.query(sqlalchemy.func.max(models.Reading.time))
+        # print qry.first()
 
 
     def fetch_overview(self):
-        """Fetch data to populate the first "overview" table.
-
-        Collect a generic count of objects in the database:
-        * Servers
-        * Houses
-        * Nodes (with a location)
-
-        :return: Dictionary containing these objects.
-        """
+        """Fetch data to populate the first "overview" table"""
 
         session = meta.Session()
 
         #Total deployed servers
-        qry = session.query(models.House.serverid).distinct()
+        qry = session.query(models.House.serverid)
+        qry = qry.filter(models.House.serverid != None)
+        qry= qry.distinct()
         deployed_serv = qry.count()
         logging.debug("Total Deployed Servers: {0}".format(deployed_serv))
 
@@ -82,6 +57,7 @@ class OwlsReporter(object):
         deployed_nodes = qry.count()
         logging.debug("Total Deployed Nodes: {0}".format(deployed_nodes))
 
+        
         outdict = {"deployed_serv": deployed_serv,
                    "deployed_houses": deployed_houses,
                    "deployed_nodes": deployed_nodes}
@@ -145,9 +121,17 @@ class OwlsReporter(object):
             #Locations associated with this house
             houselocs = [x.id for x in house.locations]        
             #And Nodes
+            if houselocs == []:
+                logging.warning("House {0} has no registered nodes".format(house))
+                houses_missing.append(["{0} has no registered nodes".format(house.address),
+                                       [],
+                                       0])
+                continue
+            
             qry = session.query(models.Node).filter(models.Node.locationId.in_(houselocs))
             nodeids = [x.id for x in qry]
-            
+            logging.debug("House {0} Expects {1} Nodes".format(house, nodeids))
+
             #Final Query:  Filter expected nodes 
             qry = session.query(models.NodeState).filter(models.NodeState.nodeId.in_(nodeids))
             #Filter by today
@@ -302,7 +286,7 @@ class OwlsReporter(object):
 
         
 # print thetemplate.render(**outvars)
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
 
     #Set up command line parser
     parser = argparse.ArgumentParser(description="Automated Report Generation")
