@@ -129,6 +129,7 @@ class TestAutoReport(unittest.TestCase):
         pass
 
 
+    @unittest.skip
     def test_render(self):
         """NOTE: This doesn't test for substiturion in render
         However, it will check that we can render"""
