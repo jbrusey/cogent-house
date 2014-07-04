@@ -24,6 +24,8 @@ import sqlalchemy
 from cogent.base import * #Make sure all is loaded for coverage
 import cogent.base.model.meta as meta
 import cogent.base.model as models
+import cogent
+import cogent.report
 
 import transaction
 

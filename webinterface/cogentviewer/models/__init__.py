@@ -63,7 +63,6 @@ def init_model(engine):
     DO NOT REMOVE ON MERGE
     """
     Session.configure(bind=engine)
-    print "---------------- INIT MODEL CALLED ---------------"
     #import pdb; pdb.set_trace()
 
 def initialise_sql(engine, dropTables=False):

@@ -1,42 +1,69 @@
+"""
+Module for automated reporting of server status
+
+:module-author: Dan Goldsmith <djgoldsmith@googlemail.com>
+"""
+
 import datetime
-
-import sqlalchemy
-
 import logging
 logging.basicConfig(level=logging.INFO)
 
 import argparse #Apparently this is installed in 2.6 (at least on cogentee)
+import smtplib
+
+import sqlalchemy
 
 import cogentviewer.models as models
 import cogentviewer.models.meta as meta
-#import cogent.base.model as models
-#import cogent.base.model.meta as meta
 
 from mako.template import Template
-
-import smtplib
-
 
 
 Base = meta.Base
 
 class OwlsReporter(object):
+    """Class to generated automated reports of full deployment status.
+
+    This class will run the 'standard' set of tests used when reporting on a
+    deployment status.
+
+    1) General overview of deployment (total nodes / servers etc)
+    2) Current Status of Servers (Who is talking to cogentee)
+    3) List of properties with issues
+    4) Overview of node status (what is talking)
+    5) Sanity check of pulse nodes
+
+    NOTE: While we can generate reports retrospectivly, it will give some issues
+    in the node / server counts as there is no history associated with the nodes
+    IE if a new deployment has followed then the stats will still be calculated
+    based on the most recent state of the system.
+    """
+
     def __init__(self, enginestr, reportdate=datetime.datetime.utcnow()):
+        """Init function.
+
+        :param enginestr:  SQLA String to connect to DB
+        :param reportdate: Date to generate report for
+        """
+
+        #Create Engine / Session / Metatdata
         self.enginestr = enginestr
         engine = sqlalchemy.create_engine(enginestr, echo=False)
         meta.Session.configure(bind=engine)
         Base.metadata.bind = engine
         self.reportdate = reportdate
-        # qry = session.query(models.House)
-        # for item in qry:
-        #     print item
-
-        # qry = session.query(sqlalchemy.func.max(models.Reading.time))
-        # print qry.first()
 
 
     def fetch_overview(self):
-        """Fetch data to populate the first "overview" table"""
+        """Fetch data to populate the first "overview" table.
+
+        Collect a generic count of objects in the database:
+        * Servers
+        * Houses
+        * Nodes (with a location)
+
+        :return: Dictionary containing these objects.
+        """
 
         session = meta.Session()
 
@@ -55,7 +82,6 @@ class OwlsReporter(object):
         deployed_nodes = qry.count()
         logging.debug("Total Deployed Nodes: {0}".format(deployed_nodes))
 
-        
         outdict = {"deployed_serv": deployed_serv,
                    "deployed_houses": deployed_houses,
                    "deployed_nodes": deployed_nodes}
