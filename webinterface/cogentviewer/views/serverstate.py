@@ -207,7 +207,7 @@ def showserver(request):
         #if server.houseid:
         houseqry = session.query(models.House).filter_by(serverid = server.id)
 
-        heartbeat_time = datetime.datetime.now() - datetime.timedelta(hours = 8)
+        heartbeat_time = datetime.datetime.utcnow() - datetime.timedelta(hours = 8)
         if houseqry.count() > 0:
             thisrow["address"] = houseqry.count()
             #Work out locations assocatated with these houses

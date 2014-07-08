@@ -265,6 +265,9 @@ def _wrappedRest(request):
     if theType.lower() == "heatmap":
         return getheatmap(request)
 
+    if theType.lower() == "summary":
+        return getsummary(request)
+
     if theType.lower() == "rpc":
         qry = session.query(models.Server)
         outlist = []
@@ -459,8 +462,6 @@ def _wrappedRest(request):
                 newserver = models.Server(hostname = newObj.hostname)
                 session.add(newserver)
                 session.flush()
-
-
 
         #And Return the new object
 
@@ -1707,7 +1708,55 @@ def getnetwork(request):
 
     return {"nodes":nodelist,
             "links":linklist}
+
+
+def getsummary(request):
+    """Get summary information for a given node
+
+    Return daily [min,max,avg] for a given
+    * nodeId
+    * sensorTypeId (ie 0 for temperature)
+    * start / end date.
+    """
+    session = meta.Session()
+
+
+    nodeid = request.params.get("nodeId",None)
+    typeid = request.params.get("typeId",0)
+    startdate = request.params.get("startdate",None)
+    if startdate:
+        startdate = dateutil.parser.parse(startdate)
+    enddate = request.params.get("enddate",None)
+    if enddate:
+        enddate = dateutil.parser.parse(enddate)
+
+    log.debug("Getting Summary Information for node {0}".format(nodeid))
+
+    if nodeid is None:
+        log.debug("No Node Id supplied")
+        return []
     
+    qry = session.query(sqlalchemy.func.date(models.Reading.time),
+                        sqlalchemy.func.min(models.Reading.value),
+                        sqlalchemy.func.max(models.Reading.value),
+                        sqlalchemy.func.avg(models.Reading.value)
+                    ).filter_by(nodeId = nodeid,
+                                typeId = typeid)
+    if startdate:
+        qry = qry.filter(models.Reading.time >= startdate)
+    if enddate:
+        qry = qry.filter(models.Reading.time <= enddate)
+
+    qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
+
+    if qry.count > 0:
+        return [{"date":x[0].isoformat(),
+                 "dom": x[0].strftime("%d"),
+                 "min": x[1], 
+                 "max": x[2],
+                 "avg": x[3]} for x in qry]
+
+    return []
 
 def gettopology(request):
     """Work out network topology changes"""
