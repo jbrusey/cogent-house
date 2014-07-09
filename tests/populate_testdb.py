@@ -58,13 +58,16 @@ def populatedata(session):
     thehouse = models.House(id=4, address="address4", deploymentId = 1, serverid=2)
     session.add(thehouse)
     #House that is out of date
-    thehouse = models.House(id=5, address="address5", deploymentId = 1)
+    thehouse = models.House(id=5, address="address5", deploymentId = 1, serverid=2)
+    session.add(thehouse)
+    #House missing one node
+    thehouse = models.House(id=6, address="address6", deploymentId = 1)
     session.add(thehouse)
 
     #Next nodes and locations (two for each house)
     locidx = 1
     allnodes = []
-    for house in range(4):
+    for house in range(5):
         for room in range(2):
             thisloc = models.Location(id = locidx, houseId = house+1, roomId = room+1)
             session.add(thisloc)
@@ -132,7 +135,7 @@ def populatedata(session):
     logging.debug("ALL NODES {0}".format(allnodes))
     #And then for all but the nodes assocated with house 1
     while currenttime <= enddate:
-        for nid in allnodes[2:]:
+        for nid in allnodes[3:]:
             thereading = models.Reading(time = currenttime, 
                                         nodeId = nid, 
                                         typeId = 0, 
@@ -162,12 +165,12 @@ def populatedata(session):
     while currenttime <= cutdate:
         #Let node 10, 11 work
         thereading = models.Reading(time=currenttime,
-                                     nodeId = 20,
+                                     nodeId = 40,
                                      typeId = gas_sensor.id,
                                      value = pcount)
         session.add(thereading)
         thereading = models.Reading(time=currenttime,
-                                     nodeId = 21,
+                                     nodeId = 41,
                                      typeId = gas_sensor.id,
                                      value = pcount)
 
@@ -177,12 +180,12 @@ def populatedata(session):
 
     while currenttime <= enddate:
         thereading = models.Reading(time=currenttime,
-                                     nodeId = 20,
+                                     nodeId = 40,
                                      typeId = gas_sensor.id,
                                      value = pcount)
         session.add(thereading)
         thereading = models.Reading(time=currenttime,
-                                     nodeId = 21,
+                                     nodeId = 41,
                                      typeId = gas_sensor.id,
                                      value = 100)
 

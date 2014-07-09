@@ -16,7 +16,7 @@
     <h1>${project}:  Daily automated report</h1>
     <h2>${date.date()}</h2>
 
-    <h2 id="sec-1"><span class="section-number-2">1</span> Server and house overview</h2>
+    <h2 id="sec-1">Server and house overview</h2>
     <div class="outline-text-2" id="text-1">
       <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
@@ -58,7 +58,7 @@
 </div>
 
 <div id="outline-container-sec-2" class="outline-2">
-  <h2 id="sec-2"><span class="section-number-2">2</span> Push / server status</h2>
+  <h2 id="sec-2">Push / server status</h2>
   <div class="outline-text-2" id="text-2">
     <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
@@ -103,7 +103,7 @@
 
 
 <div id="outline-container-sec-3" class="outline-2">
-  <h2 id="sec-3"><span class="section-number-2">3</span> Houses with problems:</h2>
+  <h2 id="sec-3">Houses with problems:</h2>
   <ul>
     	%for house in houses_missing:
 	  <li>${house[0]}</li>
@@ -117,7 +117,7 @@
 
 
 <div id="outline-container-sec-4" class="outline-2">
-  <h2 id="sec-4"><span class="section-number-2">4</span> Node status</h2>
+  <h2 id="sec-4">Node status</h2>
   <div class="outline-text-2" id="text-4">
     <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
@@ -157,7 +157,7 @@
 </div>
 
 <div id="outline-container-sec-5" class="outline-2">
-  <h2 id="sec-5"><span class="section-number-2">5</span> Pulse nodes where a given sensing type has not changed in the past day</h2>
+  <h2 id="sec-5">Pulse nodes where a given sensing type has not changed in the past day</h2>
   <div class="outline-text-2" id="text-5">
     <ul>
       %for node in pulse_warnings:
@@ -166,10 +166,6 @@
     </ul>
   </div>
 </div>
-</div>
-
-<div id="postamble" class="status">
-  <p class="author">Author: Daniel Goldsmith</p>
 </div>
 
 </body>

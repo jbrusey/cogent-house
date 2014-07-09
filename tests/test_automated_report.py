@@ -61,23 +61,23 @@ class TestAutoReport(unittest.TestCase):
 
         outdict = self.reporter.fetch_overview()
 
-        #So we should have 2 deployed servers,  4 houses and 8 Nodes
+        #So we should have 2 deployed servers,  6 houses and 10 Nodes
 
-
+        
         expectdict = {"deployed_serv": 2,
-                      "deployed_houses": 5,
-                      "deployed_nodes": 8}
+                      "deployed_houses": 6,
+                      "deployed_nodes": 10}
 
         self.assertEqual(outdict, expectdict)
 
         session = self.Session()
 
-        #However the DB should have 3 servers (only two deployed and 10 Nodes)
+        #However the DB should have 3 servers (only two deployed and 12 Nodes)
         qry = session.query(models.Server)
         self.assertEqual(qry.count(), 3)
 
         qry = session.query(models.Node)
-        self.assertEqual(qry.count(), 10)
+        self.assertEqual(qry.count(), 12)
 
 
     def testPushStatus(self):
@@ -96,13 +96,18 @@ class TestAutoReport(unittest.TestCase):
     def test_housestatus(self):
         """Test house status is as expected"""
 
-        outstr = "{0} has {1} nodes reporting expected {2}".format("address1",
+        H1str = "{0} has {1} nodes reporting expected {2}".format("address1",
                                                                    0,
                                                                    2)
 
-        expectdict = {"houses_today": 3,
-                      "houses_missing": [[outstr, [0, 1], 2],
-                                         ["address5 has no registered nodes", [], 0]
+        H2str = "{0} has {1} nodes reporting expected {2}".format("address2",
+                                                                   1,
+                                                                   2)
+
+        expectdict = {"houses_today": 4,
+                      "houses_partial": [[H2str, ["10 (Master Bedroom)"], 1]],
+                      "houses_missing": [[H1str, ["0 (Master Bedroom)", "1 (Second Bedroom)"], 2],
+                                         ["address6 has no registered nodes", [], 0]
                                      ]
         }
 
@@ -111,8 +116,9 @@ class TestAutoReport(unittest.TestCase):
         self.assertEqual(expectdict, outdict)
 
     def test_nodestatus(self):
-        expectdict = {"node_week": 8,
-                      "node_today": 6}
+        """Does Nodestatus work as expected"""
+        expectdict = {"node_week": 10,
+                      "node_today": 7} #10 - 2 (H1) - 1 (H2)
 
         outdict = self.reporter.fetch_nodestatus()
 
@@ -121,7 +127,8 @@ class TestAutoReport(unittest.TestCase):
 
 
     def test_pulsenodes(self):
-        expectdict = {"pulse_warnings": [21]}
+        """Can we detect nodes that have not "pulsed" in the past 24 hours"""
+        expectdict = {"pulse_warnings": ["41 (Second Bedroom)"]}
 
         outdict = self.reporter.check_pulse_nodes()
 
@@ -129,16 +136,10 @@ class TestAutoReport(unittest.TestCase):
         pass
 
 
-    @unittest.skip
     def test_render(self):
-        """NOTE: This doesn't test for substiturion in render
+        """NOTE: This doesn't test for substitution in render
         However, it will check that we can render"""
 
-        import os
-        import os.path
-
         #We need a quick hack here to get the right path
-        if os.path.basename(os.path.abspath("")) == "cogent-house":
-            os.chdir("cogent/report")
         outstr = self.reporter.render_report()
         self.assertTrue(outstr)
