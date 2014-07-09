@@ -13,8 +13,7 @@
   </head>
 
   <body>
-    <h1>${project}:  Daily automated report</h1>
-    <h2>${date.date()}</h2>
+    <h1>${project}:  Daily automated report  ${date.date()}</h1>
 
     <h2 id="sec-1">Server and house overview</h2>
     <div class="outline-text-2" id="text-1">
@@ -99,28 +98,10 @@
   </div>
 </div>
 
-
-
-
-<div id="outline-container-sec-3" class="outline-2">
-  <h2 id="sec-3">Houses with problems:</h2>
-  <ul>
-    	%for house in houses_missing:
-	  <li>${house[0]}</li>
-	  <ul>	 
-          %for node in house[1]:
-	      <li>Missing: ${node}</li>
-          %endfor
-          </ul>
-	%endfor
-  </ul>
-
-
 <div id="outline-container-sec-4" class="outline-2">
   <h2 id="sec-4">Node status</h2>
   <div class="outline-text-2" id="text-4">
     <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
 
       <colgroup>
 	<col  class="left" />
@@ -156,6 +137,35 @@
   </div>
 </div>
 
+
+<div id="outline-container-sec-3" class="outline-2">
+  <h2 id="sec-3">Houses with no partial data:</h2>
+  <ul>
+    	%for house in houses_partial:
+	  <li>${house[0]}</li>
+	  <ul>	 
+          %for node in house[1]:
+	      <li>Missing: ${node}</li>
+          %endfor
+          </ul>
+	%endfor
+  </ul>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+  <h2 id="sec-3">Houses with no data:</h2>
+  <ul>
+    	%for house in houses_missing:
+	  <li>${house[0]}</li>
+	  <ul>	 
+          %for node in house[1]:
+	      <li>Missing: ${node}</li>
+          %endfor
+          </ul>
+	%endfor
+  </ul>
+</div>
+
 <div id="outline-container-sec-5" class="outline-2">
   <h2 id="sec-5">Pulse nodes where a given sensing type has not changed in the past day</h2>
   <div class="outline-text-2" id="text-5">
@@ -165,7 +175,6 @@
       %endfor
     </ul>
   </div>
-</div>
 </div>
 
 </body>
