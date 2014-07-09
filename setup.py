@@ -53,7 +53,9 @@ setup(name='ch-base',
                   ('{0}/var/www/style'.format(conf_prefix), ['www/style/ccarc.css']),
                   #Push Configuration Files
                   ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["conf/push-script/synchronise.template"]),
-                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["cogent/push/ch-ssh"])
+                  ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["cogent/push/ch-ssh"]),
+                  #Report Template file
+                  ("{0}/etc/cogent-house/report-templates/".format(conf_prefix),["cogent/report/report-template.mak"]),
                   ],
       entry_points = """\
       [console_scripts]

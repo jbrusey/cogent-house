@@ -128,3 +128,10 @@ Version 1.1.7
  * Added code to push script to transfer version number during update
  * Added Jitter value (5 mins) to runpush cron job to ease some load on server
  
+
+
+Version 1.1.8 (Not released)
+---------------
+
+ * Added automated reporting
+ 
