@@ -27,8 +27,9 @@ class Server(meta.Base, meta.InnoDBMix):
 
     baseid = sqlalchemy.Column(sqlalchemy.Integer, 
                                sqlalchemy.ForeignKey("Node.id"))
-    houseid = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("House.id"))
+    #houseid = sqlalchemy.Column(sqlalchemy.Integer,
+    #                            sqlalchemy.ForeignKey("House.id"))
 
+    rpc = sqlalchemy.Column(sqlalchemy.Integer) #Store RPC values as a bitmask
     #node = relationship("Node", "Server")
-    #house = relationship("House", "Server")
+    houses = relationship("House", backref="server")

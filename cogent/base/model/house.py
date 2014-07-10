@@ -43,6 +43,8 @@ class House(meta.Base, meta.InnoDBMix):
     startDate = Column(DateTime)
     endDate = Column(DateTime)
 
+    serverid = Column(Integer, ForeignKey("Server.id", use_alter=True, name="fk_house_server_id"), nullable=True)
+
     #Backrefs
     meta = relationship("HouseMetadata",
                         order_by="HouseMetadata.id",
