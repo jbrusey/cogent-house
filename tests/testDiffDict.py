@@ -1,293 +1,292 @@
 import unittest2 as unittest
 # import cogent
-# import cogent.base.model as models
 
-# import cogent.push.dictdiff as dictdiff
+import cogent.base.model as models
+import cogent.push.dictdiff as dictdiff
 
 class testDiffDict(unittest.TestCase):
     """Test the Diff Dict functions work as expected"""
 
-    pass
-#     def testEqual(self):
-#         """Compare to dictionarys that are the same"""
-#         firstdict = {1:1, 2:2, 3:3}
-#         seconddict = {1:1, 2:2, 3:3}
+    def testEqual(self):
+        """Compare to dictionarys that are the same"""
+        firstdict = {1:1, 2:2, 3:3}
+        seconddict = {1:1, 2:2, 3:3}
 
-#         dd = dictdiff.DictDiff(firstdict, seconddict)
+        dd = dictdiff.DictDiff(firstdict, seconddict)
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
-
-#         emptySet = set()
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, emptySet)
-
-        
-#     def testAdded(self):
-#         """Added should give us items added to the FIRST set"""
-#         firstdict = {1:1, 2:2, 3:3, 4:4}
-#         seconddict = {1:1, 2:2, 3:3}
-
-#         dd = dictdiff.DictDiff(firstdict, seconddict)
-
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
-
-#         emptySet = set()
-#         testSet = set([4])
-
-#         self.assertEqual(added, testSet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, emptySet)
-
-
-#     def testRemoved(self):
-#         """Removed should be items in the second set that are not in the first"""
-#         firstdict = {1:1, 2:2, 3:3}
-#         seconddict = {1:1, 2:2, 3:3, 4:4}
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
-#         dd = dictdiff.DictDiff(firstdict, seconddict)
+        emptySet = set()
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, emptySet)
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
 
-#         emptySet = set()
-#         testSet = set([4])
+    def testAdded(self):
+        """Added should give us items added to the FIRST set"""
+        firstdict = {1:1, 2:2, 3:3, 4:4}
+        seconddict = {1:1, 2:2, 3:3}
 
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, testSet)
-#         self.assertEqual(changed, emptySet)
+        dd = dictdiff.DictDiff(firstdict, seconddict)
 
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
-#     def testChanged(self):
-#         """Items whose value differes between keys"""
-#         firstdict = {1:1, 2:2, 3:3, 4:5}
-#         seconddict = {1:1, 2:2, 3:3, 4:4}
+        emptySet = set()
+        testSet = set([4])
 
-#         dd = dictdiff.DictDiff(firstdict,seconddict)
+        self.assertEqual(added, testSet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, emptySet)
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
 
-#         emptySet = set()
-#         testSet = set([4])
+    def testRemoved(self):
+        """Removed should be items in the second set that are not in the first"""
+        firstdict = {1:1, 2:2, 3:3}
+        seconddict = {1:1, 2:2, 3:3, 4:4}
 
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, testSet)        
+        dd = dictdiff.DictDiff(firstdict, seconddict)
 
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
+        emptySet = set()
+        testSet = set([4])
 
-# class testDiffDictClass(unittest.TestCase):
-#     """Test the Diff Dict functions work as expected when we chuck model Classes into the mix"""
-#     def testEqual(self):
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, testSet)
+        self.assertEqual(changed, emptySet)
 
-#         modelOne = models.SensorType(id=1, name="foo", units="Co2")
-#         modelTwo = models.RoomType(id=1, name="Bedroom")
-#         modelThree = models.SensorType(id=2, name="bar")
-#         modelFour = models.RoomType(id=2, name="Bathroom")
 
-#         firstDict = {1: modelOne,
-#                      2: modelTwo,
-#                      3: modelThree,
-#                      4: modelFour}
+    def testChanged(self):
+        """Items whose value differes between keys"""
+        firstdict = {1:1, 2:2, 3:3, 4:5}
+        seconddict = {1:1, 2:2, 3:3, 4:4}
 
-#         secondDict = {1: modelOne,
-#                       2: modelTwo,
-#                       3: modelThree,
-#                       4: modelFour}
-        
-#         dd = dictdiff.DictDiff(firstDict, secondDict)
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
+        dd = dictdiff.DictDiff(firstdict,seconddict)
 
-#         emptySet = set()
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, emptySet)
-        
-            
-#     def testAdded(self):
-#         """Added should give us items added to the FIRST set"""
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
-#         modelOne = models.SensorType(id=1, name="foo", units="Co2")
-#         modelTwo = models.RoomType(id=1, name="Bedroom")
-#         modelThree = models.SensorType(id=2, name="bar")
-#         modelFour = models.RoomType(id=2, name="Bathroom")
+        emptySet = set()
+        testSet = set([4])
 
-#         firstDict = {1: modelOne,
-#                      2: modelTwo,
-#                      3: modelThree,
-#                      4: modelFour}
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, testSet)
 
-#         secondDict = {1: modelOne,
-#                       2: modelTwo,
-#                       3: modelThree}
 
 
-#         dd = dictdiff.DictDiff(firstDict, secondDict)
+class testDiffDictClass(unittest.TestCase):
+    """Test the Diff Dict functions work as expected when we
+    add model Classes into the mix"""
+    def testEqual(self):
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
+        modelOne = models.SensorType(id=1, name="foo", units="Co2")
+        modelTwo = models.RoomType(id=1, name="Bedroom")
+        modelThree = models.SensorType(id=2, name="bar")
+        modelFour = models.RoomType(id=2, name="Bathroom")
 
-#         emptySet = set()
-#         testSet = set([4])
+        firstDict = {1: modelOne,
+                     2: modelTwo,
+                     3: modelThree,
+                     4: modelFour}
 
-#         self.assertEqual(added, testSet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, emptySet)
+        secondDict = {1: modelOne,
+                      2: modelTwo,
+                      3: modelThree,
+                      4: modelFour}
 
+        dd = dictdiff.DictDiff(firstDict, secondDict)
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
-#     def testRemoved(self):
-#         """Removed should be items in the second set that are not in the first"""
+        emptySet = set()
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, emptySet)
 
-#         modelOne = models.SensorType(id=1, name="foo", units="Co2")
-#         modelTwo = models.RoomType(id=1, name="Bedroom")
-#         modelThree = models.SensorType(id=2, name="bar")
-#         modelFour = models.RoomType(id=2, name="Bathroom")
 
-#         firstDict = {1: modelOne,
-#                      2: modelTwo,
-#                      3: modelThree,
-#                      }
+    def testAdded(self):
+        """Added should give us items added to the FIRST set"""
 
-#         secondDict = {1: modelOne,
-#                       2: modelTwo,
-#                       3: modelThree,
-#                       4: modelFour}
+        modelOne = models.SensorType(id=1, name="foo", units="Co2")
+        modelTwo = models.RoomType(id=1, name="Bedroom")
+        modelThree = models.SensorType(id=2, name="bar")
+        modelFour = models.RoomType(id=2, name="Bathroom")
 
+        firstDict = {1: modelOne,
+                     2: modelTwo,
+                     3: modelThree,
+                     4: modelFour}
 
-#         dd = dictdiff.DictDiff(firstDict, secondDict)
+        secondDict = {1: modelOne,
+                      2: modelTwo,
+                      3: modelThree}
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
 
-#         emptySet = set()
-#         testSet = set([4])
+        dd = dictdiff.DictDiff(firstDict, secondDict)
 
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, testSet)
-#         self.assertEqual(changed, emptySet)
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
+        emptySet = set()
+        testSet = set([4])
 
-#     def testChanged(self):
-#         """Items whose value differes between keys"""
-#         modelOne = models.SensorType(id=1, name="foo", units="Co2")
-#         modelTwo = models.RoomType(id=1, name="Bedroom")
-#         modelThree = models.SensorType(id=2, name="bar")
-#         modelFour = models.RoomType(id=2, name="Bathroom")
+        self.assertEqual(added, testSet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, emptySet)
 
-#         firstDict = {1: modelOne,
-#                      2: modelTwo,
-#                      3: modelThree,
-#                      4: modelFour}
 
-#         secondDict = {1: modelOne,
-#                       2: modelTwo,
-#                       3: modelThree,
-#                       4: modelThree}
+    def testRemoved(self):
+        """Removed should be items in the second set
+        that are not in the first"""
 
+        modelOne = models.SensorType(id=1, name="foo", units="Co2")
+        modelTwo = models.RoomType(id=1, name="Bedroom")
+        modelThree = models.SensorType(id=2, name="bar")
+        modelFour = models.RoomType(id=2, name="Bathroom")
 
-#         dd = dictdiff.DictDiff(firstDict, secondDict)
+        firstDict = {1: modelOne,
+                     2: modelTwo,
+                     3: modelThree,
+                     }
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
+        secondDict = {1: modelOne,
+                      2: modelTwo,
+                      3: modelThree,
+                      4: modelFour}
 
-#         emptySet = set()
-#         testSet = set([4])
 
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, testSet)   
+        dd = dictdiff.DictDiff(firstDict, secondDict)
 
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
-#     def testChangedObject(self):
-#         """Items whose value differes between keys"""
-#         modelOne = models.SensorType(id=1, name="foo", units="Co2")
-#         modelTwo = models.RoomType(id=1, name="Bedroom")
-#         modelThree = models.SensorType(id=2, name="bar")
+        emptySet = set()
+        testSet = set([4])
 
-#         #RoomType eqality is based on the name not Id
-#         #Thus these two models should be the same
-#         modelFour = models.RoomType(id=2, name="Bathroom")
-#         modelFive = models.RoomType(id=1, name="Bathroom")
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, testSet)
+        self.assertEqual(changed, emptySet)
 
-#         self.assertEqual(modelFour, modelFive)
 
+    def testChanged(self):
+        """Items whose value differes between keys"""
+        modelOne = models.SensorType(id=1, name="foo", units="Co2")
+        modelTwo = models.RoomType(id=1, name="Bedroom")
+        modelThree = models.SensorType(id=2, name="bar")
+        modelFour = models.RoomType(id=2, name="Bathroom")
 
-#         #So for this first test we expect that there will be NO
-#         #Unchanged items.
-#         firstDict = {1: modelOne,
-#                      2: modelTwo,
-#                      3: modelThree,
-#                      4: modelFour}
+        firstDict = {1: modelOne,
+                     2: modelTwo,
+                     3: modelThree,
+                     4: modelFour}
 
-#         secondDict = {1: modelOne,
-#                       2: modelTwo,
-#                       3: modelThree,
-#                       4: modelFive}
+        secondDict = {1: modelOne,
+                      2: modelTwo,
+                      3: modelThree,
+                      4: modelThree}
 
 
-#         dd = dictdiff.DictDiff(firstDict, secondDict)
+        dd = dictdiff.DictDiff(firstDict, secondDict)
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
 
-#         emptySet = set()
-#         testSet = set([4])
+        emptySet = set()
+        testSet = set([4])
 
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, emptySet)   
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, testSet)
 
-#         #However lets run that again when the objects do not come out
-#         #Equal
 
-#         modelFive = models.RoomType(id=1, name="BathroomA")
-#         self.assertNotEqual(modelFour, modelFive)
-        
-#         firstDict = {1: modelOne,
-#                      2: modelTwo,
-#                      3: modelThree,
-#                      4: modelFour}
+    def testChangedObject(self):
+        """Items whose value differes between keys"""
+        modelOne = models.SensorType(id=1, name="foo", units="Co2")
+        modelTwo = models.RoomType(id=1, name="Bedroom")
+        modelThree = models.SensorType(id=2, name="bar")
 
-#         secondDict = {1: modelOne,
-#                       2: modelTwo,
-#                       3: modelThree,
-#                       4: modelFive}
+        #RoomType eqality is based on the name not Id
+        #Thus these two models should be the same
+        modelFour = models.RoomType(id=2, name="Bathroom")
+        modelFive = models.RoomType(id=1, name="Bathroom")
 
+        self.assertEqual(modelFour, modelFive)
 
-#         dd = dictdiff.DictDiff(firstDict, secondDict)
 
-#         added = dd.added()
-#         removed = dd.removed()
-#         changed = dd.changed()
-#         unchanged = dd.unchanged()
+        #So for this first test we expect that there will be NO
+        #Unchanged items.
+        firstDict = {1: modelOne,
+                     2: modelTwo,
+                     3: modelThree,
+                     4: modelFour}
 
-#         emptySet = set()
-#         testSet = set([4])
+        secondDict = {1: modelOne,
+                      2: modelTwo,
+                      3: modelThree,
+                      4: modelFive}
 
-#         self.assertEqual(added, emptySet)
-#         self.assertEqual(removed, emptySet)
-#         self.assertEqual(changed, testSet)   
 
+        dd = dictdiff.DictDiff(firstDict, secondDict)
 
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
+
+        emptySet = set()
+        testSet = set([4])
+
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, emptySet)
+
+        #However lets run that again when the objects do not come out
+        #Equal
+
+        modelFive = models.RoomType(id=1, name="BathroomA")
+        self.assertNotEqual(modelFour, modelFive)
+
+        firstDict = {1: modelOne,
+                     2: modelTwo,
+                     3: modelThree,
+                     4: modelFour}
+
+        secondDict = {1: modelOne,
+                      2: modelTwo,
+                      3: modelThree,
+                      4: modelFive}
+
+
+        dd = dictdiff.DictDiff(firstDict, secondDict)
+
+        added = dd.added()
+        removed = dd.removed()
+        changed = dd.changed()
+        unchanged = dd.unchanged()
+
+        emptySet = set()
+        testSet = set([4])
+
+        self.assertEqual(added, emptySet)
+        self.assertEqual(removed, emptySet)
+        self.assertEqual(changed, testSet)
