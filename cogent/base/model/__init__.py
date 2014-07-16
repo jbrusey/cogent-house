@@ -33,6 +33,7 @@ from node import *
 from nodehistory import *
 from nodestate import *
 from nodetype import *
+from nodeboot import *
 from occupier import *
 from rawmessage import *
 from reading import *

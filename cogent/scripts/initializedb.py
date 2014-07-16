@@ -43,6 +43,7 @@ from ..base.model import (
     lastreport,
     location,
     node,
+    nodeboot,
     nodehistory,
     nodestate,
     nodetype,

@@ -15,6 +15,7 @@ module CogentHouseP
     //Radio + CTP
     interface SplitControl as RadioControl;
     interface Send as StateSender;
+    interface Send as BootSender;
     interface StdControl as CollectionControl;
     interface CtpInfo;
     interface Packet;
@@ -69,7 +70,9 @@ implementation
   bool sending;
   bool shutdown = FALSE;
   bool first_period_pending = FALSE;
+  bool clustered = FALSE;
 #ifdef CLUSTER_BASED
+  bool clustered = TRUE;
   bool leaf_mode = FALSE;
   bool send_state_pending = FALSE;
 #endif
@@ -89,6 +92,40 @@ implementation
 
   /** prototypes **/
   void radioStop(void);
+
+/********* Boot Message Methods **********/
+  void sendBoot()
+  {
+    BootMsg *newData;
+    
+#ifdef DEBUG
+    printf("sendBoot %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+
+    message_size = sizeof (BootMsg);
+    newData = call BootSender.getPayload(&dataMsg, message_size);
+    if (newData != NULL) { 
+      newData->special = 0xc7;
+      newData->clustered = clustered;
+
+      memcpy(newData->version, DEF_HG_REVISION, sizeof(newData->version) - 1);
+
+      if (call BootSender.send(&dataMsg, message_size) == SUCCESS) {
+#ifdef DEBUG
+	  printf("boot sending begun at %lu\n", call LocalTime.get());
+	  printfflush();
+#endif
+      }
+    }
+  }
+
+  event void BootSender.sendDone(message_t *msg, error_t ok) {
+#ifdef DEBUG
+    printf("Boot sending done at %lu\n", call LocalTime.get());
+    printfflush();
+#endif
+  }
 
   task void powerDown(){
     call SenseTimer.stop();
@@ -317,10 +354,9 @@ implementation
 #endif
     restartSenseTimer();
   }
-
-
-  /********* Main Loop Methods **********/
   
+  /********* Main Loop Methods **********/
+
   event void Boot.booted(){
 #ifdef DEBUG
     printf("Booted %lu\n", call LocalTime.get());
@@ -424,7 +460,6 @@ implementation
 #ifdef BLINKY
     call Leds.led0Toggle();
 #endif
-
     sense_start_time = call LocalTime.get();
     if (! sending) { 
 #ifdef DEBUG
@@ -623,8 +658,6 @@ implementation
     do_readDone_filterstate(result, data, RS_WALL_HUM, SC_WALL_HUM, SC_D_WALL_HUM);
   }
 
-
-
   /*********** Radio Control *****************/
 
   event void RadioControl.startDone(error_t ok) {
@@ -634,6 +667,7 @@ implementation
       if (first_period_pending) {
 	call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
 	first_period_pending = FALSE;
+	sendBoot();
       }
 #ifdef DEBUG
       printf("Radio On %lu\n", call LocalTime.get());
