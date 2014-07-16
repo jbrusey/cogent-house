@@ -6,7 +6,7 @@
 import sys
 import os
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
-from cogent.node import StateMsg, ConfigMsg, Packets
+from cogent.node import StateMsg, ConfigMsg, Packets, BootMsg
 from tinyos.message import MoteIF 
 import time
 from cogent.base.model import *
@@ -20,6 +20,7 @@ class BaseIF(object):
         self.mif = MoteIF.MoteIF()
         self.source = self.mif.addSource(source)
         self.mif.addListener(self, StateMsg)
+        self.mif.addListener(self, BootMsg)
         self.queue = Queue()
 
     def get(self, wait=True, timeout=30):

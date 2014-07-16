@@ -42,7 +42,7 @@ endif
 COMPONENT=CogentHouseC
 
 PYTHON_TARGET_DIR=../../cogent/node
-PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
+PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py BootMsg.py ConfigMsg.py Packets.py AckMsg.py)
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
@@ -66,6 +66,8 @@ ifdef rf_channel
 CFLAGS += -DCC2420_DEF_CHANNEL=$(rf_channel)
 endif
 
+REVISION=$(shell hg id -i)
+CFLAGS+=-DDEF_HG_REVISION="\"$(REVISION)\""
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
 
@@ -74,7 +76,7 @@ CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
 
 # default sensing period 307200 = 5 mins
 CFLAGS += -DDEF_FIRST_PERIOD=10240
-CFLAGS += -DDEF_SENSE_PERIOD=307200L
+CFLAGS += -DDEF_SENSE_PERIOD=30720L
 CFLAGS += -DDEF_BACKOFF_SENSE_PERIOD=307200L
 CFLAGS += -DLEAF_TIMEOUT_TIME=10240L
 CFLAGS += -DLOW_VOLTAGE=2.35
@@ -165,6 +167,9 @@ include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+
+$(PYTHON_TARGET_DIR)/BootMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@

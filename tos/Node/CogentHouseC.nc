@@ -39,11 +39,13 @@ implementation
   // Instantiate and wire our collection service
   components CollectionC, ActiveMessageC;
   components new CollectionSenderC(AM_STATEMSG) as StateSender;
+  components new CollectionSenderC(AM_BOOTMSG) as BootSender;
 
   CogentHouseP.RadioControl -> ActiveMessageC;
   CogentHouseP.CollectionControl -> CollectionC;
   CogentHouseP.CtpInfo -> CollectionC;
   CogentHouseP.StateSender -> StateSender;
+  CogentHouseP.BootSender-> BootSender;
   
   //LPL
   CogentHouseP.LowPowerListening -> ActiveMessageC;
