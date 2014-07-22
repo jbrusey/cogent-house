@@ -42,7 +42,7 @@ endif
 COMPONENT=CogentHouseC
 
 PYTHON_TARGET_DIR=../../cogent/node
-PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py ConfigMsg.py Packets.py AckMsg.py)
+PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py BootMsg.py ConfigMsg.py Packets.py AckMsg.py)
 BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
 CLEAN_EXTRA += $(PYTHON_TGTS)
 
@@ -66,6 +66,8 @@ ifdef rf_channel
 CFLAGS += -DCC2420_DEF_CHANNEL=$(rf_channel)
 endif
 
+REVISION=$(shell hg id -i)
+CFLAGS+=-DDEF_HG_REVISION="\"$(REVISION)\""
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
 
@@ -165,6 +167,9 @@ include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+
+$(PYTHON_TARGET_DIR)/BootMsg.py: ../Packets.h
+	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@

@@ -127,6 +127,7 @@ enum {
   AM_CONFIGMSG = 5,
   DIS_SETTINGS = 6,
   AM_STATEMSG = 7,
+  AM_BOOTMSG = 8,
   SPECIAL = 0xc7,
   MAX_HOPS = 4,
   NODE_TYPE_BASE = 0,
@@ -182,6 +183,12 @@ typedef nx_struct StateMsg {
   nx_float packed_state[SC_PACKED_SIZE];
 } StateMsg; // varies depending on SC_SIZE and SC_PACKED_SIZE
 
+
+typedef nx_struct BootMsg {
+  nx_uint8_t special;
+  nx_bool clustered;
+  nx_uint8_t version[14];
+} BootMsg;
 
 typedef nx_struct ConfigPerType {
   nx_uint32_t samplePeriod;

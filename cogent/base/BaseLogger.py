@@ -10,7 +10,6 @@
 
 Receives sensor readings from the base station and logs them to the
 database.
-
 This version also acknowledges logged data once it has been
 successfully written to the database.
 
@@ -36,7 +35,7 @@ from datetime import datetime, timedelta
 
 #import time
 
-from cogent.base.model import (Reading, NodeState, SensorType,
+from cogent.base.model import (Reading, NodeState, NodeBoot, SensorType,
                                Base, Session, init_model, Node)
 
 import cogent.base.model as models
@@ -129,6 +128,49 @@ class BaseLogger(object):
         self.bif.sendMsg(ack_msg, dest)
         self.log.debug("Sending Ack %s to %s" %
                        (seq, dest))
+
+
+    def booted_node(self, msg):
+        """Receieve and process a boot message object from the base station
+        """
+
+        if msg.get_special() != Packets.SPECIAL:
+            raise Exception("Corrupted packet - special is %02x not %02x" %
+                            (msg.get_special(), Packets.SPECIAL))
+        try:
+            self.log.debug("Process Boot")
+            current_time = datetime.utcnow()
+            node_id = msg.getAddr()
+            clustered = msg.get_clustered()
+            version = msg.get_version()
+            print version
+            version = "".join([chr(i) for i in version])
+  
+            session = Session()
+            node = session.query(Node).get(node_id)
+            loc_id = None
+            if node is None:
+                add_node(session, node_id)
+            else:
+                loc_id = node.locationId
+
+                self.log.debug("boot: %s %s, %s, %s" % (current_time, node_id, clustered, version))
+
+                b = NodeBoot(time=current_time,
+                             nodeId=node_id,
+                             clustered=clustered,
+                             version=version)
+                
+                session.add(b)
+                session.flush()
+                session.commit()
+        except Exception as exc:
+            session.rollback()
+            self.log.exception("during storing: " + str(exc))
+        finally:
+            session.close()
+
+        return True
 
 
     def store_state(self, msg):
@@ -233,8 +275,15 @@ class BaseLogger(object):
         #self.log.debug("Main Loop")
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
-            #self.log.debug("Msg Recvd {0}".format(msg))
-            status = self.store_state(msg)
+            self.log.debug("Recieved Type: " + str(msg.get_amType()))
+            if msg.get_amType() == Packets.AM_BOOTMSG:
+                #Log node boot
+                status = self.booted_node(msg)
+            elif msg.get_amType() == Packets.AM_STATEMSG:   
+                #self.log.debug("Msg Recvd {0}".format(msg))
+                status = self.store_state(msg)
+            else:
+            	status = False
             #Signal the queue that we have finished processing
             self.bif.queue.task_done()
             return status
@@ -258,27 +307,13 @@ class BaseLogger(object):
 
         while self.running:
             self.mainloop()
-        # try:
-        #     while True:
-        #         # wait up to 5 seconds for a message
-        #         try:
-        #             msg = self.bif.get(True, 5)
-        #             self.store_state(msg)
-        #         except Empty:
-        #             pass
-        #         except Exception as exc:
-        #             LOGGER.exception("during receiving or storing msg: " +
-        #                              str(exc))
-
-        # except KeyboardInterrupt:
-        #     self.bif.finishAll()
 
                 
 if __name__ == '__main__': # pragma: no cover
     parser = OptionParser()
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error",
-                      default="info",
+                      default="debug",
                       metavar="LEVEL")
 
     parser.add_option("-f", "--log-file",
