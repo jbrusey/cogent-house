@@ -312,11 +312,6 @@ class Pusher(object):
         self.Node = models.Node
         self.Location = models.Location
 
-    # NOTE: this code removed as it is not used
-    # def checkConnection(self):
-    #     #Do we have a connection to the server
-    #     log = self.log
-
     def checkConnection(self):
         """
         Check for a connction to the server
