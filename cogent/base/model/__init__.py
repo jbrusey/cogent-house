@@ -160,7 +160,8 @@ def clsFromJSON(theList):
                }
 
     for item in theList:
-        #print "--> {0}".format(item)
+        if type(item) == str or type(item) == unicode:
+            item = json.loads(item)
         #Convert to the correct type of object
         theType = item["__table__"]
         theModel = typeMap[theType.lower()]()

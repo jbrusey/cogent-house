@@ -57,11 +57,18 @@ def populatedata(session = None):
     session.merge(thedeployment)
     session.flush()
 
+    #We want a server
+    theserver = models.Server(id=1,
+                              hostname = "Testing Server")
+    session.merge(theserver)
+    session.flush()
+
     #We also add a testing house
     thehouse = models.House(id=1,
                             address="testing house",
                             deploymentId = thedeployment.id,
-                            startDate = now)
+                            startDate = now,
+                            serverid = 1)
 
     session.merge(thehouse)
     session.flush()
@@ -105,7 +112,8 @@ def populatedata(session = None):
     thehouse = models.House(id=2,
                             address="Poor House",
                             deploymentId = thedeployment.id,
-                            startDate = now)
+                            startDate = now,
+                            serverid=1)
     session.merge(thehouse)
 
     #Add a couple of locations
