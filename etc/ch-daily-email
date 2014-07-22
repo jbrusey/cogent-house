@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# CogentHouse - daily report on sensor data yield
+#
+# author: Ross Wilkins
+# author: James Brusey <james.brusey@gmail.com>
+#
+su chuser -c "python -m cogent.daily_email"

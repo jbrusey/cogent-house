@@ -1,0 +1,5 @@
+<Directory "/var/www/cogent-house/" >
+    SetHandler mod_python
+    PythonHandler mod_python.publisher
+    PythonDebug On
+</Directory>
