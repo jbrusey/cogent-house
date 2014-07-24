@@ -138,35 +138,29 @@ class BaseLogger(object):
             raise Exception("Corrupted packet - special is %02x not %02x" %
                             (msg.get_special(), Packets.SPECIAL))
         try:
-            self.log.debug("Process Boot")
+            session = Session()
             current_time = datetime.utcnow()
             node_id = msg.getAddr()
             clustered = msg.get_clustered()
             version = msg.get_version()
-            print version
             version = "".join([chr(i) for i in version])
   
-            session = Session()
             node = session.query(Node).get(node_id)
-            loc_id = None
             if node is None:
                 add_node(session, node_id)
-            else:
-                loc_id = node.locationId
 
-                self.log.debug("boot: %s %s, %s, %s" % (current_time, node_id, clustered, version))
-
-                b = NodeBoot(time=current_time,
-                             nodeId=node_id,
-                             clustered=clustered,
-                             version=version)
-                
-                session.add(b)
-                session.flush()
-                session.commit()
+            b = NodeBoot(time=current_time,
+                         nodeId=node_id,
+                         clustered=clustered,
+                         version=version)
+            
+            session.add(b)
+            session.flush()
+            self.log.debug("boot: %s %s, %s, %s" % (current_time, node_id, clustered, version))
+            session.commit()
         except Exception as exc:
             session.rollback()
-            self.log.exception("during storing: " + str(exc))
+            self.log.exception("error during storing (boot): " + str(exc))
         finally:
             session.close()
 
@@ -232,7 +226,7 @@ class BaseLogger(object):
                     session.flush()
 
                 except sqlalchemy.exc.IntegrityError, e:
-                    self.log.error("Unable to store, checking if node type exists")
+                    self.log.error("Unable to store reading, checking if node type exists")
                     self.log.error(e)
                     session.rollback()
                     s = session.query(SensorType).filter_by(id=i).first()
@@ -257,7 +251,7 @@ class BaseLogger(object):
 
         except Exception as exc:
             session.rollback()
-            self.log.exception("during storing: " + str(exc))
+            self.log.exception("error during storing (reading): " + str(exc))
         finally:
             session.close()
 
@@ -275,7 +269,6 @@ class BaseLogger(object):
         #self.log.debug("Main Loop")
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
-            self.log.debug("Recieved Type: " + str(msg.get_amType()))
             if msg.get_amType() == Packets.AM_BOOTMSG:
                 #Log node boot
                 status = self.booted_node(msg)
