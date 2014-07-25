@@ -1,3 +1,5 @@
+"""Class to initialise a testing database for the push script"""
+
 #! /bin/python
 
 import os
@@ -7,13 +9,6 @@ import math
 import datetime
 
 import sqlalchemy
-import transaction
-#from sqlalchemy import engine_from_config
-
-#from pyramid.paster import (
-#    get_appsettings,
-#    setup_logging,
-#    )
 
 from cogent.base.model import meta as meta
 
@@ -30,50 +25,11 @@ import cogent.base.model as models
 #import transaction
 
 def usage(argv):
+    """Usage message"""
     cmd = os.path.basename(argv[0])
     print('usage: %s <config_uri>\n'
-          '(example: "%s development.ini")' % (cmd, cmd)) 
+          '(example: "%s development.ini")' % (cmd, cmd))
     sys.exit(1)
-
-def populateUser():
-    """Helper method to populate the User table with our initial root user"""
-    session = meta.Session()
-    
-    
-    newuser = user.User(username="test",
-                        email="test",
-                        password=meta.pwdContext.encrypt("test"),
-                        level="root")
-
-    session.merge(newuser)
-    session.flush()
-    transaction.commit()
-
-    # hasUser = session.query(user.User).first()
-    # if hasUser is None:
-    #     print "Warning:  No users setup on the system"
-    #     print "  Creating Root User"
-    #     newUser = raw_input("Login Name: ")
-    #     userEmail = raw_input("User Email: ")
-    #     passOne = "FOO"
-    #     passTwo = "BAR"
-    #     while passOne != passTwo:
-    #         passOne = getpass.getpass()
-    #         passTwo = getpass.getpass("Repeat Password: ")
-    #         if passOne != passTwo:
-    #             print "Passwords do not match"
-        
-    #     #Setup a new User
-    #     thisUser = user.User(username=newUser,
-    #                          email=userEmail,
-    #                          password=meta.pwdContext.encrypt(passOne),
-    #                          level="root"
-    #                          )
-    #     session.add(thisUser)
-    #     session.flush()
-    #     transaction.commit()
-
-
 
 def populatedata(session = None):
     """Populate our testing database with an example deployment etc"""
@@ -101,11 +57,18 @@ def populatedata(session = None):
     session.merge(thedeployment)
     session.flush()
 
+    #We want a server
+    theserver = models.Server(id=1,
+                              hostname = "Testing Server")
+    session.merge(theserver)
+    session.flush()
+
     #We also add a testing house
     thehouse = models.House(id=1,
                             address="testing house",
                             deploymentId = thedeployment.id,
-                            startDate = now)
+                            startDate = now,
+                            serverid = 1)
 
     session.merge(thehouse)
     session.flush()
@@ -138,7 +101,7 @@ def populatedata(session = None):
                               locationId=2)
         print "Create Node 838"
         session.add(thenode)
-    
+
     session.flush()
     transaction.commit()
     session.commit()
@@ -149,7 +112,8 @@ def populatedata(session = None):
     thehouse = models.House(id=2,
                             address="Poor House",
                             deploymentId = thedeployment.id,
-                            startDate = now)
+                            startDate = now,
+                            serverid=1)
     session.merge(thehouse)
 
     #Add a couple of locations
@@ -194,7 +158,7 @@ def populate_readings(session = None):
         print "Creating a new Session"
         session = meta.Session()
 
-    now = datetime.datetime(2013,01,01,00,00,00)
+    now = datetime.datetime(2013, 01, 01, 00, 00, 00)
 
     #Now we want to add a load of readings / Nodestates
     thetime = now# - datetime.timedelta(days = 10)
@@ -208,7 +172,7 @@ def populate_readings(session = None):
         seqnum += 1
         if seqnum > 255:
             seqnum = seqnum - 255
-            
+
         for nid in [837, 838, 1061, 1063]:
 
             locationid = 1
@@ -232,7 +196,7 @@ def populate_readings(session = None):
 
             session.add(ns)
 
-        
+
             reading = models.Reading(nodeId = nid,
                                      typeId = 0,
                                      time = thetime,
@@ -282,7 +246,7 @@ def main(dburl="sqlite:///pushtest.db"):
 
     # DBSession = meta.Session()
     # #DBSession.configure(bind=engine)
-    
+
     import time
 
     print "Creating Database for {0}".format(dburl)
@@ -304,15 +268,37 @@ def main(dburl="sqlite:///pushtest.db"):
 
     #Create a connection to the database
     Base.metadata.bind = engine
-
     Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+
+
+    #Relevant Jenkins stuff
+    #Readings
+    # connection.execute("DELETE FROM Reading")
+    # connection.execute("DELETE FROM NodeState")
+    # #Sensors and Node
+    # connection.execute("DELETE FROM Sensor")
+    # connection.execute("DELETE FROM SensorType")
+    # connection.execute("DELETE FROM Node")
+    # #Room Information
+    # connection.execute("DELETE FROM Room")
+    # connection.execute("DELETE FROM RoomType")
+
+
+    # #Houses and Deployments
+    # connection.execute("DELETE FROM House")
+    # connection.execute("DELETE FROM Deployment")
+
+    #Finally Locations
+    #connection.execute("DELETE FROM Location")
+
     print "--> Time to Drop {0}".format(time.time() - t1)
-    Base.metadata.create_all(engine)  
+
     print "--> Time Create {0}".format(time.time() - t1)
-    # #Start the transaction 
+    # #Start the transaction
     # #trans = connection.begin()
     populateData.init_data(docalib=False)
-    print "--> Time to Init {0}".format(time.time() - t1)   
+    print "--> Time to Init {0}".format(time.time() - t1)
     populatedata()
     print "--> Time to Populate {0}".format(time.time() - t1)
     populate_readings()

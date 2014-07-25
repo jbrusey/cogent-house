@@ -1,0 +1,15 @@
+# [run]
+# omit = cogentviewer/tests/*
+
+[report]
+exclude_lines = 
+	     #Renable the standard
+	     pragma: no cover
+
+	     #Forget __repr__ / __str__
+	     def __repr__
+	     def __str__
+	     def update
+
+	     #Forget the __name__ == __main__
+	     if __name__ == .__main__.:
