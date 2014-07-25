@@ -9,6 +9,7 @@ include cogent/push/synchronise.conf
 include cogent/push/ch-ssh
 include cogent/alembic.ini
 include cogent/scripts/flash-node
+include cogent/report/report-template.mak
 
 global-exclude *~
 global-exclude *.pyc
