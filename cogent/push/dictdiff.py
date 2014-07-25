@@ -30,7 +30,7 @@ set([])
 set([])
 >>> dd.unchanged()
 set([1, 2, 3])
->>> 
+>>>
 
 
 """
@@ -84,7 +84,7 @@ class DictDiff(object):
 
 
     def removed(self):
-        """Return items that have been removed from the dictionary base dictionary.
+        """Return items that have been removed from the base dictionary.
 
         This will return a set of keys for items that are in "other",
         that are not in "mine"
@@ -115,7 +115,7 @@ class DictDiff(object):
         >>> # Neither will removed
         >>> dd.removed()
         set([])
-        
+
         >>> #However Changed will show where the values have changed
         >>> dd.changed()
         set([3])
@@ -124,13 +124,7 @@ class DictDiff(object):
         """
         #Lets do this bit by bit:
         changed = []
-        #for x in self.intersect:
-        #    match = not self.other[x] == self.mine[x]
-        #    log.debug("Compare {0} == {1} # {2}".format(self.other[x],self.mine[x],match))
-        #    if match:
-        #        changed.append(x)
         changed = [x for x in self.intersect if self.other[x] != self.mine[x]]
-        #log.debug("CHANGED ==== {0}".format(changed))
         return set(changed)
 
     def unchanged(self):

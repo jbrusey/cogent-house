@@ -36,8 +36,6 @@ FH.setLevel(logging.INFO)
 FMT = logging.Formatter("%(asctime)s %(name)-10s %(levelname)-8s %(message)s")
 FH.setFormatter(FMT)
 
-__version__ = "0.3.4"
-
 
 #Library Imports
 import sqlalchemy
@@ -64,7 +62,7 @@ INIT_COMMENT = ["this file holds details of mappings",
 
 def get_version_string():
     """Get a version String that we can return to the server
-    
+
     """
     print("Fetching Version String")
     import pkg_resources
@@ -76,14 +74,7 @@ def get_version_string():
         version = 0.0
 
     plat = platform.uname()[2]
-    # platform_str = "{0} {1}".format(plat[2], 
-    #                                " ".join(plat[3].split(" ")[:2])
-    #                                )
-    
-
-    # print("CH-Version {0}".format(version))
-    # print("Platform St {0}".format(plat))
-    return "{0} : {1}".format(version,plat)
+    return "{0} : {1}".format(version, plat)
 
 class MappingError(Exception):
     """Exception raised for errors when Mapping Items.
@@ -132,7 +123,8 @@ class PushServer(object):
         log = self.log
         log.addHandler(FH)
         log.info("="*70)
-        log.info("Initialising Push Server")
+        log.info("Initialising Push Server with config from {0}"
+                 .format(configfile))
 
         #Load and Read the Configuration files
         configparser = configobj.ConfigObj(configfile)
@@ -234,10 +226,6 @@ class PushServer(object):
         log.info("Running Full Syncronise Cycle")
         for item in self.synclist:
             log.info("Synchronising {0}".format(item))
-            #hostname, commands = item.checkRPC()
-            #if commands:
-            #    item.processRPC(hostname, commands)
-            #TODO Uncomment this after testing
             item.sync()
 
 
@@ -324,11 +312,6 @@ class Pusher(object):
         self.Node = models.Node
         self.Location = models.Location
 
-    # NOTE: this code removed as it is not used
-    # def checkConnection(self):
-    #     #Do we have a connection to the server
-    #     log = self.log
-
     def checkConnection(self):
         """
         Check for a connction to the server
@@ -355,44 +338,11 @@ class Pusher(object):
                    "localtime": datetime.datetime.utcnow().isoformat(),
                    "version": get_version_string() }
         theurl = "{0}pushstatus/".format(self.restUrl)
-        
+
         restQry = requests.post(theurl, data = json.dumps(theitem))
         print restQry
         jsonBody = restQry.json()
         log.debug(jsonBody)
-        
-
-#         for item in commands:
-# #        for item in jsonbody:
-#             log.debug(item)
-# #            host, command = item
-# #            if host.lower() == hostname.lower():
-# #                log.info("RPC COMMAND {0}".format(command))
-#             if item == "tunnel":
-
-
-#                 try:
-#                     theport = int(re.findall(r"\d+", hostname)[0])
-#                     log.debug("Port to use is {0}".format(theport))
-#                 except ValueError:
-#                     log.warning("Unable to get port from hostname {0}".format(hostname))
-#                     theport = 0
-
-#                 log.debug("Attempting to start SSH Process on port {0}".format(theport))
-#                     #subprocess.check_output(["./ch-ssh start {0}".format(theport)], shell=True)
-#                 #proc = subprocess.Popen(["/opt/cogent-house.clustered/cogent/push/ch-ssh",
-#                 proc = subprocess.Popen(["./ch-ssh",
-#                                          "start" ,
-#                                          "{0}".format(theport)],
-#                                         stderr=subprocess.PIPE)
-
-#                 for line in iter(proc.stderr.readline, ''):
-#                     log.debug("E-> {0}".format(line.strip()))
-
-#                 log.debug("Killing existing SSH Process")
-#                     #Wait for Exit then Kill
-#                 subprocess.check_output(["./ch-ssh stop"], shell=True)
-
 
     def sync_simpletypes(self):
         """Synchronse any simple (ie ones that have no foreign keys) tables"""
@@ -423,7 +373,7 @@ class Pusher(object):
         self.sync_locations()
 
         self.save_mappings()
-        
+
         self.transferHostname()
         self.sync_nodes()
 
@@ -1075,22 +1025,6 @@ class Pusher(object):
         newItems = theDiff.added()
         log.debug(newItems)
 
-        # for item in newItems:
-        #     thisItem = remoteNodes[item]
-        #     log.info("Node {0}:{1} Not in Local Database".format(item,
-        #                                                          thisItem))
-
-        #     #We also need to map this location to that in the local database
-        #     rloc = self.backmappedLocations.get(thisItem.locationId,None)
-        #     log.info("Attempting to map location {0} to {1}".format(thisItem.locationId, rloc))
-        #     thisItem.locationId = rloc
-
-        #     session.add(thisItem)
-        #     session.flush()
-
-        # session.commit()
-
-
         removedItems = theDiff.removed()
         log.debug(removedItems)
 
@@ -1120,7 +1054,7 @@ class Pusher(object):
                 #Map the new location
                 dictitem = litem.dict()
                 rloc = self.mappedLocations.get(litem.locationId, None)
-                
+
                 if rloc == ritem.locationId:
                     log.debug("mismatch on location, but mapped location is correct")
                     continue
@@ -1153,11 +1087,6 @@ class Pusher(object):
 
         nodes = session.query(models.Node)
         nodes = nodes.filter(models.Node.locationId.in_(locations))
-        # nodes = session.query(models.Reading.nodeId)
-        # nodes = nodes.filter(models.Reading.locationId.in_(locations))
-        # if lastupdate:
-        #     nodes = nodes.filter(models.Reading.time > lastupdate)
-        # nodes = nodes.distinct()
 
         if nodes.count() == 0:
             log.debug("No Nodes at this time")
@@ -1198,9 +1127,6 @@ class Pusher(object):
                     log.debug("Location Ids match, No update required")
                 else:
                     #We want to update the location id
-                    #TODO:  Perhaps we could add some kind of check here to
-                    #       Ensure that we only update if a local update has
-                    #       been made.
                     log.debug(" **** Location Mismatch ****")
                     dictitem = localnode.dict()
                     rloc = self.mappedLocations.get(localnode.locationId, None)
@@ -1367,58 +1293,12 @@ class Pusher(object):
         #Get the last reading for this House
         session = self.localsession()
 
-
-        # # ---------- MOVED TO ABOVE FUNCTION ------
-        # #Fetch the last Date from the mapping config
-        # uploadDates = mappingConfig.get("lastupdate", None)
-        # lastUpdate = None
-        # if uploadDates:
-        #     print uploadDates
-        #     lastUpdate = uploadDates.get(str(theHouse.id), None)
-        #     log.info("LAST UPDATE {0} {1}".format(lastUpdate, type(lastUpdate)))
-        #     if type(lastUpdate) == datetime:
-        #         pass
-        #     elif lastUpdate and lastUpdate != 'None':
-        #         lastUpdate = dateutil.parser.parse(lastUpdate)
-        #     else:
-        #         lastUpdate = None
-        # log.info("Last Update from Config is >{0}< >{1}<".format(lastUpdate,
-        #                                                          type(lastUpdate)))
-
-
-
-        # #As we should be able to trust the last update field of the config file.
-        # #Only request the last sample from the remote DB if this does not exist.
-
-        # if lastUpdate is None:
-        #     log.info("--> Requesting date of last reading in Remote DB")
-        #     log.info("The House is {0}".format(theHouse))
-        #     params = {"house":theHouse.address,
-        #               "lastUpdate":lastUpdate}
-        #     theUrl = "{0}lastSync/".format(self.restUrl)
-
-        #     restQuery = requests.get(theUrl,params=params)
-        #     strDate =  restQuery.json()
-
-        #     log.debug("Str Date {0}".format(strDate))
-        #     if strDate is None:
-        #         log.info("--> --> No Readings in Remote DB")
-        #         lastDate = None
-        #     else:
-        #         lastDate = dateutil.parser.parse(strDate)
-        #         log.info("--> Last Upload Date {0}".format(lastDate))
-
-        #     lastUpdate = lastDate
-
-
         #TODO:
         # This is a temporary fix for the problem for nodestates,
         # Currently I cannot think of a sensible way
         # To do this without generting a lot of network traffic.
         firstupload = lastUpdate
 
-
-        #sys.exit(0)
         #Then Save
         uploadDates[str(theHouse.id)] = lastUpdate
         mappingConfig["lastupdate"] = uploadDates
@@ -1508,7 +1388,7 @@ if __name__ == "__main__":
         conf_prefix = "/" #If its a standard "global" instalation
     else :
         conf_prefix = "{0}/".format(sys.prefix)
-        
+
     configpath = os.path.join(conf_prefix,
                               "etc",
                               "cogent-house",
