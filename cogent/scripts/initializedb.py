@@ -16,8 +16,8 @@ import transaction
 #     setup_logging,
 #     )
 
-#DBFILE = "mysql://chuser@localhost/ch"
-DBFILE = "mysql://chuser@localhost/jenkins"
+DBFILE = "mysql://chuser@localhost/ch"
+#DBFILE = "mysql://chuser@localhost/jenkins"
 import sqlalchemy
 
 from cogent.base.model import meta as meta
