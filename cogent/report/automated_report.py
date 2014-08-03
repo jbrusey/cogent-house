@@ -139,7 +139,9 @@ class OwlsReporter(object):
         session = meta.Session()
 
         now = self.reportdate
-        today = now.date()
+
+        today = datetime.datetime.now()
+        heartbeat = today - datetime.timedelta(hours=8)
 
         #qry = session.query(models.House)
         houseqry = session.query(models.House)
@@ -169,8 +171,9 @@ class OwlsReporter(object):
             #Final Query:  Filter expected nodes
             qry = session.query(models.NodeState)
             qry = qry.filter(models.NodeState.nodeId.in_(nodeids))
-            #Filter by today
-            qry = qry.filter(models.NodeState.time >= today)
+            #Filter for data within the last 8 hours to dect all nodes
+            #have reported within a heartbeats length
+            qry = qry.filter(models.NodeState.time >= heartbeat)
             qry = qry.group_by(models.NodeState.nodeId)
 
             house_nodes = qry.count()
