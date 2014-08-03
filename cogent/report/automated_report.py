@@ -146,6 +146,7 @@ class OwlsReporter(object):
 
         #qry = session.query(models.House)
         houseqry = session.query(models.House)
+        houseqry = houseqry.filter(models.House.endDate == None) #filter out where end date is set
 
         houses_today = 0 #Houses that have pushed today
         houses_missing = [] #Houses with problems
