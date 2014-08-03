@@ -77,6 +77,7 @@ class OwlsReporter(object):
 
         #Total Houses
         qry = session.query(models.House)
+        qry = qry.filter(models.House.endDate == None) #filter out where end date is set
         deployed_houses = qry.count()
         logging.debug("Total Deployed houses: {0}".format(deployed_houses))
 
