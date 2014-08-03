@@ -139,7 +139,7 @@
 
 
 <div id="outline-container-sec-3" class="outline-2">
-  <h2 id="sec-3">Houses with partial data:</h2>
+  <h2 id="sec-3">Houses with partial data (Not reported in the last 8 hours):</h2>
   <ul>
     	%for house in houses_partial:
 	  <li>${house[0]}</li>
