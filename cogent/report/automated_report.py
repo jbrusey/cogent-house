@@ -106,6 +106,7 @@ class OwlsReporter(object):
         now = self.reportdate
         today = now.date()
         lastweek = today - datetime.timedelta(days=7)
+        yesterday = today - datetime.timedelta(days=1)
         logging.debug("Today is {0}".format(today))
 
         #This week
@@ -118,8 +119,9 @@ class OwlsReporter(object):
         logging.debug("Servers that have pushed this week: {0}"
                       .format(push_week))
 
+        
         qry = session.query(models.PushStatus)
-        qry = qry.filter(models.PushStatus.time >= today)
+        qry = qry.filter(models.PushStatus.time >= yesterday)
         qry = qry.group_by(models.PushStatus.hostname)
 
         push_today = qry.count()
@@ -142,7 +144,7 @@ class OwlsReporter(object):
         now = self.reportdate
 
         today = datetime.datetime.now()
-        heartbeat = today - datetime.timedelta(hours=8)
+        heartbeat = today - datetime.timedelta(hours=24)
 
         #qry = session.query(models.House)
         houseqry = session.query(models.House)
@@ -173,7 +175,7 @@ class OwlsReporter(object):
             #Final Query:  Filter expected nodes
             qry = session.query(models.NodeState)
             qry = qry.filter(models.NodeState.nodeId.in_(nodeids))
-            #Filter for data within the last 8 hours to dect all nodes
+            #Filter for data within the last 24 hours to dect all nodes
             #have reported within a heartbeats length
             qry = qry.filter(models.NodeState.time >= heartbeat)
             qry = qry.group_by(models.NodeState.nodeId)
@@ -263,6 +265,7 @@ class OwlsReporter(object):
         now = self.reportdate
         today = now.date()
         lastweek = today - datetime.timedelta(days=7)
+        yesterday = today - datetime.timedelta(days=1)
         qry = session.query(models.NodeState)
         qry = qry.filter(models.NodeState.time >= lastweek)
         qry = qry.group_by(models.NodeState.nodeId)
@@ -272,7 +275,7 @@ class OwlsReporter(object):
         logging.debug("Nodes that have data this week: {0}".format(node_week))
 
         qry = session.query(models.NodeState)
-        qry = qry.filter(models.NodeState.time >= today)
+        qry = qry.filter(models.NodeState.time >= yesterday)
         qry = qry.group_by(models.NodeState.nodeId)
 
         node_today = qry.count()
