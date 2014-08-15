@@ -7,7 +7,7 @@ implementation {
 
  const msp430adc12_channel_config_t config = {
       inch: INPUT_CHANNEL_A2,
-      sref: REFERENCE_AVcc_AVss,
+      sref: REFERENCE_VREFplus_AVss,
       ref2_5v: REFVOLT_LEVEL_2_5,
       adc12ssel: SHT_SOURCE_ACLK,
       adc12div: SHT_CLOCK_DIV_1,
