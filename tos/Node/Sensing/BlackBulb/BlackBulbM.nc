@@ -47,8 +47,8 @@ module BlackBulbM
 implementation
 {
 	const uint32_t DELAY_PERIOD=1024;
-	const float vref=3.3;
-	const float maxAdc=4096.0;
+	const float vref=2.5;
+	const float maxAdc=4095.0;
 
 	task void readBBTask()
 	{

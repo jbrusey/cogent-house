@@ -59,8 +59,8 @@ implementation
 {
 
 	const uint32_t DELAY_PERIOD=10240;
-	const float vref=3.3;
-	const float maxAdc=4096.0;
+	const float vref=2.5;
+	const float maxAdc=4095.0;
 	float co2Coeffs[] = {-1250, 5000};
 	float vocCoeffs[] = {450, 620};
 

@@ -11,8 +11,8 @@ module WallTempM
 }
 implementation
 {
-	const float vref=3.3;
-	const float maxAdc=4096.0;
+	const float vref=2.5;
+	const float maxAdc=4095.0;
 
 	//Temp1
 	task void readTempTask()
