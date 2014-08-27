@@ -70,11 +70,13 @@ implementation
   bool sending;
   bool shutdown = FALSE;
   bool first_period_pending = FALSE;
-  bool clustered = FALSE;
 #ifdef CLUSTER_BASED
   bool clustered = TRUE;
   bool leaf_mode = FALSE;
   bool send_state_pending = FALSE;
+#endif
+#ifndef CLUSTER_BASED
+  bool clustered = FALSE;
 #endif
   bool seen_first_ack = FALSE;
   message_t dataMsg;
