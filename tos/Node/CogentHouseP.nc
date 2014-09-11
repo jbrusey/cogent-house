@@ -633,7 +633,7 @@ implementation
   }
 
   event void ReadOpti.readDone(error_t result, FilterState* data) {
-    do_readDone_pass(result, data, RS_OPTI, SC_OPTI);
+    do_readDone_filterstate(result, data, RS_OPTI, SC_OPTI, SC_D_OPTI);
   }
   
   event void ReadHMEnergy.readDone(error_t result, FilterState* data) {
