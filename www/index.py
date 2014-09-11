@@ -16,6 +16,7 @@ os.environ['HOME'] = '/tmp'
 # from threading import Lock
 # _lock = Lock()
 import numpy as np
+import gviz_api
 
 _USE_SVG_PLOTS = False
 
@@ -37,6 +38,8 @@ from cogent.base.model import (Node,
                                Session,
                                Sensor,
                                SensorType)
+from distutils.version import StrictVersion as V
+import cogent.sip.sipsim
 from cogent.sip.sipsim import (
     PartSplineReconstruct,
     SipPhenom,
@@ -228,8 +231,8 @@ def _form(html, action='', button='ok'):
             button + '"></p></form>')
 
 
-def _page(title='No title', html=''):
-    return (_head(title) +
+def _page(title='No title', html='', script=''):
+    return (_head(title=title, script=script) +
             _wrap(_header(title) +
                   _nav() +
                   _main(html) +
@@ -238,17 +241,39 @@ def _page(title='No title', html=''):
             _foot())
 
 
-def _head(title='No title'):
-    return ('<!doctype html><html><head><title>CogentHouse Maintenance '
-            'Portal - ' + title + '</title></head>'
-            '<link rel="stylesheet" type="text/css" '
-            'href="../style/ccarc.css" />'
-            '<meta http-equiv="Content-Type" '
-            'content="text/html;charset=utf-8" />'
-            '<script type="text/javascript" '
-            'src="../scripts/datePicker.js"></script>'
-            '<body>')
+def _graph_page(description=None,
+                data=None,
+                options={},
+                chart_div='chart_div',
+                title='No title',
+                html=''):
+    """ _graph_page uses google chart to draw a line graph.
+    """
+    # Loading it into gviz_api.DataTable
+    data_table = gviz_api.DataTable(description)
+    data_table.LoadData(data)
+    json = data_table.ToJSon()
+    return (_page(title=title,
+                  html=html,
+                  script="""<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {{packages:["corechart"]}});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {{
+        var json_data = new google.visualization.DataTable({json}, 0.6);
+        var chart = new google.visualization.LineChart(document.getElementById(\'{chart_div}\'));
+        var options = {options!r};
+        chart.draw(json_data, options);
+      }}
+    </script>""".format(json=json, chart_div=chart_div, options=options)))
 
+
+def _head(title='No title', script=''):
+    return ('<!doctype html><html><head><title>CogentHouse Maintenance Portal - {}</title>{}'.format(title, script) +
+            '<link rel="stylesheet" type="text/css" href="../style/ccarc.css" />'
+            '<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />'
+            '<script type="text/javascript" src="../scripts/datePicker.js"></script></head>' +
+            '<body>')
 
 def _foot():
     return '</body></html>'
@@ -893,7 +918,26 @@ def getData(req, sensorType=None, StartDate=None, EndDate=None):
         session.close()
 
 
-def nodeGraph(node=None, typ="0", period="day"):
+def _predict(sip_tuple, end_time):
+    """ takes in a sip_tuple containing:
+    (datetime, value, delta, seq)
+    and predicts the value at time end_time. returns a tuple
+    with the same elements.
+    Restrict forward prediction to 7 hours
+    """
+    (oldt, value, delta, seq) = sip_tuple
+    deltat = end_time - oldt
+    if deltat > timedelta(hours=7):
+        deltat = timedelta(hours=7)
+        end_time = oldt + deltat
+    return (end_time,
+            (end_time - oldt).total_seconds() * delta + value,
+            0.,
+            seq)  # repeating seq indicates uncertain data
+
+
+
+def nodeGraph(node=None, typ="0", period="day", ago='0', debug='n'):
     try:
         session = Session()
 
@@ -916,17 +960,107 @@ def nodeGraph(node=None, typ="0", period="day"):
                          % (u, k, k))
         s.append("</p>")
 
-        u = _url("graph",
-                 node=node,
-                 typ=typ,
-                 minsago=mins,
-                 duration=mins)
-        s.append('<p><div id="grphtitle">%s</div>'
-                 '<img src="%s" alt="graph for node %s" '
-                 'width="700" height="400"></p>'
-                 % (h + ": " + r + " (" + node + ")", u, node))
+        ago_i = _int(str(ago), default=0)
+        s.append('<p>')
+        s.append(_href('<<',
+                       _url('nodeGraph',
+                            node=node,
+                            typ=typ,
+                            period=period,
+                            ago=ago_i + 1)))
+        if ago_i > 0:
+            s.append(' &mdash; ')
+            s.append(_href('>>',
+                       _url('nodeGraph', 
+                            node=node,
+                            typ=typ,
+                            period=period,
+                            ago=ago_i - 1)))
 
-        return _page('Time series graph', ''.join(s))
+        s.append('<p><div id="grphtitle">{title}</div><div id="chart_div" '
+                 'style="width: 700px; height: 390px;"></div></p>'
+                 .format(title=h + ": " + r + " (" + node + ")"))
+
+
+        debug = (debug != 'n')
+        startts = datetime.utcnow() - timedelta(minutes=(ago_i+1)
+                                                * mins)
+
+        endts = startts + timedelta(minutes=mins)
+
+        type_id = int(typ)
+        node_id = int(node)
+        y_label = _get_y_label(type_id, session)
+
+        if type_id not in type_delta:
+            data = (session.query(Reading.time, Reading.value)
+                    .filter(
+                    and_(Reading.nodeId == node_id,
+                         Reading.typeId == type_id,
+                         Reading.time >= startts,
+                         Reading.time <= endts))
+                    .order_by(Reading.time)
+                    .all())
+        else:
+            thresh = thresholds[type_id]
+
+            sip_data = list(_get_value_and_delta(node_id,
+                                            type_id,
+                                            type_delta[type_id],
+                                            startts,
+                                            endts
+                                            ))
+            if len(sip_data) > 0 and ago_i == 0:
+                sip_data.append(_predict(sip_data[-1],endts))
+
+# TODO further fix so that it gives intervals
+            assert V(cogent.sip.sipsim.__version__) >= V("0.1a1")
+            data = list(
+                PartSplineReconstruct
+                (threshold=thresh,
+                 src=SipPhenom
+                 (src=_adjust_deltas(sip_data))))
+
+            # filter out anything not in the right time range.
+            data = [ptup for ptup in data 
+                    if ptup.dt >= startts and ptup.dt < endts]
+
+            def sp_if_ev(ptup): 
+                if ptup.ev: 
+                    return ptup.sp 
+                else:
+                    return None
+            data = [(ptup.dt, ptup.sp, 
+                     not ptup.dashed, 
+                     sp_if_ev(ptup)) for ptup in data]
+
+        if len(data) > 1000:
+            # trim data by sub-sampling to get the size back down to 1000
+            subs = len(data) / 1000
+            data = [x for i, x in enumerate(data) if i % subs == 0]
+
+        options = {'vAxis': {'title': y_label},
+                             # 'viewWindow' : {'max':startts,
+                             #                 'min':endts}},
+                   'hAxis': {'title': 'Time'},
+                   'curveType': 'function',
+                   'legend': {'position': 'none'}
+                   }
+        ev_count = sum([int(ev is not None) for (a,b,c,ev) in data])
+        if ev_count < 100:
+            options['series'] = {0: {'pointSize': 0},
+                                 1: {'pointSize': 5, 'color': 'blue'}}
+            # options['pointSize'] = 5
+
+        description = [('Time', 'datetime'),
+                       ('Interpolated', 'number'),
+                       ('', 'boolean', '', {'role': 'certainty'}),
+                       ('Event', 'number', )]
+        return _graph_page(description=description,
+                           options=options,
+                           data=data,
+                           title='Time series graph',
+                           html=''.join(s))
     finally:
         session.close()
 
@@ -1021,10 +1155,10 @@ def yield24(sort='house'):
     """
     try:
         session = Session()
-        s = []
+        html = []
 
-        s.append("<table border=\"1\">")
-        s.append(_row([_href('Node',
+        html.append("<table border=\"1\">")
+        html.append(_row([_href('Node',
                              _url('yield24',
                                   sort='id')),
                        _href('House',
@@ -1121,18 +1255,23 @@ def yield24(sort='house'):
             values = [node_id, house_name, room_name, seqcnt, minseq, maxseq,
                       str(last_heard),
                       calc_yield(seqcnt, minseq, maxseq)]
-            fmt = ['%d', '%s', '%s', '%d', '%d', '%d', '%s', '%8.2f']
-            s.append("<tr>")
-            s.extend([("<td>" + f + "</td>") % v
+            node_u = _url("nodeGraph",
+                          node=node_id,
+                          typ=6,
+                          period='day')
+            fmt = [_href('%d', node_u),
+                   '%s', '%s', '%d', '%d', '%d', '%s', '%8.2f']
+            html.append("<tr>")
+            html.extend([("<td>" + f + "</td>") % v
                       for (f, v) in zip(fmt, values)])
-            s.append("</tr>")
+            html.append("</tr>")
 
-        s.append("</table>")
-        s.append('<p>The yield estimate may be an '
+        html.append("</table>")
+        html.append('<p>The yield estimate may be an '
                  'overestimate if the most recent '
                  'packets have been lost or if more '
                  'than 256 packets have been lost.</p>')
-        return _page('Yield for last day', ''.join(s))
+        return _page('Yield for last day', ''.join(html))
     finally:
         session.close()
 
@@ -1614,30 +1753,35 @@ def houseList():
 
 
 def lowbat(bat="2.6"):
+    """ give a list of nodes with batteries less than 2.6
+    """
+    # TODO: predict current value
+    # TODO: provide estimates of battery lifetime and sort. 
     try:
         batlvl = _float(bat, default=2.6)
         t = datetime.utcnow() - timedelta(hours=1)
         session = Session()
-        s = []
+        html = []
         empty = True
-        for r in (session.query(distinct(Reading.nodeId))
+        html.append('<table>')
+        for (node_id,) in (session.query(distinct(Reading.nodeId))
                          .filter(and_(Reading.typeId == 6,
                                       Reading.value <= batlvl,
                                       Reading.time > t))
                          .order_by(Reading.nodeId)):
-            r = r[0]
             u = _url("nodeGraph",
-                     node=r,
+                     node=node_id,
                      typ=6,
                      period='day')
 
-            s.append('<p><a href="%s">%d</a></p>' % (u, r))
+            html.append(_row([_href(node_id, u)]))
             empty = False
+        html.append('</table>')
 
         if empty:
-            s.append("<p>No low batteries found</p>")
+            html = ["<p>No low batteries found</p>"]
 
-        return _page('Low batteries', ''.join(s))
+        return _page('Low batteries', ''.join(html))
     finally:
         session.close()
 
