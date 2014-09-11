@@ -226,7 +226,7 @@ implementation
 
   //Opti Smart Wiring
   CogentHouseP.OptiControl -> PulseGio3C.PulseControl;
-  FilterM.Filter[RS_OPTI]  -> Pass.Filter[RS_OPTI];
+  FilterM.Filter[RS_OPTI]  -> DEWMAC.Filter[RS_OPTI];
   FilterM.GetSensorValue[RS_OPTI]  -> PulseGio3C.ReadPulse;
   SIPControllerC.EstimateCurrentState[RS_OPTI]  -> FilterM.EstimateCurrentState[RS_OPTI] ;
   CogentHouseP.ReadOpti -> SIPControllerC.SIPController[RS_OPTI] ;
