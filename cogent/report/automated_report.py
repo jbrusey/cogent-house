@@ -60,7 +60,7 @@ class OwlsReporter(object):
                                   "cogent-house",
                                   "report-templates",
                                   "report-template.mak")
-
+        templatepath = "./report-template.mak" # testing
         self.templatepath = templatepath
 
     def fetch_overview(self):
@@ -77,12 +77,15 @@ class OwlsReporter(object):
 
         #Total Houses
         qry = session.query(models.House)
-        qry = qry.filter(models.House.endDate == None) #filter out where end date is set
+        qry = qry.filter(models.House.serverid != None) #filter out where server id is not set
         deployed_houses = qry.count()
         logging.debug("Total Deployed houses: {0}".format(deployed_houses))
 
         #Deployed Nodes
         qry = session.query(models.Node).filter(models.Node.locationId != None)
+        qry = qry.join(models.Location)
+        qry = qry.join(models.House)
+        qry = qry.filter(models.House.serverid != None)
         deployed_nodes = qry.count()
         logging.debug("Total Deployed Nodes: {0}".format(deployed_nodes))
 
@@ -112,7 +115,9 @@ class OwlsReporter(object):
         #This week
         qry = session.query(models.PushStatus)
         qry = qry.filter(models.PushStatus.time >= lastweek)
-        qry = qry.group_by(models.PushStatus.hostname)
+        qry = qry.join(models.Server, models.Server.hostname == models.PushStatus.hostname)
+        qry = qry.join(models.House, models.Server.id == models.House.serverid)
+        qry = qry.group_by(models.House.serverid)
 
         push_week = qry.count()
 
@@ -122,7 +127,10 @@ class OwlsReporter(object):
         
         qry = session.query(models.PushStatus)
         qry = qry.filter(models.PushStatus.time >= yesterday)
-        qry = qry.group_by(models.PushStatus.hostname)
+        qry = qry.join(models.Server, models.Server.hostname == models.PushStatus.hostname)
+        qry = qry.join(models.House, models.Server.id == models.House.serverid)
+        qry = qry.group_by(models.House.serverid)
+        
 
         push_today = qry.count()
 
@@ -144,11 +152,11 @@ class OwlsReporter(object):
         now = self.reportdate
 
         today = datetime.datetime.now()
-        heartbeat = today - datetime.timedelta(hours=24)
+        heartbeat = today - datetime.timedelta(hours=8)
 
         #qry = session.query(models.House)
         houseqry = session.query(models.House)
-        houseqry = houseqry.filter(models.House.endDate == None) #filter out where end date is set
+        houseqry = houseqry.filter(models.House.serverid != None)
 
         houses_today = 0 #Houses that have pushed today
         houses_missing = [] #Houses with problems
@@ -174,8 +182,16 @@ class OwlsReporter(object):
 
             #Final Query:  Filter expected nodes
             qry = session.query(models.NodeState)
+            if len(nodeids) == 0:
+                logging.warning("House {0} has locations but no registered nodes"
+                                .format(house))
+                houses_missing.append(["{0} has no registered nodes"
+                                       .format(house.address),
+                                    [],
+                                    0])
+                continue
             qry = qry.filter(models.NodeState.nodeId.in_(nodeids))
-            #Filter for data within the last 24 hours to dect all nodes
+            #Filter for data within the last 24 hours to detect all nodes
             #have reported within a heartbeats length
             qry = qry.filter(models.NodeState.time >= heartbeat)
             qry = qry.group_by(models.NodeState.nodeId)
@@ -287,6 +303,31 @@ class OwlsReporter(object):
 
         return outdict
 
+    def check_batteries(self):
+
+        session = meta.Session()
+        now = self.reportdate
+        yesterday = now - datetime.timedelta(days=1)
+        battery_warnings = []
+        # Check for low batteries
+        qry = session.query(models.Reading.nodeId)
+        qry = qry.filter(models.Reading.time >= yesterday)
+        qry = qry.filter(models.Reading.typeId == 6)
+        qry = qry.filter(models.Reading.value <= 2.5)
+        qry = qry.group_by(models.Reading.nodeId)
+
+        for item in qry:
+            nqry = session.query(models.Node)
+            nqry = nqry.filter_by(id = item[0])
+            nqry = nqry.first()
+
+            address = nqry.location.house.address
+            roomname = nqry.location.room.name
+            battery_warnings.append("{0} ({1}: {2})".format(item[0], address, roomname))
+
+        return {"battery_warnings": battery_warnings}
+
+        
     def check_pulse_nodes(self):
         """Check for pulse output nodes that could be having issues.
         IE the value has not increased in the past 24 hours
@@ -309,9 +350,12 @@ class OwlsReporter(object):
                             sqlalchemy.func.min(models.Reading.value),
                             sqlalchemy.func.max(models.Reading.value)
                             )
-        qry = qry.filter(models.Reading.typeId.in_(pulseids))
-        qry = qry.filter(models.Reading.time >= yesterday)
-        qry = qry.group_by(models.Reading.nodeId)
+        if len(pulseids) > 0:
+            qry = qry.filter(models.Reading.typeId.in_(pulseids))
+            qry = qry.filter(models.Reading.time >= yesterday)
+            qry = qry.group_by(models.Reading.nodeId)
+        else:
+            qry = []
 
         pulse_warnings = []
 
@@ -349,6 +393,9 @@ class OwlsReporter(object):
         outdict.update(dat)
 
         dat = self.fetch_nodestatus()
+        outdict.update(dat)
+
+        dat = self.check_batteries()
         outdict.update(dat)
 
         dat = self.check_pulse_nodes()
@@ -394,8 +441,8 @@ if __name__ == "__main__": # pragma: no cover
 
     parser.add_argument("-t",
                         "--term",
-                        help="output to terminal",
-                        required=False)
+                        action="store_true",
+                        help="output to terminal")
 
     parser.add_argument("-d",
                         "--date",
@@ -417,7 +464,6 @@ if __name__ == "__main__": # pragma: no cover
         parts = [int(x) for x in thedate.split("-")]
         thedate = datetime.datetime(parts[2], parts[1], parts[0])
 
-
     reporter = OwlsReporter(args.database,
                             thedate
     )
@@ -437,10 +483,10 @@ if __name__ == "__main__": # pragma: no cover
         logging.debug("Sending E-Mail")
         s = smtplib.SMTP('localhost')
         sender = "nobody@cogentee.coventry.ac.uk"
-        receivers = ["dang@cogentee.coventry.ac.uk"]
+        receivers = ["chuser@cogentee.coventry.ac.uk"]
 
         Header = ["From: Automated Reporting <nobody@cogentee.coventry.ac.uk>",
-                  "To: dang <reports@cogentee.coventry.ac.uk>",
+                  "To: reports <reports@cogentee.coventry.ac.uk>",
                   "MIME-Version: 1.0",
                   "Content-type: text/html",
                   "Subject: Automated Deployment Status Report {0}".format(
