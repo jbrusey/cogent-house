@@ -60,7 +60,6 @@ class OwlsReporter(object):
                                   "cogent-house",
                                   "report-templates",
                                   "report-template.mak")
-        templatepath = "./report-template.mak" # testing
         self.templatepath = templatepath
 
     def fetch_overview(self):
