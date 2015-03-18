@@ -1,0 +1,1 @@
+Cogent House is a system for sensing temperature, humidity, CO2, Air Quality, VOC, hot water consumption, and electricity consumption within the home. It has been developed by the [Cogent Computing Applied Research Centre](http://cogentcomputing.org) at Coventry University. Cogent House is developed using TinyOS and Python.
