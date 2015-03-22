@@ -7,6 +7,7 @@ from pyramid.renderers import render_to_response
 import pyramid.url
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 import homepage
 
@@ -27,7 +28,6 @@ import json
 
 def _getDeploymentTree(request):
     """Fetch a tree to be used for navigation"""
-    session = meta.Session()
 
     #Fetch a list of deployments
 
@@ -45,7 +45,7 @@ def _getDeploymentTree(request):
             depSplit = parent.split("_")
             if parent == "root":
                 #Root of tree, return all deployments
-                theQry = session.query(models.Deployment)
+                theQry = DBSession.query(models.Deployment)
                 outList = []
                 for item in theQry:
                     log.debug("Processing {0} ".format(item))
@@ -66,10 +66,10 @@ def _getDeploymentTree(request):
                 log.debug("Parent is a Deployment")
                 if depSplit[1] == "None":
                     #Fetch all houses without a deployment
-                    theQry = session.query(models.House).filter_by(deploymentId = None)
+                    theQry = DBSession.query(models.House).filter_by(deploymentId = None)
                 else:
                     #Fetch for this particular deployment
-                    theQry = session.query(models.House).filter_by(deploymentId = depSplit[1])
+                    theQry = DBSession.query(models.House).filter_by(deploymentId = depSplit[1])
 
                 outList = []
                 log.debug("--> Children Are:")
@@ -84,7 +84,7 @@ def _getDeploymentTree(request):
                 return outList
             elif depSplit[0] == "h":
                 log.debug("Parent is a House")
-                theQry = session.query(models.Location).filter_by(houseId = depSplit[1])
+                theQry = DBSession.query(models.Location).filter_by(houseId = depSplit[1])
                 log.debug("--- {0} {1}".format(theQry,theQry.count()))
                 outList = []
                 for item in theQry:
@@ -108,7 +108,7 @@ def _getDeploymentTree(request):
                     return None
                 outList = []
                 #Use the Node Location Table to find Nodes associated with this Location
-                theqry = session.query(models.Location).filter_by(id=depSplit[1])
+                theqry = DBSession.query(models.Location).filter_by(id=depSplit[1])
                 theitem = theqry.first()
                 log.debug("The Qry {0}".format(theitem))
                 log.debug("--> {0}".format(theitem.allnodes))
@@ -117,11 +117,11 @@ def _getDeploymentTree(request):
                 #And a fallback if the crappy server doesnt accetp node / locations
                 if len(allNodes) == 0:
                     log.debug("No Nodes Detected")
-                    theQry = session.query(models.Reading.nodeId).filter_by(locationId = depSplit[1]).distinct().all()
+                    theQry = DBSession.query(models.Reading.nodeId).filter_by(locationId = depSplit[1]).distinct().all()
                     log.debug("Node Ids {0}".format(theQry))
                     nids = [x[0] for x in theQry]
                     log.debug("Nids {0}".format(nids))
-                    nodeQry = session.query(models.Node).filter(models.Node.id.in_(nids))
+                    nodeQry = DBSession.query(models.Node).filter(models.Node.id.in_(nids))
                     log.debug("Node Qry {0}".format(nodeQry.all()))
                     allNodes = nodeQry.all()
 
@@ -132,17 +132,17 @@ def _getDeploymentTree(request):
                     log.debug("--> --> Sensors Are {0}".format(node.sensors))
 
                     #For FUCK SAKES, why does this not work (BECAUSE THE FUNCKING DATABASE SPEC HAS CHANGED:
-                    theQry = session.query(models.Sensor).filter_by(nodeId = node.id)
+                    theQry = DBSession.query(models.Sensor).filter_by(nodeId = node.id)
                     log.debug("--> --> QRY SENSORS {0}".format(theQry.all()))
 
                     theSensors = node.sensors
                     if len(theSensors) is 0:
                         #Do YET ANOTHER FUCKING FULL TABLE SCAN TO WORK OUT WHAT SENSOR TYPES ARE ATTACHED
                         #WANKERS
-                        theQry = session.query(models.Reading.typeId).filter_by(nodeId = node.id).distinct()
+                        theQry = DBSession.query(models.Reading.typeId).filter_by(nodeId = node.id).distinct()
                         #log.debug("--> --> QRY Types {0}".format(theQry.all()))
                         sids = [x[0] for x in theQry]
-                        sensorQry = session.query(models.SensorType).filter(models.SensorType.id.in_(sids))
+                        sensorQry = DBSession.query(models.SensorType).filter(models.SensorType.id.in_(sids))
                         for sensortype in sensorQry:
                             log.debug("==> ==> {0}".format(sensortype))
                             theItem = {"id":"t_{0}_{1}".format(depSplit[1], sensortype.id),
@@ -195,7 +195,6 @@ def getHouseRooms(request):
 
     """
 
-    session = meta.Session()
     params = request.params
     houseid = request.params.get("id", None)
     log.debug("getHouseRooms called with Id parameter {0}".format(houseid))
@@ -203,7 +202,7 @@ def getHouseRooms(request):
         log.debug("--> No Id Parameter supplied")
         return []
 
-    thehouse = session.query(models.House).filter_by(id=int(houseid)).first()
+    thehouse = DBSession.query(models.House).filter_by(id=int(houseid)).first()
     if thehouse is None:
         log.warning("--> No such houseId in table")
         return []
@@ -230,11 +229,10 @@ def getHouseRooms(request):
 #Wrapped in-case we wish to valuate the time taken
 def _wrappedRest(request):
 
-    session = meta.Session()
 
     log.debug("="*80)
     #Fetch all the deployments
-    #theQuery = session.query(models.Deployment)
+    #theQuery = DBSession.query(models.Deployment)
     #deployments = [x.toREST() for x in theQuery]
 
 
@@ -269,7 +267,7 @@ def _wrappedRest(request):
         return getsummary(request)
 
     if theType.lower() == "rpc":
-        qry = session.query(models.Server)
+        qry = DBSession.query(models.Server)
         outlist = []
         for item in qry:
             if item.rpc == 1:
@@ -313,11 +311,11 @@ def _wrappedRest(request):
         for item in objGen:
             #pass
             #print "----> New Item to be Added {0}".format(item)
-            #session.merge(item)
-            session.add(item)
+            #DBSession.merge(item)
+            DBSession.add(item)
 
         try:
-            session.flush()
+            DBSession.flush()
         #except sqlalchemy.IntegrityError,e:
         except Exception,e:
             log.warning("Bulk Upload Error")
@@ -326,10 +324,10 @@ def _wrappedRest(request):
             #Try doing as a merge instead
             objGen = models.clsFromJSON(jsonBody)
             for item in objGen:
-                session.merge(item)
+                DBSession.merge(item)
 
                 try:
-                    session.flush()
+                    DBSession.flush()
                 except Exception,e:
                     log.warning("Bulk Upload Error on Merge")
                     log.warning(e)
@@ -343,8 +341,8 @@ def _wrappedRest(request):
         #print "="*70
         request.response.status = 201
         log.debug("Bulk Upload Success")
-        #session.commit()
-        #session.close()
+        #DBSession.commit()
+        #DBSession.close()
         return []
         #return [x.id for x in objGen]
     elif theType.lower() == "deploymenttree":
@@ -369,7 +367,7 @@ def _wrappedRest(request):
 
     if reqType == "GET":
         #Create Query
-        theQuery = session.query(theModel)
+        theQuery = DBSession.query(theModel)
         #If we have an Id filter by that
         log.debug("Get Query")
         if theId:
@@ -420,7 +418,7 @@ def _wrappedRest(request):
         retItems = [x.dict() for x in theQuery]
         if retItems:
             log.debug("--> ITEMS --> {0}".format(retItems[0]))
-        #session.close()
+        #DBSession.close()
         return retItems
 
     elif reqType == "POST":
@@ -431,11 +429,10 @@ def _wrappedRest(request):
         newObj = theModel()
         newObj.fromJSON(parameters)
         log.debug("-----> NEW OBJECT {0}".format(newObj))
-        session.flush()
-        session = meta.Session()
-        session.add(newObj)
-        session.flush()
-        #session.commit()
+        DBSession.flush()
+        DBSession.add(newObj)
+        DBSession.flush()
+        #DBSession.commit()
         #newObj.id = 5001
         log.debug("New Object {0} added".format(newObj))
 
@@ -456,18 +453,18 @@ def _wrappedRest(request):
         if theType.lower() == "pushstatus":
             log.debug("Push Status Sent from Server {0}".format(newObj.hostname))
 
-            qry = session.query(models.Server).filter_by(hostname = newObj.hostname).first()
+            qry = DBSession.query(models.Server).filter_by(hostname = newObj.hostname).first()
             if qry is None:
                 log.info("Update from New Server {0}".format(newObj))
                 newserver = models.Server(hostname = newObj.hostname)
-                session.add(newserver)
-                session.flush()
+                DBSession.add(newserver)
+                DBSession.flush()
 
         #And Return the new object
 
         retObj =  newObj.dict()
-        session.flush()
-        #session.close()
+        DBSession.flush()
+        #DBSession.close()
         return retObj
 
     elif reqType == "PUT":
@@ -479,12 +476,11 @@ def _wrappedRest(request):
         log.debug("QUERY STRING {0}".format(request.query_string))
         log.debug("BODY {0}".format(request.body))
 
-        #session = meta.Session()
 
         queryParams = request.params
         log.debug("PARAMS --> {0}".format(queryParams))
         #If we have an Id, Assume we want to try to update an existing object
-        theQuery = session.query(theModel)
+        theQuery = DBSession.query(theModel)
         if theId:
             theQuery = theQuery.filter_by(id=theId)#.first()
             log.debug("--> Query Results on search for {0}".format(theId))
@@ -507,10 +503,10 @@ def _wrappedRest(request):
             log.warning("Attempt to update non existant object")
             theQuery = theModel()
             #newObj.fromJSON(parameters)
-            session.add(theQuery)
-            session.flush()
+            DBSession.add(theQuery)
+            DBSession.flush()
             #return []
-            #session.add(theQuery)
+            #DBSession.add(theQuery)
 
         parameters = request.json_body
         log.debug("JSON PARAMS {0}".format(parameters))
@@ -520,7 +516,7 @@ def _wrappedRest(request):
         #And then Update
         theQuery.fromJSON(parameters)
 
-        session.flush()
+        DBSession.flush()
 
         log.debug("--> New {0}".format(theQuery))
 
@@ -541,7 +537,7 @@ def _wrappedRest(request):
         #And Return the new object
         retObj =  theQuery.dict()
         log.setLevel(logging.INFO)
-        #session.close()
+        #DBSession.close()
         return retObj
 
 
@@ -549,7 +545,6 @@ def _wrappedRest(request):
     elif reqType == "DELETE":
         #Return a response of 204 indicating item deleted.
         log.debug("Deleting Item with Id of {0}".format(theId))
-        #session = meta.Session()
 
         #We need to do some special processing to remove certain types of items
         log.debug("---- ITEM TYPE {0}".format(theType))
@@ -557,17 +552,17 @@ def _wrappedRest(request):
             #Do some special house removing
 
             #Find all locations attached to this houses
-            theHouse = session.query(theModel).filter_by(id=theId).first()
+            theHouse = DBSession.query(theModel).filter_by(id=theId).first()
             if theHouse is None:
                 return
 
-            locQry = session.query(models.Location).filter_by(houseId = theHouse.id)
+            locQry = DBSession.query(models.Location).filter_by(houseId = theHouse.id)
 
             log.debug("House is {0}  Locations are {1}".format(theHouse,theHouse.locations))
 
             #Reset the readings to have a null location
             for loc in locQry:
-                theQry = session.query(models.Reading).filter_by(locationId = loc.id)
+                theQry = DBSession.query(models.Reading).filter_by(locationId = loc.id)
                 #loc.oldNodes = []
                 log.debug("Processing Location {0}: {1} Readings Found".format(loc,theQry.count()))
                 theQry.update({"locationId": None})
@@ -580,10 +575,10 @@ def _wrappedRest(request):
                     item.locationId = None
 
             #Then we can remove the locations
-            locQry = session.query(models.Location).filter_by(houseId=theHouse.id)
+            locQry = DBSession.query(models.Location).filter_by(houseId=theHouse.id)
             locQry.delete()
 
-            theHouse = session.query(theModel).filter_by(id=theId)
+            theHouse = DBSession.query(theModel).filter_by(id=theId)
             theHouse.delete()
         elif theType in ["reading","nodestate"]:
             request.response.status = 404
@@ -591,7 +586,7 @@ def _wrappedRest(request):
 
         deleteCount = 0
         if theId:
-            theQuery = session.query(theModel).filter_by(id=theId)
+            theQuery = DBSession.query(theModel).filter_by(id=theId)
             if theQuery.count() > 0:
                 deleteCount = theQuery.delete()
 
@@ -604,7 +599,7 @@ def _wrappedRest(request):
         #Panic and throw an error.
         pass
 
-        #session.close()
+        #DBSession.close()
 
 def getheatmap(request):
     """
@@ -618,8 +613,7 @@ def getheatmap(request):
         #nodeid = None
         nodeid = 28931
 
-    session = meta.Session()
-    qry = session.query(models.NodeState.nodeId,
+    qry = DBSession.query(models.NodeState.nodeId,
                         sqlalchemy.func.date(models.NodeState.time),
                         sqlalchemy.func.count(models.NodeState.nodeId),
                         )
@@ -708,8 +702,7 @@ def getcounts(request):
     log.debug("Parameters are {0}".format(parameters))
     typeid = parameters.get("typeid",None)
 
-    session = meta.Session()
-    qry = session.query(models.Reading,
+    qry = DBSession.query(models.Reading,
                         sqlalchemy.func.date(models.Reading.time),
                         sqlalchemy.func.count(models.Reading),
                         ).filter_by(nodeId = nodeid)
@@ -740,7 +733,7 @@ def getcounts(request):
 
 
  #        :param nodeId: Node Id to get counts for
- #        :param thesession: Which session (MEREGE / MAIN) to get data for
+ #        :param thesession: Which DBSession (MEREGE / MAIN) to get data for
  #        :param startdate: Optional startdate
  #        :param enddate: Optional enddate
  #        :param typeid: Limit to a specific sensor type
@@ -749,15 +742,15 @@ def getcounts(request):
 
  #        log = self.log
  #        if thesession == MAIN:
- #            session = self.mainsession()
+ #            DBSession = self.mainsession()
  #        elif thesession == MERGE:
- #            session = self.mergesession()
+ #            DBSession = self.mergesession()
  #        else:
- #            log.warning("No Such Session")
+ #            log.warning("No Such DBSession")
  #            return False
 
  #        #Work out the query
- #        qry = session.query(models.Reading,
+ #        qry = DBSession.query(models.Reading,
  #                            sqlalchemy.func.date(models.Reading.time),
  #                            sqlalchemy.func.count(models.Reading),
  #                            ).filter_by(nodeId = nodeid)
@@ -929,7 +922,6 @@ def _updateTimes(theId,parameters,request):
     log.debug(parameters)
     #log.debug(request.json_body)
 
-    session = meta.Session()
 
     hId = parameters.get("houseId")
     nId = parameters.get("nodeId")
@@ -938,11 +930,11 @@ def _updateTimes(theId,parameters,request):
     log.debug("H: {0}  N: {1} L: {2}".format(hId,nId,lId))
 
     #Get the House from the database
-    theHouse = session.query(models.House).filter_by(id=hId).first()
+    theHouse = DBSession.query(models.House).filter_by(id=hId).first()
     log.debug("House {0}".format(theHouse))
 
     #Then update all samples
-    theQry = session.query(models.Reading).filter_by(nodeId=nId)
+    theQry = DBSession.query(models.Reading).filter_by(nodeId=nId)
     theQry = theQry.filter(models.Reading.time >= theHouse.startDate)
     if theHouse.endDate:
         theQry = theQry.filter(models.Reading.time <= theHouse.endDate)
@@ -963,13 +955,13 @@ def _updateTimes(theId,parameters,request):
     #if ipt == "y":
     log.debug("Updating readings to location id {0}".format(lId))
     theQry.update({"locationId": lId})
-    session.flush()
+    DBSession.flush()
     log.debug("Done")
     #else:
     #    log.debug("Pass")
-    #session.commit()
+    #DBSession.commit()
     #log.debug(theQry)
-    #session.close()
+    #DBSession.close()
 
 
 def getStatsElectricHour(theQry,daily=False,events = None):
@@ -1080,27 +1072,26 @@ def _getElectric(theId,parameters,reqType,request):
     log.debug("CSV {0}".format(asCsv))
 
     #Id is the house Id
-    session = meta.Session()
 
     #Fetch the Electricity data
-    elecSensor = session.query(models.SensorType).filter_by(name="Power").first()
+    elecSensor = DBSession.query(models.SensorType).filter_by(name="Power").first()
     log.debug("Electrity Sensor is {0}".format(elecSensor))
 
-    theHouse = session.query(models.House).filter_by(id = theId).first()
+    theHouse = DBSession.query(models.House).filter_by(id = theId).first()
     log.debug("House is {0}".format(theHouse))
 
     #Location Ids
-    locationIds = session.query(models.Location).filter_by(houseId = theHouse.id)
+    locationIds = DBSession.query(models.Location).filter_by(houseId = theHouse.id)
     lIds = []
     for item in locationIds:
         log.debug("Location {0}".format(item))
         lIds.append(item.id)
 
-    theData = session.query(models.Reading).filter_by(typeId = elecSensor.id)
+    theData = DBSession.query(models.Reading).filter_by(typeId = elecSensor.id)
     theData = theData.filter(models.Reading.locationId.in_(lIds))
     log.debug("Number of Samples {0}".format(theData.count()))
 
-    eventQuery = session.query(models.Event).filter_by(houseId = theHouse.id).all()
+    eventQuery = DBSession.query(models.Event).filter_by(houseId = theHouse.id).all()
 
     hourReadings =  getStatsElectricHour(theData,daily,eventQuery)
 
@@ -1141,13 +1132,12 @@ def _getElectric(theId,parameters,reqType,request):
 def _getRegistered(theId,parameters,reqType,request):
     log.setLevel(logging.DEBUG)
     log.debug("==== GETTING REGISTERED NODES ====")
-    session = meta.Session()
 
     log.debug("--> Paramters {0}".format(parameters))
 
     houseId = parameters.get("houseId",None)
     #Get Locations associated with this houses
-    theHouse = session.query(models.House).filter_by(id=houseId).first()
+    theHouse = DBSession.query(models.House).filter_by(id=houseId).first()
     log.debug("House Id {0} => {1}".format(houseId,theHouse))
 
     currenttime = datetime.datetime.utcnow()
@@ -1176,7 +1166,7 @@ def _getRegistered(theId,parameters,reqType,request):
                        }
 
             #Status can wait
-            readingQry = session.query(models.Reading)
+            readingQry = DBSession.query(models.Reading)
             readingQry = readingQry.filter_by(nodeId = nd.id,
                                               locationId = loc.id)
             readingQry = readingQry.order_by(models.Reading.time)
@@ -1197,7 +1187,7 @@ def _getRegistered(theId,parameters,reqType,request):
             theItem["status"] = status
 
             #And Battery Levels
-            batteryQry = session.query(models.Reading)
+            batteryQry = DBSession.query(models.Reading)
             batteryQry = batteryQry.filter_by(nodeId = nd.id,
                                               locationId = loc.id)
             batteryQry = batteryQry.filter_by(typeId = 6)
@@ -1230,7 +1220,6 @@ def _getStatus(nodeId,parameters,reqType,request):
     :return: List of node Statuses
     """
     log.setLevel(logging.INFO)
-    session = meta.Session()
 
     if reqType == "PUT":
         #Add / Update the Item
@@ -1246,31 +1235,31 @@ def _getStatus(nodeId,parameters,reqType,request):
         rName = jsonBody["newRoom"]
         hid = jsonBody["houseId"]
 
-        theNode = session.query(models.Node).filter_by(id=nid).first()
+        theNode = DBSession.query(models.Node).filter_by(id=nid).first()
         log.debug("--> Node {0}".format(theNode))
 
-        theRoom = session.query(models.Room).filter_by(name=rName).first()
+        theRoom = DBSession.query(models.Room).filter_by(name=rName).first()
         log.debug("Room from Query {0}".format(theRoom))
         if theRoom is None:
             theRoom = models.Room(name=rName)
-            session.add(theRoom)
-            session.flush()
+            DBSession.add(theRoom)
+            DBSession.flush()
         log.debug("--> Final Room {0}".format(theRoom))
 
         #Then Get the Location
-        theLoc = session.query(models.Location).filter_by(houseId=hid,
+        theLoc = DBSession.query(models.Location).filter_by(houseId=hid,
                                                           roomId=theRoom.id).first()
         if theLoc is None:
             log.info("== Adding Location")
             theLoc = models.Location(houseId=hid,
                                      roomId=theRoom.id)
-            session.add(theLoc)
-            session.flush()
+            DBSession.add(theLoc)
+            DBSession.flush()
 
         log.debug("--> Final Location {0}".format(theLoc))
 
         theNode.locationId = theLoc.id
-        session.flush()
+        DBSession.flush()
 
         jsonBody["newRoom"] = None
         jsonBody["currentRoom"] = rName
@@ -1289,7 +1278,7 @@ def _getStatus(nodeId,parameters,reqType,request):
         cutTime = parameters.get("cutTime",None)
 
 
-        heardQuery = session.query(sqlalchemy.distinct(models.NodeState.nodeId))
+        heardQuery = DBSession.query(sqlalchemy.distinct(models.NodeState.nodeId))
 
         if cutTime:
             cutTime = datetime.datetime.utcnow() - datetime.timedelta(days=int(cutTime))
@@ -1303,13 +1292,13 @@ def _getStatus(nodeId,parameters,reqType,request):
         #    log.debug("Search for locations associated with House {0}".format(houseId))
 
         #Get Type Id for Battery
-        batteryType = session.query(models.SensorType).filter_by(name="Battery Voltage").first()
+        batteryType = DBSession.query(models.SensorType).filter_by(name="Battery Voltage").first()
         log.debug("==== Battry Type {0}".format(batteryType))
 
         for node in heardNodes:
             log.debug("Deal with Node: {0}".format(node))
-            #lastTime = session.query(models.NodeState).filter_by(nodeId=node)
-            lastTime = session.query(models.NodeState)#.join(models.Node)
+            #lastTime = DBSession.query(models.NodeState).filter_by(nodeId=node)
+            lastTime = DBSession.query(models.NodeState)#.join(models.Node)
             lastTime = lastTime.filter(models.NodeState.nodeId==node)
 
             lastTime = lastTime.order_by(models.NodeState.time.desc()).first()
@@ -1328,8 +1317,8 @@ def _getStatus(nodeId,parameters,reqType,request):
                 theNode = models.Node(id=lastTime.nodeId,
                                       location=None,
                                       nodeTypeId=None)
-                session.merge(theNode)
-                session.flush()
+                DBSession.merge(theNode)
+                DBSession.flush()
                 theLoc = None
             else:
                 theLoc = lastTime.node.location
@@ -1351,7 +1340,7 @@ def _getStatus(nodeId,parameters,reqType,request):
                        }
 
             #And Get the most Recent Battry Level
-            lastBattery = session.query(models.Reading).filter_by(time = lastTime.time,
+            lastBattery = DBSession.query(models.Reading).filter_by(time = lastTime.time,
                                                                   nodeId = node,
                                                                   typeId = batteryType.id)
             lastBattery= lastBattery.first()
@@ -1398,7 +1387,6 @@ def _getStatus(nodeId,parameters,reqType,request):
 def restTest2(request):
     """Function to count samples gathered by a node"""
     import time
-    session = meta.Session()
     log.debug(request.matchdict)
     log.debug("Params {0}".format(request.params))
     nodeId = request.matchdict.get("id",None)
@@ -1416,7 +1404,7 @@ def restTest2(request):
 
 
     #Run the Query
-    theQry = session.query(models.NodeState,sqlalchemy.func.count(models.NodeState)).filter_by(nodeId = nodeId)
+    theQry = DBSession.query(models.NodeState,sqlalchemy.func.count(models.NodeState)).filter_by(nodeId = nodeId)
     theQry = theQry.group_by(sqlalchemy.func.date(models.NodeState.time))
     dataCount = theQry.count()
     #theQry = theQry.limit(5)
@@ -1433,8 +1421,7 @@ def restTest2(request):
     return outList
 
 def _getReadingCount(locationId):
-    session = meta.Session()
-    theQry = session.query(models.Reading,
+    theQry = DBSession.query(models.Reading,
                            sqlalchemy.func.count(models.Reading)).filter_by(locationId = locationId)
     theQry = theQry.group_by(models.Reading.typeId)
 
@@ -1447,16 +1434,12 @@ def _getReadingCount(locationId):
     return outItems
 
 def restTest(request):
-    session = meta.Session()
-    #return
-
-
 
     baseItem = {"name":"Database"}
     baseChildren = []
 
 
-    deployments = session.query(models.Deployment)
+    deployments = DBSession.query(models.Deployment)
 
     for deployment in deployments:
         thisDeployment = {"name":deployment.name}
@@ -1491,7 +1474,7 @@ def restTest(request):
                      "children":[]}
 
 
-    houseQry = session.query(models.House).filter_by(deploymentId = None)
+    houseQry = DBSession.query(models.House).filter_by(deploymentId = None)
     houses = []
     for house in houseQry:
         thisHouse = {"name":house.address,
@@ -1504,7 +1487,7 @@ def restTest(request):
                 readCount = _getReadingCount(location.id)
                 thisLocation["children"].extend(readCount)
 
-                #theQry = session.query(models.Reading).filter_by(locationId = location.id)
+                #theQry = DBSession.query(models.Reading).filter_by(locationId = location.id)
                 #theCount = theQry.count()
                 #if theCount == 0:
                 #    theCount = 1
@@ -1562,9 +1545,7 @@ def lastnodesync(request):
         log.debug("Exiting")
         return None
 
-    session = meta.Session()
-
-    qry = session.query(sqlalchemy.func.max(models.Reading.time))
+    qry = DBSession.query(sqlalchemy.func.max(models.Reading.time))
     qry = qry.filter_by(nodeId = nodeid).first()[0]
     print "{0} {1} {0}".format("="*30, qry)
     if qry is not None:
@@ -1594,8 +1575,7 @@ def lastSync(request):
     if housename is None:
         return None
 
-    session = meta.Session()
-    thishouse = session.query(models.House).filter_by(address=housename).first()
+    thishouse = DBSession.query(models.House).filter_by(address=housename).first()
     log.debug("House is: {0}".format(thishouse))
 
     if thishouse is None:
@@ -1605,7 +1585,7 @@ def lastSync(request):
     loc_query = thishouse.locations
     locIds = [x.id for x in thishouse.locations]
 
-    reading_query = session.query(sqlalchemy.func.max(models.Reading.time))
+    reading_query = DBSession.query(sqlalchemy.func.max(models.Reading.time))
     reading_query = reading_query.filter(models.Reading.locationId.in_(locIds))
 
     reading_query = reading_query.first()[0]
@@ -1626,8 +1606,7 @@ def getnetwork(request):
     """
 
     #Get our nodelist
-    session = meta.Session()
-    nodeqry = session.query(models.Node)
+    nodeqry = DBSession.query(models.Node)
 
     nodelist = [{"name":"Base",
                  "count":0,
@@ -1645,14 +1624,14 @@ def getnetwork(request):
         
         #Work out the links between each node (FOR ALLL)
         if graphtype == "all":
-            qry = session.query(models.NodeState,
+            qry = DBSession.query(models.NodeState,
                                 sqlalchemy.func.count(models.NodeState.nodeId))
             qry = qry.filter_by(nodeId = node.id)
             qry = qry.group_by(models.NodeState.parent)
         #TODO (Add filters by time here)
 
         if graphtype == "current":
-            qry = session.query(models.NodeState,
+            qry = DBSession.query(models.NodeState,
                                 sqlalchemy.func.count(models.NodeState.nodeId))
             qry = qry.filter_by(nodeId = node.id)
             qry = qry.filter(models.NodeState.time >= (datetime.datetime.utcnow() - datetime.timedelta(minutes=7)))
@@ -1678,7 +1657,7 @@ def getnetwork(request):
                             )
 
             #And any visable neigbors
-            qry = session.query(models.Reading).filter_by(nodeId = node.id,
+            qry = DBSession.query(models.Reading).filter_by(nodeId = node.id,
                                                           time = state[0].time)
             #And show neigbors
             qry = qry.filter(models.Reading.typeId >= 2000)
@@ -1691,7 +1670,7 @@ def getnetwork(request):
                 #                  "count": 0})
             
             #I also want the average depth of the node
-            qry = session.query(sqlalchemy.func.avg(models.Reading.value)).filter_by(nodeId = node.id)
+            qry = DBSession.query(sqlalchemy.func.avg(models.Reading.value)).filter_by(nodeId = node.id)
             qry = qry.filter_by(typeId = 1001) #MAGIC No
 
             avgdepth = qry.first()
@@ -1718,8 +1697,6 @@ def getsummary(request):
     * sensorTypeId (ie 0 for temperature)
     * start / end date.
     """
-    session = meta.Session()
-
 
     nodeid = request.params.get("nodeId",None)
     typeid = request.params.get("typeId",0)
@@ -1736,7 +1713,7 @@ def getsummary(request):
         log.debug("No Node Id supplied")
         return []
     
-    qry = session.query(sqlalchemy.func.date(models.Reading.time),
+    qry = DBSession.query(sqlalchemy.func.date(models.Reading.time),
                         sqlalchemy.func.min(models.Reading.value),
                         sqlalchemy.func.max(models.Reading.value),
                         sqlalchemy.func.avg(models.Reading.value)
@@ -1760,10 +1737,9 @@ def getsummary(request):
 
 def gettopology(request):
     """Work out network topology changes"""
-    session = meta.Session()
 
     #All Nodes
-    nodeqry = session.query(models.Node)
+    nodeqry = DBSession.query(models.Node)
     
     startdate = None
     enddate = None
@@ -1776,7 +1752,7 @@ def gettopology(request):
 
 
         #Check for dates with more than one parent
-        parentqry = session.query(models.NodeState,
+        parentqry = DBSession.query(models.NodeState,
                                   sqlalchemy.func.count(models.NodeState.nodeId),
                                   sqlalchemy.func.count(sqlalchemy.func.distinct(models.NodeState.parent)),
                                   ).filter_by(nodeId=node.id)
@@ -1813,7 +1789,7 @@ def gettopology(request):
                 #     changes.append([str(item[0].time.date()),item[0].parent])
             else:
                 #We have multiple parents
-                subquery = session.query(models.NodeState).filter_by(nodeId = node.id)
+                subquery = DBSession.query(models.NodeState).filter_by(nodeId = node.id)
                 subquery = subquery.filter(sqlalchemy.func.date(models.NodeState.time) == item[0].time.date())
                 #print subquery.all()
                 for subitem in subquery:

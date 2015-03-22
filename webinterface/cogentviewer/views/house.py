@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 import homepage
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 
 def editHouse(request):
@@ -17,11 +18,10 @@ def editHouse(request):
 
     theId = request.matchdict.get("id",None)
 
-    session = meta.Session()
 
     if theId:
         outDict["pgTitle"] = "Add / Edit House"
-        theHouse = session.query(models.House).filter_by(id=theId).first()
+        theHouse = DBSession.query(models.House).filter_by(id=theId).first()
         #print "-#"*30
         #print theHouse
         #print theHouse.toDict()

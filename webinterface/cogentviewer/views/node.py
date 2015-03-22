@@ -21,6 +21,7 @@ log = logging.getLogger(__name__)
 import homepage
 
 from ..models import meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 
 import os.path
@@ -42,8 +43,7 @@ def node(request):
     outDict["nid"] = nid
 
     #So we want to get the sensors attachd to this node.
-    session = meta.Session()
-    theNode = session.query(models.Node).filter_by(id=nid).first()
+    theNode = DBSession.query(models.Node).filter_by(id=nid).first()
     if theNode is None: #So if we have a node that doesnt exist
         raise httpexp.HTTPNotFound
 
@@ -58,12 +58,12 @@ def node(request):
     outDict["locDetails"] = locDetails
     
     #Fetch the last transmission
-    lastNodeState = session.query(models.NodeState).filter_by(nodeId = nid).order_by(models.NodeState.time.desc()).first()
+    lastNodeState = DBSession.query(models.NodeState).filter_by(nodeId = nid).order_by(models.NodeState.time.desc()).first()
     
     outDict["lastState"] = lastNodeState.time
 
     #And the latest sensor readings
-    allReadings = session.query(models.Reading).filter_by(nodeId=nid,time=lastNodeState.time)
+    allReadings = DBSession.query(models.Reading).filter_by(nodeId=nid,time=lastNodeState.time)
 
     #Length of time our graphs are up for
 

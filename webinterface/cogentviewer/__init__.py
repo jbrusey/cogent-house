@@ -27,7 +27,7 @@ def main(global_config, **settings):
     #Setup the Config
     #config = Configurator(settings=settings)
     config = Configurator(settings=settings,
-                          root_factory="cogentviewer.utils.security.RootFactory")
+                    root_factory="cogentviewer.utils.security.RootFactory")
 
 
     authentication_policy = AuthTktAuthenticationPolicy("seekrit",
@@ -43,6 +43,7 @@ def main(global_config, **settings):
     #Start the Database
     engine = engine_from_config(settings, 'sqlalchemy.')
     meta.Session.configure(bind=engine)
+    meta.DBSession.configure(bind=engine)
     meta.Base.metadata.bind = engine
 
     config.add_renderer(name='csv',
@@ -59,7 +60,7 @@ def main(global_config, **settings):
     #Static Views
     config.add_static_view('static', 'cogentviewer:static', cache_max_age=3600)
     #Javascript Libs
-    config.add_static_view('jslibs','cogentviewer:jslibs')
+    config.add_static_view('jslibs', 'cogentviewer:jslibs')
     
 
     #And the Rest of the Views can be setup here
@@ -78,24 +79,24 @@ def main(global_config, **settings):
     config.add_route("export", "/export")
     config.add_route("report", "/report")
 
-    config.add_route("housestatus","/housestatus")
-    config.add_route("housedetail","/housedetail/{id}")
+    config.add_route("housestatus", "/housestatus")
+    config.add_route("housedetail", "/housedetail/{id}")
 
     #New Graphing Stuff
-    config.add_route("newgraphs","/newgraphs")
+    config.add_route("newgraphs", "/newgraphs")
     
     #Debugging
-    config.add_route("nodestatus","/nodestatus")
-    config.add_route("housedebug","/housedebug/{id:.*}")
-    config.add_route("pushdebug","/pushdebug")
-    config.add_route("heatmap","/heatmap")
-    config.add_route("netmap","/netmap")
+    config.add_route("nodestatus", "/nodestatus")
+    config.add_route("housedebug", "/housedebug/{id:.*}")
+    config.add_route("pushdebug", "/pushdebug")
+    config.add_route("heatmap", "/heatmap")
+    config.add_route("netmap", "/netmap")
 
     #New Node Page
     config.add_route('node', '/node/{id:.*}')
     #Yields
     config.add_route("yield", "/yield/")
-    #config.add_route("server","/server")
+    #config.add_route("server", "/server")
     config.add_route("server", "/server")
 
 
@@ -111,7 +112,7 @@ def main(global_config, **settings):
     #Make sure we can serve JSONp
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
-    config.add_route("jsonFetch","jsonFetch")
+    config.add_route("jsonFetch", "jsonFetch")
     config.add_view("cogentviewer.views.jsonhandlers.jsonFetch",
                      route_name="jsonFetch",
                      renderer="jsonp")

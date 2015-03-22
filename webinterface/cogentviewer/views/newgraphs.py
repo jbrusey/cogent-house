@@ -7,6 +7,7 @@ import sqlalchemy
 import logging
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 
 import time
@@ -65,16 +66,15 @@ def _getpushstatus(request):
         log.info("No Hostname Supplied")
         return []
     
-    session = meta.Session()
     #Check the Host actually exists
-    qry = session.query(models.Server).filter_by(hostname = hostname)
+    qry = DBSession.query(models.Server).filter_by(hostname = hostname)
     server = qry.first()
     if server is None:
         log.info("No Server with hostname {0}".format(hostname))
         return []
 
 
-    qry = session.query(models.PushStatus).filter_by(hostname = hostname)
+    qry = DBSession.query(models.PushStatus).filter_by(hostname = hostname)
     qry = qry.order_by(models.PushStatus.time)
     log.debug("{0} Push Status".format(qry.count()))
 
@@ -95,9 +95,8 @@ def _getnodestate(request):
 
     node = paramdict.get("node", None)
     log.debug("Node id is {0}".format(node))
-    session = meta.Session()
 
-    qry = session.query(models.NodeState).filter_by(nodeId = node)
+    qry = DBSession.query(models.NodeState).filter_by(nodeId = node)
     qry = qry.group_by(models.NodeState.time, models.NodeState.seq_num)
     qry = qry.order_by(models.NodeState.time)
     #jsonfmt = []
@@ -123,9 +122,8 @@ def _getnodestate_pandas(request):
 
     node = paramdict.get("node", 33)
     log.debug("Node id is {0}".format(node))
-    session = meta.Session()
 
-    qry = session.query(models.Reading, sqlalchemy.func.count(models.Reading)).filter_by(nodeId = node)
+    qry = DBSession.query(models.Reading, sqlalchemy.func.count(models.Reading)).filter_by(nodeId = node)
     qry = qry.order_by(models.Reading.time)
     qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
     #qry = qry.limit(5)

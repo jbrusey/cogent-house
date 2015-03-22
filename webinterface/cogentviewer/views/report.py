@@ -21,6 +21,7 @@ import logging
 LOG = logging.getLogger(__name__)
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 #import cogentviewer.views.homepage
 import homepage
@@ -34,8 +35,6 @@ def reportdata(request):
     View that allows exporting of data.
     """
 
-    #session = meta.Session)
-    #deployments = session.query(models.deployment.Deployment).all()
 
     outDict = {}
     outDict["headLinks"] = homepage.genHeadUrls(request)
@@ -52,71 +51,26 @@ def reportdata(request):
         LOG.debug("--> Script Finished")
 
     #Yields
-    # LOG.debug("Checking for Dupes")
-    # session = meta.Session()
-    # housedict = {}
-    # houseqry = session.query(models.House).filter(models.House.id > 1)
-
-    # for item in houseqry:
-    #     dictitem = housedict.get(item.address,[])
-    #     dictitem.append(item)
-    #     housedict[item.address] = dictitem
-
-    # for key,value in housedict.iteritems():
-    #     #LOG.debug("{0} {1}".format(key,value))
-    #     if len(value) > 1:
-    #         LOG.warning("House {0} has more than one entries".format(key))
-    #         for item in value:
-    #             LOG.warning("--> {0}".format(item))
-
-    #             #Lets try and clear this up
-    #             #LOG.debug("--> Locations {0}".format(item.locations))
-    #             locIds = [x.id for x in item.locations]
-    #             if locIds is None:
-    #                 LOG.warning("Removeing missing locations")
-    #                 deleteQry = session.query(models.House).filter_by(id = item.id)
-    #                 raw_input("Remove missing Locations?")
-    #                 deleteQry.delete("fetch")
-    #             LOG.debug("--> Location Ids {0}".format(locIds))
-
-    #             #Check for Readings
-    #             theQry = session.query(models.Reading).filter(models.Reading.locationId.in_(locIds))
-    #             #thecount = theQry.count()
-    #             hassample = theQry.first()
-    #             LOG.debug("--> First Sample")
-    #             if hassample is None:
-    #                 LOG.debug("--> --> No Samples for any of these locations")
-
-    #                 deleteQry = session.query(models.Location).filter(models.Location.id.in_(locIds))
-    #                 #out = raw_input("Ok to delete {0}".format([x.id for x in deleteQry.all()]))
-    #                 raw_input("Remove duplicate Readings? ")
-    #                 deleteQry.delete("fetch")
-
-    #                 deleteQry = session.query(models.House).filter_by(id = item.id)
-    #                 deleteQry.delete("fetch")
-                    
-    #             #continue
 
     LOG.debug("Calclating Yields")
-    session = meta.Session()
-    #houseqry = session.query(models.House).filter(models.House.id != 25).filter(models.House.id != 32).filter(models.House.id != 34).filter(models.House.id != 35)
+    #houseqry = DBSession.query(models.House).filter(models.House.id != 25).filter(models.House.id != 32).filter(models.House.id != 34).filter(models.House.id != 35)
 
-    houseqry = session.query(models.House).filter(models.House.id == 35)
+    houseqry = DBSession.query(models.House).filter(models.House.id == 35)
     for house in houseqry:
         LOG.debug("Processing House {0}".format(house))
         #We next need locations associated with this House
         locIds = [x.id for x in house.locations]
         LOG.debug("Location Ids {0}".format(locIds))
-        readingQry = session.query(models.Reading).filter(models.Reading.locationId.in_(locIds))
+        readingQry = DBSession.query(models.Reading).filter(models.Reading.locationId.in_(locIds))
         #LOG.debug(readingQry)
         #LOG.debug(readingQry.first())
         #LOG.debug(readingQry.count())
         #Daily Counts
 
-        typeQry = session.query(models.SensorType).filter_by(name="Daily Count").first()
+        typeQry = DBSession.query(models.SensorType).filter_by(name="Daily Count").first()
         typeId = typeQry.id
 
-        sumQry = session.query(models.Reading)
+        sumQry = DBSession.query(models.Reading)
         sumQry = sumQry.filter_by(typeId = typeId)
         sumQry = sumQry.filter(models.Reading.locationId.in_(locIds))
         if sumQry.first():
@@ -124,7 +78,7 @@ def reportdata(request):
             continue
 
 
-        dayQry = session.query(sqlalchemy.func.date(models.Reading.time),
+        dayQry = DBSession.query(sqlalchemy.func.date(models.Reading.time),
                                models.Reading.nodeId,
                                models.Reading.locationId,
                                models.Reading.typeId,
@@ -157,7 +111,6 @@ def reportdata(request):
         piv = pandas.pivot_table(df,rows=["Date"],cols=["nodeId","locationId"],values="Count",aggfunc=numpy.mean)
         #And add to the database as a new summary item
         
-        addSession = meta.Session()
         for item in piv.iteritems():
             thisSeries = item[1]
             nodeId,locId = thisSeries.name
@@ -168,12 +121,12 @@ def reportdata(request):
                                             typeId=typeId,
                                             locationId=locId,
                                             value=value)
-                addSession.add(newReading)
+                DBSession.add(newReading)
                 #print newReading
             LOG.debug("Row {0} {1} complete".format(nodeId,locId))
         
-        addSession.flush()
-        session.flush()
+        DBSession.flush()
+        DBSession.flush()
 
     #     print "Done"
     LOG.debug("Return Dict")

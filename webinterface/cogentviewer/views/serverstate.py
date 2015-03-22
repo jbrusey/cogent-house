@@ -18,11 +18,11 @@ from sqlalchemy import func
 import homepage
 
 from cogentviewer.models import meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 
 def generate_netmap():
     """Generate a network map of all deployments"""
-    session = meta.Session()
 
     now = datetime.datetime.utcnow()
 
@@ -30,7 +30,7 @@ def generate_netmap():
 
     #Query for nodestates
 
-    qry = session.query(models.NodeState.parent,
+    qry = DBSession.query(models.NodeState.parent,
                         models.NodeState.nodeId,
                         func.max(models.NodeState.time),
                         func.avg(models.NodeState.rssi),
@@ -68,13 +68,12 @@ def generate_netmap():
     #Fetch All Servers
 
     serverlist = []
-    session = meta.Session()
-    servers = session.query(models.Server)
+    servers = DBSession.query(models.Server)
     graph_serverlist = []
     for item in servers:
         log.debug("Houses {0}".format(item.houses))
 
-        #houseqry = session.query(models.House).filter_by(id = item.houseid).first()
+        #houseqry = DBSession.query(models.House).filter_by(id = item.houseid).first()
         address = [x.address for x in item.houses]
         #if houseqry:
         #    address = houseqry.address
@@ -181,8 +180,7 @@ def showserver(request):
     #Get a list of servers
     servertable = []
 
-    session = meta.Session()
-    servers = session.query(models.Server)
+    servers = DBSession.query(models.Server)
     now = datetime.datetime.utcnow()
 
 
@@ -205,7 +203,7 @@ def showserver(request):
         thisrow["skew_state"] = "warning" #Formatting for the skew state
         rowstate = ""
         #if server.houseid:
-        houseqry = session.query(models.House).filter_by(serverid = server.id)
+        houseqry = DBSession.query(models.House).filter_by(serverid = server.id)
 
         heartbeat_time = datetime.datetime.utcnow() - datetime.timedelta(hours = 8)
         if houseqry.count() > 0:
@@ -227,7 +225,7 @@ def showserver(request):
                     nodecount +=1
                     #Check if we have data
 
-                    lastreport = session.query(models.NodeState).filter_by(nodeId = node.id).filter(models.NodeState.time > heartbeat_time).first()
+                    lastreport = DBSession.query(models.NodeState).filter_by(nodeId = node.id).filter(models.NodeState.time > heartbeat_time).first()
                     if lastreport:
                         reportingcount +=1
                         
@@ -248,7 +246,7 @@ def showserver(request):
             #         locnodes = loc.nodes
             #         #if locnodes:
             #         for x in locnodes:
-            #             lastreport = session.query(models.NodeState).filter_by(nodeId = x.id).order_by(models.NodeState.time.desc()).first()
+            #             lastreport = DBSession.query(models.NodeState).filter_by(nodeId = x.id).order_by(models.NodeState.time.desc()).first()
             #             if lastreport is not None:
             #                 lasttime = lastreport.time
             #                 nodestate = "error"
@@ -267,7 +265,7 @@ def showserver(request):
 
 
             #--- Nodestate (last push) Details ----
-            qry = session.query(func.max(models.NodeState.time)).filter_by(parent = server.baseid)
+            qry = DBSession.query(func.max(models.NodeState.time)).filter_by(parent = server.baseid)
             qrytime = qry.first()
             log.debug(qrytime)
             #rowstate = "error"
@@ -291,8 +289,8 @@ def showserver(request):
             thisrow["state_state"] = rowstate
 
         #Last Push State
-        #qry = session.query(func.max(models.PushStatus.time)).filter_by(hostname = server.hostname)
-        qry = session.query(models.PushStatus).filter_by(hostname = server.hostname)
+        #qry = DBSession.query(func.max(models.PushStatus.time)).filter_by(hostname = server.hostname)
+        qry = DBSession.query(models.PushStatus).filter_by(hostname = server.hostname)
         qry = qry.order_by(models.PushStatus.time.desc())
         result = qry.first()
         if result:

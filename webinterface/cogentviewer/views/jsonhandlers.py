@@ -15,6 +15,7 @@ import sqlalchemy
 import logging
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 
 import time
@@ -38,8 +39,7 @@ def expose_temp(qry, categories, nodeid):
     outlist = [0, 0, 0, 0, 0]
 
     #Get any calibration details
-    session = meta.Session()
-    sensorqry = session.query(models.Sensor)
+    sensorqry = DBSession.query(models.Sensor)
     sensorqry = sensorqry.filter_by(nodeId = nodeid,
                                     sensorTypeId = 0)
     sensor = sensorqry.first()
@@ -137,8 +137,7 @@ def expose_humid(qry, categories, nodeid):
     outlist = [0, 0, 0, 0]
 
     #Get any calibration details
-    session = meta.Session()
-    sensorqry = session.query(models.Sensor)
+    sensorqry = DBSession.query(models.Sensor)
     sensorqry = sensorqry.filter_by(nodeId = nodeid,
                                     sensorTypeId = 2) #MAGIC NO
     sensor = sensorqry.first()
@@ -270,14 +269,13 @@ def fetchExposeData(start_date, end_date, sensortype, location_list):
     :param location_list:  List of location ids to work with
     """
 
-    session = meta.Session()
 
     log.debug("{0} EXPOSURE {0}".format("-"*25))
     log.debug("--> Type: {0}".format(sensortype))
     log.debug("--> Locations {0}".format(location_list))
 
     #Convert the sensorType to match the values stored in the DB
-    theQry = session.query(models.SensorType)
+    theQry = DBSession.query(models.SensorType)
     theQry = theQry.filter_by(id = sensortype)
 
     thesensor = theQry.first()
@@ -297,10 +295,10 @@ def fetchExposeData(start_date, end_date, sensortype, location_list):
         log.debug("-->--> Processing Location {0}".format(location))
                   #It is possible that a location has one or more nodes
 
-        theQry = session.query(models.Location).filter_by(id = location)
+        theQry = DBSession.query(models.Location).filter_by(id = location)
         theLocation = theQry.first()
 
-        uniqueNodes = session.query(sqlalchemy.distinct(models.Reading.nodeId))
+        uniqueNodes = DBSession.query(sqlalchemy.distinct(models.Reading.nodeId))
         uniqueNodes = uniqueNodes.filter_by(locationId = location).all()
         log.debug("Unique Nodes {0}".format(uniqueNodes))
 
@@ -312,7 +310,7 @@ def fetchExposeData(start_date, end_date, sensortype, location_list):
         #Otherwise we fetch the data
         #Location
         for node in uniqueNodes:
-            qry = session.query(models.Reading).filter_by(locationId = location)
+            qry = DBSession.query(models.Reading).filter_by(locationId = location)
             qry = qry.filter_by(typeId = thesensor.id) #Sensor Type
             qry = qry.filter_by(nodeId = node[0])
 
@@ -359,9 +357,8 @@ def fetchLocationData(sensorType,
     """Fetch time series data for a specific location
 
     """
-    session = meta.Session()
 
-    theLocation = session.query(models.Location).filter_by(id=locationId)
+    theLocation = DBSession.query(models.Location).filter_by(id=locationId)
     theLocation = theLocation.first()
 
     log.debug("Searching for Location {0} == {1}".format(locationId,
@@ -371,7 +368,7 @@ def fetchLocationData(sensorType,
     log.debug("Location is {0} ({1}".format(theLocation,
                                             locationId))
 
-    uniqueNodes = session.query(sqlalchemy.distinct(models.Reading.nodeId))
+    uniqueNodes = DBSession.query(sqlalchemy.distinct(models.Reading.nodeId))
     uniqueNodes = uniqueNodes.filter_by(locationId = locationId).all()
     log.debug("Unique Nodes {0}".format(uniqueNodes))
 
@@ -383,7 +380,7 @@ def fetchLocationData(sensorType,
     outList = []
     for nodeId in uniqueNodes:
         print "Sorting Node {0}".format(nodeId)
-        theQry = session.query(models.Reading).filter_by(locationId=locationId)
+        theQry = DBSession.query(models.Reading).filter_by(locationId=locationId)
         theQry = theQry.filter_by(typeId = sensorTypeId)
         theQry = theQry.filter_by(nodeId = nodeId[0])
         theQry = theQry.order_by(models.Reading.time)
@@ -428,7 +425,7 @@ def fetchLocationData(sensorType,
             #     log.debug("--> Sensor Type is possible SIP")
             #     lastSample = theQry[-1]
             #     log.debug("--> Last Sample is {0}".format(lastSample))
-            #     sipQry = session.query(models.Reading)
+            #     sipQry = DBSession.query(models.Reading)
             #     sipQry = sipQry.filter_by(time=lastSample.time,
             #                               nodeId=lastSample.nodeId,
             #                               typeId = lastSample.typeId+1,
@@ -480,7 +477,7 @@ def fetchLocationData(sensorType,
     #return outList
     #Look for Events attacehd to this datastream
     log.debug("Location Details {0}".format(theLocation))
-    events = session.query(models.Event)
+    events = DBSession.query(models.Event)
     events = events.filter_by(houseId = theLocation.houseId)
     if events.count() > 0:
         log.debug("==== EVENTS ====")
@@ -572,7 +569,6 @@ def _fetchTimeData(request, paramDict):
             sensorList.append(locType)
 
     #Locations (Ie All Sensors at this location)
-    session = meta.Session()
     if locations:
         if type(locations) == unicode:
             locations = [locations,]
@@ -580,7 +576,7 @@ def _fetchTimeData(request, paramDict):
             log.debug("--> Dealing with location {0}".format(item))
             #Find all nodes attached to this location
 
-            theQry = session.query(models.Location).filter_by(id = item).first()
+            theQry = DBSession.query(models.Location).filter_by(id = item).first()
             log.debug("The Location is {0}".format(theQry))
             #All nodes that have been registered with this location
 
@@ -608,13 +604,12 @@ def _fetchTimeData(request, paramDict):
     log.debug("Sensor List is > {0}".format(sensorList))
 
     #Actually fetch the data
-    session = meta.Session()
     #Series needs to be [{name:xxx, data:[(0,0),(1,1)]},...]
     outSeries = []
     for item in sensorList:
         locId,typeId = item.split(",")
         log.debug("Fetch Data for {0} = {1} / {2}".format(item, locId, typeId))
-        theSensor = session.query(models.SensorType).filter_by(id = typeId)
+        theSensor = DBSession.query(models.SensorType).filter_by(id = typeId)
         theSensor = theSensor.first()
         log.debug("--> Sensor {0}".format(theSensor))
         seriesData = fetchLocationData(theSensor,
@@ -639,7 +634,6 @@ def _fetchExposeData(request, paramDict):
     """Fetch and Process data for an Exposure Graph"""
 
     log.debug("--> Fetching Exposure Data")
-    session = meta.Session()
 
     sensorType = paramDict.get("sensorType", None)
     startDate = paramDict.get("startDate", None)
@@ -695,7 +689,7 @@ def _fetchExposeData(request, paramDict):
     if houses:
         log.debug("House Specified {0}".format(houses))
         #Fetch all locations associated with this house
-        theQry = session.query(models.Location).filter_by(houseId = houses)
+        theQry = DBSession.query(models.Location).filter_by(houseId = houses)
         locationList.extend([x.id for x in theQry.all()])
 
     log.debug("Location List {0}".format(locationList))
@@ -719,10 +713,9 @@ def jsonnav(request):
     this can then be used for navigation etc."""
 
     log.debug("Json Nav")
-    session = meta.Session()
 
     sTypes = []
-    typeQuery = session.query(models.SensorType).all()
+    typeQuery = DBSession.query(models.SensorType).all()
     for item in typeQuery:
         #sTypes.append(item.asJSON())
         sTypes.append({"id":item.id,

@@ -10,7 +10,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import homepage
-import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 import time
 
@@ -102,18 +102,8 @@ def getStatsHour(theQry):
 
 
 def getElec(request):
-    session = meta.Session()
-
-
-    #headers = ["Foo","Bar"]
-    #values = [[1,2],[3,4],[5,6]]
-
-    #return outDict
-    # thisHouse = session.query(models.House).filter_by(address="St Peters Road").first()
-    # log.debug("House is {0}".format(thisHouse))
-    
-    # #For Quickness
-    readings = session.query(models.Reading).filter_by(locationId = 8,
+    # #For quickness
+    readings = DBSession.query(models.Reading).filter_by(locationId = 8,
                                                        typeId = 11)
     readings = readings.order_by(models.Reading.time.asc())
     log.debug("COunt of Readings {0}".format(readings.count()))
@@ -139,8 +129,7 @@ def getElec(request):
 def getPv(request):
     headers=["time","pulse","diff"]
 
-    session = meta.Session()
-    readings = session.query(models.Reading).filter_by(typeId= 20,
+    readings = DBSession.query(models.Reading).filter_by(typeId= 20,
                                                  locationId = 3)
     readings = readings.order_by(models.Reading.time.asc())
     

@@ -8,7 +8,7 @@ from pyramid.response import Response
 from pyramid.renderers import render_to_response
 import pyramid.url
 
-import cogentviewer.models.meta as meta
+from cogentviewer.models.meta import DBSession
 import cogentviewer.models as models
 
 
@@ -26,9 +26,7 @@ def getHouseComfort(request):
     houseId = request.matchdict.get("hid")
     typeId = request.matchdict.get("tid")
 
-    session = meta.Session()
-
-    theHouse = session.query(models.House).filter_by(id = houseId).first()
+    theHouse = DBSession.query(models.House).filter_by(id = houseId).first()
     #if theHouse is None:
     #    log.debug("No Such House")
     #    #Return a 404 if no such house is found
@@ -36,7 +34,7 @@ def getHouseComfort(request):
     #    return
 
     #Run Whatever Query we need to....
-    theQry = session.query(models.Reading).filter_by(typeId = typeId)
+    theQry = DBSession.query(models.Reading).filter_by(typeId = typeId)
     theQry = theQry.limit(10)
     print theQry
 

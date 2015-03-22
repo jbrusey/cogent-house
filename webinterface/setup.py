@@ -16,7 +16,7 @@ else:
 
 
 requires = [
-    'pyramid==1.3.4',
+    'pyramid>=1.3.4',
     'SQLAlchemy',
     'transaction',
     'pyramid_tm',

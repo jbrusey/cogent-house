@@ -24,6 +24,7 @@ import logging
 LOG = logging.getLogger(__name__)
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 #import cogentviewer.views.homepage
 import homepage
@@ -43,8 +44,6 @@ def exportdata(request):
     View that allows exporting of data.
     """
 
-    #session = meta.Session)
-    #deployments = session.query(models.deployment.Deployment).all()
 
     outDict = {}
     outDict["headLinks"] = homepage.genHeadUrls(request)
@@ -54,8 +53,6 @@ def exportdata(request):
     outDict["user"] = theUser.username
 
     LOG.debug(request.POST)
-
-    session = meta.Session()
 
     if "submit" in request.POST:
         LOG.debug("Dealing with form submission")
@@ -95,14 +92,14 @@ def exportdata(request):
             LOG.debug("--> Processing Sensor Types")
             sensorlist = []
             for sensor in sensors:                   
-                theQry = session.query(models.SensorType).filter_by(name=sensor).first()
+                theQry = DBSession.query(models.SensorType).filter_by(name=sensor).first()
                 LOG.debug("--> --> Processing Type {0} = {1}".format(sensor,theQry))
                 if theQry:
                     sensorlist.append(int(theQry.id))
 
             #Append Pulse outputs
             if "Power" in sensors:
-                theQry = session.query(models.SensorType).filter_by(name="Opti Smart Count").first()
+                theQry = DBSession.query(models.SensorType).filter_by(name="Opti Smart Count").first()
                 if theQry:
                     sensorlist.append(int(theQry.id))
 
@@ -195,8 +192,7 @@ def processExport(houseId,
     :return: A pandas dataframe representing this data
     """
     
-    session = meta.Session()
-    theqry = session.query(models.House)
+    theqry = DBSession.query(models.House)
     theqry = theqry.filter_by(id = houseId)
 
     theHouse = theqry.first()
@@ -212,7 +208,7 @@ def processExport(houseId,
         locIds = [x.id for x in locations]
     LOG.debug("--> locations Ids {0}".format(locIds))
 
-    dataqry = session.query(models.Reading).filter(models.Reading.locationId.in_(locIds))
+    dataqry = DBSession.query(models.Reading).filter(models.Reading.locationId.in_(locIds))
 
     #Do we want to limit to certain sensor type
     if typeIds:
@@ -304,8 +300,7 @@ def calcualteElecPusle(df,aggregate=None):
     """Calculate electric pulses"""
     LOG.debug("--> Converting Electric Pulses")
 
-    session = meta.Session()
-    theQry  = session.query(models.SensorType).filter_by(name="Opti Smart Count").first()
+    theQry  = DBSession.query(models.SensorType).filter_by(name="Opti Smart Count").first()
     if theQry is None:
         LOG.warning("No optismart sensor in Db")
         return df
@@ -356,8 +351,7 @@ def calculateGasPulse(df,aggregate=None):
     """Convert gas pulses to kWh"""
     LOG.debug("--> Converting Gas")
 
-    session = meta.Session()
-    theQry  = session.query(models.SensorType).filter_by(name="Gas Pulse Count").first()
+    theQry  = DBSession.query(models.SensorType).filter_by(name="Gas Pulse Count").first()
 
     if theQry is None:
         LOG.warning("No Gas Pulse Sensor in Db")

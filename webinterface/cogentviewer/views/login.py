@@ -16,6 +16,7 @@ from pyramid.httpexceptions import (
 
 import cogentviewer.views.homepage as homepage
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models.user as user
 import cogentviewer.utils.security as security
 
@@ -40,8 +41,7 @@ def checkLogin(request):
     password = request.POST.get("password")
 
     #Fetch the user from the database:
-    session = meta.Session()
-    theUser = session.query(user.User).filter_by(username=username).first()
+    theUser = DBSession.query(user.User).filter_by(username=username).first()
     if theUser is None:
         return False, {"loginMsg" : "No Such User"}
 
@@ -98,10 +98,9 @@ def checkRegister(request):
     email = request.POST.get("email")
     password = request.POST.get("password")
 
-    session = meta.Session()
 
     #Check that that username is not taken
-    checkUser = session.query(user.User).filter_by(username=username).first()
+    checkUser = DBSession.query(user.User).filter_by(username=username).first()
     if checkUser:
         log.debug("User Exists {0}".format(checkUser))
         return False, {"loginMsg" : "Username already used"}
@@ -113,8 +112,8 @@ def checkRegister(request):
     newUser = user.User(username=username,
                         email=email,
                         password=security.pwdContext.encrypt(password))
-    session.add(newUser)
-    session.flush()
+    DBSession.add(newUser)
+    DBSession.flush()
     return True, HTTPFound(location=request.route_url("home"))
 
 

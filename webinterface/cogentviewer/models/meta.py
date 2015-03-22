@@ -37,10 +37,12 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 try:
     from zope.sqlalchemy import ZopeTransactionExtension
     Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+    DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 except ImportError:
     #STANDARD IMPORTS
     # SQLAlchemy session manager. Updated by model.init_model()
     Session = scoped_session(sessionmaker())
+    DBSession = None
 
 # SQLAlchemy session manager. Updated by model.init_model()
 #Session = scoped_session(sessionmaker())

@@ -13,6 +13,7 @@ from pyramid.view import view_config
 
 import homepage
 from ..models import meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 
 
@@ -31,9 +32,8 @@ def nodestatus(request):
     outdict["pgTitle"] = "House Status"
 
     #So we want a list of active houses
-    session = meta.Session()
     
-    nodeqry = session.query(models.Node)
+    nodeqry = DBSession.query(models.Node)
     nodeqry = nodeqry.order_by(models.Node.id)
     
 
@@ -54,7 +54,7 @@ def nodestatus(request):
             thisnode["room"] = node.location.room.name
 
         #Check what locations we have data for
-        rdgqry = session.query(models.Reading.locationId, 
+        rdgqry = DBSession.query(models.Reading.locationId, 
                                sqlalchemy.func.max(models.Reading.time),
                                sqlalchemy.func.count(models.Reading.time),
                                ).filter_by(nodeId = node.id)
@@ -68,7 +68,7 @@ def nodestatus(request):
             thisnode["datalocs"] = rdgqry.first()[0]
             thisnode["datatimes"] = rdgqry.first()[1]
             thisnode["datacount"] = rdgqry.first()[2]
-            hseqry = session.query(models.Location).filter_by(id = rdgqry.first()[0]).first()
+            hseqry = DBSession.query(models.Location).filter_by(id = rdgqry.first()[0]).first()
             thisnode["datahouse"] = hseqry.house.address
         else:
             thisnode["datalocs"] = [x[0] for x in rdgqry]

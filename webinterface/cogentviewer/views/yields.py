@@ -22,6 +22,7 @@ import numpy
 import homepage
 import cogentviewer.models as models
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 
 SAMPLE_RATE_MINUTES = 5.0
 SAMPLE_RATE_DAY = (60*24) / SAMPLE_RATE_MINUTES
@@ -50,10 +51,9 @@ def yieldpage(request):
 
     yieldtable = []
     #So we first want the list of houses
-    session = meta.Session()
-    houses =  session.query(models.House).filter(models.House.address!="Test")
-    #houses =  session.query(models.House).filter_by(address ="69 longford road")
-    #houses =  session.query(models.House).filter_by(address ="c4 59 radnormere drive")
+    houses =  DBSession.query(models.House).filter(models.House.address!="Test")
+    #houses =  DBSession.query(models.House).filter_by(address ="69 longford road")
+    #houses =  DBSession.query(models.House).filter_by(address ="c4 59 radnormere drive")
 
     now = datetime.datetime.utcnow()
 
@@ -119,9 +119,8 @@ def exportYield():
     """Exports yield as a pandas object"""
     yieldtable = []
     #So we first want the list of houses
-    session = meta.Session()
-    houses =  session.query(models.House).filter(models.House.address!="Test")
-    #houses =  session.query(models.House).filter_by(address ="f1 16 redfern house")
+    houses =  DBSession.query(models.House).filter(models.House.address!="Test")
+    #houses =  DBSession.query(models.House).filter_by(address ="f1 16 redfern house")
 
     for house in houses:
         #houseyield = {"house":house.address}
@@ -164,10 +163,7 @@ def queuenodes(houseid):
     nodelist = [] #Containers for output
     desclist = []
 
-
-    session = meta.Session()
-
-    thehouse = session.query(models.House).filter_by(id=houseid).first()
+    thehouse = DBSession.query(models.House).filter_by(id=houseid).first()
 
     #nodes associated with this house
     locations = thehouse.locations
@@ -189,7 +185,7 @@ def queuenodes(houseid):
     #Hopefully we can remove this code at some point
 
     locids = [x.id for x in locations]
-    qry = session.query(models.Reading.nodeId, models.Reading.locationId)
+    qry = DBSession.query(models.Reading.nodeId, models.Reading.locationId)
     qry = qry.filter(models.Reading.locationId.in_(locids))
     qry = qry.distinct()
 
@@ -201,7 +197,7 @@ def queuenodes(houseid):
             #If we allready know about it
             continue
 
-        location = session.query(models.Location).filter_by(id=locationid)
+        location = DBSession.query(models.Location).filter_by(id=locationid)
         location = location.first()
         nodelist.append(nodeid)
         desclist.append({"nodeid":nodeid,
@@ -241,8 +237,7 @@ def calcyield(nodeid, startdate=None, enddate=None):
     outdict = {}
 
     #Fetch samples
-    session = meta.Session()
-    qry = session.query(models.NodeState).filter_by(nodeId = nodeid)
+    qry = DBSession.query(models.NodeState).filter_by(nodeId = nodeid)
     qry = qry.filter(models.NodeState.seq_num != None)
     qry = qry.order_by(models.NodeState.time)
     if startdate:
@@ -394,8 +389,7 @@ def calcyieldNew(nodeid, startdate=None, enddate=None):
     outdict = {}
 
     #Fetch samples
-    session = meta.Session()
-    qry = session.query(models.NodeState).filter_by(nodeId = nodeid)
+    qry = DBSession.query(models.NodeState).filter_by(nodeId = nodeid)
     qry = qry.filter(models.NodeState.seq_num != None)
     qry = qry.order_by(models.NodeState.time)
     if startdate:

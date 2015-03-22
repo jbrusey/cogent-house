@@ -15,7 +15,7 @@
 
 <%block name="pagecontent">
 <section>
-  <h1>Electriticy Use</h1>
+  <h1>Electricity Use</h1>
 </section>
 
 <h3>Summary</h3>

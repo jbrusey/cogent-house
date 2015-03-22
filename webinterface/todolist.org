@@ -121,7 +121,7 @@
 ** TODO Logfile Viewer
 ** TODO Export Data
 
-* TODO Intergrate Graphs [1/5]
+* TODO Integrate Graphs [1/5]
 ** DONE Time Series
 ** TODO Electricity
 ** TODO Battery
@@ -129,7 +129,7 @@
 ** TODO Network Tree
 
 
-* TODO JSON Data Retrival [2/3]
+* TODO JSON Data Retrieval [2/3]
 *** DONE JSON P Interface
 *** DONE Flatten Functionalty
 **** Flatten For Node Type

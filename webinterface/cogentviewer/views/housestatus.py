@@ -12,6 +12,7 @@ from pyramid.view import view_config
 
 
 from cogentviewer.models import meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 import cogentviewer.views.homepage as homepage
 import cogentviewer.views.yields as yields
@@ -63,11 +64,10 @@ def housestatus(request):
     outdict["pgTitle"] = "House Status"
 
     #So we want a list of active houses
-    session = meta.Session()
 
     now = datetime.datetime.utcnow()
 
-    qry = session.query(models.House)
+    qry = DBSession.query(models.House)
     qry = qry.filter(sqlalchemy.or_(models.House.endDate >= now,
                                     models.House.endDate == None))
 
@@ -85,7 +85,7 @@ def housestatus(request):
         if item.server:
             itemdict["hostname"] = item.server.hostname
             #Fetch the last push
-            pushqry = session.query(models.PushStatus)
+            pushqry = DBSession.query(models.PushStatus)
             pushqry = pushqry.filter_by(hostname=item.server.hostname)
             pushqry = pushqry.order_by(models.PushStatus.time)
             lastpush = pushqry.first()
@@ -102,7 +102,7 @@ def housestatus(request):
         log.debug("Locations {0}".format(locations))
         log.debug("Location Ids {0}".format(locationIds))
 
-        nodeqry = session.query(models.Node)
+        nodeqry = DBSession.query(models.Node)
         nodeqry = nodeqry.filter(models.Node.locationId.in_(locationIds))
         nodes = nodeqry.all()
         log.debug("Nodes {0}".format(nodes))
@@ -117,7 +117,7 @@ def housestatus(request):
 
         #Work out which ones are active in the last 8 hours
         hbtime = now - datetime.timedelta(hours=8)
-        stateqry = session.query(models.NodeState)
+        stateqry = DBSession.query(models.NodeState)
         stateqry = stateqry.filter(models.NodeState.nodeId.in_(nodeids))
         stateqry = stateqry.filter(models.NodeState.time >= hbtime)
         stateqry = stateqry.group_by(models.NodeState.nodeId)
@@ -126,7 +126,7 @@ def housestatus(request):
 
 
         hbtime = now - datetime.timedelta(days=7)
-        stateqry = session.query(models.NodeState,
+        stateqry = DBSession.query(models.NodeState,
                                  sqlalchemy.func.max(models.NodeState.time))
         stateqry = stateqry.filter(models.NodeState.nodeId.in_(nodeids))
         stateqry = stateqry.filter(models.NodeState.time >= hbtime)
@@ -218,9 +218,7 @@ def housedetails(request):
     log.debug("----- Status for House Id {0} -----".format(theId))
 
 
-    session = meta.Session()
-
-    qry = session.query(models.House).filter_by(id=theId)
+    qry = DBSession.query(models.House).filter_by(id=theId)
     thishouse = qry.first()
     if thishouse:
         outdict["pgTitle"] = "Status of House {0}".format(thishouse.address)
@@ -230,12 +228,12 @@ def housedetails(request):
         return outdict
 
     #So First find the server that is associated
-    #qry = session.query(models.Server).filter_by(houseid = theId)
+    #qry = DBSession.query(models.Server).filter_by(houseid = theId)
     theserver = thishouse.server
     if theserver:
         outdict["servername"] = theserver.hostname
         #And Last Push
-        qry = session.query(models.PushStatus)
+        qry = DBSession.query(models.PushStatus)
         qry = qry.filter_by(hostname=theserver.hostname)
         qry = qry.order_by(models.PushStatus.time)
         lastpush = qry.first()
@@ -260,7 +258,7 @@ def housedetails(request):
 
     for location in thishouse.locations:
         log.debug("--> Getting Details for Location {0}".format(location))
-        nodeqry = session.query(models.Node).filter_by(locationId=location.id)
+        nodeqry = DBSession.query(models.Node).filter_by(locationId=location.id)
         for node in nodeqry:
             log.debug("--> --> Getting Details for Node {0}".format(node))
             itemdict = {"id": node.id,
@@ -274,14 +272,14 @@ def housedetails(request):
                         "voltage":0.0,
                         }
             #Work out the last reading
-            qry = session.query(models.Reading)
+            qry = DBSession.query(models.Reading)
             qry = qry.filter_by(nodeId=node.id,
                                 locationId=location.id,
                                 typeId=6)
             qry = qry.order_by(models.Reading.time.desc())
             lastreading = qry.first()
             if lastreading is None:
-                qry = session.query(models.Reading)
+                qry = DBSession.query(models.Reading)
                 qry = qry.filter_by(nodeId=node.id,
                                     locationId=location.id,
                                     typeId=0)
@@ -296,7 +294,7 @@ def housedetails(request):
                 itemdict["voltage"] = lastreading.value
 
             #Last Nodestate
-            qry = session.query(models.NodeState).filter_by(nodeId=node.id)
+            qry = DBSession.query(models.NodeState).filter_by(nodeId=node.id)
             qry = qry.order_by(models.NodeState.time.desc())
             laststate = qry.first()
             if laststate:

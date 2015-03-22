@@ -9,6 +9,7 @@ log.setLevel(logging.DEBUG)
 
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 
 import datetime
@@ -82,11 +83,9 @@ class RESTBase(object):
     def processGET(self):
         """Deal with GET Requests"""
         log.debug("Rest Service Called with GET")
-        session = meta.Session()
         
         #Start the Query
-        #items = session.query(models.Deployment)
-        items = session.query(self.requestClass)
+        items = DBSession.query(self.requestClass)
         if self.theId:
             items = items.filter_by(id=self.theId)
 

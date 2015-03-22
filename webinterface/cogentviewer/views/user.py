@@ -17,6 +17,7 @@ import sqlalchemy
 #log = logging.getLogger(__name__)
 
 import cogentviewer.models.meta as meta
+from ..models.meta import DBSession
 import cogentviewer.models as models
 #import cogentviewer.views.homepage
 import homepage
@@ -39,13 +40,11 @@ def user(request):
     uid = request.matchdict.get("id",None)
     log.debug("User Page Called.  User Id >{0}<".format(uid))
 
-    session = meta.Session()
-
     if uid is None or uid == "":
         log.debug("--> No User specified")
         theUser = None
     else:
-        theUser =session.query(models.User).filter_by(id=uid).first()
+        theUser =DBSession.query(models.User).filter_by(id=uid).first()
         
 
     #Deal with form 
@@ -57,7 +56,7 @@ def user(request):
         log.debug("Form Details Name {0} Mail {1} Pass {2}".format(username,usermail,userpass))
         if theUser is None:
             theUser = models.User(username = username)
-            session.add(theUser)
+            DBSession.add(theUser)
         #And update everything else
         theUser.email = usermail
         
@@ -65,7 +64,7 @@ def user(request):
         theUser.password = meta.pwdContext.encrypt(userpass)
         theUser.level = "root"
         
-        session.flush()
+        DBSession.flush()
 
         outDict["formalert"] = "User Details updated"
         #Update 
