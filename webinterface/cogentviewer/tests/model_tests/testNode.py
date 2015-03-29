@@ -84,9 +84,10 @@ class TestNode(base.ModelTestCase):
 
         self.assertEqual(item1, item2)
 
-        #Order on HouseId
+        #Order on id
         item2.id = 0
         self.assertGreater(item1, item2)
+        self.assertNotEqual(item1, item2)
 
         item2.id = 2
 

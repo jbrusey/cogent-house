@@ -7,14 +7,16 @@
 
 import logging
 LOG = logging.getLogger(__name__)
+from functools import total_ordering
 
-import meta
+from cogentviewer.models import meta
+from cogentviewer.utils import deprecated
 
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, BigInteger, Index
 
 #from Bitset import Bitset
 
-
+@total_ordering
 class NodeState(meta.Base, meta.InnoDBMix):
     """
     It appears that this table holds the state of any nodes.
@@ -31,23 +33,23 @@ class NodeState(meta.Base, meta.InnoDBMix):
     #id = Column(Integer,
     #            primary_key=True)
     time = Column(DateTime,
-                  primary_key = True,
-                  nullable = False,
-                  autoincrement = False,
-                  index = True)
+                  primary_key=True,
+                  nullable=False,
+                  autoincrement=False,
+                  index=True)
     nodeId = Column(Integer,
                     ForeignKey('Node.id'),
-                    primary_key = True,
-                    nullable = False,
-                    autoincrement = False,
-                    index = True)
+                    primary_key=True,
+                    nullable=False,
+                    autoincrement=False,
+                    index=True)
     parent = Column(Integer)
     localtime = Column(BigInteger)
     seq_num = Column(Integer,
-                     primary_key = True,
-                     nullable = False,
-                     autoincrement = False,
-                     index = True)
+                     primary_key=True,
+                     nullable=False,
+                     autoincrement=False,
+                     index=True)
     rssi = Column(Integer)
 
     #Add a named index
@@ -64,15 +66,16 @@ class NodeState(meta.Base, meta.InnoDBMix):
                 str(self.parent) + "," +
                 str(self.localtime) + ")")
 
+    def __eq__(self, other):
+        return ((self.time, self.nodeId, self.parent) ==
+                (other.time, other.nodeId, other.parent))
 
-    def __cmp__(self, other):
-        try:
-            val = (self.time - other.time).seconds
-            val += self.nodeId - other.nodeId
-            val += self.parent - other.parent
-            return val
-        except TypeError, e:
-            LOG.warning("Unable to Compare {0} {1} \n{2}".format(self, other, e))
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        return ((self.time, self.nodeId, self.parent) <
+                (other.time, other.nodeId, other.parent))
 
 
     def pandas(self):

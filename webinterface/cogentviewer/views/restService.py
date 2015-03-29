@@ -6,6 +6,8 @@ from pyramid.response import Response
 from pyramid.renderers import render_to_response
 import pyramid.url
 
+import pandas
+
 import cogentviewer.models.meta as meta
 from ..models.meta import DBSession
 import cogentviewer.models as models
@@ -26,6 +28,12 @@ import time
 import zlib
 import json
 
+GAS_TO_METERS = 2.83 #Convert to cubic meters
+GAS_PULSE_TO_METERS = GAS_TO_METERS / 100.0  #As gas is in 100's of cubic feet
+GAS_VOLUME = 1.022640 #Correction Value
+GAS_COLORIFIC = 39.3  #Calorific Value
+GAS_CONVERSION = 3.6  #kWh conversion factor
+
 def _getDeploymentTree(request):
     """Fetch a tree to be used for navigation"""
 
@@ -34,8 +42,8 @@ def _getDeploymentTree(request):
     params = request.params
     log.debug("Query Parameters {0}".format(params))
     if params:
-        parent = params.get("parent",None)
-        limit = params.get("limit",None)
+        parent = params.get("parent", None)
+        limit = params.get("limit", None)
         log.debug("Looking for parent {0}".format(parent))
         log.debug("Tree has limit {0}".format(limit))
         #Do we have a query
@@ -66,10 +74,10 @@ def _getDeploymentTree(request):
                 log.debug("Parent is a Deployment")
                 if depSplit[1] == "None":
                     #Fetch all houses without a deployment
-                    theQry = DBSession.query(models.House).filter_by(deploymentId = None)
+                    theQry = DBSession.query(models.House).filter_by(deploymentId=None)
                 else:
                     #Fetch for this particular deployment
-                    theQry = DBSession.query(models.House).filter_by(deploymentId = depSplit[1])
+                    theQry = DBSession.query(models.House).filter_by(deploymentId=depSplit[1])
 
                 outList = []
                 log.debug("--> Children Are:")
@@ -84,8 +92,8 @@ def _getDeploymentTree(request):
                 return outList
             elif depSplit[0] == "h":
                 log.debug("Parent is a House")
-                theQry = DBSession.query(models.Location).filter_by(houseId = depSplit[1])
-                log.debug("--- {0} {1}".format(theQry,theQry.count()))
+                theQry = DBSession.query(models.Location).filter_by(houseId=depSplit[1])
+                log.debug("--- {0} {1}".format(theQry, theQry.count()))
                 outList = []
                 for item in theQry:
                     log.debug("----> {0}".format(item))
@@ -95,7 +103,7 @@ def _getDeploymentTree(request):
                         if item.room:
                             rname = item.room.name
                         outList.append({"id":"l_{0}".format(item.id),
-                                        "name":"({0}) {1}".format(item.id,rname),
+                                        "name":"({0}) {1}".format(item.id, rname),
                                         "parent":"h_{0}".format(depSplit[1]),
                                         "type":"location",
                                         }
@@ -114,10 +122,10 @@ def _getDeploymentTree(request):
                 log.debug("--> {0}".format(theitem.allnodes))
                 allNodes = theitem.allnodes
 
-                #And a fallback if the crappy server doesnt accetp node / locations
+                #And a fallback if the server doesnt accept node / locations
                 if len(allNodes) == 0:
                     log.debug("No Nodes Detected")
-                    theQry = DBSession.query(models.Reading.nodeId).filter_by(locationId = depSplit[1]).distinct().all()
+                    theQry = DBSession.query(models.Reading.nodeId).filter_by(locationId=depSplit[1]).distinct().all()
                     log.debug("Node Ids {0}".format(theQry))
                     nids = [x[0] for x in theQry]
                     log.debug("Nids {0}".format(nids))
@@ -131,15 +139,12 @@ def _getDeploymentTree(request):
                     log.debug("--> --> Processing Node {0}".format(node))
                     log.debug("--> --> Sensors Are {0}".format(node.sensors))
 
-                    #For FUCK SAKES, why does this not work (BECAUSE THE FUNCKING DATABASE SPEC HAS CHANGED:
-                    theQry = DBSession.query(models.Sensor).filter_by(nodeId = node.id)
+                    theQry = DBSession.query(models.Sensor).filter_by(nodeId=node.id)
                     log.debug("--> --> QRY SENSORS {0}".format(theQry.all()))
 
                     theSensors = node.sensors
                     if len(theSensors) is 0:
-                        #Do YET ANOTHER FUCKING FULL TABLE SCAN TO WORK OUT WHAT SENSOR TYPES ARE ATTACHED
-                        #WANKERS
-                        theQry = DBSession.query(models.Reading.typeId).filter_by(nodeId = node.id).distinct()
+                        theQry = DBSession.query(models.Reading.typeId).filter_by(nodeId=node.id).distinct()
                         #log.debug("--> --> QRY Types {0}".format(theQry.all()))
                         sids = [x[0] for x in theQry]
                         sensorQry = DBSession.query(models.SensorType).filter(models.SensorType.id.in_(sids))
@@ -170,8 +175,8 @@ def _getDeploymentTree(request):
     else:
         log.debug("Returning All Objects")
         outList = [
-            {"id":"root","name":"All Deployments"},
-            #{"id":"noroot", "name":"Houses without deployment"},
+            {"id":"root",
+             "name":"All Deployments"},
             ]
         return outList
 
@@ -191,7 +196,7 @@ def getHouseRooms(request):
     For example, /rest/houserooms/1  will return all rooms associated with
     HouseId 1 as Id, name pairs
 
-    :return: List of {Location id,name} pairs for all rooms in this house
+    :return: List of {Location id, name} pairs for all rooms in this house
 
     """
 
@@ -239,9 +244,9 @@ def _wrappedRest(request):
     #Get the Method
     reqType = request.method
 
-    theId = request.matchdict.get("id",None)
+    theId = request.matchdict.get("id", None)
     theType = request.matchdict.get("theType")
-    log.info("Request Type {0} Request Id: {1}".format(reqType,theId))
+    log.info("Request Type {0} Request Id: {1}".format(reqType, theId))
     log.debug("Object Type {0}".format(theType))
 
     #For Version Numbers
@@ -263,18 +268,24 @@ def _wrappedRest(request):
     if theType.lower() == "heatmap":
         return getheatmap(request)
 
+    #Stuff for Pavel / JH
     if theType.lower() == "summary":
         return getsummary(request)
+    if theType.lower() == "energysummary":
+        return getenergy(request)
+
+    if theType.lower() == "schema":
+        return getschema(request)
 
     if theType.lower() == "rpc":
         qry = DBSession.query(models.Server)
         outlist = []
         for item in qry:
             if item.rpc == 1:
-                outlist.append((item.hostname,"tunnel"))
-        #return [("salford21","tunnel")]
+                outlist.append((item.hostname, "tunnel"))
+        #return [("salford21", "tunnel")]
         return outlist
-        #return [("salford21","tunnel"),
+        #return [("salford21", "tunnel"),
 
     if theType.lower() == "network":
         return getnetwork(request)
@@ -292,7 +303,7 @@ def _wrappedRest(request):
 
         try:
             unZip = zlib.decompress(parameters)
-        except zlib.error,e:
+        except zlib.error, e:
             log.warning("Bulk Upload Error (ZLIB) {0}".format(e))
             unZip = parameters
 
@@ -305,7 +316,6 @@ def _wrappedRest(request):
 
         objGen = models.clsFromJSON(jsonBody)
         log.debug("--> Generator Created")
-        import time
         t1 = time.time()
         sp = transaction.savepoint()
         for item in objGen:
@@ -316,8 +326,8 @@ def _wrappedRest(request):
 
         try:
             DBSession.flush()
-        #except sqlalchemy.IntegrityError,e:
-        except Exception,e:
+        #except sqlalchemy.IntegrityError, e:
+        except Exception, e:
             log.warning("Bulk Upload Error")
             log.warning(e)
             sp.rollback()
@@ -328,7 +338,7 @@ def _wrappedRest(request):
 
                 try:
                     DBSession.flush()
-                except Exception,e:
+                except Exception, e:
                     log.warning("Bulk Upload Error on Merge")
                     log.warning(e)
                     request.response.status = 500
@@ -372,7 +382,7 @@ def _wrappedRest(request):
         log.debug("Get Query")
         if theId:
             log.debug("Filter by Id {0}".format(theId))
-            theQuery = theQuery.filter_by(id = theId)
+            theQuery = theQuery.filter_by(id=theId)
 
         #If there are no items
         totalCount = theQuery.count()
@@ -385,10 +395,10 @@ def _wrappedRest(request):
         params = request.params
         if params:
             log.debug("Query parameters {0}".format(params))
-            theQuery = filterQuery(theModel,theQuery,params)
+            theQuery = filterQuery(theModel, theQuery, params)
 
         #Deal with ranges
-        reqRange = request.headers.get("Range",None)
+        reqRange = request.headers.get("Range", None)
         log.debug("STD Range {0}".format(request.range))
         log.debug("Range ? {0}".format(reqRange))
         if reqRange:
@@ -401,7 +411,7 @@ def _wrappedRest(request):
         if reqRange:
             """If a range of the query is specified"""
             log.debug("===== RANGE SPECIFIED:")
-            theQuery = theQuery.offset(reqRange[0])#.limit(reqRange[1]-reqRange[0])
+            theQuery = theQuery.offset(reqRange[0])
             theLimit = reqRange[1] - reqRange[0]
             log.debug("Limit {0}".format(theLimit))
             #theQuery = theQuery.filter(theModel.id >= reqRange[0],
@@ -409,7 +419,9 @@ def _wrappedRest(request):
             secondCount = theQuery.count()
             theQuery = theQuery.limit(theLimit)
             #And set a response type
-            request.response.content_range = "items {0}-{1}/{2}".format(reqRange[0],reqRange[0]+secondCount,totalCount)
+            request.response.content_range = "items {0}-{1}/{2}".format(reqRange[0],
+                                                                        reqRange[0]+secondCount,
+                                                                        totalCount)
 
 
         #return theModel.__table__
@@ -427,7 +439,7 @@ def _wrappedRest(request):
         log.debug(parameters)
 
         newObj = theModel()
-        newObj.fromJSON(parameters)
+        newObj.from_json(parameters)
         log.debug("-----> NEW OBJECT {0}".format(newObj))
         DBSession.flush()
         DBSession.add(newObj)
@@ -453,10 +465,10 @@ def _wrappedRest(request):
         if theType.lower() == "pushstatus":
             log.debug("Push Status Sent from Server {0}".format(newObj.hostname))
 
-            qry = DBSession.query(models.Server).filter_by(hostname = newObj.hostname).first()
+            qry = DBSession.query(models.Server).filter_by(hostname=newObj.hostname).first()
             if qry is None:
                 log.info("Update from New Server {0}".format(newObj))
-                newserver = models.Server(hostname = newObj.hostname)
+                newserver = models.Server(hostname=newObj.hostname)
                 DBSession.add(newserver)
                 DBSession.flush()
 
@@ -487,8 +499,14 @@ def _wrappedRest(request):
         elif queryParams:
             log.debug("--> Attempt to add new object based on search")
             print queryParams
-            theQuery = filterQuery(theModel,theQuery,queryParams)
-
+            theQuery = filterQuery(theModel, theQuery, queryParams)
+        else:
+            #Try to force the search based on the query params method
+            log.debug("--> Attempt to seach based on query params method")
+            queryParams = theModel().queryparams(request.json_body)
+            log.debug("--> New Parameters: {0}".format(queryParams))
+            theQuery  = filterQuery(theModel, theQuery, queryParams)
+            
         #log.debug(theQuery)
         log.debug("COUNT {0}".format(theQuery.count()))
         log.debug(theQuery.all())
@@ -502,7 +520,7 @@ def _wrappedRest(request):
         if theQuery is None:
             log.warning("Attempt to update non existant object")
             theQuery = theModel()
-            #newObj.fromJSON(parameters)
+            #newObj.from_json(parameters)
             DBSession.add(theQuery)
             DBSession.flush()
             #return []
@@ -514,7 +532,7 @@ def _wrappedRest(request):
 
         log.debug("--> Orig {0}".format(theQuery))
         #And then Update
-        theQuery.fromJSON(parameters)
+        theQuery.from_json(parameters)
 
         DBSession.flush()
 
@@ -525,9 +543,13 @@ def _wrappedRest(request):
         #request.response.location = "http://127.0.0.1:6543/rest/deployment{0}/".format(newObject.Id)
         #Deal with corner case for readings
         if theType.lower() == "reading":
-            responseUrl = request.route_url("genericRest",theType=theType,id=None)
+            responseUrl = request.route_url("genericRest",
+                                            theType=theType,
+                                            id=None)
         else:
-            responseUrl = request.route_url("genericRest",theType=theType,id=theQuery.id)
+            responseUrl = request.route_url("genericRest",
+                                            theType=theType,
+                                            id=theQuery.id)
 
         request.response.location = responseUrl
         #And Set the Response status to 201 Created
@@ -556,15 +578,16 @@ def _wrappedRest(request):
             if theHouse is None:
                 return
 
-            locQry = DBSession.query(models.Location).filter_by(houseId = theHouse.id)
+            locQry = DBSession.query(models.Location).filter_by(houseId=theHouse.id)
 
-            log.debug("House is {0}  Locations are {1}".format(theHouse,theHouse.locations))
+            log.debug("House is {0}  Locations are {1}".format(theHouse, theHouse.locations))
 
             #Reset the readings to have a null location
             for loc in locQry:
-                theQry = DBSession.query(models.Reading).filter_by(locationId = loc.id)
+                theQry = DBSession.query(models.Reading).filter_by(locationId=loc.id)
                 #loc.oldNodes = []
-                log.debug("Processing Location {0}: {1} Readings Found".format(loc,theQry.count()))
+                log.debug("Processing Location {0}: {1} Readings Found".format(loc,
+                                                                               theQry.count()))
                 theQry.update({"locationId": None})
 
                 #And Reset the other associated stuff
@@ -580,7 +603,7 @@ def _wrappedRest(request):
 
             theHouse = DBSession.query(theModel).filter_by(id=theId)
             theHouse.delete()
-        elif theType in ["reading","nodestate"]:
+        elif theType in ["reading", "nodestate"]:
             request.response.status = 404
             return
 
@@ -593,8 +616,6 @@ def _wrappedRest(request):
         log.debug("{0} Items deleted".format(deleteCount))
         if deleteCount > 0:
             request.response.status = 204
-        #Otherwise I expect there should be an error somewhere
-        pass
     else:
         #Panic and throw an error.
         pass
@@ -606,7 +627,7 @@ def getheatmap(request):
     Return the nodestates to be used as a heatmap
     """
     log.debug("Heatmap data requested")
-    nodeid = request.matchdict.get("id",None)
+    nodeid = request.matchdict.get("id", None)
     log.debug("Node Id >{0}< {1}".format(nodeid, type(nodeid)))
     if nodeid == "":
         log.debug("No Node Id Supplied")
@@ -617,10 +638,6 @@ def getheatmap(request):
                         sqlalchemy.func.date(models.NodeState.time),
                         sqlalchemy.func.count(models.NodeState.nodeId),
                         )
-    #if nodeid:
-    #    qry = qry.filter(models.NodeState.nodeId == nodeid)
-    #qry = qry.filter(models.NodeState.nodeId.in_([33,34,65,66]))
-    qry = qry.filter(models.NodeState.time >= datetime.date(2013,12,01))
     #Possibly add dates etc.
     qry = qry.group_by(models.NodeState.nodeId,
                        sqlalchemy.func.date(models.NodeState.time))
@@ -635,9 +652,9 @@ def getheatmap(request):
     print df.head()
 
     #Reindex
-    multidf = df.set_index(["date","nodeid"])
+    multidf = df.set_index(["date", "nodeid"])
     wide = multidf.unstack(0) #Date runs across the top
-    wide.fillna(0,inplace=True)
+    wide.fillna(0, inplace=True)
 
     outdict = {}
     
@@ -663,7 +680,7 @@ def getheatmap(request):
 
     #Far to Complex :)
     # #Work out a multiple index
-    # multidf = df.set_index(["date","nodeid"])
+    # multidf = df.set_index(["date", "nodeid"])
     # #Then a panel 
     # thepanel = multidf.to_panel()
 
@@ -695,21 +712,21 @@ def getcounts(request):
     that will filter the response to a specific type of data
     """
     log.debug("{0} Counts Requested {0}".format("-"*20))
-    nodeid = request.matchdict.get("id",None)
+    nodeid = request.matchdict.get("id", None)
     log.debug("Node Id is {0}".format(nodeid))
 
     parameters = request.params
     log.debug("Parameters are {0}".format(parameters))
-    typeid = parameters.get("typeid",None)
+    typeid = parameters.get("typeid", None)
 
     qry = DBSession.query(models.Reading,
                         sqlalchemy.func.date(models.Reading.time),
                         sqlalchemy.func.count(models.Reading),
-                        ).filter_by(nodeId = nodeid)
+                        ).filter_by(nodeId=nodeid)
 
     if typeid:
         log.debug("Filter by type id {0}".format(typeid))
-        qry = qry.filter_by(typeId = typeid)
+        qry = qry.filter_by(typeId=typeid)
 
     qry = qry.filter(models.Reading.locationId != None)
     qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
@@ -733,7 +750,7 @@ def getcounts(request):
 
 
  #        :param nodeId: Node Id to get counts for
- #        :param thesession: Which DBSession (MEREGE / MAIN) to get data for
+ #        :param thesession: Which session (MEREGE / MAIN) to get data for
  #        :param startdate: Optional startdate
  #        :param enddate: Optional enddate
  #        :param typeid: Limit to a specific sensor type
@@ -746,21 +763,21 @@ def getcounts(request):
  #        elif thesession == MERGE:
  #            DBSession = self.mergesession()
  #        else:
- #            log.warning("No Such DBSession")
+ #            log.warning("No Such Session")
  #            return False
 
  #        #Work out the query
  #        qry = DBSession.query(models.Reading,
  #                            sqlalchemy.func.date(models.Reading.time),
  #                            sqlalchemy.func.count(models.Reading),
- #                            ).filter_by(nodeId = nodeid)
- #        #qry = qry.filter_by(typeId = 0) #All nodes have temperature
+ #                            ).filter_by(nodeId=nodeid)
+ #        #qry = qry.filter_by(typeId=0) #All nodes have temperature
  #        if startdate:
  #            qry = qry.filter(models.Reading.time >= startdate)
  #        if enddate:
  #            qry = qry.filter(models.Reading.time <= enddate)
  #        if typeid:
- #            qry = qry.filter_by(typeid = typeid)
+ #            qry = qry.filter_by(typeid=typeid)
 
  #        qry = qry.filter(models.Reading.locationId != None)
  #        qry = qry.group_by(sqlalchemy.func.date(models.Reading.time))
@@ -783,10 +800,12 @@ def filterQuery(theModel, theQuery, params):
     log.debug("{0} Params {0}".format("-"*20))
     #log.debug("Query String {0}".format(request.query_string))
     log.debug("{0}".format(params))
-    for key,value in params.iteritems():
-        log.info("~~~~~~~~ Filter: {0} <{1}> ~~~~~~~~".format(key,value))
+    for key, value in params.iteritems():
+        log.info("~~~~~~~~ Filter: {0} <{1}> ~~~~~~~~".format(key, value))
 
         #if theType.lower() == "reading" and key == "typeId"
+        if key == "callback":
+            continue
 
         if key.startswith("sort"):
             log.debug("====== SORTED ==========")
@@ -796,7 +815,7 @@ def filterQuery(theModel, theQuery, params):
             for item in sortKeys:
                 item = item.strip()
                 sortdesc = False
-                if item[0]=="-":
+                if item[0] == "-":
                     item = item[1:]
                     sortdesc = True
                     log.debug("----> Sort Descending {0}".format(item))
@@ -822,7 +841,7 @@ def filterQuery(theModel, theQuery, params):
         castValue = None
 
         #Cast datetimes if we need to
-        if isinstance(theColumn.type,sqlalchemy.DateTime):
+        if isinstance(theColumn.type, sqlalchemy.DateTime):
             log.debug("--> Casting Date Times")
             castValue = dateutil.parser.parse(value.split("_")[-1])
             log.debug("--> {0}".format(value))
@@ -839,38 +858,38 @@ def filterQuery(theModel, theQuery, params):
             #Do Less than or Equal
             #if not castValue:
             #    castValue = value.split("_")[-1]
-            log.debug("Filter by {0}<={1}".format(key,castValue))
+            log.debug("Filter by {0}<={1}".format(key, castValue))
             theQuery = theQuery.filter(theColumn <= castValue)
-            #theQuery = theQuery.filter("{0}<={1}".format(key,castValue))
+            #theQuery = theQuery.filter("{0}<={1}".format(key, castValue))
         elif value.startswith("lt_"):
             #Do Less than or Equal
             #if not castValue:
             #    castValue = value.split("_")[-1]
-            log.debug("Filter by {0}<={1}".format(key,castValue))
+            log.debug("Filter by {0}<={1}".format(key, castValue))
             theQuery = theQuery.filter(theColumn < castValue)
-            #theQuery = theQuery.filter("{0}<={1}".format(key,castValue))
+            #theQuery = theQuery.filter("{0}<={1}".format(key, castValue))
         elif value.startswith("ge_"):
             #Greater than
             #if not castValue:
             #    castValue = value.split("_")[-1]
-            log.debug("Filter by {0}>={1}".format(key,castValue))
+            log.debug("Filter by {0}>={1}".format(key, castValue))
             theQuery = theQuery.filter(theColumn >= castValue)
-            #theQuery = theQuery.filter("{0}>={1}".format(key,castValue))
+            #theQuery = theQuery.filter("{0}>={1}".format(key, castValue))
             pass
         elif value.startswith("gt_"):
             #Greater than
             #if not castValue:
             #    castValue = value.split("_")[-1]
-            log.debug("Filter by {0}>={1}".format(key,castValue))
+            log.debug("Filter by {0}>={1}".format(key, castValue))
             theQuery = theQuery.filter(theColumn > castValue)
-            #theQuery = theQuery.filter("{0}>={1}".format(key,castValue))
+            #theQuery = theQuery.filter("{0}>={1}".format(key, castValue))
             pass
         else:
             #Assume Equality
             #if not castValue:
             #    castValue = value.split("_")[-1]
-            log.debug("Filter by {0}={1}".format(key,value))
-            #theQuery = theQuery.filter("{0}={1}".format(key,value))
+            log.debug("Filter by {0}={1}".format(key, value))
+            #theQuery = theQuery.filter("{0}={1}".format(key, value))
             #Deal with wildcard querys
             if value.count("*") > 0:
                 log.debug("--> Wildcard Query !!!")
@@ -881,7 +900,7 @@ def filterQuery(theModel, theQuery, params):
                 else:
                     log.debug("--> --> Filter with like {0}".format(value))
                     #Switch * for %
-                    value = value.replace("*","%")
+                    value = value.replace("*", "%")
                     theQuery = theQuery.filter(theColumn.like(value))
                     out = theQuery.all()
                     log.debug("--> --> {0}".format(out))
@@ -897,25 +916,28 @@ def summaryRest(request):
     This acts as a focus point to call the _get* functions below
     """
     log.setLevel(logging.DEBUG)
-    theId = request.matchdict.get("id",None)
+    theId = request.matchdict.get("id", None)
     theType = request.matchdict.get("theType")
     parameters = request.params
     #Get the Method
     reqType = request.method
     #parameters = request.json_body
-    log.debug("REST Summary called with params ID: {0} Type: {1} Parameters:{2} Method: {3}".format(theId,theType,parameters,reqType))
+    log.debug("REST Summary called with params ID: {0} Type: {1} Parameters:{2} Method: {3}".format(theId,
+                                                                                                    theType,
+                                                                                                    parameters,
+                                                                                                    reqType))
 
     if theType == "register":
-        return _getRegistered(theId,parameters,reqType,request)
+        return _getRegistered(theId, parameters, reqType, request)
     elif theType == "status":
-        return _getStatus(theId,parameters,reqType,request)
+        return _getStatus(theId, parameters, reqType, request)
     elif theType == "updateTimes":
-        return _updateTimes(theId,parameters,request)
+        return _updateTimes(theId, parameters, request)
     elif theType == "electric":
-        return _getElectric(theId,parameters,reqType,request)
+        return _getElectric(theId, parameters, reqType, request)
     return []
 
-def _updateTimes(theId,parameters,request):
+def _updateTimes(theId, parameters, request):
     log.debug("{0}".format("*"*40))
     log.debug("{0} TIMES {0}".format("-="*15))
     log.debug("{0}".format("*"*40))
@@ -927,7 +949,7 @@ def _updateTimes(theId,parameters,request):
     nId = parameters.get("nodeId")
     lId = parameters.get("locationId")
 
-    log.debug("H: {0}  N: {1} L: {2}".format(hId,nId,lId))
+    log.debug("H: {0}  N: {1} L: {2}".format(hId, nId, lId))
 
     #Get the House from the database
     theHouse = DBSession.query(models.House).filter_by(id=hId).first()
@@ -939,7 +961,7 @@ def _updateTimes(theId,parameters,request):
     if theHouse.endDate:
         theQry = theQry.filter(models.Reading.time <= theHouse.endDate)
 
-    #unLoc = theQry.filter_by(location = None)
+    #unLoc = theQry.filter_by(location=None)
 
     #newCount = float(unLoc.count())
     oldCount = float(theQry.count())
@@ -949,7 +971,7 @@ def _updateTimes(theId,parameters,request):
     #    if newCount == 0.0:
     #        newPc = 100.0
 
-    #log.debug("--> Update a total of {0} Readings {1} Without Location ({2})\%".format(oldCount,newCount,newPc))
+    #log.debug("--> Update a total of {0} Readings {1} Without Location ({2})\%".format(oldCount, newCount, newPc))
     log.debug("--> Total Readings to update {0}".format(oldCount))
     #ipt = raw_input("--> IS THIS OK")
     #if ipt == "y":
@@ -961,10 +983,76 @@ def _updateTimes(theId,parameters,request):
     #    log.debug("Pass")
     #DBSession.commit()
     #log.debug(theQry)
-    #DBSession.close()
+    #session.close()
+
+def getStatsGasHour(theQry, daily=False, events=None):
+    """Work out hourly / Daily electricity use.
+
+    NOTE:  For Imperial (ft3) Meters only
+
+    :param theQry: SQLA Query holding the data
+    :param daily:  Generate a daily summary if true, hourly if false
+    :param events:  List of events occouring during the monitoring period
+
+    :return: List of dictionarry objects refering the the data
+    """
+    outlist = []
+
+    if theQry.count() == 0:
+        return False
+
+    #Export to Pandas
+    df = pandas.DataFrame([{"time":x.time, "value":x.value} for x in theQry])
+    #Convert index (as time)
+    df.index = df.time
+
+    #Reasample
+    resampled = df.resample("5min")
+    #And Fill in any gaps
+    resampled = resampled.fillna(method="pad", limit=288)
+    #resampled["kW"] = resampled["value"] / 1000.0
+    #With gas we convert using the following formula
+    #VALUE (in 100's) * M3_conversion * volume_correction * calorific * kWh_conversion
+    
+    #So first we want the delta between the two
+    resampled["delta"] = (resampled["value"] - resampled["value"].shift())
 
 
-def getStatsElectricHour(theQry,daily=False,events = None):
+    resampled["kWh"] = resampled["delta"] * GAS_PULSE_TO_METERS * GAS_VOLUME * GAS_COLORIFIC * GAS_CONVERSION
+    #We know there is a 5 minute sample period (due to interp)
+    #Also as the fomula does conversion the kWh we can ignore time
+    #resampled["kWh"] = resampled["kW"] * (5.0/60.0)
+
+    #And Remove Zero Values
+    resampled[resampled["kWh"] <= 0] = None
+
+
+    print resampled.head()
+
+    #Then do the final resample
+    if daily:
+        output = resampled.resample("1d", how="sum")
+    else:
+        output = resampled.resample("1h", how="sum")
+
+    #Prep output for output
+    outlist = []
+    for item in output.dropna().iterrows():
+        outlist.append([item[0], item[1]["kWh"], None])
+        #outlist.append([item[0], item[1]["delta"], None])
+
+    return outlist
+
+
+def getStatsElectricHour(theQry, daily=False, events=None):
+    """Work out hourly / Daily electricity use.
+
+    :param theQry: SQLA Query holding the data
+    :param daily:  Generate a daily summary if true, hourly if false
+    :param events:  List of events occouring during the monitoring period
+
+    :return: List of dictionarry objects refering the the data
+    """
     outList = []
     lastHour = None
     lastSample = None
@@ -992,75 +1080,50 @@ def getStatsElectricHour(theQry,daily=False,events = None):
     if theQry.count() == 0:
         return False
 
-    for item in theQry:
-        #log.debug(item)
-        theTime = item.time
-        value = item.value
+    #theQry = theQry.limit(5)
 
-        #TODO: FIX THIS TOO
-        descrip = "PRE"
-        if switchTime:
-            if theTime > switchTime:
-                descrip = "POST"
+    lastitem = None
+    cumwatts = 0.0
 
-        if daily:
-            thisHour = theTime.replace(hour=0,minute = 0,second=0,microsecond = 0)
-        else:
-            thisHour = theTime.replace(minute = 0,second=0,microsecond = 0)
-        #log.debug("Time is {0}  Hour is {1}".format(theTime,thisHour))
+    #Export to Pandas
+    df = pandas.DataFrame([{"time":x.time, "value":x.value} for x in theQry])
+    #Convert index (as time)
+    df.index = df.time
 
-        #If we are looking at the first Sample
-        if not lastSample:
-            log.debug("---> First Run")
-            lastHour = thisHour
-            lastSample = item
-            continue
+    #Reasample
+    resampled = df.resample("5min")
+    #And Fill in any gaps
+    resampled = resampled.fillna(method="pad", limit=288)
+    resampled["kW"] = resampled["value"] / 1000.0
+    #We know there is a 5 minute sample period (due to interp)
+    resampled["kWh"] = resampled["kW"] * (5.0/60.0)
 
-        timeDiff = item.time - lastHour
+    #Then do the final resample
+    if daily:
+        output = resampled.resample("1d", how="sum")
+    else:
+        output = resampled.resample("1h", how="sum")
 
-        #log.debug("Compare {0} to {1} = {2}".format(lastSample,item,timeDiff))
+    #Prep output for output
+    outlist = []
+    for item in output.dropna().iterrows():
+        outlist.append([item[0], item[1]["kWh"], None])
 
+    return outlist
 
-        #Check the time difference
-        if timeDiff.total_seconds() >= timeCutOff :
-            #log.debug("--> Hourly Change")
-            outItem = [lastHour,cumWatts,descrip]
-            outList.append(outItem)
-            lastHour = thisHour
-            cumWatts = 0.0
-
-        #Any Additions
-        tDiff = (theTime-lastSample.time).total_seconds()
-        #lastDiff = (theTime-lastHour).total_seconds()
-        tHours = tDiff / 3600 #Turn this into Hours
-        #lastTime = theTime
-        wH = value * tHours #/ 1000.0
-        #log.debug("Diff {0} Hours {1} Sample {2} wH {3}".format(tDiff,tHours,value,wH))
-        cumWatts += wH
-        lastTime = theTime
-        lastSample = item
-
-        #else:
-    #And the Final Reading
-    outList.append([lastHour,cumWatts,descrip])
-
-    return outList
-
-
-
-def _getElectric(theId,parameters,reqType,request):
+def _getElectric(theId, parameters, reqType, request):
     log.setLevel(logging.DEBUG)
     log.debug("==== GETTING ELECTRICITY NODES ====")
     log.debug("Id {0}".format(theId))
     if not theId:
-        theId = parameters.get("id",False)
+        theId = parameters.get("id", False)
     if not theId:
         return []
     log.debug("Parameters {0}".format(parameters))
     #log.debug("JSON {0}".format(request.json_body))
-    daily = parameters.get("daily",False)
+    daily = parameters.get("daily", False)
 
-    asCsv = parameters.get("csv",False)
+    asCsv = parameters.get("csv", False)
 
     if daily == 'true':
         daily = True
@@ -1077,23 +1140,23 @@ def _getElectric(theId,parameters,reqType,request):
     elecSensor = DBSession.query(models.SensorType).filter_by(name="Power").first()
     log.debug("Electrity Sensor is {0}".format(elecSensor))
 
-    theHouse = DBSession.query(models.House).filter_by(id = theId).first()
+    theHouse = DBSession.query(models.House).filter_by(id=theId).first()
     log.debug("House is {0}".format(theHouse))
 
     #Location Ids
-    locationIds = DBSession.query(models.Location).filter_by(houseId = theHouse.id)
+    locationIds = DBSession.query(models.Location).filter_by(houseId=theHouse.id)
     lIds = []
     for item in locationIds:
         log.debug("Location {0}".format(item))
         lIds.append(item.id)
 
-    theData = DBSession.query(models.Reading).filter_by(typeId = elecSensor.id)
+    theData = DBSession.query(models.Reading).filter_by(typeId=elecSensor.id)
     theData = theData.filter(models.Reading.locationId.in_(lIds))
     log.debug("Number of Samples {0}".format(theData.count()))
 
-    eventQuery = DBSession.query(models.Event).filter_by(houseId = theHouse.id).all()
+    eventQuery = DBSession.query(models.Event).filter_by(houseId=theHouse.id).all()
 
-    hourReadings =  getStatsElectricHour(theData,daily,eventQuery)
+    hourReadings = getStatsElectricHour(theData, daily, eventQuery)
 
 
 
@@ -1108,12 +1171,12 @@ def _getElectric(theId,parameters,reqType,request):
         if daily:
             dStr = "Daily"
 
-        addStr = theHouse.address.replace(" ","_")
-        fileName = "{0}-{1}.csv".format(addStr,dStr)
+        addStr = theHouse.address.replace(" ", "_")
+        fileName = "{0}-{1}.csv".format(addStr, dStr)
         log.debug("Filename: {0}".format(fileName))
 
-        return {"header":["Date","Reading","Events"],
-                #"rows":[[1,2],[3,4]],
+        return {"header":["Date", "Reading", "Events"],
+                #"rows":[[1, 2], [3, 4]],
                 "rows":hourReadings,
                 "fName":fileName,
                 }
@@ -1121,24 +1184,24 @@ def _getElectric(theId,parameters,reqType,request):
 
     outReadings = [{"time":time.mktime(x[0].timetuple())*1000,
                     "date":x[0].isoformat(),
-                    "kWh":x[1]/1000.0,
+                    "kWh":x[1],
                     "event":x[2]} for x in hourReadings]
 
-    #outReadings = [{"time":x[0].isoformat(),"kWh":x[1]/1000.0,"event":x[2]} for x in hourReadings]
+
     log.debug("Done")
     return outReadings
 
 
-def _getRegistered(theId,parameters,reqType,request):
+def _getRegistered(theId, parameters, reqType, request):
     log.setLevel(logging.DEBUG)
     log.debug("==== GETTING REGISTERED NODES ====")
 
     log.debug("--> Paramters {0}".format(parameters))
 
-    houseId = parameters.get("houseId",None)
+    houseId = parameters.get("houseId", None)
     #Get Locations associated with this houses
     theHouse = DBSession.query(models.House).filter_by(id=houseId).first()
-    log.debug("House Id {0} => {1}".format(houseId,theHouse))
+    log.debug("House Id {0} => {1}".format(houseId, theHouse))
 
     currenttime = datetime.datetime.utcnow()
     cuttime = currenttime - datetime.timedelta(hours=1)
@@ -1154,12 +1217,12 @@ def _getRegistered(theId,parameters,reqType,request):
         #locNodes = loc.OldNodes
         #locNodes = loc.allnodes
         locNodes = loc.nodes
-        #log.debug("Location {0} Nodes {1}".format(loc,locNodes))
+        #log.debug("Location {0} Nodes {1}".format(loc, locNodes))
         #if locNodes is None:
           #Hunt for locations manually (this should only happen on update)
 
         for nd in locNodes:
-            theItem = {"id": "{0}_{1}".format(nd.id,loc.id),
+            theItem = {"id": "{0}_{1}".format(nd.id, loc.id),
                        "node":nd.id,
                        "room":loc.room.name,
                        "type":"location",
@@ -1167,14 +1230,14 @@ def _getRegistered(theId,parameters,reqType,request):
 
             #Status can wait
             readingQry = DBSession.query(models.Reading)
-            readingQry = readingQry.filter_by(nodeId = nd.id,
-                                              locationId = loc.id)
+            readingQry = readingQry.filter_by(nodeId=nd.id,
+                                              locationId=loc.id)
             readingQry = readingQry.order_by(models.Reading.time)
             count = readingQry.count()
             theItem["totalSamples"] = readingQry.count()
             if count:
                 firsttx = readingQry[0].time
-                lasttx  = readingQry[-1].time
+                lasttx = readingQry[-1].time
                 theItem["firstTx"] = firsttx.isoformat()
                 theItem["lastTx"] = lasttx.isoformat()
                 if lasttx > cuttime:
@@ -1188,9 +1251,9 @@ def _getRegistered(theId,parameters,reqType,request):
 
             #And Battery Levels
             batteryQry = DBSession.query(models.Reading)
-            batteryQry = batteryQry.filter_by(nodeId = nd.id,
-                                              locationId = loc.id)
-            batteryQry = batteryQry.filter_by(typeId = 6)
+            batteryQry = batteryQry.filter_by(nodeId=nd.id,
+                                              locationId=loc.id)
+            batteryQry = batteryQry.filter_by(typeId=6)
             batteryQry = batteryQry.order_by(models.Reading.time.desc())
 
             batteryQry = batteryQry.first()
@@ -1213,7 +1276,7 @@ def _getRegistered(theId,parameters,reqType,request):
 
 
 
-def _getStatus(nodeId,parameters,reqType,request):
+def _getStatus(nodeId, parameters, reqType, request):
     """Get Node Status
 
     :var parameters: Request.parameters for this query
@@ -1227,7 +1290,6 @@ def _getStatus(nodeId,parameters,reqType,request):
         log.debug(parameters)
         log.debug(request.json_body)
 
-        #jsonBody = {u'node': 70, u'status': u'Good', u'lastTx': u'2012-07-27T10:47:49', u'newRoom': u'Test Room', u'currentRoom': u'Test Room', u'id': 70, u'currentHouse': u'14 Gifford Walk'}
         jsonBody = request.json_body
 
         #The only thing we can do is update the Location
@@ -1274,8 +1336,8 @@ def _getStatus(nodeId,parameters,reqType,request):
 
         log.debug("Nodes we have heard from")
 
-        houseId = parameters.get("houseId",None)
-        cutTime = parameters.get("cutTime",None)
+        houseId = parameters.get("houseId", None)
+        cutTime = parameters.get("cutTime", None)
 
 
         heardQuery = DBSession.query(sqlalchemy.distinct(models.NodeState.nodeId))
@@ -1288,7 +1350,7 @@ def _getStatus(nodeId,parameters,reqType,request):
         heardNodes = [x[0] for x in heardQuery]
 
         #if houseId:
-        #    theQry = theQry.filter_by(houseId = houseId)
+        #    theQry = theQry.filter_by(houseId=houseId)
         #    log.debug("Search for locations associated with House {0}".format(houseId))
 
         #Get Type Id for Battery
@@ -1308,7 +1370,7 @@ def _getStatus(nodeId,parameters,reqType,request):
             #out=lastTime.first()
             #log.debug("--> {0}".format(out))
             #I can now add those to a list
-            #log.info("---- ITEM {0}, {1}, Node {2}".format(lastTime,lastTime.nodeId,lastTime.node))
+            #log.info("---- ITEM {0}, {1}, Node {2}".format(lastTime, lastTime.nodeId, lastTime.node))
 
             #We want to check if the node exists
             if lastTime.node is None:
@@ -1326,7 +1388,8 @@ def _getStatus(nodeId,parameters,reqType,request):
             if houseId:
                 if not theLoc:
                     continue
-                log.debug("Filter by House Id {0}, theLoc {1}".format(houseId,theLoc.house.id))
+                log.debug("Filter by House Id {0}, theLoc {1}".format(houseId,
+                                                                      theLoc.house.id))
                 if theLoc.house.id != int(houseId):
                     log.debug("Ignoring")
                     continue
@@ -1340,10 +1403,10 @@ def _getStatus(nodeId,parameters,reqType,request):
                        }
 
             #And Get the most Recent Battry Level
-            lastBattery = DBSession.query(models.Reading).filter_by(time = lastTime.time,
-                                                                  nodeId = node,
-                                                                  typeId = batteryType.id)
-            lastBattery= lastBattery.first()
+            lastBattery = DBSession.query(models.Reading).filter_by(time=lastTime.time,
+                                                                  nodeId=node,
+                                                                  typeId=batteryType.id)
+            lastBattery = lastBattery.first()
             #log.debug("--- Last Batt {0}".format(lastBattery))
 
 
@@ -1389,12 +1452,12 @@ def restTest2(request):
     import time
     log.debug(request.matchdict)
     log.debug("Params {0}".format(request.params))
-    nodeId = request.matchdict.get("id",None)
+    nodeId = request.matchdict.get("id", None)
 
 
     if nodeId == "":
         #Or we can fetch the item from the parameters
-        nodeId = request.params.get("id",None)
+        nodeId = request.params.get("id", None)
         if not nodeId:
             nodeId = 133
     log.debug("Id is {0}".format(nodeId))
@@ -1404,25 +1467,18 @@ def restTest2(request):
 
 
     #Run the Query
-    theQry = DBSession.query(models.NodeState,sqlalchemy.func.count(models.NodeState)).filter_by(nodeId = nodeId)
+    theQry = DBSession.query(models.NodeState, sqlalchemy.func.count(models.NodeState)).filter_by(nodeId=nodeId)
     theQry = theQry.group_by(sqlalchemy.func.date(models.NodeState.time))
     dataCount = theQry.count()
     #theQry = theQry.limit(5)
-    outList = [{"x":time.mktime(item[0].time.date().timetuple()),"value":item[1]} for item in theQry]
-    #outList = [{"x":item[0].time.date().isoformat(),"value":item[1]} for item in theQry]
-    #outList = [[time.mktime(item[0].time.date().timetuple()),item[1]] for item in theQry]
-    #outList = [[item[0].time.isoformat(),item[1]] for item in theQry]
-    #outList = [{"date":item[0].time.date().isoformat(),"value":item[1]} for item in theQry]
-    #outList = []
-    #for item in theQry:
-    #    #Work out the output of the item
-    #    outList.append([item[0].time.date().isoformat(),item[1]])
-    #    log.debug(item)
+    outList = [{"x":time.mktime(item[0].time.date().timetuple()),
+                "value":item[1]} for item in theQry]
+
     return outList
 
 def _getReadingCount(locationId):
     theQry = DBSession.query(models.Reading,
-                           sqlalchemy.func.count(models.Reading)).filter_by(locationId = locationId)
+                           sqlalchemy.func.count(models.Reading)).filter_by(locationId=locationId)
     theQry = theQry.group_by(models.Reading.typeId)
 
     outItems = []
@@ -1474,27 +1530,19 @@ def restTest(request):
                      "children":[]}
 
 
-    houseQry = DBSession.query(models.House).filter_by(deploymentId = None)
+    houseQry = DBSession.query(models.House).filter_by(deploymentId=None)
     houses = []
     for house in houseQry:
         thisHouse = {"name":house.address,
                      "children":[]}
 
         for location in house.locations:
-                thisLocation = {"name":location.room.name,
-                                "children":[]}
+            thisLocation = {"name":location.room.name,
+                            "children":[]}
 
-                readCount = _getReadingCount(location.id)
-                thisLocation["children"].extend(readCount)
-
-                #theQry = DBSession.query(models.Reading).filter_by(locationId = location.id)
-                #theCount = theQry.count()
-                #if theCount == 0:
-                #    theCount = 1
-
-                #thisLocation["children"].append({"name":"Readings",
-                #                                 "size": theCount})
-                thisHouse["children"].append(thisLocation)
+            readCount = _getReadingCount(location.id)
+            thisLocation["children"].extend(readCount)
+            thisHouse["children"].append(thisLocation)
 
         houses.append(thisHouse)
 
@@ -1533,20 +1581,24 @@ def lastnodesync(request):
     :return: either the date of the last sample or None
     """
 
-    nodeid = request.matchdict.get("id",None)
-    log.debug( "---- NODE ID >{0}< {1} {2}".format(nodeid,type(nodeid), nodeid==""))
+    nodeid = request.matchdict.get("id", None)
+    log.debug("---- NODE ID >{0}< {1} {2}".format(nodeid,
+                                                  type(nodeid),
+                                                  nodeid == ""))
     if (nodeid == u'') or (nodeid is None):
         log.debug("Trying Parameters")
-        nodeid = request.params.get("node",None)
+        nodeid = request.params.get("node", None)
 
-    log.debug( "---- NODE ID >{0}< {1} {2}".format(nodeid,type(nodeid), nodeid==""))
+    log.debug("---- NODE ID >{0}< {1} {2}".format(nodeid,
+                                                  type(nodeid),
+                                                  nodeid == ""))
 
     if not nodeid:
         log.debug("Exiting")
         return None
 
     qry = DBSession.query(sqlalchemy.func.max(models.Reading.time))
-    qry = qry.filter_by(nodeId = nodeid).first()[0]
+    qry = qry.filter_by(nodeId=nodeid).first()[0]
     print "{0} {1} {0}".format("="*30, qry)
     if qry is not None:
         return qry.isoformat()
@@ -1568,7 +1620,7 @@ def lastSync(request):
     :return: Either the date of the last sample or None
     """
 
-    housename = request.params.get("house",None)
+    housename = request.params.get("house", None)
 
     log.info("Fetching last Sample for house >{0}<".format(housename))
 
@@ -1626,14 +1678,14 @@ def getnetwork(request):
         if graphtype == "all":
             qry = DBSession.query(models.NodeState,
                                 sqlalchemy.func.count(models.NodeState.nodeId))
-            qry = qry.filter_by(nodeId = node.id)
+            qry = qry.filter_by(nodeId=node.id)
             qry = qry.group_by(models.NodeState.parent)
         #TODO (Add filters by time here)
 
         if graphtype == "current":
             qry = DBSession.query(models.NodeState,
                                 sqlalchemy.func.count(models.NodeState.nodeId))
-            qry = qry.filter_by(nodeId = node.id)
+            qry = qry.filter_by(nodeId=node.id)
             qry = qry.filter(models.NodeState.time >= (datetime.datetime.utcnow() - datetime.timedelta(minutes=7)))
             qry = qry.order_by(models.NodeState.time.desc())
 
@@ -1657,8 +1709,8 @@ def getnetwork(request):
                             )
 
             #And any visable neigbors
-            qry = DBSession.query(models.Reading).filter_by(nodeId = node.id,
-                                                          time = state[0].time)
+            qry = DBSession.query(models.Reading).filter_by(nodeId=node.id,
+                                                          time=state[0].time)
             #And show neigbors
             qry = qry.filter(models.Reading.typeId >= 2000)
             qry = qry.filter(models.Reading.typeId <= 2006)
@@ -1670,8 +1722,8 @@ def getnetwork(request):
                 #                  "count": 0})
             
             #I also want the average depth of the node
-            qry = DBSession.query(sqlalchemy.func.avg(models.Reading.value)).filter_by(nodeId = node.id)
-            qry = qry.filter_by(typeId = 1001) #MAGIC No
+            qry = DBSession.query(sqlalchemy.func.avg(models.Reading.value)).filter_by(nodeId=node.id)
+            qry = qry.filter_by(typeId=1001) #MAGIC No
 
             avgdepth = qry.first()
             if avgdepth[0] is None:
@@ -1680,7 +1732,7 @@ def getnetwork(request):
                 avgdepth = avgdepth[0] + 1
 
     
-            nodelist.append({"name": "{0}".format(node.id,state[0].time),
+            nodelist.append({"name": "{0}".format(node.id, state[0].time),
                              "count":statecount,
                              "id":node.id,
                              "depth":avgdepth})
@@ -1689,23 +1741,116 @@ def getnetwork(request):
             "links":linklist}
 
 
+def getschema(request):
+    """Get schema information for a given server"""
+    session = meta.Session()
+
+    theserver = request.params.get("server", None)
+    log.debug("Requesting schema for server {0}".format(theserver))
+    
+    theschema = {}
+    qry = session.query(models.Server).filter_by(hostname = theserver)
+    theserver = qry.first()
+    if theserver is None:
+        return []
+    log.debug("Database server is {0}".format(theserver))
+
+    now = datetime.datetime.utcnow()
+    qry = session.query(models.House).filter_by(serverid=theserver.id)
+    qry = qry.filter(sqlalchemy.or_(models.House.endDate==None,
+                                    models.House.endDate<=now))
+    houses = qry.all()
+    theschema["houses"] = [x.json() for x in houses]
+
+    locations = []
+    for item in houses:
+        locations.extend(item.locations)
+    theschema["locations"] = [x.json() for x in locations]
+
+    nodes = []
+    for item in locations:
+        nodes.extend(item.nodes)
+    theschema["nodes"] = [x.json() for x in nodes]
+        
+
+    return theschema
+
+
+def getenergy(request):
+    """Get energy use information for a given node"""
+    session = meta.Session()
+
+    #Stuff needed for Query
+    nodeid = request.params.get("nodeId", None)
+    typeid = request.params.get("type", "electric")
+    startdate = request.params.get("startdate", None)
+    if startdate:
+        startdate = dateutil.parser.parse(startdate)
+    enddate = request.params.get("enddate", None)
+    if enddate:
+        enddate = dateutil.parser.parse(enddate)
+        enddate = enddate + datetime.timedelta(days = 1)
+
+    #Stuff for processing (ie hourly data) default to daily if this is none
+    daily = request.params.get("daily", False)
+
+    log.debug("Getting Energy Summary for Node {0} ({1})".format(nodeid, daily))
+
+    if typeid == "electric":
+        #Process electric data
+        #Electricity sensor
+        qry = session.query(models.SensorType).filter_by(name="Power")
+        thesensor = qry.first()
+        log.debug("Electricty Sensor {0}".format(thesensor))
+    elif typeid == "gas":
+        qry = session.query(models.SensorType).filter_by(name="Gas Pulse Count")
+        thesensor = qry.first()
+        log.debug("Gas Sensor {0}".format(thesensor))
+
+
+    #Fetch the readings
+    qry = session.query(models.Reading).filter_by(typeId=thesensor.id)
+    qry = qry.filter_by(nodeId=nodeid)
+    if startdate:
+        qry = qry.filter(models.Reading.time >= startdate)
+    if enddate:
+        qry = qry.filter(models.Reading.time <= enddate)
+    log.debug("Number of samples {0}".format(qry.count()))
+
+
+    qry = qry.order_by(models.Reading.time)
+
+    #Process the reading by type
+    if typeid == "electric":
+        processed = getStatsElectricHour(qry, daily, None)
+    elif typeid == "gas":
+        processed = getStatsGasHour(qry, daily, None)
+    
+
+        #Convert for output
+    outreadings = [{"time":x[0].isoformat(),
+                    "kWh": x[1]}
+                   for x in processed]
+    return outreadings
+
 def getsummary(request):
     """Get summary information for a given node
 
-    Return daily [min,max,avg] for a given
+    Return daily [min, max, avg] for a given
     * nodeId
     * sensorTypeId (ie 0 for temperature)
     * start / end date.
     """
 
-    nodeid = request.params.get("nodeId",None)
-    typeid = request.params.get("typeId",0)
-    startdate = request.params.get("startdate",None)
+    nodeid = request.params.get("nodeId", None)
+    typeid = request.params.get("typeId", 0)
+    startdate = request.params.get("startdate", None)
     if startdate:
         startdate = dateutil.parser.parse(startdate)
-    enddate = request.params.get("enddate",None)
+    enddate = request.params.get("enddate", None)
     if enddate:
         enddate = dateutil.parser.parse(enddate)
+        enddate = enddate + datetime.timedelta(days = 1)
 
     log.debug("Getting Summary Information for node {0}".format(nodeid))
 
@@ -1717,8 +1862,8 @@ def getsummary(request):
                         sqlalchemy.func.min(models.Reading.value),
                         sqlalchemy.func.max(models.Reading.value),
                         sqlalchemy.func.avg(models.Reading.value)
-                    ).filter_by(nodeId = nodeid,
-                                typeId = typeid)
+                    ).filter_by(nodeId=nodeid,
+                                typeId=typeid)
     if startdate:
         qry = qry.filter(models.Reading.time >= startdate)
     if enddate:
@@ -1766,7 +1911,7 @@ def gettopology(request):
             if item[2] == 1:
                 if startdate is None:
                     startdate = item[0].time
-                    enddate =item[0].time
+                    enddate = item[0].time
                 elif item[0].time < startdate:
                     startdate = item[0].time
                 elif item[0].time > enddate:
@@ -1776,20 +1921,20 @@ def gettopology(request):
                 if (lastparent is None) or (lastparent != currentparent):
                     lastparent = currentparent
                     log.info("Change Triggered {0}".format(item))
-                    changes.append([str(item[0].time.date()),item[0].parent])
+                    changes.append([str(item[0].time.date()), item[0].parent])
 
-                    ditem = changedict.get(item[0].time.date().isoformat(),[])
-                    #print "-->",ditem
+                    ditem = changedict.get(item[0].time.date().isoformat(), [])
+                    #print "-->", ditem
                     #ditem.append({"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.date().isoformat()})
                     ditem = {"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.date().isoformat()}
                     changedict[item[0].time.date().isoformat()] = ditem
                 # elif lastparent != currentparent:
                 #     lastparent = currentparent
                 #     log.info("Toplology change")
-                #     changes.append([str(item[0].time.date()),item[0].parent])
+                #     changes.append([str(item[0].time.date()), item[0].parent])
             else:
                 #We have multiple parents
-                subquery = DBSession.query(models.NodeState).filter_by(nodeId = node.id)
+                subquery = DBSession.query(models.NodeState).filter_by(nodeId=node.id)
                 subquery = subquery.filter(sqlalchemy.func.date(models.NodeState.time) == item[0].time.date())
                 #print subquery.all()
                 for subitem in subquery:
@@ -1797,8 +1942,8 @@ def gettopology(request):
                     if (lastparent is None) or (lastparent != currentparent):
                         lastparent = currentparent
                         log.info("Sub Data change triggered ")
-                        changes.append([str(subitem.time),subitem.parent])
-                        ditem = changedict.get(item[0].time.isoformat(),[])
+                        changes.append([str(subitem.time), subitem.parent])
+                        ditem = changedict.get(item[0].time.isoformat(), [])
                         #ditem.append({"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.isoformat()})
                         ditem = {"id":item[0].nodeId, "parent":item[0].parent, "date":item[0].time.isoformat()}
                         changedict[item[0].time.isoformat()] = ditem
@@ -1806,17 +1951,15 @@ def gettopology(request):
                     #or (lastparent != currentparent):
                     
                     #lastparent = currentparent
-                #changes.append([str(item[0].time.date()),item[0].parent])
+                #changes.append([str(item[0].time.date()), item[0].parent])
 
 
                 
+        #changes = [(str(x[0].time), x[1], x[2]) for x in parentqry]
+
         #changes = [(str(x[0].time),x[1], x[2]) for x in parentqry]
 
-        nodelist.append({"node":node.id,"changes":changes})        
-    for key,item in changedict.iteritems():
-        print key,item
-    
-    
+        nodelist.append({"node":node.id, "changes":changes})
 
     return {"startdate": (startdate - datetime.timedelta(days=7)).isoformat(),
             "enddate": enddate.isoformat(),

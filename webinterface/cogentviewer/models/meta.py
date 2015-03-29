@@ -6,7 +6,7 @@ models, That saves the poor things getting confused with scope.
 #Functions provided by from meta import *
 __all__ = ['Base', 'Session']
 
-import warnings
+from cogentviewer.utils import deprecated
 import json
 
 import logging
@@ -113,6 +113,7 @@ class SerialiseMixin(object):
         """Return a json representation of this object"""
         return json.dumps(self.dict())
 
+    @deprecated
     def toDict(self):
         """
         Method to convert a row from an SQLAlchemy table to a dictionary.
@@ -130,10 +131,6 @@ class SerialiseMixin(object):
              toDict() will be removed in favor of the dict() method,
              (prepare for transistion to restAlchmey)
         """
-
-        LOG.warning("toDict Depricated, please use dict() function instead")
-        warnings.warn("meta.toDict() is depricated, please use meta.dict()",
-                      DeprecationWarning)
 
         return self.dict()
 
@@ -181,8 +178,11 @@ class SerialiseMixin(object):
                 #And set our variable
             setattr(self, col.name, value)
 
+    @deprecated
     def fromJSON(self, jsonDict):
         """Update the object using a JSON string
+
+        deprecated - use from_json() instead
 
         :var jsonDict:: Either a JSON string (from json.dumps) or dictionary
         containing key,value pairs (from asDict())
@@ -190,8 +190,8 @@ class SerialiseMixin(object):
         :return:  A copy of the original object
         """
 
-        warnings.warn("meta.fromJSON method is depricated use meta.from_json",
-                      DeprecationWarning)
+        #warnings.warn("meta.fromJSON method is depricated use meta.from_json",
+        #              DeprecationWarning)
 
         return self.from_json(jsonDict)
 
@@ -234,3 +234,4 @@ class InnoDBMix(SerialiseMixin):
 #         return ["group:user"]
 
 #     return ["group:none"]
+

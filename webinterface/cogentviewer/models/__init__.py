@@ -132,7 +132,7 @@ def newClsFromJSON(jsonItem):
     theModel = theClass()
     log.debug("New model is {0}".format(theModel))
     #And update using the JSON stuff
-    theModel.fromJSON(jsonItem)
+    theModel.from_json(jsonItem)
     log.debug("Updated Model {0}".format(theModel))
     return theModel
 
@@ -166,5 +166,5 @@ def clsFromJSON(theList):
         theModel = typeMap[theType.lower()]()
         #print theModel
         
-        theModel.fromJSON(item)
+        theModel.from_json(item)
         yield theModel

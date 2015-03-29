@@ -50,12 +50,21 @@ def populateUser():
             print "Passwords do not match"
         
     #Setup a new User
-    thisUser = user.User(username=newUser,
-                         email=userEmail,
-                         password=security.pwdContext.encrypt(passOne),
-                         level="user"
-                         )
-    session.add(thisUser)
+    qry = session.query(models.User).filter_by(username=newUser)
+    thisUser = qry.first()
+
+    print "Existing user is {0}".format(thisUser)
+
+    if thisUser is None:
+        print "No Such user"
+        thisUser = user.User(username=newUser,
+                             email=userEmail,                        
+                             level="user"
+                             )
+        session.add(thisUser)
+        
+    thisUser.password=security.pwdContext.encrypt(passOne)
+        #session.add(thisUser)
     session.flush()
     transaction.commit()
 

@@ -9,6 +9,6 @@ develop:
 	python setup.py develop
 
 tests:
-	paster serve test.ini & nosetests --cover-html cogentviewer/tests/
-	killall paster
+	pserve --reload test.ini & nosetests --cover-html cogentviewer/tests/
+	killall pserve
 

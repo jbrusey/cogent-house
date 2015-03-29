@@ -103,3 +103,10 @@
   - Modified Server Status page to only show relevant information
   - Removed Network Map from the Server Status page untill I find a sane way of represening it.
   - Remove Debug Code from Server State Page (Closes 81)
+
+0.4.6
+-----
+
+  - not sure what happened but lots of changes were pushed through to
+    launchpad and have attempted to take these back into the main
+    code.

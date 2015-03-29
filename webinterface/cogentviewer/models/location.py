@@ -5,12 +5,15 @@
 """
 
 import sqlalchemy
+from functools import total_ordering
 
-import meta
+from cogentviewer.models import meta
+
 
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship #, backref
 
+@total_ordering
 class Location(meta.Base, meta.InnoDBMix):
     """
     Location provides a link between houses and rooms.  This is needed if the
@@ -51,19 +54,15 @@ class Location(meta.Base, meta.InnoDBMix):
                                                self.roomId)
 
     def __eq__(self, other):
-        return (self.houseId == other.houseId and
-                self.roomId == other.roomId)
+        return ((self.houseId, self.roomId) ==
+                (other.houseId, other.roomId))
 
     def __ne__(self, other):
-        return not(self.houseId == other.houseId and
-                   self.roomId == other.roomId)
+        return not self == other
 
     def __lt__(self, other):
-        if self.id == other.id:
-            if self.houseId == other.houseId:
-                return self.roomId < other.roomId
-            return self.houseId < other.roomId
-        return self.id < other.id
+        return ((self.houseId, self.roomId) <
+                (other.houseId, other.roomId))
 
 
 NodeLocation = sqlalchemy.Table("NodeLocation", meta.Base.metadata,

@@ -189,6 +189,7 @@ class ModelTestCase(BaseTestCase):
         self.assertTrue(b == a)
         self.assertFalse(a != b)
         self.assertFalse(b != a)
+        self.assertFalse(a < b or a > b)
         self.assertEqual(0, cmp(a, b))
         self.assertEqual(0, cmp(b, a))
 
@@ -203,8 +204,11 @@ class ModelTestCase(BaseTestCase):
         self.assertFalse(b == a)
         self.assertTrue(a != b)
         self.assertTrue(b != a)
+        self.assertTrue(a < b or a > b)
         self.assertNotEqual(0, cmp(a, b))
         self.assertNotEqual(0, cmp(b, a))
+        self.assertTrue(cmp(a, b) == -1 or cmp(a, b) == 1)
+        self.assertTrue(cmp(b, a) == -1 or cmp(b, a) == 1)
 
     def _serialobj(self):
         """Helper method, return an object to serialise"""

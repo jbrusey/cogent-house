@@ -8,6 +8,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 import sqlalchemy.types as types
+from functools import total_ordering
 
 import meta
 from Bitset import Bitset
@@ -21,6 +22,7 @@ class BitsetType(types.TypeDecorator):
     def process_result_value(self, value, dialect):
         return Bitset.fromstring(value)
 
+@total_ordering
 class NodeType(meta.Base, meta.InnoDBMix):
     """Type of Node
 
@@ -81,10 +83,15 @@ class NodeType(meta.Base, meta.InnoDBMix):
 
         return thedict
                 
-                
-    def __cmp__(self,other):
-        if self.id == other.id:
-            return cmp(self.name, other.name)
-        else:
-            return self.id - other.id
-        
+    def __eq__(self, other):
+        return ((self.id, self.name) ==
+                (other.id, other.name))
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        return ((self.id, self.name) <
+                (other.id, other.name))
+
+

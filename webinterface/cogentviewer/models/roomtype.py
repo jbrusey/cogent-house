@@ -6,9 +6,10 @@
 
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-
+from functools import total_ordering
 import meta
 
+@total_ordering
 class RoomType(meta.Base, meta.InnoDBMix):
     """The Type of Room  e.g. bedroom or kitchen
 
@@ -31,7 +32,19 @@ class RoomType(meta.Base, meta.InnoDBMix):
         return self.name == other.name
 
     def __ne__(self, other):
-        return not(self.name == other.name)
+        return not self == other
 
     def __lt__(self, other):
         return self.name < other.name
+
+    def queryparams(self, body = None):
+        """Return a set of query parameters to find this specific item via the rest
+        service
+
+        :param body: The Request body or None
+        :return: query compatable dictionary
+        """
+        if body:
+            return {"name": body["name"]}
+        
+        return {"name" : self.name}

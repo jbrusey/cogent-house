@@ -145,14 +145,14 @@ def exportdata(request):
         #Try the string export
         LOG.debug("--> Setup Download")
         #theDf = processExport(houseId
-        theDf = processExport(houseId = houseId,
-                              locationIds = locids,  
-                              typeIds = sensorlist,
-                              aggregate = aggregate,
-                              aggregateby = aggparam,
-                              startDate = startdate,
-                              endDate = enddate,
-                              interpolate = interpolate,
+        theDf = processExport(houseId=houseId,
+                              locationIds=locids,  
+                              typeIds=sensorlist,
+                              aggregate=aggregate,
+                              aggregateby=aggparam,
+                              startDate=startdate,
+                              endDate=enddate,
+                              interpolate=interpolate,
                               )
 
         #LOG.debug(theDf)
@@ -171,14 +171,14 @@ def exportdata(request):
 def processExport(houseId,
                   locationIds=None,
                   typeIds=None,
-                  startDate = None,
-                  endDate =None,
+                  startDate=None,
+                  endDate=None,
                   aggregate=None,
                   aggregateby=None,
                   interpolate=None):
     """Process data for Export as a CSV file.
 
-    This function will fetch the sepecifed data from the DB and reformat it ready for export as CSV.
+    This function will fetch the specified data from the DB and reformat it ready for export as CSV.
     
     :param houseId:  Id of house to fetch data for
     :param locationIds: List of location Ids that we want to fetch data for. Defaults to all locations at the house
@@ -214,7 +214,7 @@ def processExport(houseId,
     if typeIds:
         typelist = typeIds
     else:
-        typelist = [0,2,4,5,6,8,9,11,15,16]        
+        typelist = [0, 2, 4, 5, 6, 8, 9, 11, 15, 16]
 
     LOG.debug("Filter By Sensor Types: {0}".format(typelist))
     dataqry = dataqry.filter(models.Reading.typeId.in_(typelist))
@@ -246,55 +246,27 @@ def processExport(houseId,
     #df.to_pickle('rawdata.pkl')
 
     #Before we make this wide we want to append any current stuff
-    df = calculateCurrent(df,aggregate)
-    df = calculateGasPulse(df,aggregate)
+    df = calculateCurrent(df, aggregate)
+    df = calculateGasPulse(df, aggregate)
 
     df.to_csv("rawdata.csv")    
 
     #Turn into a "wide" version
-    wide = df.pivot(index='time',columns="location",values="value")
-    #wide.head()
-
-    #Resample ?
-    #wide.resample("10Min")
-
-
+    wide = df.pivot(index='time', columns="location", values="value")
 
     if aggregate:
         LOG.debug("== Aggregate {0}".format(aggregate))
         if aggregateby:
             LOG.debug("== Aggregate By {0}".format(aggregateby))
-            resample =  wide.resample(aggregate,how=aggregateby)
+            resample = wide.resample(aggregate, how=aggregateby)
         else:
-            resample =  wide.resample(aggregate)    
-    else:   
-        resample =  wide
-
+            resample = wide.resample(aggregate)
+    else:
+        resample = wide
     if interpolate:
         resample = resample.apply(pandas.Series.interpolate)
 
     return resample
-    #This may be useful to reindex or whatever
-    #for item in models.reading.calibPandas(dataqry):
-    #    tmpIdx.append(item["time"])
-    #    tmpLoc.append(item["location"])
-    #    tmpList.append(item["value"])
-
-    #print "tmpList=",tmpList
-    #print "tmpLoc=",tmpLoc
-    #print "tmpIdx=",tmpIdx
-    #out = pandas.DataFrame(tmpList,index=[tmpIdx,tmpLoc],columns=["value"]) #We dont need the time index here if we do a pivot
-    #out = pandas.DataFrame(tmpList)
-    #out["nodestr"] = "{0}_{1}".format(out["nodeId"],out["typeId"])
-    #LOG.debug("--")
-    #LOG.debug("\n{0}".format(out))
-    #LOG.debug("=====")
-    #piv = out.pivot(index='time',columns="location",values="value")
-    #LOG.debug(piv)
-    #theData = 
-
-    #for item in locations:
-    #    LOG.debug(item)
 
 def calcualteElecPusle(df,aggregate=None):
     """Calculate electric pulses"""
@@ -319,35 +291,35 @@ def calcualteElecPusle(df,aggregate=None):
     locationStr = pulse.iloc[0]['location']
 
     #Deal with counts
-    outpulse = pulse[["time","count"]]
-    outpulse.rename(columns={"count":"value"},inplace=True)
+    outpulse = pulse[["time", "count"]]
+    outpulse.rename(columns={"count":"value"}, inplace=True)
     outpulse["location"] = "{0} (Count)".format(locationStr)
     df = df.append(outpulse)
 
     if aggregate:
         tmppulse = outpulse
         tmppulse.index = tmppulse["time"]
-        tmppulse= tmppulse.resample(aggregate,how="max")
+        tmppulse = tmppulse.resample(aggregate, how="max")
         tmppulse["time"] = tmppulse.index
         tmppulse["location"] = "{0} (Count Maximum)".format(locationStr)
-        df = df.append(tmppulse) 
+        df = df.append(tmppulse)
 
     #And KwH
-    outpulse = pulse[["time","kwh"]]
-    outpulse.rename(columns={"kwh":"value"},inplace=True)
+    outpulse = pulse[["time", "kwh"]]
+    outpulse.rename(columns={"kwh":"value"}, inplace=True)
     outpulse["location"] = "{0} (Kwh)".format(locationStr)
     df = df.append(outpulse)
 
     if aggregate:
         tmppulse = outpulse
         tmppulse.index = tmppulse["time"]
-        tmppulse= tmppulse.resample(aggregate,how="sum")
+        tmppulse = tmppulse.resample(aggregate, how="sum")
         tmppulse["time"] = tmppulse.index
         tmppulse["location"] = "{0} (kWh Cumulative)".format(locationStr)
-        df = df.append(tmppulse) 
+        df = df.append(tmppulse)
 
 
-def calculateGasPulse(df,aggregate=None):
+def calculateGasPulse(df, aggregate=None):
     """Convert gas pulses to kWh"""
     LOG.debug("--> Converting Gas")
 
@@ -372,52 +344,37 @@ def calculateGasPulse(df,aggregate=None):
     locationStr = gas.iloc[0]['location']
 
     #Deal with counts
-    outgas = gas[["time","count"]]
-    outgas.rename(columns={"count":"value"},inplace=True)
+    outgas = gas[["time", "count"]]
+    outgas.rename(columns={"count":"value"}, inplace=True)
     outgas["location"] = "{0} (Count)".format(locationStr)
     df = df.append(outgas)
 
     if aggregate:
         tmpgas = outgas
         tmpgas.index = tmpgas["time"]
-        tmpgas= tmpgas.resample(aggregate,how="max")
+        tmpgas = tmpgas.resample(aggregate, how="max")
         tmpgas["time"] = tmpgas.index
         tmpgas["location"] = "{0} (Count Maximum)".format(locationStr)
-        df = df.append(tmpgas) 
-
-    # outgas = gas[["time","mcubed"]]
-    # outgas.rename(columns={"mcubed":"value"},inplace=True)
-    # outgas["location"] = "{0} (M3)".format(locationStr)
-    # df = df.append(outgas)    
-
-    # if aggregate:
-    #     tmpgas = outgas
-    #     tmpgas.index = tmpgas["time"]
-    #     tmpgas= tmpgas.resample(aggregate,how="sum")
-    #     tmpgas["time"] = tmpgas.index
-    #     tmpgas["location"] = "{0} (MCubed Cumulative)".format(locationStr)
-    #     df = df.append(tmpgas) 
+        df = df.append(tmpgas)
 
     #And kWh
-    outgas = gas[["time","kwh"]]
-    outgas.rename(columns={"kwh":"value"},inplace=True)
+    outgas = gas[["time", "kwh"]]
+    outgas.rename(columns={"kwh":"value"}, inplace=True)
     outgas["location"] = "{0} (Kwh)".format(locationStr)
     df = df.append(outgas)
 
     if aggregate:
         tmpgas = outgas
         tmpgas.index = tmpgas["time"]
-        tmpgas= tmpgas.resample(aggregate,how="sum")
+        tmpgas = tmpgas.resample(aggregate, how="sum")
         tmpgas["time"] = tmpgas.index
         tmpgas["location"] = "{0} (kWh Cumulative)".format(locationStr)
-        df = df.append(tmpgas) 
-
-
+        df = df.append(tmpgas)
 
     return df
     
     
-def calculateCurrent(df,aggregate=None):
+def calculateCurrent(df, aggregate=None):
     """Convert Current Readings to kWh
     
     :param df: Dataframe containing readings to work with
@@ -425,7 +382,7 @@ def calculateCurrent(df,aggregate=None):
     """
 
     #Focus only on Electricity Data
-    elec = df[df["typeId"]==11]
+    elec = df[df["typeId"] == 11]
     if len(elec) == 0:
         LOG.debug("------- NO POWER DATA -------")
         return df
@@ -433,13 +390,13 @@ def calculateCurrent(df,aggregate=None):
     #Calculate the Delta
     elec["delta"] = elec["time"] - elec["time"].shift()
     #Do the Conversion
-    elec["kWh"]  = elec.apply(currentFunc,axis=1)
+    elec["kWh"] = elec.apply(currentFunc, axis=1)
 
-    outelec = elec[["location","time","kWh"]]
+    outelec = elec[["location", "time", "kWh"]]
     #outelec.colums = ["location","time","value"]
-    outelec.rename(columns={"kWh":"value"},inplace=True)
+    outelec.rename(columns={"kWh":"value"}, inplace=True)
 
-    print elec.head()
+    #print elec.head()
 
     #Append the kWh
     outelec["location"] = outelec["location"].map(lambda x: "{0} (kWh)".format(x))
@@ -450,7 +407,7 @@ def calculateCurrent(df,aggregate=None):
     if aggregate:
         tmpelec = outelec 
         tmpelec.index = tmpelec["time"]
-        tmpelec= tmpelec.resample(aggregate,how="sum")
+        tmpelec = tmpelec.resample(aggregate, how="sum")
         tmpelec["time"] = tmpelec.index
         tmpelec["location"] = "{0} (kWh Cumulative)".format(locationStr)
         df = df.append(tmpelec) 
@@ -458,14 +415,12 @@ def calculateCurrent(df,aggregate=None):
     return df
 
 
-def currentFunc(theRow):   
+def currentFunc(theRow):
+    """Convert current to kWh"""
     delta = theRow["delta"]
     if delta is None:
         print "Skipping row without time"
         return
-
-
-
 
     kW = theRow["value"] / 1000.0
     if kW == 0:
@@ -478,8 +433,10 @@ def currentFunc(theRow):
 
     KwH = kW * hours
 
-    if theRow["time"] < datetime.datetime(2014,02,02,19,10,00):
-        print "Row {0}  Delta {1}  Hours {2} Kw {3} == {4}".format(theRow,delta,hours,kW, KwH)
+    if theRow["time"] < datetime.datetime(2014, 02, 02, 19, 10, 00):
+        print "Row {0}  Delta {1}  Hours {2} Kw {3} == {4}".format(theRow,
+                                                                   delta,
+                                                                   hours,
+                                                                   kW,
+                                                                   KwH)
     return KwH
-    #delta = s["delta"]
-    #value = s["value"]
