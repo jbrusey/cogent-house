@@ -498,7 +498,7 @@ def _wrappedRest(request):
             log.debug("--> Query Results on search for {0}".format(theId))
         elif queryParams:
             log.debug("--> Attempt to add new object based on search")
-            print queryParams
+            #print queryParams
             theQuery = filterQuery(theModel, theQuery, queryParams)
         else:
             #Try to force the search based on the query params method
@@ -648,8 +648,8 @@ def getheatmap(request):
                           )
 
     df = df.convert_objects(convert_dates='coerce', convert_numeric=True)
-    print df
-    print df.head()
+    #print df
+    #print df.head()
 
     #Reindex
     multidf = df.set_index(["date", "nodeid"])
@@ -733,7 +733,7 @@ def getcounts(request):
     qry = qry.order_by(sqlalchemy.func.date(models.Reading.time))
 
     outdata = [[x[1].isoformat(), x[2]] for x in qry]
-    print outdata
+    #print outdata
     return outdata
 
 
@@ -983,7 +983,7 @@ def _updateTimes(theId, parameters, request):
     #    log.debug("Pass")
     #DBSession.commit()
     #log.debug(theQry)
-    #session.close()
+
 
 def getStatsGasHour(theQry, daily=False, events=None):
     """Work out hourly / Daily electricity use.
@@ -999,7 +999,7 @@ def getStatsGasHour(theQry, daily=False, events=None):
     outlist = []
 
     if theQry.count() == 0:
-        return False
+        return []
 
     #Export to Pandas
     df = pandas.DataFrame([{"time":x.time, "value":x.value} for x in theQry])
@@ -1027,7 +1027,7 @@ def getStatsGasHour(theQry, daily=False, events=None):
     resampled[resampled["kWh"] <= 0] = None
 
 
-    print resampled.head()
+    #print resampled.head()
 
     #Then do the final resample
     if daily:
@@ -1078,7 +1078,7 @@ def getStatsElectricHour(theQry, daily=False, events=None):
     #theQry = theQry.limit(500)
 
     if theQry.count() == 0:
-        return False
+        return []
 
     #theQry = theQry.limit(5)
 
@@ -1576,7 +1576,7 @@ def restTest(request):
     return baseItem
 
 def lastnodesync(request):
-    """Fetch teh last sample in the database for a given node
+    """Fetch the last sample in the database for a given node
 
     :return: either the date of the last sample or None
     """
@@ -1599,7 +1599,7 @@ def lastnodesync(request):
 
     qry = DBSession.query(sqlalchemy.func.max(models.Reading.time))
     qry = qry.filter_by(nodeId=nodeid).first()[0]
-    print "{0} {1} {0}".format("="*30, qry)
+    #print "{0} {1} {0}".format("="*30, qry)
     if qry is not None:
         return qry.isoformat()
     return None
@@ -1743,20 +1743,19 @@ def getnetwork(request):
 
 def getschema(request):
     """Get schema information for a given server"""
-    session = meta.Session()
 
     theserver = request.params.get("server", None)
     log.debug("Requesting schema for server {0}".format(theserver))
     
     theschema = {}
-    qry = session.query(models.Server).filter_by(hostname = theserver)
+    qry = DBSession.query(models.Server).filter_by(hostname = theserver)
     theserver = qry.first()
     if theserver is None:
         return []
     log.debug("Database server is {0}".format(theserver))
 
     now = datetime.datetime.utcnow()
-    qry = session.query(models.House).filter_by(serverid=theserver.id)
+    qry = DBSession.query(models.House).filter_by(serverid=theserver.id)
     qry = qry.filter(sqlalchemy.or_(models.House.endDate==None,
                                     models.House.endDate<=now))
     houses = qry.all()
@@ -1778,7 +1777,6 @@ def getschema(request):
 
 def getenergy(request):
     """Get energy use information for a given node"""
-    session = meta.Session()
 
     #Stuff needed for Query
     nodeid = request.params.get("nodeId", None)
@@ -1799,17 +1797,17 @@ def getenergy(request):
     if typeid == "electric":
         #Process electric data
         #Electricity sensor
-        qry = session.query(models.SensorType).filter_by(name="Power")
+        qry = DBSession.query(models.SensorType).filter_by(name="Power")
         thesensor = qry.first()
         log.debug("Electricty Sensor {0}".format(thesensor))
     elif typeid == "gas":
-        qry = session.query(models.SensorType).filter_by(name="Gas Pulse Count")
+        qry = DBSession.query(models.SensorType).filter_by(name="Gas Pulse Count")
         thesensor = qry.first()
         log.debug("Gas Sensor {0}".format(thesensor))
 
 
     #Fetch the readings
-    qry = session.query(models.Reading).filter_by(typeId=thesensor.id)
+    qry = DBSession.query(models.Reading).filter_by(typeId=thesensor.id)
     qry = qry.filter_by(nodeId=nodeid)
     if startdate:
         qry = qry.filter(models.Reading.time >= startdate)
@@ -1825,7 +1823,8 @@ def getenergy(request):
         processed = getStatsElectricHour(qry, daily, None)
     elif typeid == "gas":
         processed = getStatsGasHour(qry, daily, None)
-    
+    else:
+        processed = []
 
         #Convert for output
     outreadings = [{"time":x[0].isoformat(),

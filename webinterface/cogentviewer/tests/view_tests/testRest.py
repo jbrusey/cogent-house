@@ -409,3 +409,7 @@ class RestTest(base.FunctionalTest):
         #And a place that doesnt exist
         res = self.testapp.get("/rest/lastsync/", {"house":"testing house fail"})
         self.assertFalse(res.json)
+
+    def test_energysummary(self):
+        res = self.testapp.get("/rest/energysummary/")
+        self.assertEqual(res.json, [])

@@ -131,7 +131,7 @@ class TestExport(base.FunctionalTest):
         self.assertEqual(result.index[1], datetime.datetime(2013, 01, 02, 0, 00, 00))
 
     def test_aggregateby(self):
-        """Cqn we add summary statistics?"""
+        """Can we add summary statistics?"""
         result = export.processExport(houseId=1,
                                       aggregate="1D",
                                       aggregateby=["min"])
@@ -145,7 +145,7 @@ class TestExport(base.FunctionalTest):
                                       aggregate="1D",
                                       aggregateby=["min","mean","max"])
 
-        print result.head()
+        #print result.head()
         #So this will have 3 readings for each location (6 in total()
         self.assertEqual(result.shape, (10, 6))
         #And the second sample should be 10 minutes in
