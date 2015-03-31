@@ -986,20 +986,25 @@ def _updateTimes(theId, parameters, request):
 
 
 def getStatsGasHour(theQry, daily=False, events=None):
-    """Work out hourly / Daily electricity use.
+    """Work out hourly / daily electricity use.
 
-    NOTE:  For Imperial (ft3) Meters only
+    NOTE:  For imperial (ft3) meters only
 
-    :param theQry: SQLA Query holding the data
+    :param theQry: SQLA query holding the data
     :param daily:  Generate a daily summary if true, hourly if false
-    :param events:  List of events occouring during the monitoring period
+    :param events:  List of events occurring during the monitoring period
 
-    :return: List of dictionarry objects refering the the data
+    :return: List of dictionary objects referring the the data
     """
     outlist = []
 
-    if theQry.count() == 0:
-        return []
+    # to support testing, start by assuming it's a list
+    try:
+        if len(theQry) == 0:
+            return []
+    except TypeError:
+        if theQry.count() == 0:
+            return []
 
     #Export to Pandas
     df = pandas.DataFrame([{"time":x.time, "value":x.value} for x in theQry])
@@ -1009,7 +1014,7 @@ def getStatsGasHour(theQry, daily=False, events=None):
     #Reasample
     resampled = df.resample("5min")
     #And Fill in any gaps
-    resampled = resampled.fillna(method="pad", limit=288)
+    resampled = resampled.fillna(method="pad")  # removed limit
     #resampled["kW"] = resampled["value"] / 1000.0
     #With gas we convert using the following formula
     #VALUE (in 100's) * M3_conversion * volume_correction * calorific * kWh_conversion
@@ -1017,8 +1022,7 @@ def getStatsGasHour(theQry, daily=False, events=None):
     #So first we want the delta between the two
     resampled["delta"] = (resampled["value"] - resampled["value"].shift())
 
-
-    resampled["kWh"] = resampled["delta"] * GAS_PULSE_TO_METERS * GAS_VOLUME * GAS_COLORIFIC * GAS_CONVERSION
+    resampled["kWh"] = resampled["delta"] * GAS_PULSE_TO_METERS * GAS_VOLUME * GAS_COLORIFIC / GAS_CONVERSION
     #We know there is a 5 minute sample period (due to interp)
     #Also as the fomula does conversion the kWh we can ignore time
     #resampled["kWh"] = resampled["kW"] * (5.0/60.0)
