@@ -9,6 +9,7 @@ import pyramid.url
 import pandas
 
 import cogentviewer.models.meta as meta
+from cogentviewer.views.energycalc import get_stats_gas_hour
 from ..models.meta import DBSession
 import cogentviewer.models as models
 import homepage
@@ -985,67 +986,8 @@ def _updateTimes(theId, parameters, request):
     #log.debug(theQry)
 
 
-def getStatsGasHour(theQry, daily=False, events=None):
-    """Work out hourly / daily electricity use.
-
-    NOTE:  For imperial (ft3) meters only
-
-    :param theQry: SQLA query holding the data
-    :param daily:  Generate a daily summary if true, hourly if false
-    :param events:  List of events occurring during the monitoring period
-
-    :return: List of dictionary objects referring the the data
-    """
-    outlist = []
-
-    # to support testing, start by assuming it's a list
-    try:
-        if len(theQry) == 0:
-            return []
-    except TypeError:
-        if theQry.count() == 0:
-            return []
-
-    #Export to Pandas
-    df = pandas.DataFrame([{"time":x.time, "value":x.value} for x in theQry])
-    #Convert index (as time)
-    df.index = df.time
-
-    #Reasample
-    resampled = df.resample("5min")
-    #And Fill in any gaps
-    resampled = resampled.fillna(method="pad")  # removed limit
-    #resampled["kW"] = resampled["value"] / 1000.0
-    #With gas we convert using the following formula
-    #VALUE (in 100's) * M3_conversion * volume_correction * calorific * kWh_conversion
-    
-    #So first we want the delta between the two
-    resampled["delta"] = (resampled["value"] - resampled["value"].shift())
-
-    resampled["kWh"] = resampled["delta"] * GAS_PULSE_TO_METERS * GAS_VOLUME * GAS_COLORIFIC / GAS_CONVERSION
-    #We know there is a 5 minute sample period (due to interp)
-    #Also as the fomula does conversion the kWh we can ignore time
-    #resampled["kWh"] = resampled["kW"] * (5.0/60.0)
-
-    #And Remove Zero Values
-    resampled[resampled["kWh"] <= 0] = None
 
 
-    #print resampled.head()
-
-    #Then do the final resample
-    if daily:
-        output = resampled.resample("1d", how="sum")
-    else:
-        output = resampled.resample("1h", how="sum")
-
-    #Prep output for output
-    outlist = []
-    for item in output.dropna().iterrows():
-        outlist.append([item[0], item[1]["kWh"], None])
-        #outlist.append([item[0], item[1]["delta"], None])
-
-    return outlist
 
 
 def getStatsElectricHour(theQry, daily=False, events=None):
@@ -1826,7 +1768,7 @@ def getenergy(request):
     if typeid == "electric":
         processed = getStatsElectricHour(qry, daily, None)
     elif typeid == "gas":
-        processed = getStatsGasHour(qry, daily, None)
+        processed = get_stats_gas_hour(qry, as_daily=daily)
     else:
         processed = []
 
