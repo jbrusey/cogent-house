@@ -1768,7 +1768,7 @@ def getenergy(request):
     if typeid == "electric":
         processed = getStatsElectricHour(qry, daily, None)
     elif typeid == "gas":
-        processed = get_stats_gas_hour(qry, as_daily=daily)
+        processed = get_stats_gas_hour(qry.all(), as_daily=daily)
     else:
         processed = []
 

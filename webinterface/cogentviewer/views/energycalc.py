@@ -13,6 +13,12 @@ GAS_FT3_FACTOR = (GAS_PULSE_TO_METERS *
                   GAS_VOLUME * GAS_COLORIFIC / GAS_CONVERSION)
 
 
+def extract_time_value(readings):
+    """ extract time and value from Readings object """
+    for i in readings:
+        yield (i.time, i.value)
+
+
 def resample(readings, period=datetime.timedelta(hours=1)):
     """ resample readings at a particular period with padding """
     next_t = None
@@ -49,8 +55,9 @@ def get_stats_gas_hour(pulse_readings,
                           as_daily=False):
     """ hourly or daily summary for gas
     """
+    readings = extract_time_value(pulse_readings)
     if as_daily:
-        resampled = resample(pulse_readings,
+        resampled = resample(readings,
                              period=datetime.timedelta(days=1))
     else:
         resampled = resample(pulse_readings,
