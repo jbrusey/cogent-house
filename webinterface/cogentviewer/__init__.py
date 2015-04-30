@@ -125,7 +125,7 @@ def main(global_config, **settings):
     config.add_route("genericRest", "rest/{theType}/{id:.*}")
     config.add_view("cogentviewer.views.restService.genericRest",
                     route_name="genericRest",
-                    renderer="json")
+                    renderer="jsonp")
 
     config.add_route("summaryRest", "sumRest/{theType}/{id:.*}")
     config.add_view("cogentviewer.views.restService.summaryRest",
