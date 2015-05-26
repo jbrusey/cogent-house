@@ -66,7 +66,7 @@ ifdef rf_channel
 CFLAGS += -DCC2420_DEF_CHANNEL=$(rf_channel)
 endif
 
-REVISION=$(shell hg id -i)
+REVISION=$(shell git rev-parse --short HEAD)
 CFLAGS+=-DDEF_HG_REVISION="\"$(REVISION)\""
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
