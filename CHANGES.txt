@@ -135,3 +135,7 @@ Version 1.1.8 (Not released)
 
  * Added automated reporting
  
+Version 1.1.9
+-------------
+
+ * refactor for PULP project
