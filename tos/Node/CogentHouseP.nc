@@ -11,6 +11,7 @@ module CogentHouseP
     interface Timer<TMilli> as SenseTimer;
     interface Timer<TMilli> as BlinkTimer;
     interface Timer<TMilli> as SendTimeOutTimer;
+    interface Timer<TMilli> as BootSendTimeOutTimer;
 
     //Radio + CTP
     interface SplitControl as RadioControl;
@@ -83,6 +84,7 @@ implementation
 
       memcpy(newData->version, DEF_HG_REVISION, sizeof(newData->version) - 1);
 
+      call BootSendTimeOutTimer.startOneShot(BOOT_TIMEOUT_TIME);
       if (call BootSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
 	  printf("boot sending begun at %lu\n", call LocalTime.get());
@@ -90,6 +92,12 @@ implementation
 #endif
       }
     }
+  }
+
+  /** startFirstSensing starts the sense timer after the boot message
+      has been sent (or timed-out) */
+  void startFirstSensing()
+  {
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
     first_period_pending = FALSE;
   }
@@ -102,7 +110,18 @@ implementation
     printf("Boot sending done at %lu ok=%u\n", call LocalTime.get(), ok);
     printfflush();
 #endif
-    
+    if (ok == SUCCESS) { 
+      call BootSendTimeOutTimer.stop();
+      startFirstSensing();
+    }
+  }
+
+  /** BootSendTimeOutTimer.fired - if the boot send message times out, cancel it
+   */
+  event void BootSendTimeOutTimer.fired() {
+    call BootSender.cancel(&dataMsg);
+    /* don't retry - just get on with the next sensing round */
+    startFirstSensing();
   }
 
   /** powerDown - if the battery voltage goes low, stop everything. 
@@ -568,7 +587,7 @@ implementation
   event void BlinkTimer.fired() { 
     if (seen_first_ack)
       blinkThrice(TRUE);
-    else if (blink_state >= 60) { /* 30 seconds */
+    else if (blink_state >= 2 * BLINK_SECONDS) { /* 60 seconds */
       blinkThrice(FALSE);
     }
     else { 

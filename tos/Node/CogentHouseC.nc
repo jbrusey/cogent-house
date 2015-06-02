@@ -28,10 +28,12 @@ implementation
   components new TimerMilliC() as SenseTimer;
   components new TimerMilliC() as BlinkTimer;
   components new TimerMilliC() as SendTimeOutTimer;
+  components new TimerMilliC() as BootSendTimeOutTimer;
 
   CogentHouseP.SenseTimer -> SenseTimer;
   CogentHouseP.BlinkTimer -> BlinkTimer;
   CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
+  CogentHouseP.BootSendTimeOutTimer -> BootSendTimeOutTimer;
 
   // Instantiate and wire our collection service
   components CollectionC, ActiveMessageC;
