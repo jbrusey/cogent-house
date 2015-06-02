@@ -35,47 +35,33 @@ Header file containing all packet formats sent/received
 #ifndef _PACKETS_H
 #define _PACKETS_H
 
-#define CLUSTER_HEAD (TOS_NODE_ID >= CLUSTER_HEAD_MIN_ID)
-
 
 // state codes
 enum {
-  SC_TEMPERATURE = 0,
+  SC_TEMPERATURE   = 0,
   SC_D_TEMPERATURE = 1,
-  SC_HUMIDITY = 2,
-  SC_D_HUMIDITY = 3,
-  SC_PAR = 4,
-  SC_TSR = 5,
-  SC_VOLTAGE = 6,
-  SC_D_VOLTAGE = 7,
-  SC_CO2 = 8,
-  SC_AQ = 9,
-  SC_VOC = 10,
-  SC_POWER = 11,
-  SC_HEAT = 12,
-  SC_DUTY_TIME= 13,
-  SC_ERRNO = 14,
-  SC_POWER_MIN = 15,
-  SC_POWER_MAX = 16,
-  SC_POWER_KWH = 17,
-  SC_HEAT_ENERGY = 18,
-  SC_HEAT_VOLUME = 19,
-  SC_D_CO2 = 20,
-  SC_D_VOC = 21,
-  SC_D_AQ = 22,
-  SC_WALL_TEMP = 23,
-  SC_D_WALL_TEMP = 24,
-  SC_WALL_HUM = 25,
-  SC_D_WALL_HUM = 26, 
-  SC_OPTI = 40,
-  SC_TEMPADC1 = 41,
-  SC_D_TEMPADC1 = 42,
-  SC_GAS = 43,
-  SC_D_OPTI = 44,
-  SC_WINDOW = 45,
-  SC_BB = 46,
-  SC_D_BB = 47,
-  SC_SIZE = 48, // SC_SIZE must be 1 greater than last entry
+  SC_HUMIDITY	   = 2,
+  SC_D_HUMIDITY	   = 3,
+  SC_PAR	   = 4,
+  SC_TSR	   = 5,
+  SC_VOLTAGE	   = 6,
+  SC_D_VOLTAGE	   = 7,
+  SC_ADC_0	   = 8,
+  SC_D_ADC_0	   = 9,
+  SC_ADC_1	   = 10,
+  SC_D_ADC_1	   = 11,
+  SC_ADC_2	   = 12,
+  SC_D_ADC_2	   = 13,
+  SC_ADC_3	   = 14,
+  SC_D_ADC_3	   = 15,
+  SC_ADC_6	   = 16,
+  SC_D_ADC_6	   = 17,
+  SC_ADC_7	   = 18,
+  SC_D_ADC_7	   = 19,
+  SC_GIO2          = 20,
+  SC_GIO3          = 21,
+  SC_ERRNO         = 22,
+  SC_SIZE          = 23, // SC_SIZE must be 1 greater than last entry
 
   /* procedure for increasing SC_SIZE:
    *
@@ -96,27 +82,19 @@ enum {
 // raw sensors
 enum { 
   RS_TEMPERATURE = 0,
-  RS_HUMIDITY = 1,
-  RS_PAR = 2,
-  RS_TSR = 3,
-  RS_VOLTAGE = 4,
-  RS_CO2 = 5,
-  RS_AQ = 6,
-  RS_VOC = 7,
-  RS_POWER = 8,
-  RS_HM_ENERGY = 9,
-  RS_HM_VOLUME = 10,
-  RS_DUTY = 11,
-  RS_OPTI = 12,
-  RS_CLAMP = 13,
-  RS_TEMPADC1 = 14,
-  RS_GAS= 15,
-  RS_WINDOW= 16,
-  RS_AC= 17,
-  RS_BB=18,
-  RS_WALL_TEMP=19,
-  RS_WALL_HUM=20,
-  RS_SIZE = 21 // must be 1 greater than last entry
+  RS_HUMIDITY	 = 1,
+  RS_PAR	 = 2,
+  RS_TSR	 = 3,
+  RS_VOLTAGE	 = 4,
+  RS_ADC_0	 = 5,
+  RS_ADC_1	 = 6,
+  RS_ADC_2	 = 7,
+  RS_ADC_3	 = 8,
+  RS_ADC_6	 = 9,
+  RS_ADC_7	 = 10,
+  RS_GIO2        = 11,
+  RS_GIO3        = 12,
+  RS_SIZE	 = 13		// must be 1 greater than last entry
 };
 
 //separate packets structure for mote type
@@ -126,22 +104,12 @@ enum {
   AM_STATEV1MSG = 4,
   AM_CONFIGMSG = 5,
   DIS_SETTINGS = 6,
-  AM_STATEMSG = 7,
+  AM_STATEV2MSG = 7,
   AM_BOOTMSG = 8,
+  AM_STATEMSG = 9,
+
   SPECIAL = 0xc7,
-  MAX_HOPS = 4,
   NODE_TYPE_BASE = 0,
-  NODE_TYPE_HEATMETER = 4,
-  NODE_TYPE_OPTI = 5,
-  NODE_TYPE_TEMP = 6,
-  NODE_TYPE_GAS = 7,
-  NODE_TYPE_WINDOW = 8,
-  CLUSTER_HEAD_CO2_TYPE = 10,
-  CLUSTER_HEAD_VOC_TYPE = 11,
-  CLUSTER_HEAD_CC_TYPE = 12,
-  CLUSTER_HEAD_BB_TYPE = 13,
-  CLUSTER_HEAD_WALL_TYPE = 14,
-  CLUSTER_HEAD_MIN_ID = 10 << 12 //min cluster head type
 };
 
 
@@ -186,7 +154,6 @@ typedef nx_struct StateMsg {
 
 typedef nx_struct BootMsg {
   nx_uint8_t special;
-  nx_bool clustered;
   nx_uint8_t version[14];
 } BootMsg;
 

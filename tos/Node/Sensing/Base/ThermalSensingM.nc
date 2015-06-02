@@ -34,7 +34,7 @@
    :email: ross.wilkins87@googlemail.com
    :date:  05/01/2011
 */
-
+#include "horner.c"
 
 module ThermalSensingM @safe()
 {

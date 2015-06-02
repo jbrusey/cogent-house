@@ -30,32 +30,8 @@ module CogentHouseP
     interface SIPController<FilterState *> as ReadTemp;
     interface SIPController<FilterState *> as ReadHum;
     interface SIPController<FilterState *> as ReadVolt;
-    interface SIPController<FilterState *> as ReadCC;
-    interface SIPController<FilterState *> as ReadCO2;
-    interface SIPController<FilterState *> as ReadBB;
-    interface SIPController<FilterState *> as ReadVOC;
-    interface SIPController<FilterState *> as ReadAQ;
-    interface SIPController<FilterState *> as ReadOpti;
-    interface SIPController<FilterState *> as ReadGas;
-    interface SIPController<FilterState *> as ReadHMEnergy;
-    interface SIPController<FilterState *> as ReadHMVolume;
-    interface SIPController<FilterState *> as ReadWindow;
-    interface SIPController<FilterState *> as ReadTempADC1;
-    interface SIPController<FilterState *> as ReadWallTemp;
-    interface SIPController<FilterState *> as ReadWallHum;
     interface TransmissionControl;
-    interface StdControl as OptiControl;
-    interface StdControl as GasControl;
-    interface StdControl as WindowControl;
-    interface SplitControl as CurrentCostControl;
-    interface StdControl as HMEnergyControl;
-    interface StdControl as HMVolumeControl;
-   
-#ifndef MISSING_AC_SENSOR
-    interface Read<bool> as ReadAC;
-    interface StdControl as ACControl;
-#endif
-    
+       
     //Bitmask and packstate
     interface AccessibleBitVector as Configured;
     interface BitVector as ExpectReadDone;
@@ -64,38 +40,33 @@ module CogentHouseP
 }
 implementation
 {
-  uint32_t sample_period;
+  uint32_t	sample_period;
 
-  uint8_t nodeType;   /* default node type is determined by top 4 bits of node_id */
-  bool sending;
-  bool shutdown = FALSE;
-  bool first_period_pending = FALSE;
-#ifdef CLUSTER_BASED
-  bool clustered = TRUE;
-  bool leaf_mode = FALSE;
-  bool send_state_pending = FALSE;
-#endif
-#ifndef CLUSTER_BASED
-  bool clustered = FALSE;
-#endif
-  bool seen_first_ack = FALSE;
-  message_t dataMsg;
-  uint16_t message_size;
-  uint8_t msgSeq = 0;
-  uint8_t expSeq = 255;
-  uint32_t sense_start_time;
-  uint32_t send_start_time;  
-  uint8_t missedPKT = 0;
+  uint8_t	nodeType;	/* default node type is determined by top 4 bits of node_id */
+  bool		sending;
+  bool		shutdown	     = FALSE;
+  bool		first_period_pending = FALSE;
+  bool		seen_first_ack	     = FALSE;
+  message_t	dataMsg;
+  uint16_t	message_size;
+  uint8_t	msgSeq		     = 0;
+  uint8_t	expSeq		     = 255;
+  uint32_t	sense_start_time;
+  uint32_t	send_start_time;  
+  uint8_t	missedPKT	     = 0;
 
-  bool packet_pending = FALSE;
-  float last_duty = 0.;
-  uint32_t last_errno = 1;
-  uint32_t last_transmitted_errno;
+  bool	        packet_pending       = FALSE;
+  float		last_duty            = 0.;
+  uint32_t	last_errno           = 1;
+  uint32_t	last_transmitted_errno;
 
   /** prototypes **/
   void radioStop(void);
 
 /********* Boot Message Methods **********/
+  /** sendBoot - at boot time, send an initial packet (without
+      checking for ack) that specifies the current version 
+   */
   void sendBoot()
   {
     BootMsg *newData;
@@ -108,8 +79,7 @@ implementation
     message_size = sizeof (BootMsg);
     newData = call BootSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
-      newData->special = 0xc7;
-      newData->clustered = clustered;
+      newData->special = SPECIAL;
 
       memcpy(newData->version, DEF_HG_REVISION, sizeof(newData->version) - 1);
 
@@ -120,15 +90,23 @@ implementation
 #endif
       }
     }
+    call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
+    first_period_pending = FALSE;
   }
 
+  /** BootSender.sendDone - sending of boot message has completed so
+      now we can start normal sensing.
+   */
   event void BootSender.sendDone(message_t *msg, error_t ok) {
 #ifdef DEBUG
-    printf("Boot sending done at %lu\n", call LocalTime.get());
+    printf("Boot sending done at %lu ok=%u\n", call LocalTime.get(), ok);
     printfflush();
 #endif
+    
   }
 
+  /** powerDown - if the battery voltage goes low, stop everything. 
+   */
   task void powerDown(){
     call SenseTimer.stop();
     radioStop();
@@ -153,12 +131,6 @@ implementation
       printf("restartSenseTimer at %lu\n", call LocalTime.get());
       printfflush();
 #endif
-
-
-      if (call Configured.get(RS_POWER)){
-        call CurrentCostControl.start();
-      }
-
 
     //Calculate the next interval
       send_time = subtract_time(stop_time, sense_start_time);
@@ -224,16 +196,13 @@ implementation
       return;
     }
 
-    if (call Configured.get(RS_DUTY))
-      packstate_add(SC_DUTY_TIME, last_duty);
-
     pslen = call PackState.pack(&ps);
     message_size = sizeof (StateMsg) - sizeof newData->packed_state + pslen * sizeof (float);
     newData = call StateSender.getPayload(&dataMsg, message_size);
     if (newData != NULL) { 
       //we're going do a send so pack the msg count and then increment
       newData->timestamp = call LocalTime.get();
-      newData->special = 0xc7;
+      newData->special = SPECIAL;
 
       //increment and pack seq
       expSeq = msgSeq;
@@ -255,19 +224,12 @@ implementation
       send_start_time = call LocalTime.get();
       call SendTimeOutTimer.startOneShot(LEAF_TIMEOUT_TIME);
 
-      /* UART0 must be released before the radio can work */
-      if (call Configured.get(RS_POWER)) {
-	packet_pending = TRUE;
-	call CurrentCostControl.stop();
-      }
-      else {
-        if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
+      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
 #ifdef DEBUG
-	  printf("sending begun at %lu\n", call LocalTime.get());
-	  printfflush();
+	printf("sending begun at %lu\n", call LocalTime.get());
+	printfflush();
 #endif
-	  sending = TRUE;
-        }
+	sending = TRUE;
       }
     }
   }
@@ -287,16 +249,10 @@ implementation
   }
 
 
-  bool phase_two_sensing = FALSE;  
-  task void phaseTwoSensing();
-
   /* checkDataGathered
    * - only transmit data once all sensors have been read
    */
   task void checkDataGathered() {
-#ifdef CLUSTER_BASED
-    error_t radio_status;
-#endif
     bool allDone = TRUE;
     uint8_t i;
 
@@ -308,37 +264,17 @@ implementation
     }
 
     if (allDone) {
-      if (phase_two_sensing) {
 #ifdef DEBUG
-    	printf("allDone %lu\n", call LocalTime.get());
-	printfflush();
+      printf("allDone %lu\n", call LocalTime.get());
+      printfflush();
 #endif
 	
-    	if (call TransmissionControl.hasEvent()) {
-#ifdef CLUSTER_BASED
-	  if (leaf_mode) {
-	    /* if running in leaf_mode, radio may not be turned on, so
-	       we mark it to be turned on and set a flag to say that a
-	       send is pending */
-	    send_state_pending = TRUE;
-	    radio_status = call RadioControl.start();
-	    if (radio_status == EALREADY) {
-	      send_state_pending = FALSE;
-	      sendState();
-	    }
-	  }
-	  else
-#endif /* CLUSTER_BASED */
-	    sendState();
-	}
-	else
-	  restartSenseTimer();
+      if (call TransmissionControl.hasEvent()) {
+	  sendState();
+      }
+      else
+	restartSenseTimer();
 
-      }
-      else { /* phase one complete - start phase two */
-	phase_two_sensing = TRUE;
-	post phaseTwoSensing();
-      }
     }
   }
 
@@ -346,13 +282,9 @@ implementation
     sample_period = DEF_BACKOFF_SENSE_PERIOD;
 
 #ifdef DEBUG
-    printf("ack receving failed %lu\n", call LocalTime.get());
+    printf("ack receiving failed %lu\n", call LocalTime.get());
     printf("Sample Period to be used %lu\n", sample_period);
     printfflush();
-#endif
-#ifdef CLUSTER_BASED
-    if (leaf_mode)
-      radioStop();
 #endif
     restartSenseTimer();
   }
@@ -371,81 +303,17 @@ implementation
     call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
     call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_ALPHA, SIP_HUM_BETA);
     call ReadVolt.init(SIP_BATTERY_THRESH, SIP_BATTERY_MASK, SIP_BATTERY_ALPHA, SIP_BATTERY_BETA);
-    call ReadCO2.init(SIP_CO2_THRESH, SIP_CO2_MASK, SIP_CO2_ALPHA, SIP_CO2_BETA);
-    call ReadBB.init(SIP_BB_THRESH, SIP_BB_MASK, SIP_BB_ALPHA, SIP_BB_BETA);
-    call ReadVOC.init(SIP_VOC_THRESH, SIP_VOC_MASK, SIP_VOC_ALPHA, SIP_VOC_BETA);
-    call ReadAQ.init(SIP_AQ_THRESH, SIP_AQ_MASK, SIP_AQ_ALPHA, SIP_AQ_BETA);
-    call ReadOpti.init(SIP_OPTI_THRESH, SIP_OPTI_MASK, SIP_OPTI_ALPHA, SIP_OPTI_BETA);
-    call ReadGas.init(SIP_GAS_THRESH, SIP_GAS_MASK, SIP_GAS_ALPHA, SIP_GAS_BETA);
-    call ReadHMEnergy.init(SIP_HME_THRESH, SIP_HME_MASK, SIP_HME_ALPHA, SIP_HME_BETA);
-    call ReadHMVolume.init(SIP_HMV_THRESH, SIP_HMV_MASK, SIP_HMV_ALPHA, SIP_HMV_BETA);
-    call ReadWindow.init(SIP_WINDOW_THRESH, SIP_WINDOW_MASK, SIP_WINDOW_ALPHA, SIP_WINDOW_BETA);
-    call ReadCC.init(SIP_CC_THRESH, SIP_CC_MASK, SIP_CC_ALPHA, SIP_CC_BETA);
-    call ReadTempADC1.init(SIP_TEMPADC_THRESH, SIP_TEMPADC_MASK, SIP_TEMPADC_ALPHA, SIP_TEMPADC_BETA);   
-    call ReadWallTemp.init(SIP_WALL_TEMP_MASK, SIP_WALL_TEMP_THRESH, SIP_WALL_TEMP_ALPHA, SIP_WALL_TEMP_BETA);
-    call ReadWallHum.init(SIP_WALL_HUM_MASK, SIP_WALL_HUM_THRESH, SIP_WALL_HUM_ALPHA, SIP_WALL_HUM_BETA);
 
     nodeType = TOS_NODE_ID >> 12;
     sample_period = DEF_SENSE_PERIOD;
-#ifdef CLUSTER_BASED
-    leaf_mode = ! CLUSTER_HEAD;
-#endif
 
     // Configure the node for attached sensors.
 
     call Configured.clearAll();
     call Configured.set(RS_TEMPERATURE);
     call Configured.set(RS_HUMIDITY);
-    call Configured.set(RS_DUTY);
     call Configured.set(RS_VOLTAGE);
-    if (nodeType == NODE_TYPE_HEATMETER) { /* heat meter */
-      call Configured.set(RS_HM_ENERGY);
-      call Configured.set(RS_HM_VOLUME);
-      call HMEnergyControl.start();
-      call HMVolumeControl.start();
-    }
-    else if (nodeType == NODE_TYPE_OPTI) { /* energy board */
-      call Configured.set(RS_OPTI);
-      call OptiControl.start();
-    }
-    if (nodeType == NODE_TYPE_TEMP) { /* Temp ADC0 */
-      call Configured.set(RS_TEMPADC1);
-      call Configured.set(RS_DUTY);
-    }
-    else if (nodeType == NODE_TYPE_GAS) { /* gas board */
-      call Configured.set(RS_GAS);
-      call GasControl.start();
-    }
-    else if (nodeType == NODE_TYPE_WINDOW) { /* window board */
-      call Configured.set(RS_WINDOW);
-      call WindowControl.start();
-    }
-    else if (nodeType == CLUSTER_HEAD_CO2_TYPE) { /* clustered CO2 */
-      call Configured.set(RS_CO2);
-    }
-    else if (nodeType == CLUSTER_HEAD_BB_TYPE) { /* clustered BB */
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_BB);
-    }
-    else if (nodeType == CLUSTER_HEAD_VOC_TYPE) { /* clustered VOC */
-      call Configured.set(RS_CO2);
-      call Configured.set(RS_AQ);
-      call Configured.set(RS_VOC);
-    }
-    else if (nodeType == CLUSTER_HEAD_CC_TYPE) { /* current cost */
-      call Configured.set(RS_POWER);
-    }
-    else if (nodeType == CLUSTER_HEAD_WALL_TYPE) { /* wall temp/moisture sensor */
-      call Configured.set(RS_WALL_TEMP);
-      call Configured.set(RS_WALL_HUM); 
-    }
 
-#ifndef MISSING_AC_SENSOR
-    if (CLUSTER_HEAD) {
-      call Configured.set(RS_AC);
-      call ACControl.start();
-    }
-#endif
     sending = FALSE;
 
     first_period_pending = TRUE;
@@ -474,8 +342,6 @@ implementation
 	packstate_add(SC_ERRNO, (float) last_errno);
       last_transmitted_errno = last_errno;
 
-      phase_two_sensing = FALSE;
-
       // only include phase one sensing here
       for (i = 0; i < RS_SIZE; i++) { 
 	if (call Configured.get(i)) {
@@ -486,23 +352,6 @@ implementation
 	    call ReadHum.read();
 	  else if (i == RS_VOLTAGE)
 	    call ReadVolt.read();
-#ifndef MISSING_AC_SENSOR
-	  else if (i == RS_AC)
-	    call ReadAC.read();
-#endif
-
-   	  else if (i == RS_POWER)
-	    call ReadCC.read();
-   	  else if (i == RS_OPTI)
-	    call ReadOpti.read();
-	  else if (i == RS_HM_ENERGY)
-	    call ReadHMEnergy.read();
-	  else if (i == RS_HM_VOLUME)
-	    call ReadHMVolume.read();
-   	  else if (i == RS_GAS)
-	    call ReadGas.read();
-   	  else if (i == RS_WINDOW)
-	    call ReadWindow.read();
 	  else
 	    call ExpectReadDone.clear(i);
 	}
@@ -515,38 +364,18 @@ implementation
     }
   }
 
-  /* perform any phase two sensing */
-  task void phaseTwoSensing() {
-    int i;
-    for (i = 0; i < RS_SIZE; i++) { 
-      if (call Configured.get(i)) {
-	call ExpectReadDone.set(i);
-	if (i == RS_TEMPADC1)
-	  call ReadTempADC1.read();
-	else if (i == RS_WALL_TEMP)
-	  call ReadWallTemp.read();
-	else if (i == RS_WALL_HUM)
-	  call ReadWallHum.read();
-#ifdef CLUSTER_BASED
-	else if (leaf_mode)
-	  /* if leaf_mode, avoid polling high power sensors below */
-	  call ExpectReadDone.clear(i);
-#endif
-
-	else if (i == RS_CO2)
-	  call ReadCO2.read();
-	else if (i == RS_AQ)
-	  call ReadAQ.read();
-	else if (i == RS_VOC)
-	  call ReadVOC.read();
-	else if (i == RS_BB)
-	    call ReadBB.read();
-	else
-	  call ExpectReadDone.clear(i);
-      }
-    }
-    post checkDataGathered();
-  }
+  /* /\* perform any phase two sensing *\/ */
+  /* task void phaseTwoSensing() { */
+  /*   int i; */
+  /*   for (i = 0; i < RS_SIZE; i++) {  */
+  /*     if (call Configured.get(i)) { */
+  /* 	call ExpectReadDone.set(i); */
+  /* 	/\* do any two phase sensing here *\/ */
+  /* 	call ExpectReadDone.clear(i); */
+  /*     } */
+  /*   } */
+  /*   post checkDataGathered(); */
+  /* } */
 
 
   /*********** Sensing Methods *****************/  
@@ -557,20 +386,6 @@ implementation
     call ExpectReadDone.clear(raw_sensor);
     post checkDataGathered();
   }
-  
-#ifndef MISSING_AC_SENSOR
-  event void ReadAC.readDone(error_t result, bool data) {
-#ifdef CLUSTER_BASED
-    /* if were in leaf mode and we now receive power, start radio */
-    if (data && leaf_mode) 
-      call RadioControl.start();
-    leaf_mode = ! data;
-#endif
-    call ExpectReadDone.clear(RS_AC);
-    post checkDataGathered();
-  }
-#endif
-
 
   void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
   {
@@ -608,83 +423,19 @@ implementation
       post powerDown();
   }
 
-  event void ReadCC.readDone(error_t result, FilterState* data){
-    do_readDone_pass(result, data, RS_POWER, SC_POWER);
-  }
-  
-  event void ReadCO2.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_CO2, SC_CO2, SC_D_CO2);
-  }
-
-  event void ReadBB.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_BB, SC_BB, SC_D_BB);
-  }
-
-  event void ReadAQ.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_AQ, SC_AQ, SC_D_AQ);
-  }
-
-  event void ReadVOC.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_VOC, SC_VOC, SC_D_VOC);
-  }
-  
-  event void ReadTempADC1.readDone(error_t result, FilterState* data) {
-    do_readDone_filterstate(result, data, RS_TEMPADC1, SC_TEMPADC1, SC_D_TEMPADC1);
-  }
-
-  event void ReadOpti.readDone(error_t result, FilterState* data) {
-    do_readDone_filterstate(result, data, RS_OPTI, SC_OPTI, SC_D_OPTI);
-  }
-  
-  event void ReadHMEnergy.readDone(error_t result, FilterState* data) {
-    do_readDone_pass(result, data, RS_HM_ENERGY, SC_HEAT_ENERGY);
-  }
-
-  event void ReadHMVolume.readDone(error_t result, FilterState* data) {
-    do_readDone_pass(result, data, RS_HM_VOLUME, SC_HEAT_VOLUME);
-  }
-
-  event void ReadGas.readDone(error_t result, FilterState* data) {
-    do_readDone_pass(result, data, RS_GAS, SC_GAS);
-  }
-
-  event void ReadWindow.readDone(error_t result, FilterState* data) {
-    do_readDone_pass(result, data, RS_WINDOW, SC_WINDOW);
-  }
-  
-  event void ReadWallTemp.readDone(error_t result, FilterState* data) {
-    do_readDone_filterstate(result, data, RS_WALL_TEMP, SC_WALL_TEMP, SC_D_WALL_TEMP);
-  }
-
-  event void ReadWallHum.readDone(error_t result, FilterState* data) {
-    do_readDone_filterstate(result, data, RS_WALL_HUM, SC_WALL_HUM, SC_D_WALL_HUM);
-  }
-
   /*********** Radio Control *****************/
 
   event void RadioControl.startDone(error_t ok) {
     if (ok == SUCCESS){
-      call CollectionControl.start();
-      call DisseminationControl.start();
-      if (first_period_pending) {
-	call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
-	first_period_pending = FALSE;
-	sendBoot();
-      }
 #ifdef DEBUG
       printf("Radio On %lu\n", call LocalTime.get());
       printfflush();
 #endif
-
-      if (call Configured.get(RS_POWER)){
-	call CurrentCostControl.start();
+      call CollectionControl.start();
+      call DisseminationControl.start();
+      if (first_period_pending) {
+	sendBoot();
       }
-#ifdef CLUSTER_BASED
-      if (leaf_mode && send_state_pending) {
-	send_state_pending = FALSE;
-	sendState();
-      }
-#endif
     }
     else
       call RadioControl.start();
@@ -722,10 +473,6 @@ implementation
 
     call SendTimeOutTimer.stop();
     
-#ifdef CLUSTER_BASED
-    if (leaf_mode)
-      radioStop();
-#endif
 
     stop_time = call LocalTime.get();
     //Calculate the next interval
@@ -793,30 +540,6 @@ implementation
   }
 
 
-  event void CurrentCostControl.startDone(error_t error) {
-#ifdef DEBUG
-    printf("Current cost start at %lu\n", call LocalTime.get());
-    printfflush();
-#endif
-  }
-
-  event void CurrentCostControl.stopDone(error_t error) { 
-#ifdef DEBUG
-    printf("Current cost stop at %lu\n", call LocalTime.get());
-    printfflush();
-#endif
-    if (packet_pending) { 
-      packet_pending = FALSE;
-      if (call StateSender.send(&dataMsg, message_size) == SUCCESS) {
-#ifdef DEBUG
-        printf("sending begun at %lu\n", call LocalTime.get());
-        printfflush();
-#endif
-	sending = TRUE;
-      }
-    }
-      
-  }
   
 
   ////////////////////////////////////////////////////////////
