@@ -23,28 +23,31 @@ implementation
   CogentHouseP.Boot -> MainC.Boot; 
   CogentHouseP.Leds -> LedsC;
   CogentHouseP.LocalTime -> HilTimerMilliC;
-  
+
+  //BlinkStatus
+  components BlinkStatusC;
+  CogentHouseP.BlinkStatus -> BlinkStatusC;
+
   //Timers
   components new TimerMilliC() as SenseTimer;
-  components new TimerMilliC() as BlinkTimer;
   components new TimerMilliC() as SendTimeOutTimer;
-  components new TimerMilliC() as BootSendTimeOutTimer;
 
   CogentHouseP.SenseTimer -> SenseTimer;
-  CogentHouseP.BlinkTimer -> BlinkTimer;
   CogentHouseP.SendTimeOutTimer -> SendTimeOutTimer;
-  CogentHouseP.BootSendTimeOutTimer -> BootSendTimeOutTimer;
 
   // Instantiate and wire our collection service
   components CollectionC, ActiveMessageC;
   components new CollectionSenderC(AM_STATEMSG) as StateSender;
-  components new CollectionSenderC(AM_BOOTMSG) as BootSender;
 
   CogentHouseP.RadioControl -> ActiveMessageC;
   CogentHouseP.CollectionControl -> CollectionC;
   CogentHouseP.CtpInfo -> CollectionC;
   CogentHouseP.StateSender -> StateSender;
-  CogentHouseP.BootSender-> BootSender;
+
+  components new CollectionSenderC(AM_BOOTMSG) as BootSender;
+  components BootMessageC;
+  CogentHouseP.BootMessage -> BootMessageC;
+  BootMessageC.BootSender -> BootSender;
   
   //LPL
   CogentHouseP.LowPowerListening -> ActiveMessageC;

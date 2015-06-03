@@ -35,6 +35,8 @@ Header file containing all packet formats sent/received
 #ifndef _PACKETS_H
 #define _PACKETS_H
 
+#include "BootPacket.h"
+
 
 // state codes
 enum {
@@ -151,11 +153,6 @@ typedef nx_struct StateMsg {
   nx_float packed_state[SC_PACKED_SIZE];
 } StateMsg; // varies depending on SC_SIZE and SC_PACKED_SIZE
 
-
-typedef nx_struct BootMsg {
-  nx_uint8_t special;
-  nx_uint8_t version[14];
-} BootMsg;
 
 typedef nx_struct ConfigPerType {
   nx_uint32_t samplePeriod;

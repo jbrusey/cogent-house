@@ -6,6 +6,8 @@ PFLAGS += -I . \
 	-I ../Util  \
 	-I ../Util/HashMap  \
 	-I ./AccessibleBitVector \
+	-I ./BootMessage \
+	-I ./BlinkStatus \
 	-I ./EventDetector \
 	-I ./FilterWrapper \
 	-I ./Filters/ \
@@ -18,6 +20,9 @@ PFLAGS += -I . \
 	-I ./Sensing/Base \
 	-I ./Sensing/PolyClass \
 	-I ./Sensing/PulseReader  \
+
+# needed to allow packet to be defined in BootMessage
+CFLAGS += -I ./BootMessage 
 
 # use "make telosb install.2 cluster_based=1" to turn on cluster-based code
 
@@ -61,7 +66,7 @@ CFLAGS += -DCC2420_DEF_CHANNEL=$(rf_channel)
 endif
 
 REVISION=$(shell git rev-parse --short HEAD)
-CFLAGS+=-DDEF_HG_REVISION="\"$(REVISION)\""
+CFLAGS+=-DVC_REVISION="$(REVISION)"
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
 

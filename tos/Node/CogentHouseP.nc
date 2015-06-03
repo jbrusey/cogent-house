@@ -6,20 +6,18 @@ module CogentHouseP
     interface Boot;
     interface Leds;
     interface LocalTime<TMilli>;
+    interface BlinkStatus;
 
     //Timers
     interface Timer<TMilli> as SenseTimer;
-    interface Timer<TMilli> as BlinkTimer;
     interface Timer<TMilli> as SendTimeOutTimer;
-    interface Timer<TMilli> as BootSendTimeOutTimer;
 
     //Radio + CTP
     interface SplitControl as RadioControl;
     interface Send as StateSender;
-    interface Send as BootSender;
+    interface BootMessage;
     interface StdControl as CollectionControl;
     interface CtpInfo;
-    interface Packet;
     interface LowPowerListening;    
 
     // ack interfaces
@@ -64,65 +62,12 @@ implementation
   /** prototypes **/
   void radioStop(void);
 
-/********* Boot Message Methods **********/
-  /** sendBoot - at boot time, send an initial packet (without
-      checking for ack) that specifies the current version 
-   */
-  void sendBoot()
-  {
-    BootMsg *newData;
-    
-#ifdef DEBUG
-    printf("sendBoot %lu\n", call LocalTime.get());
-    printfflush();
-#endif
 
-    message_size = sizeof (BootMsg);
-    newData = call BootSender.getPayload(&dataMsg, message_size);
-    if (newData != NULL) { 
-      newData->special = SPECIAL;
-
-      memcpy(newData->version, DEF_HG_REVISION, sizeof(newData->version) - 1);
-
-      call BootSendTimeOutTimer.startOneShot(BOOT_TIMEOUT_TIME);
-      if (call BootSender.send(&dataMsg, message_size) == SUCCESS) {
-#ifdef DEBUG
-	  printf("boot sending begun at %lu\n", call LocalTime.get());
-	  printfflush();
-#endif
-      }
-    }
-  }
-
-  /** startFirstSensing starts the sense timer after the boot message
-      has been sent (or timed-out) */
-  void startFirstSensing()
-  {
+  event void BootMessage.sendDone(error_t result) { 
     call SenseTimer.startOneShot(DEF_FIRST_PERIOD);
     first_period_pending = FALSE;
   }
 
-  /** BootSender.sendDone - sending of boot message has completed so
-      now we can start normal sensing.
-   */
-  event void BootSender.sendDone(message_t *msg, error_t ok) {
-#ifdef DEBUG
-    printf("Boot sending done at %lu ok=%u\n", call LocalTime.get(), ok);
-    printfflush();
-#endif
-    if (ok == SUCCESS) { 
-      call BootSendTimeOutTimer.stop();
-      startFirstSensing();
-    }
-  }
-
-  /** BootSendTimeOutTimer.fired - if the boot send message times out, cancel it
-   */
-  event void BootSendTimeOutTimer.fired() {
-    call BootSender.cancel(&dataMsg);
-    /* don't retry - just get on with the next sensing round */
-    startFirstSensing();
-  }
 
   /** powerDown - if the battery voltage goes low, stop everything. 
    */
@@ -316,7 +261,7 @@ implementation
     printfflush();
 #endif
     
-    call BlinkTimer.startOneShot(512L); /* start blinking to show that we are up and running */
+    call BlinkStatus.start();
 
     //Inititalise filters -- Configured in the makefile
     call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
@@ -352,7 +297,7 @@ implementation
     sense_start_time = call LocalTime.get();
     if (! sending) { 
 #ifdef DEBUG
-      printf("\n\nsensing begun at %lu\n", sense_start_time);
+      printf("sensing begun at %lu\n", sense_start_time);
       printfflush();
 #endif
       call ExpectReadDone.clearAll();
@@ -453,7 +398,7 @@ implementation
       call CollectionControl.start();
       call DisseminationControl.start();
       if (first_period_pending) {
-	sendBoot();
+	call BootMessage.send();
       }
     }
     else
@@ -517,6 +462,7 @@ implementation
     /* if first time we have been acknowledged, flash the green led 3 times */
     if (! seen_first_ack) {
       seen_first_ack = TRUE;
+      call BlinkStatus.setStatus(SUCCESS);
     }
   }
 
@@ -561,42 +507,6 @@ implementation
 
   
 
-  ////////////////////////////////////////////////////////////
-  // Produce a nice pattern on start-up
-  //
-  uint8_t blink_state = 0;
-  uint8_t blink_thrice_state = 0;
-
-  uint8_t gray[] = { 0, 1, 3, 2, 6, 7, 5, 4 };
-
-  void blinkThrice(bool ok) {
-    if (blink_thrice_state < 6) {
-      blink_thrice_state++;
-      call BlinkTimer.startOneShot(1024L);
-      if (blink_thrice_state == 1) 
-	call Leds.set(0);
-      else if (ok)
-	call Leds.led1Toggle(); /* green */
-      else
-	call Leds.led0Toggle(); /* red */
-    }
-    else 
-      call Leds.set(0);
-  }
-
-  event void BlinkTimer.fired() { 
-    if (seen_first_ack)
-      blinkThrice(TRUE);
-    else if (blink_state >= 2 * BLINK_SECONDS) { /* 60 seconds */
-      blinkThrice(FALSE);
-    }
-    else { 
-      blink_state++;
-      call BlinkTimer.startOneShot(512L);
-      call Leds.set(gray[blink_state % (sizeof gray / sizeof gray[0])]);
-    }
-  }
-  
 
   
 }

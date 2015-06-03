@@ -6,6 +6,9 @@ PFLAGS += -I./ErrorDisplay \
 
 COMPONENT=RssiCogentRootC
 
+# needed to allow packet to be defined in BootMessage
+CFLAGS += -I ../Node/BootMessage 
+
 PFLAGS += -DTOSH_DATA_LENGTH=76
 CFLAGS += -DSERIAL_QUEUE_SIZE=50
 
