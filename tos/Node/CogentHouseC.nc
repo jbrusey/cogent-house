@@ -1,5 +1,5 @@
 // -*- c -*-
-#include "../Packets.h"
+#include "Packets.h"
 #include "Collection.h"
 #include "Filter.h"
 #include "subtracttime.h"
@@ -52,35 +52,11 @@ implementation
   //LPL
   CogentHouseP.LowPowerListening -> ActiveMessageC;
 
-  //Configured
-  components new AccessibleBitVectorC(RS_SIZE) as Configured;
-  CogentHouseP.Configured -> Configured.AccessibleBitVector;
-
-  //expectReadDone
-  components new BitVectorC(RS_SIZE) as ExpectReadDone;
-  CogentHouseP.ExpectReadDone -> ExpectReadDone.BitVector;
-
-  //PackState
-  components new PackStateC(SC_SIZE) as PackState;
-  components new AccessibleBitVectorC(SC_SIZE) as ABV;
-
-  PackState.Mask -> ABV;
-  CogentHouseP.PackState -> PackState;
-
-  //sensing interfaces
-  components new SensirionSht11C();
-  components new VoltageC() as Volt;
-  /* components HplMsp430InterruptP as GIOInterrupt; */
-  /* components HplMsp430GeneralIOC as GIO; */
-
-
-  //Sensing Modules
-  components ThermalSensingM, BatterySensingM;
-
-  //Wire up Sensing
-  ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
-  ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
-  BatterySensingM.GetVoltage -> Volt;
+  components SensingC;
+  CogentHouseP.PackState -> SensingC;
+  CogentHouseP.Configured -> SensingC;
+  CogentHouseP.Sensing -> SensingC;
+  CogentHouseP.TransmissionControl -> SensingC;
 
 
   /*********** ACK CONFIG *************/
@@ -92,43 +68,5 @@ implementation
   CogentHouseP.DisseminationControl -> DisseminationC;
   CogentHouseP.AckValue -> DisseminatorC;
   CogentHouseP.CRCCalc -> CrcC;
-
-
-  /************* SIP CONFIG ***********/
-  //SIP Components
-  components SIPControllerC, PredictC;
-  components FilterM;
-  /* components DEWMAC;  */
-  components PassThroughC as Pass;
-  components new TimerMilliC() as HeartBeatTimer;
-  components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
-
-  //Global SIP modules
-  SIPControllerC.SinkStatePredict -> PredictC;
-  HeartbeatC.HeartbeatTimer -> HeartBeatTimer;
-  SIPControllerC.Heartbeat -> HeartbeatC;
-  FilterM.LocalTime -> HilTimerMilliC;
-  
-  // Temp Wiring
-  FilterM.Filter[RS_TEMPERATURE] -> Pass.Filter[RS_TEMPERATURE];
-  FilterM.GetSensorValue[RS_TEMPERATURE]  -> ThermalSensingM.ReadTemp;
-  SIPControllerC.EstimateCurrentState[RS_TEMPERATURE]  -> FilterM.EstimateCurrentState[RS_TEMPERATURE];
-  CogentHouseP.ReadTemp -> SIPControllerC.SIPController[RS_TEMPERATURE];
-
-  // Hum Wiring
-  FilterM.Filter[RS_HUMIDITY]  -> Pass.Filter[RS_HUMIDITY];
-  FilterM.GetSensorValue[RS_HUMIDITY]  -> ThermalSensingM.ReadHum;
-  SIPControllerC.EstimateCurrentState[RS_HUMIDITY]  -> FilterM.EstimateCurrentState[RS_HUMIDITY];
-  CogentHouseP.ReadHum -> SIPControllerC.SIPController[RS_HUMIDITY];
-
-  // Battery Wiring
-  FilterM.Filter[RS_VOLTAGE]  -> Pass.Filter[RS_VOLTAGE];
-  FilterM.GetSensorValue[RS_VOLTAGE]  -> BatterySensingM.ReadBattery;
-  SIPControllerC.EstimateCurrentState[RS_VOLTAGE]  -> FilterM.EstimateCurrentState[RS_VOLTAGE];
-  CogentHouseP.ReadVolt -> SIPControllerC.SIPController[RS_VOLTAGE];
-
-
-  //Transmission Control
-  CogentHouseP.TransmissionControl -> SIPControllerC.TransmissionControl;
 
 }

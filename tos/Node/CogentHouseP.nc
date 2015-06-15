@@ -25,16 +25,11 @@ module CogentHouseP
     interface StdControl as DisseminationControl;
     interface DisseminationValue<AckMsg> as AckValue;
 
-    //SIP Modules
-    interface SIPController<FilterState *> as ReadTemp;
-    interface SIPController<FilterState *> as ReadHum;
-    interface SIPController<FilterState *> as ReadVolt;
-    interface TransmissionControl;
-       
     //Bitmask and packstate
+    interface Read<bool> as Sensing;
     interface AccessibleBitVector as Configured;
-    interface BitVector as ExpectReadDone;
     interface PackState;
+    interface TransmissionControl;
   }
 }
 implementation
@@ -213,34 +208,6 @@ implementation
   }
 
 
-  /* checkDataGathered
-   * - only transmit data once all sensors have been read
-   */
-  task void checkDataGathered() {
-    bool allDone = TRUE;
-    uint8_t i;
-
-    for (i = 0; i < RS_SIZE; i++) {
-      if (call ExpectReadDone.get(i)) {
-	allDone = FALSE;
-	break;
-      }
-    }
-
-    if (allDone) {
-#ifdef DEBUG
-      printf("allDone %lu\n", call LocalTime.get());
-      printfflush();
-#endif
-	
-      if (call TransmissionControl.hasEvent()) {
-	  sendState();
-      }
-      else
-	restartSenseTimer();
-
-    }
-  }
 
   event void SendTimeOutTimer.fired() {
     sample_period = DEF_BACKOFF_SENSE_PERIOD;
@@ -262,11 +229,6 @@ implementation
 #endif
     
     call BlinkStatus.start();
-
-    //Inititalise filters -- Configured in the makefile
-    call ReadTemp.init(SIP_TEMP_THRESH, SIP_TEMP_MASK, SIP_TEMP_ALPHA, SIP_TEMP_BETA);
-    call ReadHum.init(SIP_HUM_THRESH, SIP_HUM_MASK, SIP_HUM_ALPHA, SIP_HUM_BETA);
-    call ReadVolt.init(SIP_BATTERY_THRESH, SIP_BATTERY_MASK, SIP_BATTERY_ALPHA, SIP_BATTERY_BETA);
 
     nodeType = TOS_NODE_ID >> 12;
     sample_period = DEF_SENSE_PERIOD;
@@ -292,7 +254,6 @@ implementation
    * sensors to start reading.
    */
   event void SenseTimer.fired() {
-    int i;
 #ifdef BLINKY
     call Leds.led0Toggle();
 #endif
@@ -302,91 +263,31 @@ implementation
       printf("sensing begun at %lu\n", sense_start_time);
       printfflush();
 #endif
-      call ExpectReadDone.clearAll();
-      call PackState.clear();
+
+      call Sensing.read();
+
+    }
+  }
+
+  /** 
+   * Sensing.readDone - completion of all sensing; collected data
+   * is formatted into the PackState object.
+   */
+   
+  event void Sensing.readDone(error_t result, bool overflow) { 
+    if (result == SUCCESS) {       
       if (last_errno != 1)
 	packstate_add(SC_ERRNO, (float) last_errno);
       last_transmitted_errno = last_errno;
 
-      // only include phase one sensing here
-      for (i = 0; i < RS_SIZE; i++) { 
-	if (call Configured.get(i)) {
-	  call ExpectReadDone.set(i);
-	  if (i == RS_TEMPERATURE)
-	    call ReadTemp.read();
-	  else if (i == RS_HUMIDITY)
-	    call ReadHum.read();
-	  else if (i == RS_VOLTAGE)
-	    call ReadVolt.read();
-	  else
-	    call ExpectReadDone.clear(i);
-	}
-      }
-      /* it could be that no sensors are active but we still need to
-	 send a packet (e.g. for duty cycle info)
-      */
-      post checkDataGathered();
-
+      sendState();
     }
-  }
+    else
+      restartSenseTimer();
+      
+    if (overflow)
+      reportError(ERR_PACK_STATE_OVERFLOW);
 
-  /* /\* perform any phase two sensing *\/ */
-  /* task void phaseTwoSensing() { */
-  /*   int i; */
-  /*   for (i = 0; i < RS_SIZE; i++) {  */
-  /*     if (call Configured.get(i)) { */
-  /* 	call ExpectReadDone.set(i); */
-  /* 	/\* do any two phase sensing here *\/ */
-  /* 	call ExpectReadDone.clear(i); */
-  /*     } */
-  /*   } */
-  /*   post checkDataGathered(); */
-  /* } */
-
-
-  /*********** Sensing Methods *****************/  
-
-  void do_readDone(error_t result, float data, uint raw_sensor, uint state_code){
-    if (result == SUCCESS)
-      packstate_add(state_code, data);
-    call ExpectReadDone.clear(raw_sensor);
-    post checkDataGathered();
-  }
-
-  void do_readDone_pass(error_t result, FilterState* s, uint raw_sensor, uint state_code) 
-  {
-    if (call ExpectReadDone.get(raw_sensor)) {
-      if (result == SUCCESS)
-	packstate_add(state_code, s->x);
-      call ExpectReadDone.clear(raw_sensor);
-      post checkDataGathered();
-    }
-  }
-
-  void do_readDone_filterstate(error_t result, FilterState* s, uint raw_sensor, uint state_code, uint delta_state_code) 
-  {
-    if (call ExpectReadDone.get(raw_sensor)) { 
-      if (result == SUCCESS){
-	packstate_add(state_code, s->x);
-	packstate_add(delta_state_code, s->dx);
-      }
-      call ExpectReadDone.clear(raw_sensor);
-      post checkDataGathered();
-    }
-  }
-
-  event void ReadTemp.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_TEMPERATURE, SC_TEMPERATURE, SC_D_TEMPERATURE);
-  }
-
-  event void ReadHum.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_HUMIDITY, SC_HUMIDITY, SC_D_HUMIDITY);
-  }
-
-  event void ReadVolt.readDone(error_t result, FilterState* data){
-    do_readDone_filterstate(result, data, RS_VOLTAGE, SC_VOLTAGE, SC_D_VOLTAGE);
-    if (result == SUCCESS && data->x < LOW_VOLTAGE)
-      post powerDown();
   }
 
   /*********** Radio Control *****************/
@@ -505,11 +406,6 @@ implementation
 	     expSeq == ackMsg->seq)
       ackReceived();
   }
-
-
-  
-
-
   
 }
 

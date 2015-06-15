@@ -6,6 +6,7 @@ configuration SensingC {
   provides interface Read<bool> as SensingRead;
   provides interface AccessibleBitVector as Configured;
   provides interface PackState;
+  provides interface TransmissionControl;
 }
 
 implementation
@@ -21,6 +22,8 @@ implementation
   SensingP.LocalTime -> HilTimerMilliC;
 
   components SIPControllerC;
+
+  TransmissionControl = SIPControllerC.TransmissionControl;
 
   components FilterM;
   components PredictC;
