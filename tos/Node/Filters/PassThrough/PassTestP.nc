@@ -1,5 +1,6 @@
 // -*- c -*-
 #include "printf.h"
+#include "printfloat.h"
 #define HIGH_COVARIANCE 1e20
 #include "math.h"
 
@@ -22,15 +23,24 @@ implementation
     FilterState xnew;
     float i;
 
+    call Pass.init(0., 0.);
+
     for (i = 1.; i < 2001.; i++) { 
       z = i;
       call Pass.filter(z, i * 1024, &xnew);
-      mu_assert("Filtered wrong", xnew.x == z && xnew.dx == 1.f);
+      /* printf("x="); printfloat(xnew.x); */
+      /* printf(" dx="); printfloat(xnew.dx); */
+      /* printf("\n"); */
+      if (i < 2.f) 
+	mu_assert("first dx should be zero", xnew.x == z && xnew.dx == 0.f);
+      else
+	mu_assert("Filtered wrong", xnew.x == z && xnew.dx == 1.f);
     }
 
 
     return 0;
   }
+   
    
    
   static char* all_tests(void) { 

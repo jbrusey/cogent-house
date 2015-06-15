@@ -280,6 +280,8 @@ implementation
 
     sending = FALSE;
 
+    // TODO: check that voltage is > X and if not, don't start the radio
+
     first_period_pending = TRUE;
     call RadioControl.start();
   }

@@ -4,7 +4,7 @@ configuration SIPControllerC @safe()
 { 
   provides{
     interface TransmissionControl;
-    interface SIPController<FilterState *>[uint8_t id];
+    interface Read<FilterState *> as Sensor[uint8_t id];
   }
   uses{
     interface Predict as SinkStatePredict;
@@ -21,7 +21,7 @@ implementation
   MainC.SoftwareInit -> SIPControllerM.Init;
 
   SIPControllerM.TransmissionControl = TransmissionControl;
-  SIPControllerM.SIPController = SIPController;
+  SIPControllerM.Sensor = Sensor;
   SIPControllerM.SinkStatePredict = SinkStatePredict;
   SIPControllerM.EstimateCurrentState = EstimateCurrentState;
   SIPControllerM.Heartbeat = Heartbeat;

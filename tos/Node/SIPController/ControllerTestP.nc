@@ -8,12 +8,8 @@ module ControllerTestP @safe()
     interface Random;
     interface Leds;
     interface Timer<TMilli> as SenseTimer;
-    interface SIPController<FilterState *> as TEMPSIPRead;
-    interface SIPController<FilterState *> as HUMSIPRead;
-    interface SIPController<FilterState *> as ReadHMEnergy;
-    interface SIPController<FilterState *> as ReadOpti;
-    interface StdControl as HMEnergyControl;
-    interface StdControl as OptiControl;
+    interface Read<FilterState *> as TEMPSIPRead;
+    interface Read<FilterState *> as HUMSIPRead;
     interface TransmissionControl;
     interface BitVector as ExpectReadDone;
   }
@@ -22,19 +18,14 @@ module ControllerTestP @safe()
 implementation
 {
   const char *sensor_names[] = {"temperature",
-				"humidity",
-				"hm-energy",
-				"opti"
+				"humidity"
   };
 
 
   event void Boot.booted(){
     int i;
-    call TEMPSIPRead.init(0.25, 1, 0.1, 0.1);
-    call HUMSIPRead.init(0.25, 1, 0.1, 0.1);
-    call ReadHMEnergy.init(10, 1, 0, 0);
-    call ReadOpti.init(1, 1, 0, 0);
-    call HMEnergyControl.start();
+    /* call TEMPSIPRead.init(0.25, 1, 0.1, 0.1); */
+    /* call HUMSIPRead.init(0.25, 1, 0.1, 0.1); */
     call SenseTimer.startPeriodic(DEF_SENSE_PERIOD);
 
     for (i = 0; i < RS_SIZE; i++) 
@@ -50,7 +41,6 @@ implementation
     }
     call TEMPSIPRead.read();
     call HUMSIPRead.read();
-    call ReadHMEnergy.read();
   }
 
   task void check_complete() { 
@@ -92,12 +82,5 @@ implementation
     read_done(1, result, data);
   }
   
-  event void ReadHMEnergy.readDone(error_t result, FilterState* data){
-    read_done(2, result, data);
-  }
-
-  event void ReadOpti.readDone(error_t result, FilterState* data){
-    read_done(3, result, data);
-  }
 
 }

@@ -1,13 +1,8 @@
 // -*- c -*-
 #define NEW_PRINTF_SEMANTICS
 #include "printf.h"
-#include "../Sensing/PolyClass/horner.c"
 #include "Filter.h"
-
-enum {
-  RS_SIZE = 4,
-};
-
+#include "Packets.h"
 
 configuration ControllerTestC {}
 
@@ -33,7 +28,6 @@ implementation
 
   //Sensors
   components new SensirionSht11C();
-  components PulseGio2C;
 
   //Sensing Modules
   components ThermalSensingM;
@@ -67,27 +61,13 @@ implementation
   FilterM.GetSensorValue[0] -> ThermalSensingM.ReadTemp;
   FilterM.LocalTime -> HilTimerMilliC;
   SIPControllerC.EstimateCurrentState[0] -> FilterM.EstimateCurrentState[0];
-  ControllerTestP.TEMPSIPRead -> SIPControllerC.SIPController[0];
+  ControllerTestP.TEMPSIPRead -> SIPControllerC.Sensor[0];
 
   // Hum Wiring
   FilterM.Filter[1] -> DEWMA.Filter[1];
   FilterM.GetSensorValue[1] -> ThermalSensingM.ReadHum;
   SIPControllerC.EstimateCurrentState[1] -> FilterM.EstimateCurrentState[1];
-  ControllerTestP.HUMSIPRead -> SIPControllerC.SIPController[1];
-
-  //Heat meter energy Wiring
-  FilterM.Filter[2]  -> Pass.Filter[2];
-  FilterM.GetSensorValue[2]  -> PulseGio2C.ReadPulse;
-  SIPControllerC.EstimateCurrentState[2]  -> FilterM.EstimateCurrentState[2] ;
-  ControllerTestP.HMEnergyControl -> PulseGio2C.PulseControl;
-  ControllerTestP.ReadHMEnergy -> SIPControllerC.SIPController[2] ;
-
-  //Opti smart
-  FilterM.Filter[3]  -> Pass.Filter[3];
-  FilterM.GetSensorValue[3]  -> PulseGio2C.ReadPulse;
-  SIPControllerC.EstimateCurrentState[3]  -> FilterM.EstimateCurrentState[3] ;
-  ControllerTestP.OptiControl -> PulseGio2C.PulseControl;
-  ControllerTestP.ReadOpti -> SIPControllerC.SIPController[3] ;
+  ControllerTestP.HUMSIPRead -> SIPControllerC.Sensor[1];
 
   //Transmission Control
   ControllerTestP.TransmissionControl -> SIPControllerC.TransmissionControl;

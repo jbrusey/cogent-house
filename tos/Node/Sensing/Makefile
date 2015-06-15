@@ -1,22 +1,37 @@
-PFLAGS += -I . \
-	-I .. \
-	-I ../.. \
-	-I ../BootMessage \
-	-I ../FilterWrapper -I ../Kalman \
-	-I ../Sensing/PolyClass \
-	-I ../Sensing/Base -I ../Sensing/AirQuality \
-	-I ../Filters/DEWMA -I ../Predict -I ../Heartbeat \
-	-I ../Filters/. -I ../Filters/PassThrough -I ../../Util \
-	-I ../Sensing/PulseReader
+COMPONENT=SensingTestC
 
-COMPONENT=ControllerTestC
-CFLAGS += -I$(TOSDIR)/lib/printf -Wall 
-CFLAGS += -DPRINTF_BUFFER_SIZE=2048
-CFLAGS += -DDEF_SENSE_PERIOD=10240
+PFLAGS += -I .\
+	-I ../.. \
+	-I ../AccessibleBitVector \
+	-I ../BootMessage \
+	-I ../EventDetector \
+	-I ../FilterWrapper \
+	-I ../Filters/ \
+	-I ../Filters/DEWMA \
+	-I ../Filters/PassThrough  \
+	-I ../Heartbeat \
+	-I ../PackState \
+	-I ./PolyClass \
+	-I ../Predict \
+	-I ./Base \
+	-I ../SIPController  \
+	-I ../../Util \
+	-I %T/lib/printf 
+
+
 ifdef debug
 CFLAGS += -DDEBUG
 endif
+
+
+
 include $(MAKERULES)
+
+
+CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP 
+CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
+
+
 
 CFLAGS += -DSIP_TEMP_MASK=1
 CFLAGS += -DSIP_TEMP_THRESH=0.5 # Disable SIP
@@ -82,4 +97,3 @@ CFLAGS += -DSIP_GIO3_MASK=1
 CFLAGS += -DSIP_GIO3_THRESH=2.
 CFLAGS += -DSIP_GIO3_ALPHA=0.2
 CFLAGS += -DSIP_GIO3_BETA=0.2
-

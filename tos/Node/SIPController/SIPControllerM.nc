@@ -5,7 +5,7 @@ module SIPControllerM @safe()
 {
   provides{
     interface TransmissionControl;
-    interface SIPController<FilterState *>[uint8_t id];
+    interface Read<FilterState *> as Sensor[uint8_t id];
     interface Init;
   }
 
@@ -21,21 +21,85 @@ implementation
   FilterState current_state [RS_SIZE];
   FilterState sink_state [RS_SIZE];
   bool first [RS_SIZE];
-  bool mask [RS_SIZE];
+  /* TODO: find a way to put mapping for sensor types in one place */
+  bool mask [RS_SIZE] = {
+      SIP_TEMP_MASK,
+      SIP_HUM_MASK,
+      SIP_VOLTAGE_MASK,
+      SIP_ADC_0_MASK,
+      SIP_ADC_1_MASK,
+      SIP_ADC_2_MASK,
+      SIP_ADC_3_MASK,
+      SIP_ADC_6_MASK,
+      SIP_ADC_7_MASK,
+      SIP_PAR_MASK,
+      SIP_TSR_MASK,
+      SIP_GIO2_MASK,
+      SIP_GIO3_MASK };
   bool eventful [RS_SIZE];
   bool read_started [RS_SIZE];
-  float threshold [RS_SIZE];
+  float threshold [RS_SIZE] = {
+      SIP_TEMP_THRESH,
+      SIP_HUM_THRESH,
+      SIP_VOLTAGE_THRESH,
+      SIP_ADC_0_THRESH,
+      SIP_ADC_1_THRESH,
+      SIP_ADC_2_THRESH,
+      SIP_ADC_3_THRESH,
+      SIP_ADC_6_THRESH,
+      SIP_ADC_7_THRESH,
+      SIP_PAR_THRESH,
+      SIP_TSR_THRESH,
+      SIP_GIO2_THRESH,
+      SIP_GIO3_THRESH };
+
+  float alpha [RS_SIZE] = {
+      SIP_TEMP_ALPHA,
+      SIP_HUM_ALPHA,
+      SIP_VOLTAGE_ALPHA,
+      SIP_ADC_0_ALPHA,
+      SIP_ADC_1_ALPHA,
+      SIP_ADC_2_ALPHA,
+      SIP_ADC_3_ALPHA,
+      SIP_ADC_6_ALPHA,
+      SIP_ADC_7_ALPHA,
+      SIP_PAR_ALPHA,
+      SIP_TSR_ALPHA,
+      SIP_GIO2_ALPHA,
+      SIP_GIO3_ALPHA };
+
+  float beta [RS_SIZE] = {
+      SIP_TEMP_BETA,
+      SIP_HUM_BETA,
+      SIP_VOLTAGE_BETA,
+      SIP_ADC_0_BETA,
+      SIP_ADC_1_BETA,
+      SIP_ADC_2_BETA,
+      SIP_ADC_3_BETA,
+      SIP_ADC_6_BETA,
+      SIP_ADC_7_BETA,
+      SIP_PAR_BETA,
+      SIP_TSR_BETA,
+      SIP_GIO2_BETA,
+      SIP_GIO3_BETA };
 
   command error_t Init.init() {
     int i;
-    for (i = 0; i < RS_SIZE; i++) 
+
+    for (i = 0; i < RS_SIZE; i++) {
       read_started[i] = FALSE;
+      first[i] = TRUE;
+      call EstimateCurrentState.init[i](alpha[i], beta[i]);
+    }
+    call Heartbeat.init();
+
+
     return SUCCESS;
   }
 
   
 
-  command error_t SIPController.read[uint8_t id](){
+  command error_t Sensor.read[uint8_t id](){
     read_started[id] = TRUE;
     return call EstimateCurrentState.read[id]();       //Get state estimate (line 1-3)
   }
@@ -59,22 +123,14 @@ implementation
 
       if (first[id] || (mask[id] * y) >= threshold[id] || call Heartbeat.triggered())     //Detect event check if first or event or heartbeat (line 6)
 	eventful[id] = TRUE;
-      signal SIPController.readDone[id](SUCCESS, &current_state[id]); //Read has been successful so return SUCESS and the state
+      signal Sensor.readDone[id](SUCCESS, &current_state[id]); //Read has been successful so return SUCESS and the state
       first[id] = FALSE;
 	
     }
     else
-      signal SIPController.readDone[id](FAIL, NULL);
+      signal Sensor.readDone[id](FAIL, NULL);
   }
   
-  command void SIPController.init[uint8_t id](float thresh, bool sensorMask, float a, float b){
-    first[id] = TRUE;
-    threshold[id] = thresh;
-    mask[id] = sensorMask;
-    
-    call EstimateCurrentState.init[id](a, b);
-    call Heartbeat.init();
-  }
 
   command void TransmissionControl.transmissionDone(){
     int i;
@@ -101,7 +157,7 @@ implementation
   }
 
 
- default event void SIPController.readDone[uint8_t id](error_t result, FilterState* data) {}
+ default event void Sensor.readDone[uint8_t id](error_t result, FilterState* data) {}
  default command error_t EstimateCurrentState.read[uint8_t id](){ return SUCCESS;}
  default command void EstimateCurrentState.init[uint8_t id](float a, float b){}
 

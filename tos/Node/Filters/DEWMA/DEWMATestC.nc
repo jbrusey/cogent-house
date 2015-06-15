@@ -2,7 +2,6 @@
 #define NEW_PRINTF_SEMANTICS
 #include "printf.h"
 #include "minunit.h"
-#include "SIPController.h"
 #include <stdint.h>
 
 configuration DEWMATestC {}
