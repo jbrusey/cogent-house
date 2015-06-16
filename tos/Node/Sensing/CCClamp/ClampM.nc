@@ -1,4 +1,5 @@
-/* ClampM.nc - Methods to sample current cost clamp sensor
+/* -*- c -*-
+   ClampM.nc - Methods to sample current cost clamp sensor
 
    Copyright (C) 2011 Ross Wilkins
 
@@ -49,11 +50,11 @@ module ClampM
 }
 implementation
 {
-  const float VREF = 3.3;
-  const float MAXADC = 4096.0;
+  const float VREF = 3.3; // TODO: check this value
+  const float MAXADC = 4095.0;
   const float ICAL = 111.1; 
   const int NUMBER_OF_SAMPLES = 1536; //2ms*1536=3secs
-  const float HOUSE_VOLATGE = 240.; //uk voltage
+  const float HOUSE_VOLTAGE = 240.; //uk voltage
   const uint32_t SAMPLE_PERIOD = 6144.; //6 seconds same as current cost
   
   float lastSampleI = 0.0;
@@ -135,7 +136,7 @@ implementation
     Irms = I_RATIO * sqrtf(sumI / NUMBER_OF_SAMPLES); 
     
     //convert to wattage using p=iv where = uk volatage of 240
-    watts = (Irms * HOUSE_VOLATGE);
+    watts = (Irms * HOUSE_VOLTAGE);
     
     //process stats
     totalWatts += watts;

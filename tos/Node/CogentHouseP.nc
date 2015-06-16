@@ -2,17 +2,17 @@
 module CogentHouseP
 {
   uses {
-    //Basic Interfaces
+    // Basic Interfaces
     interface Boot;
     interface Leds;
     interface LocalTime<TMilli>;
     interface BlinkStatus;
 
-    //Timers
+    // Timers
     interface Timer<TMilli> as SenseTimer;
     interface Timer<TMilli> as SendTimeOutTimer;
 
-    //Radio + CTP
+    // Radio + CTP
     interface SplitControl as RadioControl;
     interface Send as StateSender;
     interface BootMessage;
@@ -20,12 +20,12 @@ module CogentHouseP
     interface CtpInfo;
     interface LowPowerListening;    
 
-    // ack interfaces
+    // Ack interfaces
     interface Crc as CRCCalc;
     interface StdControl as DisseminationControl;
     interface DisseminationValue<AckMsg> as AckValue;
 
-    //Bitmask and packstate
+    // Sensing related
     interface Read<bool> as Sensing;
     interface AccessibleBitVector as Configured;
     interface PackState;

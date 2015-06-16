@@ -62,7 +62,7 @@ implementation
   event void GetVoltage.readDone(error_t result, uint16_t data) {
     if (result == SUCCESS) {
 
-      signal ReadBattery.readDone(SUCCESS, (data/4096.0)*3);
+      signal ReadBattery.readDone(SUCCESS, (data/4095.0)*3);
     }
     else 
       signal ReadBattery.readDone(result, 0.);

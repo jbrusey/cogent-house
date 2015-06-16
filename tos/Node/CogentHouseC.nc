@@ -52,6 +52,7 @@ implementation
   //LPL
   CogentHouseP.LowPowerListening -> ActiveMessageC;
 
+  /* link to sensing module */
   components SensingC;
   CogentHouseP.PackState -> SensingC;
   CogentHouseP.Configured -> SensingC;
