@@ -1,8 +1,8 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          ch-base
-# Required-Start:    $remote_fs $syslog $ch-sf
-# Required-Stop:     $remote_fs $syslog $ch-sf
+# Required-Start:    $remote_fs $syslog ch-sf mysql
+# Required-Stop:     $remote_fs $syslog ch-sf
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Cogent House BaseLogger
@@ -86,7 +86,7 @@ do_start()
 		|| return 1
 
 	#start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- \
-	start-stop-daemon --start --quiet --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- \
+	start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- \
 		$DAEMON_ARGS \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready
@@ -108,7 +108,7 @@ do_stop()
         
 
 	#start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
-        start-stop-daemon --stop --quiet --retry=INT/30/KILL/5 --pidfile $PIDFILE
+        start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
 	RETVAL="$?"
 	[ "$RETVAL" = 2 ] && return 2
 	# Wait for children to finish too if this is a daemon that forks
