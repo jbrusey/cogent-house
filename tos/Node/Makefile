@@ -163,7 +163,8 @@ CFLAGS += -DSIP_WALL_HUM_THRESH=-1
 CFLAGS += -DSIP_WALL_HUM_ALPHA=0
 CFLAGS += -DSIP_WALL_HUM_BETA=0
 
-include $(MAKERULES)
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
