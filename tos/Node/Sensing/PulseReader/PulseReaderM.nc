@@ -25,7 +25,8 @@
 Pulse Reader Module
 =====================================
 
-The module counts the number of interupts in a sample period from the wired in GPIO port.
+The module counts the number of interrupts in a sample period from the
+wired in GPIO port.
 
 :author: Ross Wilkins
 :author: James Brusey
