@@ -150,8 +150,9 @@ CFLAGS += -DSIP_GIO3_ALPHA=0.2
 CFLAGS += -DSIP_GIO3_BETA=0.2
 
 
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include
 
-include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
 	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
