@@ -1,6 +1,7 @@
 // -*- c -*-
 #include "Filter.h"
 #include "Packets.h"
+#include <Msp430Adc12.h>
 
 configuration SensingC { 
   provides interface Read<bool> as SensingRead;
@@ -34,6 +35,10 @@ implementation
   components ThermalSensingM;
   components BatterySensingM;
 
+  components new AnalogC(INPUT_CHANNEL_A0) as BlackBulb;
+  components new AnalogC(INPUT_CHANNEL_A1) as AirFlow;
+  components new AnalogC(INPUT_CHANNEL_A2) as Solar;
+
   components new TimerMilliC() as HeartBeatTimer;
   components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
 
@@ -42,7 +47,6 @@ implementation
   HeartbeatC.HeartbeatTimer -> HeartBeatTimer;
   SIPControllerC.Heartbeat -> HeartbeatC;
   FilterM.LocalTime -> HilTimerMilliC;
-
 
   SensingP.ReadSensor[RS_TEMPERATURE] -> SIPControllerC.Sensor[RS_TEMPERATURE];
   SensingP.ReadSensor[RS_HUMIDITY] -> SIPControllerC.Sensor[RS_HUMIDITY];
@@ -72,12 +76,24 @@ implementation
   FilterM.GetSensorValue[RS_VOLTAGE]  -> BatterySensingM.ReadBattery;
   FilterM.Filter[RS_VOLTAGE]  -> Pass.Filter[RS_VOLTAGE];
   SIPControllerC.EstimateCurrentState[RS_VOLTAGE]  -> FilterM.EstimateCurrentState[RS_VOLTAGE];
+  
+  //Blackbulb wiring
+  FilterM.GetSensorValue[RS_ADC_0]  -> BlackBulb;
+  FilterM.Filter[RS_ADC_0]  -> Pass.Filter[RS_ADC_0];
+  SIPControllerC.EstimateCurrentState[RS_ADC_0]  -> FilterM.EstimateCurrentState[RS_ADC_0];
+
+  //Blackbulb wiring
+  FilterM.GetSensorValue[RS_ADC_1]  -> AirFlow;
+  FilterM.Filter[RS_ADC_1]  -> Pass.Filter[RS_ADC_1];
+  SIPControllerC.EstimateCurrentState[RS_ADC_1]  -> FilterM.EstimateCurrentState[RS_ADC_1];
+
+    //Blackbulb wiring
+  FilterM.GetSensorValue[RS_ADC_2]  -> Solar;
+  FilterM.Filter[RS_ADC_2]  -> Pass.Filter[RS_ADC_2];
+  SIPControllerC.EstimateCurrentState[RS_ADC_2]  -> FilterM.EstimateCurrentState[RS_ADC_2];
 
   //Transmission Control
   SensingP.TransmissionControl -> SIPControllerC.TransmissionControl;
-
-
-
 
   //expectReadDone
   components new BitVectorC(RS_SIZE) as ExpectReadDone;
@@ -95,12 +111,10 @@ implementation
   components new SensirionSht11C();
   components new VoltageC() as Volt;
 
-
   //Wire up Sensing
   ThermalSensingM.GetTemp -> SensirionSht11C.Temperature;
   ThermalSensingM.GetHum ->SensirionSht11C.Humidity;
   BatterySensingM.GetVoltage -> Volt;
-
 
 }
 

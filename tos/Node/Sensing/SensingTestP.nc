@@ -49,6 +49,9 @@ implementation
     call Configured.set(RS_TEMPERATURE);
     call Configured.set(RS_HUMIDITY);
     call Configured.set(RS_VOLTAGE);
+    call Configured.set(RS_ADC_0);
+    call Configured.set(RS_ADC_1);
+    call Configured.set(RS_ADC_2);
     call Sensing.read();
     return 0;
   }

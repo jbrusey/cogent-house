@@ -5,4 +5,5 @@ CFLAGS += -I$(TOSDIR)/lib/printf \
 
 #CFLAGS += -DDEBUG
 
-include $(MAKERULES)
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include
