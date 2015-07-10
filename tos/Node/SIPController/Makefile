@@ -16,7 +16,8 @@ CFLAGS += -DDEF_SENSE_PERIOD=10240
 ifdef debug
 CFLAGS += -DDEBUG
 endif
-include $(MAKERULES)
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include
 
 CFLAGS += -DSIP_TEMP_MASK=1
 CFLAGS += -DSIP_TEMP_THRESH=0.5 # Disable SIP

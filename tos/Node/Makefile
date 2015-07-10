@@ -20,6 +20,7 @@ PFLAGS += -I . \
 	-I ./SIPController  \
 	-I ./Sensing \
 	-I ./Sensing/Base \
+        -I ./Sensing/Analog \
 	-I ./Sensing/PolyClass \
 	-I ./Sensing/PulseReader  \
 

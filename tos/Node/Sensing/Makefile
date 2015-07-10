@@ -14,6 +14,7 @@ PFLAGS += -I .\
 	-I ./PolyClass \
 	-I ../Predict \
 	-I ./Base \
+	-I ./Analog \
 	-I ../SIPController  \
 	-I ../../Util \
 	-I %T/lib/printf 
@@ -24,14 +25,11 @@ CFLAGS += -DDEBUG
 endif
 
 
-
-include $(MAKERULES)
-
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include
 
 CFLAGS += -DHEARTBEAT_MULTIPLIER=7L #7 hours SIP 
 CFLAGS += -DHEARTBEAT_PERIOD=3686400L #3686400L #1 hour  88473600 #1 day
-
-
 
 CFLAGS += -DSIP_TEMP_MASK=1
 CFLAGS += -DSIP_TEMP_THRESH=0.5 # Disable SIP

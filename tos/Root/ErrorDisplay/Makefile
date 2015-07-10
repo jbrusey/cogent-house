@@ -2,5 +2,5 @@ PFLAGS += -I%T/lib/printf
 
 COMPONENT=ErrorTestC
 
-include $(MAKERULES)
-
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include

@@ -11,6 +11,5 @@ endif
 
 CFLAGS += -DBLINK_SECONDS=10
 
-
-
-include $(MAKERULES)
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include
