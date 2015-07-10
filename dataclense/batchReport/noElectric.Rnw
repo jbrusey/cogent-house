@@ -1,4 +1,0 @@
-\cleardoublepage
-\pagebreak
-\section{Electricity Use}
-This deployment currently has no electricity data
