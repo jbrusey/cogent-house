@@ -210,7 +210,7 @@ implementation
 
 
   event void SendTimeOutTimer.fired() {
-    sample_period = DEF_BACKOFF_SENSE_PERIOD;
+    sample_period = DEF_SENSE_PERIOD;
 
 #ifdef DEBUG
     printf("ack receiving failed %lu\n", call LocalTime.get());
