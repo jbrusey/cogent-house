@@ -27,13 +27,10 @@ if [ -d "/opt/tinyos-main/" ]; then
     export TOSROOT="/opt/tinyos-main/"
 fi
 
-
 export TOSDIR="$TOSROOT/tos"
-export CLASSPATH=$CLASSPATH:$TOSROOT/support/sdk/java/tinyos.jar
-export MAKERULES="$TOSROOT/support/make/Makerules"
-export PYTHONPATH=$PYTHONPATH:$TOSROOT/support/sdk/python
+export CLASSPATH=$CLASSPATH:$TOSROOT/tools/tinyos/java/tinyos.jar
+export PYTHONPATH=$PYTHONPATH:$TOSROOT/tools/tinyos/python
 export VIRTUAL_ENV="TinyOS"
-
 
 # Extend path for java
 type java >/dev/null 2>/dev/null || PATH=`/usr/bin/tos-locate-jre --java`:$PATH

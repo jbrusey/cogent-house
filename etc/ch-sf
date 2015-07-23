@@ -23,26 +23,14 @@ PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
 #Updates to path required for TinyOS
-if [ -d "/opt/tinyos-2.1.2/" ]; then
-    echo "Tos Base path is /opt/tinyos-2.1.2"
-    export TOSROOT="/opt/tinyos-2.1.2/"
-fi
-
-if [ -d "/opt/tinyos-main-read-only/" ]; then
-    echo "Tos Base path is tinyos-main-read-only"
-    export TOSROOT="/opt/tinyos-main-read-only/"
-fi
-
-
-if [ -d "/opt/tinyos-release-2_1_2/" ]; then
-    echo "Tos Base path is tinys-release-2_1_2"
-    export TOSROOT="/opt/tinyos-release-2_1_2/"
+if [ -d "/opt/tinyos-main/" ]; then
+    echo "Tos Base path is tinyos-main"
+    export TOSROOT="/opt/tinyos-main/"
 fi
 
 export TOSDIR="$TOSROOT/tos"
-export CLASSPATH=$CLASSPATH:$TOSROOT/support/sdk/java/tinyos.jar
-export MAKERULES="$TOSROOT/support/make/Makerules"
-export PYTHONPATH=$PYTHONPATH:$TOSROOT/support/sdk/python
+export CLASSPATH=$CLASSPATH:$TOSROOT/tools/tinyos/java/tinyos.jar 
+export PYTHONPATH=$PYTHONPATH:$TOSROOT/tools/tinyos/python
 export VIRTUAL_ENV="TinyOS"
 
 
