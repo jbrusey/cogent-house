@@ -1,12 +1,11 @@
 #
 # BaseLogger
 #
-# log data from mote to a database and also print out
+# log data from mote to a flat file and also print out
 #
-# J. Brusey, R. Wilkins, April 2011
-# D. Goldsmith, May 2013
+# J. Brusey, R. Wilkins, July 2015
 
-"""BaseLogger - cogent-house data logging process.
+"""FlatLogger - cogent-house data logging process.
 
 Receives sensor readings from the base station and logs them to a flat file
 This version also acknowledges logged data once it has been
@@ -44,9 +43,9 @@ def duplicate_packet():
     return False
 
 
-class BaseLogger(object):
-    """ BaseLogger class receives sensor messages and writes them to
-    the database.
+class FlatLogger(object):
+    """ FlatLogger class receives sensor messages and writes them to
+    a flat file.
     """
     
     def __init__(self, bif=None):
@@ -65,6 +64,7 @@ class BaseLogger(object):
         self.first=True
         self.out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
         self.log_fname = '%s/%s'%(options.tmp_dir, self.out_fname)
+        self.log.debug("Logging directory" % (self.log_fname))
         self.tmp_file = open(self.log_fname, 'w')
                              
 
@@ -231,7 +231,7 @@ if __name__ == '__main__': # pragma: no cover
                       metavar="LEVEL")
     parser.add_option("-f", "--log-file",
                       help="Log file to use (Default ./Baselogger.log",
-                      default="./FlatLogger.log")
+                      default="/var/log/ch/FlatLogger.log")
 
 
 
