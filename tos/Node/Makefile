@@ -43,10 +43,10 @@ endif
 
 COMPONENT=CogentHouseC
 
-PYTHON_TARGET_DIR=../../cogent/node
+PYTHON_TARGET_DIR=../../pulp/node
 PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py BootMsg.py ConfigMsg.py Packets.py AckMsg.py)
-BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
-CLEAN_EXTRA += $(PYTHON_TGTS)
+TOSMAKE_PRE_EXE_DEPS = $(PYTHON_TGTS)
+TOSMAKE_CLEAN_EXTRA = $(PYTHON_TGTS)
 
 #Configuration
 # turn on leds for debugging?
@@ -156,19 +156,19 @@ include $(TINYOS_ROOT_DIR)/Makefile.include
 
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
 
 $(PYTHON_TARGET_DIR)/BootMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
 
 $(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
 
 $(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
-	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
+	nescc-ncg python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
 
 ../Util/ch4bitle/LinkEstimatorP.nc: ../Util/ch4bitle.patch
 	-rm -rf ../Util/ch4bitle

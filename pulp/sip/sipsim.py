@@ -2,7 +2,7 @@
 
  Sipsim - named tuple version
 
- cogent.sip.sipsim
+ pulp.sip.sipsim
 
 Versions:
 

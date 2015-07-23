@@ -25,9 +25,9 @@ if "TOSROOT" not in os.environ:
     raise Exception("Please source the Tiny OS environment script first")
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 
-from cogent.node import (AckMsg,
+from pulp.node import (AckMsg,
                          Packets)
-from cogent.base.BaseIF import BaseIF
+from pulp.base.BaseIF import BaseIF
 
 from Queue import Empty
 
@@ -35,12 +35,6 @@ from datetime import datetime, timedelta
 
 #import time
 
-from cogent.base.model import (Reading, NodeState, NodeBoot, SensorType,
-                               Base, Session, init_model, Node)
-
-import cogent.base.model as models
-import cogent.base.model.meta as meta
-from cogent.base.packstate import PackState
 
 LOGGER = logging.getLogger("ch.base")
 

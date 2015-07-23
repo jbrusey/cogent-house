@@ -1,5 +1,5 @@
-from cogent.node import Packets
-from cogent.base.model import Bitset
+from pulp.node import Packets
+from pulp.base import Bitset
 
 class PackState(object):
     """ simplified version of the packstate object that supports

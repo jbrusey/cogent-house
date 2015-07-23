@@ -5,11 +5,13 @@
 
 import sys
 import os
-sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
-from cogent.node import StateMsg, ConfigMsg, Packets, BootMsg
+if "TOSROOT" not in os.environ:
+    raise Exception("Please source the Tiny OS environment script first")
+sys.path.append(os.environ["TOSROOT"] + "/tools/tinyos/python")
+
+from pulp.node import StateMsg, ConfigMsg, Packets, BootMsg
 from tinyos.message import MoteIF 
 import time
-from cogent.base.model import *
 from Queue import Queue, Empty
 
 

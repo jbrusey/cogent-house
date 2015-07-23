@@ -5,12 +5,11 @@ J. Brusey, May 2011
 """
 import sys
 import os
-sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
+sys.path.append(os.environ["TOSROOT"] + "/tools/tinyos/python/")
 sys.path.append("../..")
-from cogent.node import StateMsg
-# from cogent.base.model import
+from pulp.node import StateMsg
 from Queue import Queue
-from cogent.base.BaseLogger import BaseLogger
+from pulp.base.BaseLogger import BaseLogger
 import logging
 
 # Note: MoteIF doesn't currently support coming directly off the
