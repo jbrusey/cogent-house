@@ -1,0 +1,134 @@
+<html>
+  <head>
+    <style>
+      #customers
+      {
+      font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;      
+      width:100%;
+      border-collapse:collapse;
+      }
+      #customers td, #customers th 
+      {      
+      font-size:1.2em;
+      border:1px solid #98bf21;
+      padding:3px 7px 2px 7px;
+      }
+      #customers th 
+      {
+      font-size:1.4em;
+      text-align:left;
+      padding-top:5px;
+      padding-bottom:4px;
+      background-color:#A7C942;
+      color:#fff;
+      }
+      #customers tr.alt td 
+      {
+      color:#000;
+      background-color:#EAF2D3;
+      }
+
+
+      .modalDialog {
+      position: fixed;
+      font-family: Arial, Helvetica, sans-serif;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 99999;
+      opacity:0;
+      -webkit-transition: opacity 400ms ease-in;
+      -moz-transition: opacity 400ms ease-in;
+      transition: opacity 400ms ease-in;
+      pointer-events: none;
+      }
+
+      .modalDialog:target {
+      opacity:1;
+      pointer-events: auto;
+      }
+
+      .modalDialog > div {
+      width: 900px;
+      position: relative;
+      margin: 10% auto;
+      padding: 5px 20px 13px 20px;
+      border-radius: 10px;
+      background: #fff;
+      background: -moz-linear-gradient(#fff, #999);
+      background: -webkit-linear-gradient(#fff, #999);
+      background: -o-linear-gradient(#fff, #999);
+      }
+
+      .close {
+      background: #606061;
+      color: #FFFFFF;
+      line-height: 25px;
+      position: absolute;
+      right: -12px;
+      text-align: center;
+      top: -10px;
+      width: 24px;
+      text-decoration: none;
+      font-weight: bold;
+      -webkit-border-radius: 12px;
+      -moz-border-radius: 12px;
+      border-radius: 12px;
+      -moz-box-shadow: 1px 1px 3px #000;
+      -webkit-box-shadow: 1px 1px 3px #000;
+      box-shadow: 1px 1px 3px #000;
+      }
+
+      .close:hover { background: #00d9ff; }
+
+    </style>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function(){
+	(function foo() {
+            $.get("get_node_data.php", function(_data){
+		nodes = _data.split("\n");
+		var outstr = "<table id='customers'><tr><th>NodeId</th><th>Last Heard</th></tr>";
+		var divstr = "";
+		for (var i = 0; i < nodes.length; i++) {
+                    data = $.parseJSON(nodes[i]);
+		    if (data != null) {
+			var d = new Date(0);
+			d.setUTCSeconds(parseInt(data["time"], 10));
+			trstr = "<tr>";
+			if (i % 2 == 1) {
+			    trstr = "<tr class='alt'>";
+			}
+			// text for the main table
+			outstr = outstr + trstr + "<td>" + data["sender"] + "</td>" + 
+			"<td><a href='#openModalPotential_" + i + "'>" + data["Temperature"].toFixed(2) + "</a></td><td>" 
+			+ d + "</td></tr>";
+
+			//Plot links
+			divstr = divstr + "<div id='openModalPotentail_" + i + "' class='modalDialog'><div>" +
+			    "<a href='#close' title='Close' class='close'>X</a>" +
+			    "<img src='node_" + data["sender"] +
+			    "_gnu.csv_Temperature.png?" + d.getTime() +
+			  "'></img></div></div>"
+			  
+		    }
+		}
+		outstr = outstr + "</table>";
+		var d2 = new Date();
+		$("#log").html(outstr + "<br /> last loaded: " + d2 + "<br />" + divstr);
+		
+            });
+	    setTimeout(foo, 30000);
+	})();
+    });
+    </script>
+  </head>
+  <body>
+    <h1>Node Report Interface</h1>
+    <div id="log">
+    
+    </div>
+  </body>
+</html>
