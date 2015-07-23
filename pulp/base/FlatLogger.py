@@ -1,5 +1,5 @@
 #
-# BaseLogger
+# FlatLogger
 #
 # log data from mote to a flat file and also print out
 #
@@ -49,7 +49,7 @@ class FlatLogger(object):
     """
     
     def __init__(self, bif=None):
-        """ create a new BaseLogger and connect it to the sensor
+        """ create a new FlatLogger and connect it to the sensor
         source (bif)
         """
         if bif is None: 
@@ -59,7 +59,7 @@ class FlatLogger(object):
 
         self.time_count = 0.0 # how many seconds we've waited since last file
         self.last_time = time.time() # compare against for time_count
-        self.log = logging.getLogger("baselogger")
+        self.log = logging.getLogger("flatlogger")
         self.running = True
         self.first=True
         self.out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
@@ -230,7 +230,7 @@ if __name__ == '__main__': # pragma: no cover
                       default="debug",
                       metavar="LEVEL")
     parser.add_option("-f", "--log-file",
-                      help="Log file to use (Default ./Baselogger.log",
+                      help="Log file to use (Default ./Flatlogger.log",
                       default="/var/log/ch/FlatLogger.log")
 
 
@@ -253,6 +253,6 @@ if __name__ == '__main__': # pragma: no cover
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=lvlmap[options.log_level])
 
-    logging.info("Starting BaseLogger with log-level %s" % (options.log_level))
-    lm = BaseLogger()
+    logging.info("Starting FlatLogger with log-level %s" % (options.log_level))
+    lm = FlatLogger()
     lm.run()
