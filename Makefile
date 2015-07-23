@@ -6,7 +6,7 @@
 #    sudo make install
 .PHONY: all install
 
-MIGPYFILES=$(addprefix cogent/node/,StateMsg.py ConfigMsg.py Packets.py) 
+MIGPYFILES=$(addprefix pulp/node/,StateMsg.py ConfigMsg.py Packets.py) 
 all: $(MIGPYFILES)
 
 install:  all
