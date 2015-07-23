@@ -64,7 +64,7 @@ class FlatLogger(object):
         self.first=True
         self.out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
         self.log_fname = '%s/%s'%(options.tmp_dir, self.out_fname)
-        self.log.debug("Logging directory" % (self.log_fname))
+        self.log.debug("Logging directory %s" % (self.log_fname))
         self.tmp_file = open(self.log_fname, 'w')
                              
 
