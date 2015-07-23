@@ -1,7 +1,7 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          ch-base
-# Required-Start:    $remote_fs $syslog ch-sf mysql
+# Required-Start:    $remote_fs $syslog ch-sf
 # Required-Stop:     $remote_fs $syslog ch-sf
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
@@ -15,28 +15,18 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="Cogent House BaseLogger"
+DESC="Cogent Pulp FlatLogger"
 NAME=ch-base
 DAEMON=/usr/bin/python
-DAEMON_ARGS="-m cogent.base.BaseLogger"
+DAEMON_ARGS="-m pulp.base.FlatLogger -t /tmp/ -o /opt/pulp/data -d 600.0"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
-if [ -d "/opt/tinyos-2.1.2/" ]; then
-    echo "Tos Base path is /opt/tinyos-2.1.2"
-    export TOSROOT="/opt/tinyos-2.1.2/"
+if [ -d "/opt/tinyos-main/" ]; then
+    echo "Tos Base path is tinyos-main"
+    export TOSROOT="/opt/tinyos-main/"
 fi
 
-if [ -d "/opt/tinyos-main-read-only/" ]; then
-    echo "Tos Base path is tinyos-main-read-only"
-    export TOSROOT="/opt/tinyos-main-read-only/"
-fi
-
-
-if [ -d "/opt/tinyos-release-2_1_2/" ]; then
-    echo "Tos Base path is tinys-release-2_1_2"
-    export TOSROOT="/opt/tinyos-release-2_1_2/"
-fi
 
 export TOSDIR="$TOSROOT/tos"
 export CLASSPATH=$CLASSPATH:$TOSROOT/support/sdk/java/tinyos.jar
