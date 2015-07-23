@@ -1,5 +1,5 @@
 from pulp.node import Packets
-from pulp.base import Bitset
+from pulp.base.Bitset import Bitset
 
 class PackState(object):
     """ simplified version of the packstate object that supports

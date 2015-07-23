@@ -5,10 +5,6 @@
 
 import sys
 import os
-if "TOSROOT" not in os.environ:
-    raise Exception("Please source the Tiny OS environment script first")
-sys.path.append(os.environ["TOSROOT"] + "/tools/tinyos/python")
-
 from pulp.node import StateMsg, ConfigMsg, Packets, BootMsg
 from tinyos.message import MoteIF 
 import time
@@ -44,32 +40,31 @@ def store_state(msg):
     n = msg.getAddr()
     print "storing state ",n, msg
 
-
+    
 if __name__ == '__main__':
 
     bif = BaseIF("sf@localhost:9002")
 
     while True:
-        # wait up to 30 seconds for a message
         try:
             msg = bif.get(True, 5)
+            print msg.get_amType()
+	    # j = 0
+        #     mask = Bitset(value=msg.get_packed_state_mask())
+        #     print "State mask size:", msg.totalSizeBits_packed_state_mask()
+        #     state = []
+        #     for i in range(msg.totalSizeBits_packed_state_mask()):
+        #         if mask[i]:
+        #             try:
+        #                 v = msg.getElement_packed_state(j)
+        #             except Exception, e:
+        #                 v = "Invalid {!s}".format(e)
+        #             print "%s\t%s\t%s" % (j, i, v)
+        #         j += 1
+        #     print ""
 
-	    j = 0
-            mask = Bitset(value=msg.get_packed_state_mask())
-            print "State mask size:", msg.totalSizeBits_packed_state_mask()
-            state = []
-            for i in range(msg.totalSizeBits_packed_state_mask()):
-                if mask[i]:
-                    try:
-                        v = msg.getElement_packed_state(j)
-                    except Exception, e:
-                        v = "Invalid {!s}".format(e)
-                    print "%s\t%s\t%s" % (j, i, v)
-                j += 1
-            print ""
 
-
-            #store_state(msg)
+        #     #store_state(msg)
         except Empty:
             pass
     

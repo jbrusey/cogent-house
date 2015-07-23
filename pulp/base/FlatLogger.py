@@ -15,16 +15,12 @@ successfully written to the file.
 """
 
 import logging
+import json
 import sys
 import os
 import math
+import time
 from optparse import OptionParser
-
-
-if "TOSROOT" not in os.environ:
-    raise Exception("Please source the Tiny OS environment script first")
-sys.path.append(os.environ["TOSROOT"] + "/tools/tinyos/python")
-
 from pulp.node import (AckMsg,
                             Packets)
 from pulp.base.SensorTypes import type_lookup
@@ -33,7 +29,7 @@ from Queue import Empty
 from datetime import datetime, timedelta
 from packstate import PackState
 
-LOGGER = logging.getLogger("pukp.base")
+LOGGER = logging.getLogger("pulp.base")
 QUEUE_TIMEOUT = 10
 
 def duplicate_packet():
@@ -63,10 +59,13 @@ class BaseLogger(object):
             self.bif = bif
 
         self.time_count = 0.0 # how many seconds we've waited since last file
-        self.last_time = datetime.utcnow() # compare against for time_count
+        self.last_time = time.time() # compare against for time_count
         self.log = logging.getLogger("baselogger")
         self.running = True
         self.first=True
+        self.out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
+        self.log_fname = '%s/%s'%(options.tmp_dir, self.out_fname)
+        self.tmp_file = open(self.log_fname, 'w')
                              
 
     def send_ack(self,
@@ -87,7 +86,7 @@ class BaseLogger(object):
     def booted_node(self, msg):
         """Receieve and process a boot message object from the base station
         """
-        # current_time = datetime.utcnow()
+
         # node_id = msg.getAddr()
         # clustered = msg.get_clustered()
         # version = msg.get_version()
@@ -102,40 +101,35 @@ class BaseLogger(object):
     def store_state(self, msg):
         """ receive and process a message object from the base station
         """
-
+            
         # update amount of time we've been waiting
-        tmp_time = datetime.utcnow()
-        time_count += tmp_time - self.last_time
+        tmp_time = time.time()
+        self.time_count += tmp_time - self.last_time
         self.last_time = tmp_time
 
-        # # do we need to start a new file?
-        # if time_count >= float(args.duration):
-        #     # close file and move it to sending directory
-        #     if !self.first:
-        #         tmp_file.close()
-        #     else:
-        #         self.first=False
+        # do we need to start a new file?
+        if self.time_count >= float(options.duration):
+            self.tmp_file.close()
                 
-        #     # move it
-        #     try:
-        #         os.rename(log_fname, "%s/%s"%(args.out_dir, out_fname))
-        #     except OSError: # means that we're moving across partitions (IS THIS NEEDED?)
-        #         os.system('mv %s %s/%s'%(log_fname, args.out_dir, out_fname))
-        #     # ready for next interval
-        #     time_count = 0
-        #     # start new file
-        #     out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
-        #     log_fname = '%s/%s'%(args.tmp_dir, out_fname)
-        #     tmp_file = open(log_fname, 'w')
-            
+            # move it
+            try:
+                os.rename(self.log_fname, "%s/%s"%(options.out_dir, self.out_fname))
+            except OSError: # means that we're moving across partitions (IS THIS NEEDED?)
+                os.system('mv %s %s/%s'%(self.log_fname, options.out_dir, self.out_fname))
+            # ready for next interval
+            self.time_count = 0
+            # start new file
+            self.out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
+            self.log_fname = '%s/%s'%(options.tmp_dir, self.out_fname)
+            self.tmp_file = open(self.log_fname, 'w')
+
         if msg.get_special() != Packets.SPECIAL:
             raise Exception("Corrupted packet - special is %02x not %02x" %
                             (msg.get_special(), Packets.SPECIAL))
     
         pack_state = PackState.from_message(msg)
 
-        #output = {}
-        print "rec"
+        output = {}
         for i, value in pack_state.d.iteritems():
             type_id = i
             if math.isinf(value) or math.isnan(value):
@@ -144,18 +138,28 @@ class BaseLogger(object):
             output[out_type] = value
 
  
-        output['server_time'] = datetime.utcnow()
+        output['server_time'] = time.time()
         output['sender'] = msg.getAddr()
         output['parent'] = msg.get_ctp_parent_id()
         output['seq'] = msg.get_seq()
         output['rssi'] = msg.get_rssi()
         print output
-        
-        self.log.debug("reading: %s, %s" % (node_state, pack_state))
+
+        # prep output JSON line
+        json_str = json.dumps(output) + "\n"
+
+        # write to node file
+        node_file = open('%s/node_%s.log'%(options.tmp_dir, output['sender']), 'w')
+        node_file.write(json_str)
+        node_file.close()
+
+        # write to file in /tmp/
+        self.tmp_file.write(json_str)
+        self.tmp_file.flush()
 
         #send acknowledgement to base station to fwd to node
-        self.send_ack(seq=seq,
-            dest=node_id)
+        self.send_ack(seq=output['seq'],
+            dest=output['sender'])
                      
         return True
 
@@ -170,11 +174,10 @@ class BaseLogger(object):
         """
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
-            print msg.get_amType()
             if msg.get_amType() == Packets.AM_BOOTMSG:
                 #Log node boot
                 status = self.booted_node(msg)
-            elif msg.get_amType() == Packets.AM_STATEMSG:   
+            elif msg.get_amType() == Packets.AM_STATEMSG:
                 status = self.store_state(msg)
             else:
             	status = False
@@ -204,35 +207,35 @@ class BaseLogger(object):
                 
 if __name__ == '__main__': # pragma: no cover
     parser = OptionParser()
-    # parser.add_argument("-o",
-    #                     "--out-dir",
-    #                     metavar="DIR",
-    #                     default=".",
-    #                     help="Output directory for files (default .)")
-    # parser.add_argument("-t",
-    #                     "--tmp-dir",
-    #                     metavar="DIR",
-    #                     default=".",
-    #                     help="Temporary directory for files (default .)")
-    # parser.add_argument("-d",
-    #                     "--duration",
-    #                     metavar="SEC",
-    #                     default=900,
-    #                     help="Number of seconds between files (default 900)")
+    
+    parser.add_option("-o",
+                        "--out-dir",
+                        metavar="DIR",
+                        default=".",
+                        help="Output directory for files (default .)")
+    parser.add_option("-t",
+                        "--tmp-dir",
+                        metavar="DIR",
+                        default=".",
+                        help="Temporary directory for files (default .)")
+    parser.add_option("-d",
+                        "--duration",
+                        metavar="SEC",
+                        default=900,
+                        help="Number of seconds between files (default 900)")
+
     
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error",
                       default="debug",
                       metavar="LEVEL")
     parser.add_option("-f", "--log-file",
-                      help="Log file to use (Default /var/log/pulp/Baselogger.log",
-                      default="/var/log/pulp/FlatLogger.log")
+                      help="Log file to use (Default ./Baselogger.log",
+                      default="./FlatLogger.log")
 
 
 
     (options, args) = parser.parse_args()
-    if len(args) != 0:
-        parser.error("incorrect number of arguments")
 
     lvlmap = {"debug": logging.DEBUG,
               "info": logging.INFO,
