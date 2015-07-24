@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
                     graph_file = open('%s/node_%s_gnu.csv'%(args.out_dir, output['sender']), 'a')
                     try:
-                        graph_file.write("%.2f\n"%(\
+                        graph_file.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%u,%u,%u\n"%(\
                                 output['server_time'], output['Temperature'], output['Humidity'],\
                                     output['ADC_0'], output['ADC_1'], output['ADC_2'],\
                                     output['parent'], output['rssi'], output['seq']))
