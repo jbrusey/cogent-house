@@ -2,7 +2,7 @@
 
 $filefullname = basename($_FILES['userfile']['name']);
 $file_to_copy = $_FILES['userfile']['tmp_name'];
-$uploadfile = "/home/ab7438/pulp/".$filefullname;
+$uploadfile = "/home/ross/pulp/".$filefullname;
 
 /* attempt to copy the file and return success to the node */
 if (copy($file_to_copy, $uploadfile)) {
