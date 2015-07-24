@@ -153,6 +153,13 @@ class FlatLogger(object):
         node_file.write(json_str)
         node_file.close()
 
+        graph_file = open('%s/node_%s_gnu.csv'%(options.out_dir, output['sender']), 'a')
+        graph_file.write("%.2f\n"%(\
+            output['server_time'], output['Temperature'], output['Humidity'],\
+            output['ADC_0'], output['ADC_1'], output['ADC_2'],\
+            output['parent'], output['rssi'], output['seq']))
+        graph_file.close()
+        
         # write to file in /tmp/
         self.tmp_file.write(json_str)
         self.tmp_file.flush()
