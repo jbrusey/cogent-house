@@ -1,6 +1,6 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          ch-base
+# Provides:          ch-flat
 # Required-Start:    $remote_fs $syslog ch-sf
 # Required-Stop:     $remote_fs $syslog ch-sf
 # Default-Start:     2 3 4 5
@@ -18,7 +18,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Cogent Pulp FlatLogger"
 NAME=ch-base
 DAEMON=/usr/bin/python
-DAEMON_ARGS="-m pulp.base.FlatLogger -t /tmp/ -o /opt/pulp/data -d 600.0"
+DAEMON_ARGS="-m pulp.base.FlatLogger -t /tmp/ -o /opt/pulp/data -d 600.0 -f /var/log/ch/FlatLogger.log"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
