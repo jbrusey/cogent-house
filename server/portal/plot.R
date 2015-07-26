@@ -24,7 +24,7 @@ readNodeFile <- function(fname) {
     #Rename the fields to something meaningful
     rename(Time = X1, temperature = X2, humidity = X3,
            adc0 = X4, adc1 = X5, adc2 = X6,
-           parent = X7, rssi = X8, seq = X9) %>%
+           voltage = X7, parent = X8, rssi = X9, seq = X10) %>%
     #Cast time to correct value, and align to the nearest 5 mins
     mutate(Time = align.time(
       as.POSIXct(Time, n = 300, origin = "1970-01-01"),
