@@ -56,79 +56,89 @@ readNodeData <- function(dir){
   return(csv_data)
 }
 
-data_dir <- commandArgs(TRUE)[1]
-out_dir <- commandArgs(TRUE)[2]
+args <- commandArgs(trailingOnly = TRUE)
+data_dir <- args[1]
+out_dir <- args[2]
+
+data_dir <- ".."
+out_dir <- ".."
 
 nodeData <- readNodeData(data_dir)
 
 nodes <- unique(nodeData$NodeId)
 
 for (nid in nodes) {
-
   fname <- paste(out_dir, "/pulp_",nid,"_temperature.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  tp <- ggplot(nodeData, aes(x = Time, y = temperature)) +
+  ggplot(nodeData, aes(x = Time, y = temperature)) +
     geom_line() +
     xlab("") +
-    ylab("Temperature (c)") +
+    ylab(tname) +
     scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
-  fname <- paste("/tmp/pulp_",nid,"_humidity.png", sep = "")
+  fname <- paste(out_dir, "/pulp_",nid,"_humidity.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  hp <- ggplot(nodeData, aes(x = Time, y = humidity)) +
+  ggplot(nodeData, aes(x = Time, y = humidity)) +
     geom_line() +
     xlab("") +
-    ylab("Humidity (%)")
+    ylab("Humidity (%)") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
 
-  fname <- paste("/tmp/pulp_",nid,"_adc0.png", sep = "")
+  fname <- paste(out_dir, "/pulp_",nid,"_adc0.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  a0p <- ggplot(nodeData, aes(x = Time, y = adc0)) +
+  ggplot(nodeData, aes(x = Time, y = adc0)) +
     geom_line() +
     xlab("") +
-    ylab("ADC0")
+    ylab("ADC0") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
-  fname <- paste("/tmp/pulp_",nid,"_adc1.png", sep = "")
+  fname <- paste(out_dir, "/pulp_",nid,"_adc1.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  a1p <- ggplot(nodeData, aes(x = Time, y = adc1)) +
+  ggplot(nodeData, aes(x = Time, y = adc1)) +
     geom_line() +
     xlab("") +
-    ylab("ADC1")
+    ylab("ADC1") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
-  fname <- paste("/tmp/pulp_",nid,"_adc2.png", sep = "")
+  fname <- paste(out_dir, "/pulp_",nid,"_adc2.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  a2p <- ggplot(nodeData, aes(x = Time, y = adc2)) +
+  ggplot(nodeData, aes(x = Time, y = adc2)) +
     geom_line() +
     xlab("") +
-    ylab("ADC2")
+    ylab("ADC2") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
-  fname <- paste("/tmp/pulp_",nid,"_parent.png", sep = "")
+  fname <- paste(out_dir, "/pulp_",nid,"_parent.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  rp <- ggplot(nodeData, aes(x = Time, y = parent)) +
+  ggplot(nodeData, aes(x = Time, y = parent)) +
     geom_line() +
     xlab("") +
-    ylab("RSSI")
+    ylab("RSSI") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
-  fname <- paste("/tmp/pulp_",nid,"_seq.png", sep = "")
+  fname <- paste(out_dir, "/pulp_",nid,"_seq.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  rp <- ggplot(nodeData, aes(x = Time, y = seq)) +
+  ggplot(nodeData, aes(x = Time, y = seq)) +
     geom_line() +
     xlab("") +
-    ylab("RSSI")
+    ylab("RSSI") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
-  fname <- paste("/tmp/pulp_",nid,"_rssi.png", sep = "")
+  fname <- paste(out_dir, "/pulp_",nid,"_rssi.png", sep = "")
   png(file = fname, width = 860, height = 480, units = 'px')
-  rp <- ggplot(nodeData, aes(x = Time, y = rssi)) +
+  ggplot(nodeData, aes(x = Time, y = rssi)) +
     geom_line() +
     xlab("") +
-    ylab("RSSI")
+    ylab("RSSI") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
   dev.off()
 
 }
