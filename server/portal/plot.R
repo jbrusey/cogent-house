@@ -125,7 +125,7 @@ dev.off()
 
 pname <- paste("pulp_",nid,"_volt.png", sep = "")
 png(file = pname, width = 860, height = 480, units = 'px')
-ggplot(nodeData, aes(x = Time, y = Voltage)) +
+ggplot(nodeData, aes(x = Time, y = voltage)) +
   geom_line() +
   xlab("") +
   ylab("Battery (V)") +
