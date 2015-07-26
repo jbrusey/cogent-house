@@ -125,7 +125,8 @@
                                     + '<td><a href="#openModalHum_' + data['sender'] + '">' + data['Humidity'].toFixed(2) + '</a></td>'
                                     + '<td><a href="#openModalADC0_' + data['sender'] + '">' + data['ADC_0'].toFixed(2) + '</a></td>'
                                     + '<td><a href="#openModalADC1_' + data['sender'] + '">' + data['ADC_1'].toFixed(2) + '</a></td>'
-                                    + '<td><a href="#openModalADC2_' + data['sender'] + '">' + data['ADC_2'].toFixed(2) + '</a></td>'
+                                    + '<td><a href="#openModalADC2_' + data['sender'] + '">' + data['ADC_2'].toFixed(2) +'</a></td>'
+                                    + '<td><a href="#openModalBattery_' + data['sender'] + '">' + data['Voltage'].toFixed(2) + '</a></td>'
                                     + '<td><a href="#openModalParent_' + data['sender'] + '">'  + data['parent'] + '</a></td>'
                                     + '<td><a href="#openModalRSSI_' + data['sender'] + '">'  + data['rssi'] + '</a></td>'
                                     + '<td><a href="#openModalSeq_' + data['sender'] + '">'  + data['seq'] + '</a></td>'
@@ -157,7 +158,10 @@
                                     + "<div id='openModalSeq_" + data['sender'] + "' class='modalDialog'><div>"
                                     + "<a href='#close' title='Close' class='close'>X</a>"
                                     + "<img src='pulp_" + data['sender'] + "_seq.png?" + date + "'></img></div></div>"
-                            );
+                                    + "<div id='openModalBattery_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_volt.png?" + date + "'></img></div></div>"
+				    );
 
                         }
                     }
@@ -178,7 +182,8 @@
         <th>Humidity</th>
         <th>ADC 0</th>
         <th>ADC 1</th>
-        <th>ADC 2</th>
+	<th>ADC 2</th>
+        <th>Battery</th>
         <th>Parent</th>
         <th>RSSI</th>
         <th>Seq No.</th>

@@ -156,7 +156,7 @@ class FlatLogger(object):
         graph_file = open('%s/node_%s_gnu.csv'%(options.out_dir, output['sender']), 'a')
         graph_file.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%u,%u,%u\n"%(\
             output['server_time'], output['Temperature'], output['Humidity'],\
-            output['ADC_0'], output['ADC_1'], output['ADC_2'],\
+            output['ADC_0'], output['ADC_1'], output['ADC_2'], output['Voltage'],\
             output['parent'], output['rssi'], output['seq']))
         graph_file.close()
         

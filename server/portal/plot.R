@@ -123,4 +123,13 @@ ggplot(nodeData, aes(x = Time, y = rssi)) +
   scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
 dev.off()
 
+pname <- paste("pulp_",nid,"_volt.png", sep = "")
+png(file = pname, width = 860, height = 480, units = 'px')
+ggplot(nodeData, aes(x = Time, y = Voltage)) +
+  geom_line() +
+  xlab("") +
+  ylab("Battery (V)") +
+  scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
+dev.off()
+
 
