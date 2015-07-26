@@ -5,6 +5,7 @@ library(tidyr)
 library(xts)
 library(readr)
 library(ggplot2)
+library(scales)
 
 theme_set(theme_gray(base_size=14))
 tname <- expression(paste("Temperature (",degree,"C)"))
