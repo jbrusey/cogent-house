@@ -120,16 +120,44 @@
                                     '<tr>'
                                     + '<td>' + data['sender'] + '</td>'
                                     + '<td>' + date + '</td>'
-                                    + '<td>' + data['Temperature'].toFixed(2) + '</td>'
-                                    + '<td>' + data['Humidity'].toFixed(2) + '</td>'
-                                    + '<td>' + data['ADC_0'].toFixed(2) + '</td>'
-                                    + '<td>' + data['ADC_1'].toFixed(2) + '</td>'
-                                    + '<td>' + data['ADC_2'].toFixed(2) + '</td>'
-                                    + '<td>' + data['parent'] + '</td>'
-                                    + '<td>' + data['rssi'] + '</td>'
-                                    + '<td>' + data['seq'] + '</td>'
+                                    + '<td><a href="#openModalTemp_' + data['sender'] + '">' + data["Temperature"].toFixed(2) + '</a></td>'
+                                    + '<td><a href="#openModalHum_' + data['sender'] + '">' + data['Humidity'].toFixed(2) + '</a></td>'
+                                    + '<td><a href="#openModalADC0_' + data['sender'] + '">' + data['ADC_0'].toFixed(2) + '</a></td>'
+                                    + '<td><a href="#openModalADC1_' + data['sender'] + '">' + data['ADC_1'].toFixed(2) + '</a></td>'
+                                    + '<td><a href="#openModalADC2_' + data['sender'] + '">' + data['ADC_2'].toFixed(2) + '</a></td>'
+                                    + '<td><a href="#openModalParent_' + data['sender'] + '">'  + data['parent'] + '</a></td>'
+                                    + '<td><a href="#openModalRSSI_' + data['sender'] + '">'  + data['rssi'] + '</a></td>'
+                                    + '<td><a href="#openModalSeq_' + data['sender'] + '">'  + data['seq'] + '</a></td>'
                                     + '</tr>'
                             );
+
+                            $('#table').find('> tbody:first').append(
+                                    "<div id='openModalTemp_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_temperature.png?" + date + "'></img></div></div>"
+                                    + "<div id='openModalHum_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_humidity.png?" + date + "'></img></div></div>"
+                                    + "<div id='openModalADC0_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_adc0.png?" + date + "'></img></div></div>"
+                                    + "<div id='openModalADC1_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_adc1.png?" + date + "'></img></div></div>"
+                                    + "<div id='openModalADC2_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_adc2.png?" + date + "'></img></div></div>"
+                                    + "<div id='openModalParent_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_parent.png?" + date + "'></img></div></div>"
+                                    + "<div id='openModalRSSI_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "_rssi.png?" + date + "'></img></div></div>"
+                                    + "<div id='openModalSeq_" + data['sender'] + "' class='modalDialog'><div>"
+                                    + "<a href='#close' title='Close' class='close'>X</a>"
+                                    + "<img src='pulp_" + data['sender'] + "seq.png?" + date + "'></img></div></div>"
+                            );
+
                         }
                     }
                     //outstr = outstr + "</table>";

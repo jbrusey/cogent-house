@@ -6,6 +6,9 @@ library(xts)
 library(readr)
 library(ggplot2)
 
+theme_set(theme_gray(base_size=14))
+tname <- expression(paste("Temperature (",degree,"C)"))
+
 ############## PROCESS NODE DATA FILES ###########################
 
 readNodeFile <- function(fname) {
@@ -53,50 +56,78 @@ readNodeData <- function(dir){
 }
 
 data_dir <- commandArgs(TRUE)[1]
+out_dir <- commandArgs(TRUE)[2]
+
 nodeData <- readNodeData(data_dir)
 
 nodes <- unique(nodeData$NodeId)
 
 for (nid in nodes) {
+
+  fname <- paste(out_dir, "/pulp_",nid,"_temperature.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
   tp <- ggplot(nodeData, aes(x = Time, y = temperature)) +
     geom_line() +
     xlab("") +
-    ylab("Temperature (c)")
-  fname <- paste("/tmp/pulp_",nid,"_temperature.png", sep = "")
-  ggsave(filename = fname, plot = tp)
+    ylab("Temperature (c)") +
+    scale_x_datetime(breaks = "7 day", labels = date_format("%m-%d\n%H:%M"))
+  dev.off()
 
+  fname <- paste("/tmp/pulp_",nid,"_humidity.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
   hp <- ggplot(nodeData, aes(x = Time, y = humidity)) +
     geom_line() +
     xlab("") +
     ylab("Humidity (%)")
-  fname <- paste("/tmp/pulp_",nid,"_humidity.png", sep = "")
-  ggsave(filename = fname, plot = hp)
+  dev.off()
 
+
+  fname <- paste("/tmp/pulp_",nid,"_adc0.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
   a0p <- ggplot(nodeData, aes(x = Time, y = adc0)) +
     geom_line() +
     xlab("") +
     ylab("ADC0")
-  fname <- paste("/tmp/pulp_",nid,"_adc0.png", sep = "")
-  ggsave(filename = fname, plot = a0p)
+  dev.off()
 
+  fname <- paste("/tmp/pulp_",nid,"_adc1.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
   a1p <- ggplot(nodeData, aes(x = Time, y = adc1)) +
     geom_line() +
     xlab("") +
     ylab("ADC1")
-  fname <- paste("/tmp/pulp_",nid,"_adc1.png", sep = "")
-  ggsave(filename = fname, plot = a1p)
+  dev.off()
 
+  fname <- paste("/tmp/pulp_",nid,"_adc2.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
   a2p <- ggplot(nodeData, aes(x = Time, y = adc2)) +
     geom_line() +
     xlab("") +
     ylab("ADC2")
-  fname <- paste("/tmp/pulp_",nid,"_adc2.png", sep = "")
-  ggsave(filename = fname, plot = a2p)
+  dev.off()
 
+  fname <- paste("/tmp/pulp_",nid,"_parent.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
+  rp <- ggplot(nodeData, aes(x = Time, y = parent)) +
+    geom_line() +
+    xlab("") +
+    ylab("RSSI")
+  dev.off()
+
+  fname <- paste("/tmp/pulp_",nid,"_seq.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
+  rp <- ggplot(nodeData, aes(x = Time, y = seq)) +
+    geom_line() +
+    xlab("") +
+    ylab("RSSI")
+  dev.off()
+
+  fname <- paste("/tmp/pulp_",nid,"_rssi.png", sep = "")
+  png(file = fname, width = 860, height = 480, units = 'px')
   rp <- ggplot(nodeData, aes(x = Time, y = rssi)) +
     geom_line() +
     xlab("") +
     ylab("RSSI")
-  fname <- paste("/tmp/pulp_",nid,"_rssi.png", sep = "")
-  ggsave(filename = fname, plot = rp)
+  dev.off()
+
 }

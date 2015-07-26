@@ -234,7 +234,7 @@ if __name__ == '__main__': # pragma: no cover
     
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error",
-                      default="debug",
+                      default="info",
                       metavar="LEVEL")
     parser.add_option("-f", "--log-file",
                       help="Log file to use (Default ./Flatlogger.log",
