@@ -16,6 +16,7 @@ dist/
 dataclense/*
 *.log
 *.db
+*.Rhistory
 dist
 testcover/*
 pylintrc

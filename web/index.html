@@ -105,32 +105,34 @@
 
                     var nodes = _data.split("\n");
                     for (var i = 0; i < nodes.length; i++) {
-                        var data = $.parseJSON(nodes[i], function () {
-                            if (data === "") {
-                                //jQuery's version of continue. If you want break, return false
-                                return true;
+                        if (nodes[i] != '') {
+                            var data = $.parseJSON(nodes[i], function () {
+                                if (data === "") {
+                                    //jQuery's version of continue. If you want break, return false
+                                    return true;
+                                }
+                                console.log("success");
+                            });
+                            if (data != null) {
+                                var date = new Date(data['server_time'] * 1000).toISOString();
+                                date = date.split('.')[0];
+                                date = date.replace('T', ' ');
+                                $('#table').find('> tbody:first').append(
+                                        '<tr>'
+                                        + '<td>' + data['sender'] + '</td>'
+                                        + '<td>' + date + '</td>'
+                                        + '<td>' + data['Temperature'].toFixed(2) + '</td>'
+                                        + '<td>' + data['Humidity'].toFixed(2) + '</td>'
+                                        + '<td>' + data['ADC_0'].toFixed(2) + '</td>'
+                                        + '<td>' + data['ADC_1'].toFixed(2) + '</td>'
+                                        + '<td>' + data['ADC_2'].toFixed(2) + '</td>'
+                                        + '<td>' + data['Voltage'].toFixed(2) + '</td>'
+                                        + '<td>' + data['parent'] + '</td>'
+                                        + '<td>' + data['rssi'] + '</td>'
+                                        + '<td>' + data['seq'] + '</td>'
+                                        + '</tr>'
+                                );
                             }
-                            console.log("success");
-                        });
-                        if (data != null) {
-                            var date = new Date(data['server_time'] * 1000).toISOString();
-                            date = date.split('.')[0];
-                            date = date.replace('T', ' ');
-                            $('#table').find('> tbody:first').append(
-                                    '<tr>'
-                                    + '<td>' + data['sender'] + '</td>'
-                                    + '<td>' + date + '</td>'
-                                    + '<td>' + data['Temperature'].toFixed(2) + '</td>'
-                                    + '<td>' + data['Humidity'].toFixed(2) + '</td>'
-                                    + '<td>' + data['ADC_0'].toFixed(2) + '</td>'
-                                    + '<td>' + data['ADC_1'].toFixed(2) + '</td>'
-                                    + '<td>' + data['ADC_2'].toFixed(2) + '</td>'
-				    + '<td>' + data['Voltage'].toFixed(2) + '</td>'
-                                    + '<td>' + data['parent'] + '</td>'
-                                    + '<td>' + data['rssi'] + '</td>'
-                                    + '<td>' + data['seq'] + '</td>'
-                                    + '</tr>'
-                            );
                         }
                     }
                     //outstr = outstr + "</table>";
@@ -150,8 +152,8 @@
         <th>Humidity</th>
         <th>ADC 0</th>
         <th>ADC 1</th>
-	<th>ADC 2</th>
-	<th>Battery</th>
+        <th>ADC 2</th>
+        <th>Battery</th>
         <th>Parent</th>
         <th>RSSI</th>
         <th>Seq No.</th>
