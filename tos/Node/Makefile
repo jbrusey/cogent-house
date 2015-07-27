@@ -7,8 +7,8 @@ PFLAGS += -I . \
 	-I ../Util  \
 	-I ../Util/HashMap  \
 	-I ./AccessibleBitVector \
-	-I ./BootMessage \
 	-I ./BlinkStatus \
+	-I ./BootMessage \
 	-I ./EventDetector \
 	-I ./FilterWrapper \
 	-I ./Filters/ \
@@ -19,10 +19,12 @@ PFLAGS += -I . \
 	-I ./Predict \
 	-I ./SIPController  \
 	-I ./Sensing \
+	-I ./Sensing/Analog \
 	-I ./Sensing/Base \
-        -I ./Sensing/Analog \
+	-I ./Sensing/GIOSwitch \
 	-I ./Sensing/PolyClass \
 	-I ./Sensing/PulseReader  \
+	-I ./Sensing/SwitchedAnalog \
 
 # needed to allow packet to be defined in BootMessage
 CFLAGS += -I ./BootMessage 

@@ -28,7 +28,7 @@ implementation
 #ifdef DEBUG
     call Leds.led1On();
     call Leds.led0Off();
-    printf("On %u\n", users);
+    printf("On %lu\n", users);
     printfflush();
 #endif
     return SUCCESS;
@@ -41,7 +41,7 @@ implementation
 #ifdef DEBUG
       call Leds.led1Off();
       call Leds.led0On();
-      printf("Off %u\n", users);
+      printf("Off %lu\n", users);
       printfflush();
 #endif
     }

@@ -28,7 +28,7 @@ implementation
   
    event void Timer.fired() { 
      count++;
-     printf("Expected Users %u\n", (count % 4));
+     printf("Expected Users %lu\n", (count % 4));
      printfflush();
      if ((count % 4) == 0) {
        //Call stop on all 3 active sensors

@@ -14,6 +14,8 @@ PFLAGS += -I .\
 	-I ./PolyClass \
 	-I ../Predict \
 	-I ./Base \
+	-I ./SwitchedAnalog \
+	-I ./GIOSwitch \
 	-I ./Analog \
 	-I ../SIPController  \
 	-I ../../Util \

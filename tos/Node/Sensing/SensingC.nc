@@ -35,9 +35,12 @@ implementation
   components ThermalSensingM;
   components BatterySensingM;
 
-  components new AnalogC(INPUT_CHANNEL_A0) as BlackBulb;
-  components new AnalogC(INPUT_CHANNEL_A1) as AirFlow;
-  components new AnalogC(INPUT_CHANNEL_A2) as Solar;
+  components new SwitchedAnalog2C(INPUT_CHANNEL_A0, 10 * 1024)
+    as AnalogChannel0;
+  components new SwitchedAnalog2C(INPUT_CHANNEL_A1, 10 * 1024)
+    as AnalogChannel1;
+  components new SwitchedAnalog2C(INPUT_CHANNEL_A2, 10 * 1024)
+    as AnalogChannel2;
 
   components new TimerMilliC() as HeartBeatTimer;
   components new HeartbeatC(HEARTBEAT_MULTIPLIER, HEARTBEAT_PERIOD);
@@ -77,18 +80,15 @@ implementation
   FilterM.Filter[RS_VOLTAGE]  -> Pass.Filter[RS_VOLTAGE];
   SIPControllerC.EstimateCurrentState[RS_VOLTAGE]  -> FilterM.EstimateCurrentState[RS_VOLTAGE];
   
-  //Blackbulb wiring
-  FilterM.GetSensorValue[RS_ADC_0]  -> BlackBulb;
+  FilterM.GetSensorValue[RS_ADC_0]  -> AnalogChannel0;
   FilterM.Filter[RS_ADC_0]  -> Pass.Filter[RS_ADC_0];
   SIPControllerC.EstimateCurrentState[RS_ADC_0]  -> FilterM.EstimateCurrentState[RS_ADC_0];
 
-  //Blackbulb wiring
-  FilterM.GetSensorValue[RS_ADC_1]  -> AirFlow;
+  FilterM.GetSensorValue[RS_ADC_1]  -> AnalogChannel1;
   FilterM.Filter[RS_ADC_1]  -> Pass.Filter[RS_ADC_1];
   SIPControllerC.EstimateCurrentState[RS_ADC_1]  -> FilterM.EstimateCurrentState[RS_ADC_1];
 
-    //Blackbulb wiring
-  FilterM.GetSensorValue[RS_ADC_2]  -> Solar;
+  FilterM.GetSensorValue[RS_ADC_2]  -> AnalogChannel2;
   FilterM.Filter[RS_ADC_2]  -> Pass.Filter[RS_ADC_2];
   SIPControllerC.EstimateCurrentState[RS_ADC_2]  -> FilterM.EstimateCurrentState[RS_ADC_2];
 
