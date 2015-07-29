@@ -21,4 +21,6 @@ type_lookup = {
         19: "TSR",
         20: "GIO2",
         21: "GIO3"
+        22: "Error"
+        23: 'Size"
         }
