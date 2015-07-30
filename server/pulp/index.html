@@ -92,6 +92,7 @@
 
     </style>
     <script type="text/javascript" src="js/jquery-2.1.4.js"></script>
+    <script type="text/javascript" src="js/moment.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
             (function foo() {
@@ -118,10 +119,14 @@
                                 var date = new Date(data['server_time'] * 1000).toISOString();
                                 date = date.split('.')[0];
                                 date = date.replace('T', ' ');
+				var localTime = moment.utc(date).toDate()
+				localTime = moment(localTime).format('YYYY-MM-DD HH:mm:ss');
+
                                 $('#table').find('> tbody:first').append(
                                         '<tr>'
                                         + '<td>' + data['sender'] + '</td>'
                                         + '<td>' + date + '</td>'
+                                        + '<td>' + localTime + '</td>'	  
                                         + '<td><a href="#openModalTemp_' + data['sender'] + '">' + data["Temperature"].toFixed(2) + '</a></td>'
                                         + '<td><a href="#openModalHum_' + data['sender'] + '">' + data['Humidity'].toFixed(2) + '</a></td>'
                                         + '<td><a href="#openModalADC0_' + data['sender'] + '">' + data['ADC_0'].toFixed(2) + '</a></td>'
@@ -178,7 +183,8 @@
 <table id="table" style="width:100%">
     <tr>
         <th>Sender</th>
-        <th>Server Time</th>
+        <th>Server Time (UTC)</th>
+        <th>Server Time (Local)</th>
         <th>Temperature</th>
         <th>Humidity</th>
         <th>ADC 0</th>
