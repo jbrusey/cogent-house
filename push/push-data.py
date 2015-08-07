@@ -127,7 +127,7 @@ if __name__ == "__main__":
                 os.rename(f, "%s"%new_fname)
                 
     # 2. try and send all zip files:
-    ziplist = glob.glob('%s/* .zip'%args.in_dir)
+    ziplist = glob.glob('%s/*.zip'%args.in_dir)
     if len(ziplist) > 0:
         rtx_count = 0
         for f in ziplist:
