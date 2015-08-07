@@ -27,6 +27,7 @@ from pulp.base.packstate import PackState
 
 LOGGER = logging.getLogger("pulp.base")
 QUEUE_TIMEOUT = 10
+HOST_NAME = os.uname()[1]
 
 def duplicate_packet():
     """ duplicate packets can occur because in a large network,
@@ -59,7 +60,8 @@ class FlatLogger(object):
         self.log = logging.getLogger("flatlogger")
         self.running = True
         self.first = True
-        self.out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
+        time_string = time.strftime("%Y_%j_%H-%M", time.gmtime())
+        self.out_fname = "%s_%s.log" % (time_string, HOST_NAME)
         self.log_fname = '%s/%s'%(OPTIONS.tmp_dir, self.out_fname)
         self.log.debug("Logging directory %s" % (self.log_fname))
         self.tmp_file = open(self.log_fname, 'w')
@@ -112,7 +114,8 @@ class FlatLogger(object):
             # ready for next interval
             self.time_count = 0
             # start new file
-            self.out_fname = time.strftime("%Y_%j_%H-%M.log", time.gmtime())
+            time_string = time.strftime("%Y_%j_%H-%M", time.gmtime())
+            self.out_fname = "%s_%s.log" % (time_string, HOST_NAME)
             self.log_fname = '%s/%s'%(OPTIONS.tmp_dir, self.out_fname)
             self.tmp_file = open(self.log_fname, 'w')
 

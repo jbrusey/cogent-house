@@ -10,6 +10,8 @@ import time
 import os
 import zlib
 
+HOST_NAME = os.uname()[1]
+
 def ensure_dir(f):
     d = os.path.dirname(f)
     if not os.path.exists(d):
@@ -108,6 +110,7 @@ if __name__ == "__main__":
 
     # 1. add all .log files in 'in dir' into a zip file
     filelist = glob.glob('%s/*.log'%args.in_dir)
+    out_fname = "%s_%s.zip" % (time_string, HOST_NAME)
     zip_fname = time.strftime("%Y_%j_%H-%M.zip", time.gmtime())
     zip_fname = "%s/%s"%(args.in_dir, zip_fname)
     if len(filelist) > 0:
@@ -123,7 +126,7 @@ if __name__ == "__main__":
                 os.rename(f, "%s"%new_fname)
                 
     # 2. try and send all zip files:
-    ziplist = glob.glob('%s/*.zip'%args.in_dir)
+    ziplist = glob.glob('%s/* .zip'%args.in_dir)
     if len(ziplist) > 0:
         rtx_count = 0
         for f in ziplist:
