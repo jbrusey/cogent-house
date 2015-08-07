@@ -110,8 +110,9 @@ if __name__ == "__main__":
 
     # 1. add all .log files in 'in dir' into a zip file
     filelist = glob.glob('%s/*.log'%args.in_dir)
-    out_fname = "%s_%s.zip" % (time_string, HOST_NAME)
-    zip_fname = time.strftime("%Y_%j_%H-%M.zip", time.gmtime())
+    
+    time_string = time.strftime("%Y_%j_%H-%M", time.gmtime())
+    zip_fname = "%s_%s.zip" % (time_string, HOST_NAME)
     zip_fname = "%s/%s"%(args.in_dir, zip_fname)
     if len(filelist) > 0:
         with zipfile.ZipFile(zip_fname, mode='w', compression=zipfile.ZIP_DEFLATED) as zfile:
