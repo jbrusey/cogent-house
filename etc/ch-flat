@@ -16,7 +16,7 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Cogent Pulp FlatLogger"
-NAME=ch-base
+NAME=ch-flat
 DAEMON=/usr/bin/python
 DAEMON_ARGS="-m pulp.base.FlatLogger -t /tmp/ -o /opt/pulp/data -d 600.0 -f /var/log/ch/FlatLogger.log"
 PIDFILE=/var/run/$NAME.pid
