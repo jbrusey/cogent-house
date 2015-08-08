@@ -1,0 +1,4 @@
+Date,Note
+2015-08-04,Initial deployment of PULP1. 15 nodes (Id: 1-15) deployed on the top brackets in the greenhouse.
+2015-08-05,Another 15 nodes (Id: 16-30) deployed on bottom brackets in the greenhouse.
+2015-08-07,Initial deployment of PULP2. 10 nodes (Id: 31-40) deployed in the oven.
