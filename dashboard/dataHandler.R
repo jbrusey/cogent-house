@@ -48,7 +48,7 @@ readNodeFile <- function(fname) {
   data <- read_csv(fname,col_names = FALSE)
   #Extract node Id from the file name
   nid <- (strsplit(fname, "_")[[1]])[2]
-  data$NodeId <- nid
+  data$NodeId <- as.numeric(nid)
 
 
   data <- data %>%

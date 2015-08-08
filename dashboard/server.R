@@ -10,7 +10,8 @@ function(input, output, session) {
   #-------------------------------- PREP DATA ------------------------------------------
   #Ideally needs to be reactive to new data
   nData <- readNodeData(basedir)
-  aNodes <- unique(nData$NodeId)
+  aNodes <- as.numeric(unique(nData$NodeId))
+  aNodes <- sort(aNodes)
   aLong <- gather(nData, measure, value, temperature:seq)
 
   #-------------------------------- DATA TAB -------------------------------------------
@@ -141,22 +142,19 @@ function(input, output, session) {
 
    #Node select checkbox group box
    output$nodeSelect <- renderUI({
-     nodes <- unique(nData$NodeId)
      selectizeInput("nodeSel", "Node(s):",
-                    choices = nodes, multiple = TRUE, selected = NULL)
+                    choices = aNodes, multiple = TRUE, selected = NULL)
    })
 
    #repeat node select (must be a better way to do this)
    output$systemNodeSelect <- renderUI({
-     nodes <- unique(nData$NodeId)
      selectizeInput("sysNodeSel", "Node(s):",
-                    choices = nodes, multiple = TRUE, selected = NULL)
+                    choices = aNodes, multiple = TRUE, selected = NULL)
    })
 
    #repeat node select (must be a better way to do this)
    output$downloadNodeSelect <- renderUI({
-     nodes <- unique(nData$NodeId)
      selectizeInput("downloadNodeSelect", "Select Node(s):",
-                    choices = nodes, multiple = TRUE, selected = NULL)
+                    choices = aNodes, multiple = TRUE, selected = NULL)
    })
 }
