@@ -10,7 +10,7 @@ source("downloadTab.R")
 library(shinydashboard)
 
 header <- dashboardHeader(
-  title = "Caldecott analysis"
+  title = "PULP dashboard"
 )
 
 
