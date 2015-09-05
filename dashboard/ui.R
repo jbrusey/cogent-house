@@ -2,9 +2,9 @@ source("homeTab.R")
 source("statusTab.R")
 source("dataTab.R")
 source("systemTab.R")
-#source("downloadTab.R")
-source("networkTab.R")
-#source("serverTab.R")
+source("yieldTab.R")
+source("pushTab.R")
+#source("pushTab.R")
 source("logTab.R")
 source("downloadTab.R")
 library(shinydashboard)
@@ -17,14 +17,18 @@ header <- dashboardHeader(
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("Home", tabName = "home", icon = icon("home")),
-    menuItem("Node Status", tabName = "status", icon = icon("signal")),
-    menuItem("Data", tabName = "data", icon = icon("line-chart")),
-    menuItem("System", tabName = "system", icon = icon("laptop")),
-    #menuItem("Network", tabName = "network", icon = icon("wifi")),
+    menuItem("Data", icon = icon("line-chart"),
+             menuItem("Node Status", tabName = "status", icon = icon("signal")),
+             menuItem("Sensor Data", tabName = "data", icon = icon("line-chart")),
+             menuItem("System Data", tabName = "system", icon = icon("line-chart"))
+             ),
+    menuItem("System Performance", icon = icon("laptop"),
+             menuItem("Data Yield", tabName = "dataYield", icon = icon("line-chart")),
+             menuItem("Server Status", tabName = "pushYield", icon = icon("signal"))
+             ),
     menuItem("Deployment Log", tabName = "log", icon = icon("calendar")),
     menuItem("Download Data", tabName = "download", icon = icon("download"))
-  )#,
-  #text = uiOutput("timeSinceLastPushUpdate")
+  )
 )
 
 
@@ -33,8 +37,9 @@ body <- dashboardBody(
     homeTab,
     statusTab,
     dataTab,
-    #networkTab,
     systemTab,
+    yieldTab,
+    pushTab,
     logTab,
     downloadTab
     )

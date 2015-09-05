@@ -86,3 +86,17 @@ readNodeData <- function(dir){
   #return processed data
   return(csv_data)
 }
+
+############## PROCESS PUSH LOG ###########################
+
+readPushLog <- function(dir){
+  fname <- paste(basedir, "push.log", sep = "")
+  data <- read_csv(fname, col_names = c("Time","Server"), col_types = list(
+    Time = col_datetime(),
+    Server = col_character()
+  ))
+  return(data)
+}
+
+
+

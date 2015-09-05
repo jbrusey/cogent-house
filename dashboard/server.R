@@ -14,6 +14,8 @@ function(input, output, session) {
   aNodes <- sort(aNodes)
   aLong <- gather(nData, measure, value, temperature:seq)
 
+  pushData <- readPushLog(basedir)
+
   #-------------------------------- DATA TAB -------------------------------------------
   measuremntData <- reactive({
     shiny::validate(
@@ -94,8 +96,6 @@ function(input, output, session) {
 
     })
 
-  #-------------------------------- NETWORK TAB ---------------------------------------
-
   #-------------------------------- STATUS TAB -------------------------------------------
   jData <- reactive({
     readings <- readJSONLog(tmpdir)
@@ -105,7 +105,64 @@ function(input, output, session) {
 
   output$readingTable <- renderDataTable({
     out <- jData()
-  }, options = list(searching = FALSE))
+  }, options = list(searching = FALSE, pageLength = 50))
+
+  #-------------------------------- DATA YIELD TAB ------------------------------------
+
+  pushYield <- reactive({
+    out <- pushData %>%
+      filter(
+        Time >= as.POSIXct(input$yieldDates[1], tz = "Asia/Manila", origin = "1970-01-01"),
+        Time <= as.POSIXct(input$yieldDates[2] + 1, tz = "Asia/Manila", origin = "1970-01-01")
+      ) %>%
+      mutate(Date = as.Date(Time)) %>%
+      group_by(Server, Date) %>%
+      summarise(pushes = n())
+
+    shiny::validate(
+      need(!is.null(out),  'Sorry, no data available for the selection')
+    )
+    return(out)
+  })
+
+  output$pushYieldPlot <- renderPlot({
+    data <- pushYield()
+
+    g <- ggplot(daily_pushes, aes(x = Date, y = Server, fill = pushes)) +
+      geom_tile() +
+      labs(x = "", y = "Server") +
+      scale_fill_gradient(low = "red", high = "green", na.value = "red", limits = c(0,12))
+
+    print(g)
+  })
+
+  #-------------------------------- PUSH YIELD TAB ------------------------------------
+
+  dataYield <- reactive({
+    out <- nData %>%
+      filter(
+        Time >= as.POSIXct(input$yieldDates[1], tz = "Asia/Manila", origin = "1970-01-01"),
+        Time <= as.POSIXct(input$yieldDates[2] + 1, tz = "Asia/Manila", origin = "1970-01-01")
+      ) %>%
+      mutate(Date = as.Date(Time),
+             val = ifelse(is.na(temperature), 0, 1),
+             NodeId = as.numeric(NodeId)
+      ) %>%
+      select(NodeId, Date, val) %>%
+      group_by(NodeId, Date) %>%
+      summarise(
+        pkts = sum(val)
+      ) %>%
+      mutate(
+        yield = (pkts / DAILY_TX) * 100.0,
+        yield = ifelse(yield > 100 ,100, yield)
+      )
+
+    shiny::validate(
+      need(!is.null(out),  'Sorry, no data available for the selection')
+    )
+    return(out)
+  })
 
   #-------------------------------- LOG TAB -------------------------------------------
   deploymentData <- reactive({#To-Do: Don't think this needs to be reactive
