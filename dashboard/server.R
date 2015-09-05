@@ -107,7 +107,7 @@ function(input, output, session) {
     out <- jData()
   }, options = list(searching = FALSE, pageLength = 50))
 
-  #-------------------------------- DATA YIELD TAB ------------------------------------
+  #-------------------------------- PUSH YIELD TAB ------------------------------------
 
   pushYield <- reactive({
     out <- pushData %>%
@@ -126,7 +126,7 @@ function(input, output, session) {
   })
 
   output$pushYieldPlot <- renderPlot({
-    data <- pushYield()
+    daily_pushes <- pushYield()
 
     g <- ggplot(daily_pushes, aes(x = Date, y = Server, fill = pushes)) +
       geom_tile() +
@@ -136,7 +136,7 @@ function(input, output, session) {
     print(g)
   })
 
-  #-------------------------------- PUSH YIELD TAB ------------------------------------
+  #-------------------------------- DATA YIELD TAB ------------------------------------
 
   dataYield <- reactive({
     out <- nData %>%
@@ -162,6 +162,20 @@ function(input, output, session) {
       need(!is.null(out),  'Sorry, no data available for the selection')
     )
     return(out)
+  })
+
+  output$dataYieldPlot <- renderPlot({
+    daily_node_yield <- dataYield()
+
+    g <- ggplot(daily_node_yield, aes(x = Date, y = NodeId, fill = yield)) +
+      geom_tile() +
+      labs(x = "", y = "Node Id") +
+      scale_y_continuous(breaks =
+                           min(daily_node_yield$NodeId):max(daily_node_yield$NodeId)
+      ) +
+      scale_fill_gradient(low = "red", high = "green", na.value = "red")
+
+    print(g)
   })
 
   #-------------------------------- LOG TAB -------------------------------------------
