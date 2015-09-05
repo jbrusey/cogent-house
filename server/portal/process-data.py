@@ -7,7 +7,7 @@ import argparse
 import os
 import zlib
 import json
-
+from datetime import datetime
 def ensure_dir(f):
     d = os.path.dirname(f)
     if not os.path.exists(d):
@@ -40,6 +40,16 @@ if __name__ == "__main__":
     keep_file = False
     ziplist.sort(reverse=True)
     for zip_file in ziplist:
+
+        #Log that we have has a push
+        zip_file_short = zip_file.split('/')[4]
+        year,doy,time,server = zip_file_short.split('_')[0:4]
+        server = server.split('.')[0]
+        push_time = datetime.strptime(year+doy+time, '%Y%j%H-%M')
+        push_log = open( "%s/push.log" % (args.out_dir), 'a')
+        push_log.write("%s,%s\n" % (push_time,server))
+        push_log.close()
+
         print zip_file
         try:
             zfile = zipfile.ZipFile(zip_file, mode='r')
