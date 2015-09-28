@@ -16,7 +16,7 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Cogent Pulp FlatLogger"
-NAME=ch-flat
+NAME=ch-base
 DAEMON=/usr/bin/python
 DAEMON_ARGS="-m pulp.base.FlatLogger -t /tmp/ -o /opt/pulp/data -d 600.0 -f /var/log/ch/FlatLogger.log"
 PIDFILE=/var/run/$NAME.pid
@@ -67,6 +67,11 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
+
+    # wait for port 9002 to come up
+    while netstat -lnt | awk '$4 ~ /:9002$/ {exit 1}'
+    do sleep 10
+    done
 
         #We need to source the tinyos stuff
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
