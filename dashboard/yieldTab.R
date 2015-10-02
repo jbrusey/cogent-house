@@ -12,6 +12,6 @@ yieldTab <- tabItem(
            box(width = NULL, status = "warning",
                dateRangeInput("yieldDates", label = h3("Date range"), start = "2015-08-04")
            )
-    )
+    ),height = 800, width = 980
   )
 )

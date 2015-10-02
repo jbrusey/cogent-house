@@ -9,6 +9,7 @@ function(input, output, session) {
 
   #-------------------------------- PREP DATA ------------------------------------------
   #Ideally needs to be reactive to new data
+  DAILY_TX = 288
   nData <- readNodeData(basedir)
   aNodes <- as.numeric(unique(nData$NodeId))
   aNodes <- sort(aNodes)
@@ -112,12 +113,12 @@ function(input, output, session) {
   pushYield <- reactive({
     out <- pushData %>%
       filter(
-        Time >= as.POSIXct(input$yieldDates[1], tz = "Asia/Manila", origin = "1970-01-01"),
-        Time <= as.POSIXct(input$yieldDates[2] + 1, tz = "Asia/Manila", origin = "1970-01-01")
+        Time >= as.POSIXct(input$pushDates[1], tz = "Asia/Manila", origin = "1970-01-01"),
+        Time <= as.POSIXct(input$pushDates[2] + 1, tz = "Asia/Manila", origin = "1970-01-01")
       ) %>%
       mutate(Date = as.Date(Time)) %>%
       group_by(Server, Date) %>%
-      summarise(pushes = n())
+      summarise(Pushes = n())
 
     shiny::validate(
       need(!is.null(out),  'Sorry, no data available for the selection')
@@ -128,10 +129,11 @@ function(input, output, session) {
   output$pushYieldPlot <- renderPlot({
     daily_pushes <- pushYield()
 
-    g <- ggplot(daily_pushes, aes(x = Date, y = Server, fill = pushes)) +
+    g <- ggplot(daily_pushes, aes(x = Date, y = Server, fill = Pushes)) +
       geom_tile() +
       labs(x = "", y = "Server") +
-      scale_fill_gradient(low = "red", high = "green", na.value = "red", limits = c(0,12))
+      scale_fill_gradient(low = "red", high = "green", na.value = "red", limits = c(0,12)) +
+      facet_grid(Server ~ ., scales = "free_y")
 
     print(g)
   })
@@ -146,10 +148,11 @@ function(input, output, session) {
       ) %>%
       mutate(Date = as.Date(Time),
              val = ifelse(is.na(temperature), 0, 1),
-             NodeId = as.numeric(NodeId)
+             NodeId = as.numeric(NodeId),
+             Server = ifelse(NodeId < 30, "Server 1", "Server 2")
       ) %>%
-      select(NodeId, Date, val) %>%
-      group_by(NodeId, Date) %>%
+      select(NodeId, Server, Date, val) %>%
+      group_by(NodeId, Server, Date) %>%
       summarise(
         pkts = sum(val)
       ) %>%
@@ -173,10 +176,11 @@ function(input, output, session) {
       scale_y_continuous(breaks =
                            min(daily_node_yield$NodeId):max(daily_node_yield$NodeId)
       ) +
-      scale_fill_gradient(low = "red", high = "green", na.value = "red")
+      scale_fill_gradient(low = "red", high = "green", na.value = "red") +
+      facet_grid(Server ~ ., scales = "free_y")
 
     print(g)
-  })
+  }, height = 600)
 
   #-------------------------------- LOG TAB -------------------------------------------
   deploymentData <- reactive({#To-Do: Don't think this needs to be reactive

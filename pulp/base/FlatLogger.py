@@ -171,6 +171,7 @@ class FlatLogger(object):
         :return True: If a packet has been received and stored correctly
         :return False: Otherwise
         """
+        status = False
         try:
             msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
             if msg.get_amType() == Packets.AM_BOOTMSG:
