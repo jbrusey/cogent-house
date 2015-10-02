@@ -10,7 +10,7 @@ MIGPYFILES=$(addprefix pulp/node/,StateMsg.py ConfigMsg.py Packets.py)
 all: $(MIGPYFILES)
 
 install:  all
-	python setup.py install
+	python setup.py develop
 
 $(MIGPYFILES): tos/Packets.h
 	make -C tos/Node telosb
