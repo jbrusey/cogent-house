@@ -57,7 +57,7 @@ function(input, output, session) {
     })
 
   output$downloadMeasurement <- downloadHandler(
-    filename = function() { paste('Plot.eps', sep = '') },
+    filename = function() { paste('Plot.pdf', sep = '') },
     content = function(file) {
       ggsave(file, plot = plotMeasurement(), width=6, height=3.5)
     }
@@ -106,7 +106,7 @@ function(input, output, session) {
     })
 
   output$downloadSystem <- downloadHandler(
-    filename = function() { paste('Plot.eps', sep = '') },
+    filename = function() { paste('Plot.pdf', sep = '') },
     content = function(file) {
       ggsave(file, plot = plotSystem(), width = 6, height = 3.5)
     }
@@ -156,7 +156,7 @@ function(input, output, session) {
   })
 
   output$downloadPush <- downloadHandler(
-    filename = function() { paste('Plot.eps', sep = '') },
+    filename = function() { paste('Plot.pdf', sep = '') },
     content = function(file) {
       ggsave(file, plot = plotPush(), width = 6, height = 3.5)
     }
@@ -210,7 +210,7 @@ function(input, output, session) {
   }, height = 600)
 
   output$downloadYield <- downloadHandler(
-    filename = function() { paste('Plot.eps', sep = '') },
+    filename = function() { paste('Plot.pdf', sep = '') },
     content = function(file) {
       ggsave(file, plot = plotYield(), width = 6, height = 7)
     }
