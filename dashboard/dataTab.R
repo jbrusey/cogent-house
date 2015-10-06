@@ -19,7 +19,6 @@ dataTab <- tabItem(
                                   ),
                                   selected = "temperature"
                ),
-               h3("Options:"),
                uiOutput("nodeSelect")
            )
     )

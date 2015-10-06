@@ -40,8 +40,8 @@ function(input, output, session) {
     # Load data
     data <- measuremntData()
 
-    data$measure <- gsub("Temperature", "Temperature (C)", data$measure)
-    data$measure <- gsub("Humidity", "Relative Humidity (%)", data$measure)
+    data$measure <- gsub("temperature", "Temperature (C)", data$measure)
+    data$measure <- gsub("humidity", "Relative Humidity (%)", data$measure)
 
     g <- ggplot(data, aes(x = Time, y = value, group = NodeId, colour = NodeId)) +
       geom_line() +
@@ -59,7 +59,7 @@ function(input, output, session) {
   output$downloadMeasurement <- downloadHandler(
     filename = function() { paste('Plot.pdf', sep = '') },
     content = function(file) {
-      ggsave(file, plot = plotMeasurement(), width=6, height=3.5)
+      ggsave(file, plot = plotMeasurement(), width = 6, height = 3.5)
     }
   )
 
@@ -165,6 +165,10 @@ function(input, output, session) {
   #-------------------------------- DATA YIELD TAB ------------------------------------
 
   dataYield <- reactive({
+    shiny::validate(
+      need(expr = (length(input$serverSelect) > 0), 'Please select at least one sensor')
+    )
+
     out <- nData %>%
       filter(
         Time >= as.POSIXct(input$yieldDates[1], tz = "Asia/Manila", origin = "1970-01-01"),
@@ -173,7 +177,7 @@ function(input, output, session) {
       mutate(Date = as.Date(Time),
              val = ifelse(is.na(temperature), 0, 1),
              NodeId = as.numeric(NodeId),
-             Server = ifelse(NodeId < 30, "Server 1", "Server 2")
+             Server = ifelse(NodeId < 30, "PULP1", "PULP2")
       ) %>%
       select(NodeId, Server, Date, val) %>%
       group_by(NodeId, Server, Date) %>%
@@ -183,6 +187,9 @@ function(input, output, session) {
       mutate(
         yield = (pkts / DAILY_TX) * 100.0,
         yield = ifelse(yield > 100 ,100, yield)
+      ) %>%
+      filter(
+        Server %in% input$serverSelect
       )
 
     shiny::validate(
