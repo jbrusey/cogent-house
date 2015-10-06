@@ -36,13 +36,9 @@ function(input, output, session) {
      return(out)
    })
 
-  output$measurementPlot <- renderPlot({
+  plotMeasurement <- reactive({
     # Load data
     data <- measuremntData()
-
-    #myColors <- brewer.pal(length(aNodes),"Set1")
-    #names(myColors) <- aNodes
-    #colScale <- scale_colour_manual(name = "grp",values = myColors)
 
     data$measure <- gsub("Temperature", "Temperature (C)", data$measure)
     data$measure <- gsub("Humidity", "Relative Humidity (%)", data$measure)
@@ -54,10 +50,21 @@ function(input, output, session) {
       xlab("") +
       #colScale +
       theme(legend.title = element_blank())
-    print(g)
+  })
+
+  output$measurementPlot <- renderPlot({
+    print(plotMeasurement())
     })
 
+  output$downloadMeasurement <- downloadHandler(
+    filename = function() { paste('Plot.eps', sep = '') },
+    content = function(file) {
+      ggsave(file, plot = plotMeasurement(), width=6, height=3.5)
+    }
+  )
+
   #-------------------------------- SYSTEM TAB ----------------------------------------
+
   systemData <- reactive({
     shiny::validate(
       need(expr = (length(input$systemSelect) > 0), 'Please select at least one sensor'),
@@ -78,7 +85,7 @@ function(input, output, session) {
     return(sout)
     })
 
-  output$systemPlot <- renderPlot({
+  plotSystem <- reactive({
     data <- systemData()
 
     data$measure <- gsub("seq", "Sequence Number", data$measure)
@@ -92,10 +99,18 @@ function(input, output, session) {
       ylab("") +
       xlab("") +
       theme(legend.title = element_blank())
-
-    print(g)
-
     })
+
+  output$systemPlot <- renderPlot({
+    print(plotSystem())
+    })
+
+  output$downloadSystem <- downloadHandler(
+    filename = function() { paste('Plot.eps', sep = '') },
+    content = function(file) {
+      ggsave(file, plot = plotSystem(), width = 6, height = 3.5)
+    }
+  )
 
   #-------------------------------- STATUS TAB -------------------------------------------
   jData <- reactive({
@@ -126,7 +141,7 @@ function(input, output, session) {
     return(out)
   })
 
-  output$pushYieldPlot <- renderPlot({
+  plotPush <- reactive({
     daily_pushes <- pushYield()
 
     g <- ggplot(daily_pushes, aes(x = Date, y = Server, fill = Pushes)) +
@@ -134,9 +149,18 @@ function(input, output, session) {
       labs(x = "", y = "Server") +
       scale_fill_gradient(low = "red", high = "green", na.value = "red", limits = c(0,12)) +
       facet_grid(Server ~ ., scales = "free_y")
-
-    print(g)
   })
+
+  output$pushYieldPlot <- renderPlot({
+    print(plotPush())
+  })
+
+  output$downloadPush <- downloadHandler(
+    filename = function() { paste('Plot.eps', sep = '') },
+    content = function(file) {
+      ggsave(file, plot = plotPush(), width = 6, height = 3.5)
+    }
+  )
 
   #-------------------------------- DATA YIELD TAB ------------------------------------
 
@@ -167,7 +191,7 @@ function(input, output, session) {
     return(out)
   })
 
-  output$dataYieldPlot <- renderPlot({
+  plotYield <- reactive({
     daily_node_yield <- dataYield()
 
     g <- ggplot(daily_node_yield, aes(x = Date, y = NodeId, fill = yield)) +
@@ -179,8 +203,18 @@ function(input, output, session) {
       scale_fill_gradient(low = "red", high = "green", na.value = "red") +
       facet_grid(Server ~ ., scales = "free_y")
 
-    print(g)
+  })
+
+  output$dataYieldPlot <- renderPlot({
+    print(plotYield())
   }, height = 600)
+
+  output$downloadYield <- downloadHandler(
+    filename = function() { paste('Plot.eps', sep = '') },
+    content = function(file) {
+      ggsave(file, plot = plotYield(), width = 6, height = 7)
+    }
+  )
 
   #-------------------------------- LOG TAB -------------------------------------------
   deploymentData <- reactive({#To-Do: Don't think this needs to be reactive

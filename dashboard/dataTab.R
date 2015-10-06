@@ -5,7 +5,8 @@ dataTab <- tabItem(
   fluidRow(
     column(width = 9,
            box(width = NULL, solidHeader = TRUE,
-               plotOutput("measurementPlot")
+               plotOutput("measurementPlot"),
+               downloadButton('downloadMeasurement', 'Download Plot')
            )
     ),
     column(width = 3,

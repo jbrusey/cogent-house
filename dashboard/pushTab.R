@@ -5,7 +5,8 @@ pushTab <- tabItem(
   fluidRow(
     column(width = 9,
            box(width = NULL, solidHeader = TRUE,
-               plotOutput("pushYieldPlot")
+               plotOutput("pushYieldPlot"),
+               downloadButton('downloadPush', 'Download Plot')
            )
     ),
     column(width = 3,

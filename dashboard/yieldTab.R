@@ -4,7 +4,8 @@ yieldTab <- tabItem(
   tabName = "dataYield",
   fluidRow(
     column(width = 9,
-           box(width = NULL, solidHeader = TRUE,
+           box(width = NULL, solidHeader = TRUE, height = 700,
+               downloadButton('downloadYield', 'Download Plot'),
                plotOutput("dataYieldPlot")
            )
     ),

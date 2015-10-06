@@ -5,7 +5,8 @@ systemTab <- tabItem(
   fluidRow(
     column(width = 9,
            box(width = NULL, solidHeader = TRUE,
-               plotOutput("systemPlot")
+               plotOutput("systemPlot"),
+               downloadButton('downloadSystem', 'Download Plot')
            )
     ),
     column(width = 3,
