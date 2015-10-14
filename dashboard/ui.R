@@ -4,6 +4,7 @@ source("factoryTab.R")
 source("teamTab.R")
 source("deploymentTab.R")
 
+source("deploymentMapTab.R")
 source("statusTab.R")
 source("dataTab.R")
 source("systemTab.R")
@@ -32,6 +33,7 @@ sidebar <- dashboardSidebar(
              menuItem("Project Team", tabName = "team", icon = icon("users"))
     ),
     menuItem("WSN Data Portal", icon = icon("tachometer"),
+             menuItem("Deployment Map", tabName = "deploymentMap", icon = icon("compass")),
              menuItem("Data", icon = icon("line-chart"),
                       menuItem("Node Status", tabName = "status", icon = icon("signal")),
                       menuItem("Sensor Data", tabName = "data", icon = icon("line-chart")),
@@ -56,6 +58,7 @@ body <- dashboardBody(
     factoryTab,
     deploymentTab,
     teamTab,
+    deploymentMapTab,
     statusTab,
     dataTab,
     systemTab,
