@@ -14,8 +14,8 @@ function(input, output, session) {
   aNodes <- as.numeric(unique(nData$NodeId))
   aNodes <- sort(aNodes)
   aLong <- gather(nData, measure, value, temperature:seq)
-
   pushData <- readPushLog(basedir)
+  peopleData <- read_csv(file = "./config/team.csv")
 
   #-------------------------------- DATA TAB -------------------------------------------
   measuremntData <- reactive({
@@ -42,6 +42,7 @@ function(input, output, session) {
 
     data$measure <- gsub("temperature", "Temperature (C)", data$measure)
     data$measure <- gsub("humidity", "Relative Humidity (%)", data$measure)
+
 
     g <- ggplot(data, aes(x = Time, y = value, group = NodeId, colour = NodeId)) +
       geom_line() +
@@ -112,6 +113,12 @@ function(input, output, session) {
     }
   )
 
+  #-------------------------------- CONTACTS TAB -----------------------------------------
+
+  output$peopleTable <- renderDataTable({
+    out <- peopleData
+  }, options = list(searching = FALSE, paging = FALSE, pageLength = 10))
+
   #-------------------------------- STATUS TAB -------------------------------------------
   jData <- reactive({
     readings <- readJSONLog(tmpdir)
@@ -177,7 +184,7 @@ function(input, output, session) {
       mutate(Date = as.Date(Time),
              val = ifelse(is.na(temperature), 0, 1),
              NodeId = as.numeric(NodeId),
-             Server = ifelse(NodeId < 30, "PULP1", "PULP2")
+             Server = ifelse(NodeId <= 30, "PULP1", "PULP2")
       ) %>%
       select(NodeId, Server, Date, val) %>%
       group_by(NodeId, Server, Date) %>%

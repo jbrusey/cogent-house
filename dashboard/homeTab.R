@@ -7,15 +7,29 @@ homeTab <- tabItem(
            box(width = NULL, solidHeader = TRUE,
                h3("PULP-SEED: Philippines UK coLlaborative Partnership-System for
                   Environmental and Efficient Drying"),
-               "The aim of this projectis to make use of Wireless Sensor Network (WSN)
-               technology to improve and make more efficient existing mango waste
-               processing thus leading to improved viability and increased scale of
-               operation.",
+               "PULP-SEED is a British Council Newton Fund Institutional Link between Coventry University, UK
+                and the University of San Carlos, Philippines.",
                p(),
-               "This dashboard provides access to the data collected from a
-               live WSN deployment in mango waste processing factory located
-               in Lapu-Lapu, Cebu, Philippines"
+               "The institutional link focuses on three areas:",
+               tags$ul(
+                 tags$li("Technological advances in factory monitoring systems to
+                enable creation of new process models and support follow-on automation;"),
+                 tags$li("Developmental activities to
+                result in staff training for research skills at USC and lessons to be applied to CU"),
+                 tags$li("Scoping industry-academia links and link-forming know-how at USC")
+               ),
+               "All three areas will lead to social and economic impact either
+                directly (factory workplaces and promotion of economic model to other factories) or indirectly
+                (empowering the Filipino academics to create wealth and social benefit through high standard research).",
+               p(),
+               "This website presents the PULP-SEED project and provides access to 'live' data from a Wireless Sensor Network (WSN),
+                deployed in a mango waste processing factory in Cebu, Phillipines. This WSN is a key component of the first focus
+                area 'technological advances in factory monitoring systems to enable creation of new process models and
+               support follow-on automation'"
            )
     )
   )
 )
+
+
+
