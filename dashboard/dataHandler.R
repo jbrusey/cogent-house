@@ -58,7 +58,7 @@ readNodeFile <- function(fname) {
            voltage = X7, parent = X8, rssi = X9, seq = X10) %>%
     #Cast time to correct value, and align to the nearest 5 mins
     mutate(Time = align.time(
-      as.POSIXct(Time, n = 300, origin = "1970-01-01"),
+      as.POSIXct(Time, n = 300, tz = "Asia/Manila",origin = "1970-01-01"),
       5*60))
 
   #This section of code finds all the times that could have
