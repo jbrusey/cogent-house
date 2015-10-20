@@ -7,7 +7,7 @@
  * 
  * J. Brusey, 27/7/2015
  *************************************************************/
-generic configuration SwitchedAnalog2C(uint8_t channel, uint16_t warm_up_millis) {
+generic configuration SwitchedAnalog3C(uint8_t channel, uint16_t warm_up_millis) {
   provides interface Read<float> as ReadFloat;
 
 }
