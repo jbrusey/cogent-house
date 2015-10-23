@@ -39,11 +39,11 @@ implementation
   components ThermalSensingM;
   components BatterySensingM;
 
-  components new SwitchedAnalog2C(INPUT_CHANNEL_A0, 2 * 1024)
+  components new SwitchedAnalog2C(INPUT_CHANNEL_A0, 1 * 1024)
     as AnalogChannel0;
   components new SwitchedAnalog3C(INPUT_CHANNEL_A1, 10 * 1024)
     as AnalogChannel1;
-  components new SwitchedAnalog2C(INPUT_CHANNEL_A2, 2 * 1024)
+  components new SwitchedAnalog2C(INPUT_CHANNEL_A2, 512)
     as AnalogChannel2;
 
   components new TimerMilliC() as HeartBeatTimer;
