@@ -28,6 +28,7 @@ module CogentHouseP
     // Sensing related
     interface Read<bool> as Sensing;
     interface AccessibleBitVector as Configured;
+    interface AccessibleBitVector as ConfiguredPhaseTwo;
     interface PackState;
     interface TransmissionControl;
   }
@@ -240,7 +241,7 @@ implementation
     call Configured.set(RS_HUMIDITY);
     call Configured.set(RS_VOLTAGE);
     call Configured.set(RS_ADC_0);
-    call Configured.set(RS_ADC_1);
+    call ConfiguredPhaseTwo.set(RS_ADC_1);
     call Configured.set(RS_ADC_2);
 
 

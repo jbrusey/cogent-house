@@ -55,7 +55,8 @@ implementation
   /* link to sensing module */
   components SensingC;
   CogentHouseP.PackState -> SensingC;
-  CogentHouseP.Configured -> SensingC;
+  CogentHouseP.Configured -> SensingC.Configured;
+  CogentHouseP.ConfiguredPhaseTwo -> SensingC.ConfiguredPhaseTwo;
   CogentHouseP.Sensing -> SensingC;
   CogentHouseP.TransmissionControl -> SensingC;
 

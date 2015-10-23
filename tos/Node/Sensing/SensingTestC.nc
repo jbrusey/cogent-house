@@ -17,6 +17,7 @@ implementation
   SensingTestP.Leds -> LedsC;
   SensingTestP.Sensing -> SensingC;
 
-  SensingTestP.Configured -> SensingC;
+  SensingTestP.Configured -> SensingC.Configured;
+  SensingTestP.ConfiguredPhaseTwo -> SensingC.ConfiguredPhaseTwo;
   SensingTestP.PackState -> SensingC;
 }

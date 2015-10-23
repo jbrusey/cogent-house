@@ -6,6 +6,7 @@
 configuration SensingC { 
   provides interface Read<bool> as SensingRead;
   provides interface AccessibleBitVector as Configured;
+  provides interface AccessibleBitVector as ConfiguredPhaseTwo;
   provides interface PackState;
   provides interface TransmissionControl;
 }
@@ -15,11 +16,14 @@ implementation
   components SensingP;
   SensingRead = SensingP.SensingRead;
   components new AccessibleBitVectorC(RS_SIZE) as MyConfigured; 
+  components new AccessibleBitVectorC(RS_SIZE) as MyConfiguredTwo; 
   
   Configured = MyConfigured;
+  ConfiguredPhaseTwo = MyConfiguredTwo;
 
   components HilTimerMilliC;
   SensingP.Configured -> MyConfigured;
+  SensingP.ConfiguredPhaseTwo -> MyConfiguredTwo;
   SensingP.LocalTime -> HilTimerMilliC;
 
   components SIPControllerC;
@@ -35,11 +39,11 @@ implementation
   components ThermalSensingM;
   components BatterySensingM;
 
-  components new SwitchedAnalog2C(INPUT_CHANNEL_A0, 10 * 1024)
+  components new SwitchedAnalog2C(INPUT_CHANNEL_A0, 2 * 1024)
     as AnalogChannel0;
-  components new SwitchedAnalog2C(INPUT_CHANNEL_A1, 10 * 1024)
+  components new SwitchedAnalog3C(INPUT_CHANNEL_A1, 10 * 1024)
     as AnalogChannel1;
-  components new SwitchedAnalog2C(INPUT_CHANNEL_A2, 10 * 1024)
+  components new SwitchedAnalog2C(INPUT_CHANNEL_A2, 2 * 1024)
     as AnalogChannel2;
 
   components new TimerMilliC() as HeartBeatTimer;

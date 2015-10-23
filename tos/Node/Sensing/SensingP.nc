@@ -16,6 +16,7 @@ module SensingP
 
     interface BitVector as ExpectReadDone;
     interface AccessibleBitVector as Configured;
+    interface AccessibleBitVector as ConfiguredPhaseTwo;
 
   }
   provides {
@@ -26,7 +27,10 @@ module SensingP
 implementation {
 
   bool overflow_occurred = FALSE;
+  bool phase_one = FALSE;
 
+  task void phaseTwoSensing();
+  
   /********* Data Send Methods **********/
 
   void packstate_add(int key, float value) {
@@ -52,22 +56,30 @@ implementation {
     }
 
     if (allDone) {
+      if (phase_one) {
+	/* if we have only completed phase one, we need now to start
+	   any phase two sensing */
+	phase_one = FALSE;
+	post phaseTwoSensing();
+      } /* if phase one */
+      else {
 #ifdef DEBUG
-      printf("allDone %lu\n", call LocalTime.get());
-      printfflush();
-#endif
-	
-      if (call TransmissionControl.hasEvent()) {
-#ifdef DEBUG
-	printf("hasEvent %lu\n", call LocalTime.get());
+	printf("allDone %lu\n", call LocalTime.get());
 	printfflush();
 #endif
 	
-	signal SensingRead.readDone(SUCCESS, overflow_occurred);
-      }
-      else
-	signal SensingRead.readDone(FAIL, overflow_occurred);
-    }
+	if (call TransmissionControl.hasEvent()) {
+#ifdef DEBUG
+	  printf("hasEvent %lu\n", call LocalTime.get());
+	  printfflush();
+#endif
+	
+	  signal SensingRead.readDone(SUCCESS, overflow_occurred);
+	} /* if hasEvent */
+	else
+	  signal SensingRead.readDone(FAIL, overflow_occurred);
+      } /* else */
+    } /* if allDone */
   }
 
 
@@ -84,7 +96,8 @@ implementation {
     call ExpectReadDone.clearAll();
     call PackState.clear();
 
-    // only include phase one sensing here
+    phase_one = TRUE;
+    
     for (i = 0; i < RS_SIZE; i++) { 
       if (call Configured.get(i)) {
 	call ExpectReadDone.set(i);
@@ -100,18 +113,18 @@ implementation {
     return SUCCESS;
   }
 
-  /* /\* perform any phase two sensing *\/ */
-  /* task void phaseTwoSensing() { */
-  /*   int i; */
-  /*   for (i = 0; i < RS_SIZE; i++) {  */
-  /*     if (call Configured.get(i)) { */
-  /* 	call ExpectReadDone.set(i); */
-  /* 	/\* do any two phase sensing here *\/ */
-  /* 	call ExpectReadDone.clear(i); */
-  /*     } */
-  /*   } */
-  /*   post checkDataGathered(); */
-  /* } */
+  /* perform any phase two sensing */
+  task void phaseTwoSensing() {
+    int i;
+    for (i = 0; i < RS_SIZE; i++) {
+      if (call ConfiguredPhaseTwo.get(i)) {
+	call ExpectReadDone.set(i);
+	if (call ReadSensor.read[i]() != SUCCESS)
+	  call ExpectReadDone.clear(i);
+      }
+    }
+    post checkDataGathered();
+  }
 
 
   event void ReadSensor.readDone[uint8_t id](error_t result, FilterState* data) {

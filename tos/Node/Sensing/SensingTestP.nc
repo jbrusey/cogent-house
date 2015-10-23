@@ -13,6 +13,7 @@ module SensingTestP
     interface Boot;
     interface Read<bool> as Sensing;
     interface AccessibleBitVector as Configured;
+    interface AccessibleBitVector as ConfiguredPhaseTwo;
     interface PackState;
     
     interface Leds;
@@ -46,11 +47,12 @@ implementation
    */ 
   static char* test_sense1(void) { 
     call Configured.clearAll();
+    call ConfiguredPhaseTwo.clearAll();
     call Configured.set(RS_TEMPERATURE);
     call Configured.set(RS_HUMIDITY);
     call Configured.set(RS_VOLTAGE);
     call Configured.set(RS_ADC_0);
-    call Configured.set(RS_ADC_1);
+    call ConfiguredPhaseTwo.set(RS_ADC_1);
     call Configured.set(RS_ADC_2);
     call Sensing.read();
     return 0;
@@ -71,11 +73,6 @@ implementation
 
     if (result == SUCCESS) { 
       pslen = call PackState.pack(&ps);
-      /* printf("mask = "); */
-      /* for (i = 0; i < sizeof (ps.mask); i++) {  */
-      /* 	printf("%02x ", ps.mask[i]); */
-      /* } */
-      /* printf("\n"); */
 
       for (i = 0; i < pslen; i++) { 
 	printf("value %d = ", i);
