@@ -17,8 +17,8 @@ readJSONFile <- function(fname){
     rename(AirFlow = ADC_1,
            BlackBulb = ADC_2) %>%
     mutate(
-      AirFlow = ifelse(sender < 100, "NA", AirFlow),
-      BlackBulb = ifelse(sender < 100, "NA", BlackBulb)
+      AirFlow = ifelse(sender < fullSensors, "NA", AirFlow),
+      BlackBulb = ifelse(sender < fullSensors, "NA", BlackBulb)
     )
   #return data
   return(JSONData)
@@ -65,7 +65,11 @@ readNodeFile <- function(fname) {
     #Cast time to correct value, and align to the nearest 5 mins
     mutate(Time = align.time(
       as.POSIXct(Time, n = 300, tz = "Asia/Manila",origin = "1970-01-01"),
-      5*60))
+      5*60)) %>%
+    mutate(
+      AirFlow = ifelse(NodeId < fullSensors, 0, AirFlow),
+      BlackBulb = ifelse(NodeId < fullSensors, 0, BlackBulb)
+    )
 
   #This section of code finds all the times that could have
   # occured between the start and end of the data stream. Missing

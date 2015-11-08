@@ -14,10 +14,12 @@ dataTab <- tabItem(
                dateRangeInput("dates", label = h3("Date range"), start = "2015-08-04"),
                checkboxGroupInput("sensorSelect", "Select Sensor",
                                   choices = c(
-                                    "Temperature" = "temperature",
-                                    "Humidity" = "humidity"
+                                    "Temperature" = "Temperature",
+                                    "Humidity" = "Humidity",
+                                    "AirFlow" = "AirFlow",
+                                    "BlackBulb" = "BlackBulb"
                                   ),
-                                  selected = "temperature"
+                                  selected = "Temperature"
                ),
                uiOutput("nodeSelect")
            )
