@@ -19,16 +19,14 @@ implementation {
 
   //define components that will be used
   components LedsC;
-  components new SwitchedAnalog2C(INPUT_CHANNEL_A0, 10*1024) as MySwitchedAnalog;
+  components new SwitchedAnalog3C(INPUT_CHANNEL_A1, 10*1024) as MySwitchedAnalog;
   components SwitchedAnalogTestP;
-  components new TimerMilliC();
   components PrintfC;
   components SerialStartC;
 
   //Wire componants to app
   SwitchedAnalogTestP.Boot -> MainC;
   SwitchedAnalogTestP.Leds -> LedsC;
-  SwitchedAnalogTestP.MilliTimer -> TimerMilliC;
 
   SwitchedAnalogTestP.ReadFloat -> MySwitchedAnalog;
   

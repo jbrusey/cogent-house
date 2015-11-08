@@ -13,7 +13,7 @@ function(input, output, session) {
   nData <- readNodeData(basedir)
   aNodes <- as.numeric(unique(nData$NodeId))
   aNodes <- sort(aNodes)
-  aLong <- gather(nData, measure, value, temperature:seq)
+  aLong <- gather(nData, measure, value, Temperature:Seq)
   pushData <- readPushLog(basedir)
   peopleData <- read_csv(file = "./config/team.csv")
 
@@ -40,8 +40,8 @@ function(input, output, session) {
     # Load data
     data <- measuremntData()
 
-    data$measure <- gsub("temperature", "Temperature (C)", data$measure)
-    data$measure <- gsub("humidity", "Relative Humidity (%)", data$measure)
+    data$measure <- gsub("Temperature", "Temperature (C)", data$measure)
+    data$measure <- gsub("Humidity", "Relative Humidity (%)", data$measure)
 
 
     g <- ggplot(data, aes(x = Time, y = value, group = NodeId, colour = NodeId)) +
@@ -89,10 +89,9 @@ function(input, output, session) {
   plotSystem <- reactive({
     data <- systemData()
 
-    data$measure <- gsub("seq", "Sequence Number", data$measure)
-    data$measure <- gsub("parent", "Parent Id", data$measure)
-    data$measure <- gsub("voltage", "Battery Voltage (V)", data$measure)
-    data$measure <- gsub("rssi", "RSSI", data$measure)
+    data$measure <- gsub("Seq", "Sequence Number", data$measure)
+    data$measure <- gsub("Parent", "Parent Id", data$measure)
+    data$measure <- gsub("Voltage", "Battery Voltage (V)", data$measure)
 
     g <- ggplot(data, aes(x = Time, y = value, group = NodeId, colour = NodeId)) +
       geom_point() +
@@ -182,7 +181,7 @@ function(input, output, session) {
         Time <= as.POSIXct(input$yieldDates[2] + 1, tz = "Asia/Manila", origin = "1970-01-01")
       ) %>%
       mutate(Date = as.Date(Time),
-             val = ifelse(is.na(temperature), 0, 1),
+             val = ifelse(is.na(Temperature), 0, 1),
              NodeId = as.numeric(NodeId),
              Server = ifelse(NodeId <= 30, "PULP1", "PULP2")
       ) %>%

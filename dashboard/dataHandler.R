@@ -12,8 +12,14 @@ readJSONFile <- function(fname){
   JSONData <- as.data.frame(fromJSON(file = fname)) %>%
     #Select the required fields
     select(sender, server_time, Temperature, Humidity,
-           #ADC_0, ADC_1, ADC_2,
-           Voltage, parent, rssi, seq)
+           ADC_1, ADC_2,
+           Voltage, parent, rssi, seq) %>%
+    rename(AirFlow = ADC_1,
+           BlackBulb = ADC_2) %>%
+    mutate(
+      AirFlow = ifelse(sender < 100, "NA", AirFlow),
+      BlackBulb = ifelse(sender < 100, "NA", BlackBulb)
+    )
   #return data
   return(JSONData)
 }
@@ -53,9 +59,9 @@ readNodeFile <- function(fname) {
 
   data <- data %>%
     #Rename the fields to something meaningful
-    rename(Time = X1, temperature = X2, humidity = X3,
-           adc0 = X4, adc1 = X5, adc2 = X6,
-           voltage = X7, parent = X8, rssi = X9, seq = X10) %>%
+    rename(Time = X1, Temperature = X2, Humidity = X3,
+           Solar = X4, AirFlow = X5, BlackBulb = X6,
+           Voltage = X7, Parent = X8, RSSI = X9, Seq = X10) %>%
     #Cast time to correct value, and align to the nearest 5 mins
     mutate(Time = align.time(
       as.POSIXct(Time, n = 300, tz = "Asia/Manila",origin = "1970-01-01"),
