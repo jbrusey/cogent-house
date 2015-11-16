@@ -5,3 +5,5 @@ Date,Note
 2015-09-28,Updated startup scripts to wait for serial forwarder port to open before starting flat logger.
 2015-11-04,Changed batteries on all nodes
 2015-11-06,Deployed nodes 100,102-109,113-119
+2015-11-10,Deployed nodes 101,110,11,112
+2015-11-16,Nodes 100-119 air flow sensors covered to get zero values
