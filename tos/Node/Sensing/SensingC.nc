@@ -39,7 +39,7 @@ implementation
   components ThermalSensingM;
   components BatterySensingM;
 
-  components new SwitchedAnalog2C(INPUT_CHANNEL_A0, 1 * 1024)
+  components new AnalogC(INPUT_CHANNEL_A0)
     as AnalogChannel0;
   components new SwitchedAnalog3C(INPUT_CHANNEL_A1, 10 * 1024)
     as AnalogChannel1;

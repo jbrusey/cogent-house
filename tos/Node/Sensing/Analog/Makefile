@@ -1,5 +1,6 @@
 COMPONENT=AnalogTestC
-CFLAGS += -I$(TOSDIR)/lib/printf \
+
+PFLAGS += -I %T/lib/printf \
 	-I ../../../Util
 
 

@@ -159,7 +159,7 @@ class FlatLogger(object):
         self.tmp_file.flush()
 
         #send acknowledgement to base station to fwd to node
-        self.send_ack(seq=output['seq'], dest=output['sender'])
+        #self.send_ack(seq=output['seq'], dest=output['sender'])
         return True
 
     def mainloop(self):

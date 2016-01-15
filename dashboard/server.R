@@ -7,7 +7,7 @@ library(RColorBrewer)
 
 function(input, output, session) {
 
-  #-------------------------------- PREP DATA ------------------------------------------
+#-------------------------------- PREP DATA ------------------------------------------
   #Ideally needs to be reactive to new data
   DAILY_TX = 288
   nData <- readNodeData(basedir)
@@ -17,8 +17,9 @@ function(input, output, session) {
   pushData <- readPushLog(basedir)
   peopleData <- read_csv(file = "./config/team.csv")
 
-  #-------------------------------- DATA TAB -------------------------------------------
-  measuremntData <- reactive({
+#-------------------------------- DATA TAB -------------------------------------------
+
+   measuremntData <- reactive({
     shiny::validate(
       need(expr = (length(input$sensorSelect) > 0), 'Please select at least one sensor'),
       need(expr = (length(input$nodeSel) > 0), 'Please select at least one node')
@@ -153,7 +154,7 @@ function(input, output, session) {
     g <- ggplot(daily_pushes, aes(x = Date, y = Server, fill = Pushes)) +
       geom_tile() +
       labs(x = "", y = "Server") +
-      scale_fill_gradient(low = "red", high = "green", na.value = "red", limits = c(0,12)) +
+      scale_fill_gradient(low = "red", high = "green", na.value = "red", limits = c(0,24)) +
       facet_grid(Server ~ ., scales = "free_y")
   })
 
