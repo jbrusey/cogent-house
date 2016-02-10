@@ -17,7 +17,8 @@ dataTab <- tabItem(
                                     "Temperature" = "Temperature",
                                     "Humidity" = "Humidity",
                                     "AirFlow" = "AirFlow",
-                                    "BlackBulb" = "BlackBulb"
+                                    "BlackBulb" = "BlackBulb",
+                                    "Solar" = "Solar"
                                   ),
                                   selected = "Temperature"
                ),
@@ -26,6 +27,15 @@ dataTab <- tabItem(
     )
   ),
   fluidRow(
+    box(width = NULL, collapsed = FALSE, collapsible = TRUE, title = "Instructions",
+        "To display data for a particular date:",
+        tags$ol(
+          tags$li("Select the corresponding Date range."),
+          tags$li("Select the type of sensor by clicking the Select sensor option."),
+          tags$li("Specify the nodes you want the data from. (Refer to Deployment Map)"),
+          tags$li("You may download the plot by clicking on the Download Plot button.")
+        )
+    ),
     box(width = NULL, collapsed = TRUE, collapsible = TRUE, title = "Deployment Map",
         tabBox(
           side = "left",

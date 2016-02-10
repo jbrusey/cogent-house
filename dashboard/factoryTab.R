@@ -6,11 +6,18 @@ factoryTab <- tabItem(
     column(width = 9,
            box(width = NULL, solidHeader = TRUE,
                h3("PULP-SEED: The Factory"),
-               "There are two mango drying processes in the factory i) a solar dryer
-                and ii) a tunnel dryer. Both drying methods process three main mango
-                by-products---mango seeds, mango kernels and mango husks. The process
-                fully converts this raw material into useful products, leaving no
-                waste at all.", p(),
+               "Green Enviro Management Systems, Inc. (GEMS) (http://www.greenenviromanagementsystems.com/) is
+               engaged in holistic and integrated approaches to (food & agricultural) waste management.",
+               p(),
+               "GEMS have dveloped two mango waste drying processes in the factory i) a solar dryer
+               and ii) a tunnel dryer. Both drying methods process three main mango
+               by-products---mango seeds, mango kernels and mango husks. The process
+               fully converts this raw material into useful products, leaving no
+               waste at all. Two drying processes namely solar and
+               tunnel drying are presented here.",
+               p(),
+               "The solar dryer initiates drying of wet mango waste. Once dry the wastge is grounded using a screw press.
+                The resultent material is then further dried in the tunnel dryer.", p(),
                h4("The Solar Dryer"),
                "The solar dryer is a brick building with a transparent polycarbonate
                roof measuring 30m X 30m X 3m. Within the solar dryer there are 36
@@ -36,7 +43,7 @@ factoryTab <- tabItem(
                "To dry the mango waste, nine racks of the waste are loaded into the
                tunnel dryer and both ends of the tunnel are sealed. Once ready the
                dryer is switched on for four hours with a set point temperature of
-               65°C. After 4 hours the dried product is unloaded and the workers
+               65 degrees Celsius. After 4 hours the dried product is unloaded and the workers
                check if the mango waste has dried. If not, the product is stirred on
                its tray to remix so wet layers are exposed for the next drying
                time. The mango waste will then undergo another set of drying for four

@@ -7,12 +7,12 @@ deploymentTab <- tabItem(
            box(width = NULL, solidHeader = TRUE,
                h3("PULP-SEED: Wireless Sensor Network"),
                "The PULP system is a full end-to-end WSN environmental monitoring
-system targeted at collection of data from the drying
+               system targeted at collection of data from the drying
                environment. PULP is designed to gather sensor data (temperature,
-               humidity, black bulb, air flow) and transmit that data to a central
+               humidity, radiant heat, air flow) and transmit that data to a central
                database where it can be viewed with a web-browser (this site).",p(),
                div(
-                 tags$img(src = "images/System.jpg"),
+                 tags$img(src = "images/System.jpg", width = "75%"),
                  style = "text-align: center;"),p(),
                "The diagram above shows the an overview of the end-to-end system
                architecture. Data flows from the sensor nodes to a gateway, where it
@@ -20,10 +20,10 @@ system targeted at collection of data from the drying
                to user applications, such as a data analysis portal and further used
                to create a mango drying model. To reduce risk and development time,
                we opted to use off-the-shelf hardware and software wherever
-               possible", p(),
+               possible.", p(),
                h4("System Hardware Description"),
                "Our sensor node combines the TelosB platform with a custom interface
-               board. The TelosB is based around an MSP430 F1611 CPU and a 2.4 GHz
+               board. The TelosB is based around an MSP430 F1611 CPU and a 2.4 GHz
                CC2420 802.15.4 radio. The TelosB also includes an integrated
                temperature and relative humidity sensor---the Sensirion SHT11. Our
                custom interface board provides input for one black-bulb sensor and
@@ -45,9 +45,11 @@ system targeted at collection of data from the drying
                data to a flat file. Each hour a Push Data script is run which
                transmits the logged data to a PHP page on the remote server where it
                is archived. Finally this data can be interrogated and downloaded via
-               a data portal hosted on the remote server.",
+               a data portal hosted on the remote server.",p(),
+               "This system is open source and the code can be found at
+               https://github.com/jbrusey/cogent-house/tree/pulp.",
                div(
-                 tags$img(src = "images/SystemFlow.png", width = 580),
+                 tags$img(src = "images/SystemFlow.png", width = "75%"),
                  style = "text-align: center;"),p(),
                h3("PULP-SEED: Deployment Description"),
                "From August 2015 our system has been deployed in the GEM factory in
@@ -65,8 +67,8 @@ system targeted at collection of data from the drying
                nodes (Nodes 15--30) have been deployed on a bracket lower down at
                0.6m. The nodes have been deployed in a 5m X 5m grid.",p(),
                div(
-                 tags$img(src = "images/SolarDryingFacility.jpg", width = 290),
-                 tags$img(src = "images/greenhouse_node.jpg", width = 290),
+                 tags$img(src = "images/SolarDryingFacility.jpg", width = "25%"),
+                 tags$img(src = "images/greenhouse_node.jpg", width = "25%"),
                  style = "text-align: center;"),
                h4("Tunnel Dryer Deployment"),
                "Within the drying tunnel a total of 10 nodes (Nodes 31--40) have been
@@ -74,8 +76,8 @@ system targeted at collection of data from the drying
                (Pulp2) is placed outside of the casing, with the sink node passed
                through a hole cut out into the tunnel.",p(),
                div(
-                 tags$img(src = "images/TunnelDeployment.jpg", width = 290),
-                 tags$img(src = "images/tunnelNode.jpg", width = 290),
+                 tags$img(src = "images/TunnelDeployment.jpg", width  = "25%"),
+                 tags$img(src = "images/tunnelNode.jpg", width  = "25%"),
                  style = "text-align: center;")
            )
     )

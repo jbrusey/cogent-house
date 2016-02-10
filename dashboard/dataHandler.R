@@ -5,6 +5,7 @@ library(tidyr)
 library(xts)
 library(readr)
 
+
 ############## PROCESS JSON LOG FILES ###########################
 
 readJSONFile <- function(fname){
@@ -62,6 +63,14 @@ readNodeFile <- function(fname) {
     rename(Time = X1, Temperature = X2, Humidity = X3,
            Solar = X4, AirFlow = X5, BlackBulb = X6,
            Voltage = X7, Parent = X8, RSSI = X9, Seq = X10) %>%
+    # filter
+    filter(Temperature > 15, Temperature < 100,
+           Humidity > 0, Humidity < 100,
+           Solar > 0, Solar < 3.5,
+           AirFlow > 0, AirFlow < 3.5,
+           BlackBulb > 0, BlackBulb < 3.5,
+           Voltage >= 0, Voltage < 5,
+           RSSI > -90, RSSI < 0) %>%
     #Cast time to correct value, and align to the nearest 5 mins
     mutate(Time = align.time(
       as.POSIXct(Time, n = 300, tz = "Asia/Manila",origin = "1970-01-01"),

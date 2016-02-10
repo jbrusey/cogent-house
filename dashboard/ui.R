@@ -27,7 +27,7 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("Home", tabName = "home", icon = icon("home")),
     menuItem("Project Information", icon = icon("university"),
-             menuItem("Project Motivation", tabName = "description", icon = icon("university")),
+             menuItem("Project Motivation", tabName = "project", icon = icon("university")),
              menuItem("The Factory", tabName = "factory", icon = icon("building")),
              menuItem("WSN Deployment", tabName = "deployment", icon = icon("signal")),
              menuItem("Project Team", tabName = "team", icon = icon("users"))
