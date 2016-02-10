@@ -152,9 +152,9 @@ function(input, output, session) {
     daily_pushes <- pushYield()
 
     g <- ggplot(daily_pushes, aes(x = Date, y = Server, fill = Pushes)) +
-      geom_tile() +
+      geom_tile(colour="White") +
       labs(x = "", y = "Server") +
-      scale_fill_gradient(low = "red", high = "green", na.value = "red", limits = c(0,24)) +
+      scale_fill_gradient2(low = "firebrick", mid="lightgreen", high = "darkgreen", midpoint=12) +
       facet_grid(Server ~ ., scales = "free_y")
   })
 
@@ -209,12 +209,12 @@ function(input, output, session) {
     daily_node_yield <- dataYield()
 
     g <- ggplot(daily_node_yield, aes(x = Date, y = NodeId, fill = yield)) +
-      geom_tile() +
+      geom_tile(colour = "white") +
       labs(x = "", y = "Node Id") +
       scale_y_continuous(breaks =
                            min(daily_node_yield$NodeId):max(daily_node_yield$NodeId)
       ) +
-      scale_fill_gradient(low = "red", high = "green", na.value = "red") +
+      scale_fill_gradient2(low = "firebrick", mid="lightgreen", high = "darkgreen", midpoint=50) +
       facet_grid(Server ~ ., scales = "free_y")
 
   })

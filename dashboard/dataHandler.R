@@ -5,7 +5,6 @@ library(tidyr)
 library(xts)
 library(readr)
 
-
 ############## PROCESS JSON LOG FILES ###########################
 
 readJSONFile <- function(fname){
@@ -64,13 +63,13 @@ readNodeFile <- function(fname) {
            Solar = X4, AirFlow = X5, BlackBulb = X6,
            Voltage = X7, Parent = X8, RSSI = X9, Seq = X10) %>%
     # filter
-    filter(Temperature > 15, Temperature < 100,
-           Humidity > 0, Humidity < 100,
-           Solar > 0, Solar < 3.5,
-           AirFlow > 0, AirFlow < 3.5,
-           BlackBulb > 0, BlackBulb < 3.5,
-           Voltage >= 0, Voltage < 5,
-           RSSI > -90, RSSI < 0) %>%
+      filter(Temperature >= 15, Temperature < 100,
+             Humidity >= 0, Humidity < 100,
+	     Solar >= 0, Solar < 3.5,
+             AirFlow >= 0, AirFlow < 3.5,
+             BlackBulb>= 0, BlackBulb < 3.5,
+      	     Voltage >= 0, Voltage < 5,
+             RSSI >= -150, RSSI < 0) %>%
     #Cast time to correct value, and align to the nearest 5 mins
     mutate(Time = align.time(
       as.POSIXct(Time, n = 300, tz = "Asia/Manila",origin = "1970-01-01"),
@@ -84,9 +83,9 @@ readNodeFile <- function(fname) {
   # occured between the start and end of the data stream. Missing
   # times are added to the dataframe, this is done to stop ggplot
   # using linear interpolation
-  time.max <- max(data$Time)
-  time.min <- min(data$Time)
-  all.dates <- seq(time.min, time.max, by = "5 mins")
+  time.max <- max(data$Time, na.rm=TRUE)
+  time.min <- min(data$Time, na.rm=TRUE)
+  all.dates <- seq(time.min, Sys.time(), by = "5 mins")
   all.dates.frame <- data.frame(list(Time = all.dates))
   all.dates.frame$NodeId <- nid
   data <- merge(all.dates.frame, data, all = T)
