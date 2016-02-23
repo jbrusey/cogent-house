@@ -14,12 +14,12 @@ systemTab <- tabItem(
                dateRangeInput("sysDates", label = h3("Date range"), start = "2015-08-04"),
                checkboxGroupInput("systemSelect", "Select Parameters:",
                                   choices = c(
-                                    "Battery Voltage" = "voltage",
-                                    "Sequence Number" = "seq",
-                                    "RSSI" = "rssi",
-                                    "Parent Id" = "parent"
+                                    "Battery Voltage" = "Voltage",
+                                    "Sequence Number" = "Seq",
+                                    "RSSI" = "RSSI",
+                                    "Parent Id" = "Parent"
                                   ),
-                                  selected = "seq"
+                                  selected = "Seq"
                ),
                uiOutput("systemNodeSelect")
            )
