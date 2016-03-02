@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # delete zip file
 
     # look for zip files
-    ziplist = glob.glob('%s/*.zip'%args.in_dir)
+    ziplist = glob.glob('%s/*pulp*.zip'%args.in_dir)
     last_reading = {} # record last measurement for each node
     keep_file = False
     ziplist.sort(reverse=True)
