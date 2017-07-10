@@ -1,3 +1,4 @@
+
 source("dataHandler.R")
 source("config.R")
 library(dplyr)
@@ -10,12 +11,13 @@ function(input, output, session) {
 #-------------------------------- PREP DATA ------------------------------------------
   #Ideally needs to be reactive to new data
   DAILY_TX = 288
-  nData <- readNodeData(basedir)
+  nData <- readRDS("all_data.rds")
   aNodes <- as.numeric(unique(nData$NodeId))
   aNodes <- sort(aNodes)
-  aLong <- gather(nData, measure, value, Temperature:Seq)
-  pushData <- readPushLog(basedir)
+  aLong <- readRDS("all_data_long.rds")
+  #pushData <- readPushLog(basedir)
   peopleData <- read_csv(file = "./config/team.csv")
+  print("Reading done")
 
 #-------------------------------- DATA TAB -------------------------------------------
 
@@ -45,8 +47,9 @@ function(input, output, session) {
     data$measure <- gsub("Humidity", "Relative Humidity (%)", data$measure)
 
 
-    g <- ggplot(data, aes(x = Time, y = value, group = NodeId, colour = NodeId)) +
-      geom_line() +
+    g <- ggplot(data, aes(x = Time, y = value,
+                          group = as.character(NodeId), colour = as.character(NodeId))) +
+      geom_point() +
       facet_grid(measure ~ .,scales = "free_y") +
       ylab("") +
       xlab("") +
@@ -184,7 +187,7 @@ function(input, output, session) {
       mutate(Date = as.Date(Time),
              val = ifelse(is.na(Temperature), 0, 1),
              NodeId = as.numeric(NodeId),
-             Server = ifelse(NodeId <= 30, "PULP1", "PULP2")
+             Server = ifelse(NodeId <= 30 | NodeId > 100, "PULP1", "PULP2")
       ) %>%
       select(NodeId, Server, Date, val) %>%
       group_by(NodeId, Server, Date) %>%

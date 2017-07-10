@@ -23,24 +23,3 @@ deploymentMapTab <- tabItem(
     )
   )
 )
-
-
-#deploymentMapTab <- tabItem(
-#  tabName = "deploymentMap",
-#  fluidRow(
-#    column(width = 9,
-#           tabBox(width = NULL, solidHeader = TRUE,
-#                     tabPanel(name = "Solar Dryer (PULP1)",
-#                              div(
-#                                img(src = "images/greenhouse.jpg", width = 580),
-#                                style = "text-align: center;")
-#                     ),
-#                     tabPanel(name = "Tunnel Dryer (PULP2) ",
-#                              div(
-#                                tags$img(src = "images/TunnelDeployment.jpg", width = 580),
-#                                style = "text-align: center;")
-#                     )
-#                   )
-#           )
-#    )
-#)

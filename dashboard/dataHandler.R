@@ -30,7 +30,7 @@ readJSONLog <- function(dir){
   #for all files run readJSONFile fuction
   json_list <- lapply(files, readJSONFile)
   #Flatten the data list into a single data frame
-  json_data  <- do.call(rbind , json_list)
+  json_data  <- bind_rows(json_list)
 
   json_data  <- json_data %>%
     #Cast all data the correct types
@@ -51,17 +51,13 @@ readJSONLog <- function(dir){
 
 readNodeFile <- function(fname) {
   #Read in csv file (readr)
-  data <- read_csv(fname,col_names = FALSE)
-  #Extract node Id from the file name
-  nid <- (strsplit(fname, "_")[[1]])[2]
-  data$NodeId <- as.numeric(nid)
-
+  data <- read_csv(fname,col_names = TRUE)
 
   data <- data %>%
     #Rename the fields to something meaningful
-    rename(Time = X1, Temperature = X2, Humidity = X3,
-           Solar = X4, AirFlow = X5, BlackBulb = X6,
-           Voltage = X7, Parent = X8, RSSI = X9, Seq = X10) %>%
+    rename(Time = server_time, NodeId=sender,
+           Solar = ADC_2, AirFlow = ADC_1, BlackBulb = ADC_0,
+           Parent = parent, RSSI = rssi, Seq = seq) %>%
     # filter
       filter(Temperature >= 15, Temperature < 100,
              Humidity >= 0, Humidity < 100,
@@ -79,6 +75,7 @@ readNodeFile <- function(fname) {
       BlackBulb = ifelse(NodeId < fullSensors, 0, BlackBulb)
     )
 
+  nid <- data$NodeId[1]
   #This section of code finds all the times that could have
   # occured between the start and end of the data stream. Missing
   # times are added to the dataframe, this is done to stop ggplot
@@ -100,7 +97,7 @@ readNodeData <- function(dir){
   #apply the readNodeFile function to each file name
   csv_list <- lapply(files, readNodeFile)
   #Bind all data together to form one data frame
-  csv_data  <- do.call(rbind, csv_list)
+  csv_data  <- bind_rows(csv_list)
   #return processed data
   return(csv_data)
 }
