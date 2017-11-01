@@ -45,17 +45,14 @@ setup(name='ch-base',
                 'cogent.alembic'
                 ],
       include_package_data=True,
-      data_files=[('{0}/etc/init.d'.format(conf_prefix), ["etc/ch-base", "etc/ch-sf"]),
-                  ('{0}/etc/cron.daily'.format(conf_prefix), ['etc/ch-daily-email']),
+      data_files=[('{0}/etc/init.d'.format(conf_prefix), ["etc/ch-base", "etc/ch-sf", "etc/autossh"]),
                   ('{0}/etc/apache2/sites-available'.format(conf_prefix), ['etc/cogent-house']),
-                  ('{0}/var/www/cogent-house'.format(conf_prefix), ['www/index.py']),
-                  ('{0}/var/www/scripts'.format(conf_prefix), ['www/scripts/datePicker.js']),
-                  ('{0}/var/www/style'.format(conf_prefix), ['www/style/ccarc.css']),
+                  ('{0}/var/www/html/cogent-house'.format(conf_prefix), ['www/index.py']),
+                  ('{0}/var/www/html/scripts'.format(conf_prefix), ['www/scripts/datePicker.js']),
+                  ('{0}/var/www/html/style'.format(conf_prefix), ['www/style/ccarc.css']),
                   #Push Configuration Files
                   ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["conf/push-script/synchronise.template"]),
                   ("{0}/etc/cogent-house/push-script/".format(conf_prefix),["cogent/push/ch-ssh"]),
-                  #Report Template file
-                  ("{0}/etc/cogent-house/report-templates/".format(conf_prefix),["cogent/report/report-template.mak"]),
                   ],
       entry_points = """\
       [console_scripts]
