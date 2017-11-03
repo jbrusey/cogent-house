@@ -12,6 +12,7 @@ all: $(MIGPYFILES)
 install:  all
 	python setup.py install
 	a2ensite cogent-house
+	initialize_cogent_db
 	alembic -c cogent/alembic.ini upgrade head
 
  $(MIGPYFILES): tos/Packets.h
