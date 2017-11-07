@@ -34,7 +34,7 @@
    :email: ross.wilkins87@googlemail.com
    :date:  05/01/2011
 */
-#include "horner.c"
+#include "horner.h"
 
 module ThermalSensingM @safe()
 {
@@ -86,7 +86,7 @@ implementation
 	    
   }
 
-  //Convert raw adc to temp
+  //Convert raw adc to hum
   event void GetHum.readDone(error_t result, uint16_t data) {
     if (result == SUCCESS) { 
       float hum;
