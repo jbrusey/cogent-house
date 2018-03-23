@@ -36,7 +36,7 @@ sudo apt-get autoremove -qy
 
 # Get the code from the TinyOS release repository:
 
-wget http://github.com/tinyos/tinyos-release/archive/tinyos-2_1_2.tar.gz
+wget -q http://github.com/tinyos/tinyos-release/archive/tinyos-2_1_2.tar.gz
 tar xf tinyos-2_1_2.tar.gz
 sudo mv tinyos-release-tinyos-2_1_2 /opt/tinyos-main
 
