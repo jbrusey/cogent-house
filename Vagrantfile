@@ -3,7 +3,13 @@
  
 $script = <<SCRIPT
 
-wget -O - http://tinyprod.net/repos/debian/tinyprod.key | sudo apt-key add -
+function fail () {
+  echo "FAILURE: $1"
+  exit 1
+}
+
+wget -O - http://tinyprod.net/repos/debian/tinyprod.key | sudo apt-key add - \
+|| fail "wget tinyprod key"
 
 # add tinyprod to apt sources
 
@@ -14,21 +20,23 @@ APTEOF
 
 # update apt database
 
-sudo apt-get update -q
+sudo apt-get update -q || fail "apt-get update"
 
 # upgrade all packages before we start
 
-sudo apt-get upgrade -qy
-
-# install tinyos (squeeze)
-
-sudo apt-get install nesc tinyos-tools msp430-46 avr-tinyos -qy
+sudo apt-get upgrade -qy || fail "apt-get upgrade"
 
 # Install tos essentials
 
 sudo apt-get install autoconf automake gawk build-essential libtool \
     linux-image-extra-virtual \
-    python-dev openjdk-6-jdk graphviz ntp -qy 
+    python-dev openjdk-6-jdk graphviz ntp -qy \
+|| fail "apt-get install auto-conf"
+
+# install tinyos (squeeze)
+
+sudo apt-get install nesc tinyos-tools msp430-46 avr-tinyos -qy \
+|| fail "apt-get install nesc"
 
 # remove anything unnecessary
 
@@ -36,8 +44,9 @@ sudo apt-get autoremove -qy
 
 # Get the code from the TinyOS release repository:
 
-wget -q http://github.com/tinyos/tinyos-release/archive/tinyos-2_1_2.tar.gz
-tar xf tinyos-2_1_2.tar.gz
+wget -q http://github.com/tinyos/tinyos-release/archive/tinyos-2_1_2.tar.gz \
+|| fail "wget tinyos"
+tar xf tinyos-2_1_2.tar.gz || fail "tar tinyos"
 sudo mv tinyos-release-tinyos-2_1_2 /opt/tinyos-main
 
 
@@ -81,7 +90,7 @@ EOF
 # Source the env set up java
 
 source /opt/tinyos-main/tinyos.sh
-sudo tos-install-jni
+sudo tos-install-jni || fail "tos-install-jni"
 
 sudo chown -R vagrant:vagrant /opt/tinyos-main/
 
