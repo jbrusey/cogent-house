@@ -31,7 +31,7 @@ export AUTOSSH_PIDFILE=${PIDFILE}
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
-DAEMON_ARGS="-f -N -i /home/pi/.ssh/id_rsa -R $REMOTE_PORT:localhost:22 pi@cogentee.coventry.ac.uk"
+DAEMON_ARGS="-f -N -M 0 -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -i /home/pi/.ssh/id_rsa -R $REMOTE_PORT:localhost:22 pi@cogentee.coventry.ac.uk"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
