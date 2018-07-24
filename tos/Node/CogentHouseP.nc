@@ -412,6 +412,9 @@ implementation
       call Configured.set(RS_TEMPADC1);
       call Configured.set(RS_DUTY);
     }
+    else if (nodeType == NODE_TYPE_CC) { /* CC meter */
+      call Configured.set(RS_POWER);
+    }
     else if (nodeType == NODE_TYPE_GAS) { /* gas board */
       call Configured.set(RS_GAS);
       call GasControl.start();
