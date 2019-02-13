@@ -1,0 +1,27 @@
+/var/log/push.log
+{
+        rotate 30
+        daily
+        missingok
+        notifempty
+        compress
+        delaycompress
+}
+
+/var/log/ch/BaseLogger.log
+{
+        rotate 30
+        daily
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+        create 0644
+        prerotate
+            service ch-base stop
+            endscript
+        postrotate
+            service ch-base start
+            endscript
+}

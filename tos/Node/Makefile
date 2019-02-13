@@ -29,7 +29,7 @@ PFLAGS += -I . \
 
 ifdef cluster_based
 PFLAGS += -I ../Util/ch4bitle
-BUILD_EXTRA_DEPS += ../Util/ch4bitle/LinkEstimatorP.nc
+TOSMAKE_PRE_EXE_DEPS = ../Util/ch4bitle/LinkEstimatorP.nc
 CFLAGS += -DCLUSTER_BASED
 else #lpl based
 PFLAGS += -I %T/lib/net/4bitle
@@ -43,8 +43,8 @@ COMPONENT=CogentHouseC
 
 PYTHON_TARGET_DIR=../../cogent/node
 PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py BootMsg.py ConfigMsg.py Packets.py AckMsg.py)
-BUILD_EXTRA_DEPS += $(PYTHON_TGTS)
-CLEAN_EXTRA += $(PYTHON_TGTS)
+TOSMAKE_PRE_EXE_DEPS += $(PYTHON_TGTS)
+TOSMAKE_CLEAN_EXTRA = $(PYTHON_TGTS)
 
 #Configuration
 # turn on leds for debugging?
@@ -66,7 +66,7 @@ ifdef rf_channel
 CFLAGS += -DCC2420_DEF_CHANNEL=$(rf_channel)
 endif
 
-REVISION=$(shell hg id -i)
+REVISION=$(shell git rev-parse --short HEAD)
 CFLAGS+=-DDEF_HG_REVISION="\"$(REVISION)\""
 
 PFLAGS +=-DTOSH_DATA_LENGTH=76
@@ -163,22 +163,23 @@ CFLAGS += -DSIP_WALL_HUM_THRESH=-1
 CFLAGS += -DSIP_WALL_HUM_ALPHA=0
 CFLAGS += -DSIP_WALL_HUM_BETA=0
 
-include $(MAKERULES)
+TINYOS_ROOT_DIR?=/opt/tinyos-main
+include $(TINYOS_ROOT_DIR)/Makefile.include
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
 
 $(PYTHON_TARGET_DIR)/BootMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
 
 $(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
-	mig python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
+	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
 
 $(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
-	ncg python -target=$(PLATFORM) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
+	nescc-ncg python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
 
 ../Util/ch4bitle/LinkEstimatorP.nc: ../Util/ch4bitle.patch
 	-rm -rf ../Util/ch4bitle
