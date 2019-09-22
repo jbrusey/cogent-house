@@ -58,8 +58,8 @@ def run_reports(dry_run=False,
                 html.append("<p>%s took: %ld secs</p>" % (report, time.time() - start_time))
                 start_time = time.time()
 
-        if len(html) == 0:
-            html = ['No status updates to report']
+#        if len(html) == 0:
+#            html = ['No status updates to report']
 
     finally:
         session.close()
@@ -67,12 +67,16 @@ def run_reports(dry_run=False,
     message = header(you=you, me=me, host=host) + "".join(html) + footer()
 
     if dry_run:
-        print message
+        if len(html) == 0:
+            print "Dry run: no email will be sent"
+        else:
+            print message
     else:
         # Send the message via local SMTP server.
 
-        s = smtplib.SMTP('localhost')
-        s.sendmail(me, you, message)
+        if len(html) > 0:
+            s = smtplib.SMTP('localhost')
+            s.sendmail(me, you, message)
 
 if __name__ == "__main__":
     from optparse import OptionParser
