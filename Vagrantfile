@@ -14,7 +14,7 @@ wget -O - http://tinyprod.net/repos/debian/tinyprod.key | sudo apt-key add - \
 # add tinyprod to apt sources
 
 tee -a /etc/apt/sources.list >/dev/null <<APTEOF
-deb http://tinyprod.net/repos/debian squeeze main
+deb http://tinyprod.net/repos/debian wheezy main
 deb http://tinyprod.net/repos/debian msp430-46 main
 APTEOF
 
@@ -33,7 +33,7 @@ sudo apt-get install autoconf automake gawk build-essential libtool \
     python-dev openjdk-6-jdk graphviz ntp -qy \
 || fail "apt-get install auto-conf"
 
-# install tinyos (squeeze)
+# install tinyos (wheezy)
 
 sudo apt-get install nesc tinyos-tools msp430-46 avr-tinyos -qy \
 || fail "apt-get install nesc"
