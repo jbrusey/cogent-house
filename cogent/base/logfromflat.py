@@ -135,13 +135,13 @@ class LogFromFlat(object):
                                    rssi = rssi_val)
             session.add(node_state)
 
-            for type_id, value in list(msg.items()):
+            for i, value in list(msg.items()):
                 # skip any non-numeric type_ids
                 try:
-                    type_id = int(type_id)
+                    type_id = int(i)
                 except ValueError:
                     continue
-                
+
                 if math.isinf(value) or math.isnan(value):
                     value = None
 

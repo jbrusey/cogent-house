@@ -7,7 +7,7 @@ author: J. Brusey, November 2019
 
 from cogent.base.logfromflat import LogFromFlat
 from unittest.mock import patch, mock_open
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, and_
 from cogent.base.model import (init_model,
                                meta,
                                Bitset,
@@ -101,12 +101,11 @@ def dummy_deployment():
                  nodeTypeId=nt.id)
         session.add(n)
 
-        st = SensorType(id=0,
-                        name="Temperature",
-                        code="Tmp",
-                        units="deg.C")
-
-        session.add(st)
+        
+        session.add_all([SensorType(id=x,
+                                    name="Sensor"+str(x),
+                                    code="x",
+                                    units="none") for x in range(44)])
         session.commit()
     except:
         session.rollback()
@@ -143,11 +142,21 @@ def test_store_state():
 
     session = meta.Session()
     try:
-        reading = session.query(Reading).filter(Node.id == 28710, Node.nodeTypeId == 0).first()
+        reading = session.query(Reading).filter(
+            and_(Node.id == 28710,
+                 Reading.typeId == 0)).one()
 
         assert reading.locationId is not None
 
         assert reading.value == 10.1361722946167
+
+        reading = session.query(Reading).filter(
+            and_(Node.id == 28710,
+                 Reading.typeId == 1)).one()
+
+        assert reading.locationId is not None
+
+        assert reading.value == -1.933643397933338e-05
 
         nodestate = session.query(NodeState).filter(Node.id == 28710).one()
 
