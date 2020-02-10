@@ -9,7 +9,7 @@ sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 sys.path.append("../..")
 from cogent.node import StateMsg
 # from cogent.base.model import
-from Queue import Queue
+from queue import Queue
 from cogent.base.BaseLogger import BaseLogger
 import logging
 
@@ -31,7 +31,7 @@ class TestBif(object):
 
     def sendMsg(self, msg, dest=0xffff):
         """ support sending (from BaseLogger) of any messages """
-        print "sendMsg", msg, "to", dest
+        print("sendMsg", msg, "to", dest)
 
     def finishAll(self):
         """ finish - currently just a dummy """

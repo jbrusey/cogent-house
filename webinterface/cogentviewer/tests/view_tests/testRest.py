@@ -3,7 +3,10 @@ Test REST interface functionality
 """
 
 import datetime
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 from cogentviewer.views import homepage
 import cogentviewer.tests.base as base

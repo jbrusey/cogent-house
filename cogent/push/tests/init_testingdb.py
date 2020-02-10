@@ -27,8 +27,8 @@ import cogent.base.model as models
 def usage(argv):
     """Usage message"""
     cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri>\n'
-          '(example: "%s development.ini")' % (cmd, cmd))
+    print(('usage: %s <config_uri>\n'
+          '(example: "%s development.ini")' % (cmd, cmd)))
     sys.exit(1)
 
 def populatedata(session = None):
@@ -36,7 +36,7 @@ def populatedata(session = None):
 
     #The Deployment
     if not session:
-        print "Creating a new Session"
+        print("Creating a new Session")
         session = meta.Session()
 
     #Remove Existing nodes as they just confuse things
@@ -47,7 +47,7 @@ def populatedata(session = None):
     transaction.commit()
 
     #now = datetime.datetime.now()
-    now = datetime.datetime(2013,01,01,00,00,00)
+    now = datetime.datetime(2013,0o1,0o1,00,00,00)
 
     thedeployment = models.Deployment(id=1,
                                       name="testing",
@@ -90,7 +90,7 @@ def populatedata(session = None):
     #update the nodes so they have the correct locations
     thenode = session.query(models.Node).filter_by(id=837).first()
     if thenode is None:
-        print "Create Node 837"
+        print("Create Node 837")
         thenode = models.Node(id=837,
                               locationId=1)
         session.add(thenode)
@@ -99,7 +99,7 @@ def populatedata(session = None):
     if thenode is None:
         thenode = models.Node(id=838,
                               locationId=2)
-        print "Create Node 838"
+        print("Create Node 838")
         session.add(thenode)
 
     session.flush()
@@ -137,7 +137,7 @@ def populatedata(session = None):
     if thenode is None:
         thenode = models.Node(id=1061,
                               locationId=3)
-        print "Create Node 1061"
+        print("Create Node 1061")
         session.add(thenode)
     thenode.locationId = 3
 
@@ -145,7 +145,7 @@ def populatedata(session = None):
     if thenode is None:
         thenode = models.Node(id=1063,
                               locationId=4)
-        print "Create Node 1063"
+        print("Create Node 1063")
         session.add(thenode)
 
     session.flush()
@@ -155,10 +155,10 @@ def populate_readings(session = None):
 
     #The Deployment
     if not session:
-        print "Creating a new Session"
+        print("Creating a new Session")
         session = meta.Session()
 
-    now = datetime.datetime(2013, 01, 01, 00, 00, 00)
+    now = datetime.datetime(2013, 0o1, 0o1, 00, 00, 00)
 
     #Now we want to add a load of readings / Nodestates
     thetime = now# - datetime.timedelta(days = 10)
@@ -249,12 +249,12 @@ def main(dburl="sqlite:///pushtest.db"):
 
     import time
 
-    print "Creating Database for {0}".format(dburl)
+    print("Creating Database for {0}".format(dburl))
     t1 = time.time()
 
     engine = sqlalchemy.create_engine(dburl)
     connection = engine.connect()
-    print "--> Time to create Engine {0}".format(time.time() - t1)
+    print("--> Time to create Engine {0}".format(time.time() - t1))
 
     #try:
     #    connection.execute("delete from nodestate")
@@ -264,7 +264,7 @@ def main(dburl="sqlite:///pushtest.db"):
 
 
     #transaction.commit()
-    print "Initialising SQL"
+    print("Initialising SQL")
 
     #Create a connection to the database
     Base.metadata.bind = engine
@@ -292,15 +292,15 @@ def main(dburl="sqlite:///pushtest.db"):
     #Finally Locations
     #connection.execute("DELETE FROM Location")
 
-    print "--> Time to Drop {0}".format(time.time() - t1)
+    print("--> Time to Drop {0}".format(time.time() - t1))
 
-    print "--> Time Create {0}".format(time.time() - t1)
+    print("--> Time Create {0}".format(time.time() - t1))
     # #Start the transaction
     # #trans = connection.begin()
     populateData.init_data(docalib=False)
-    print "--> Time to Init {0}".format(time.time() - t1)
+    print("--> Time to Init {0}".format(time.time() - t1))
     populatedata()
-    print "--> Time to Populate {0}".format(time.time() - t1)
+    print("--> Time to Populate {0}".format(time.time() - t1))
     populate_readings()
 
 if __name__ == "__main__":

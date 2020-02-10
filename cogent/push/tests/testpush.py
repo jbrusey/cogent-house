@@ -13,7 +13,10 @@ To get this to work properly we need to do severaal things:
 """
 
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 import os
 import sys
 import datetime
@@ -28,7 +31,7 @@ import sqlalchemy
 import cogent.push.RestPusher as RestPusher
 import cogent.base.model as models
 
-import init_testingdb
+from . import init_testingdb
 
 import logging
 logging.getLogger("nosecover3").setLevel(logging.WARNING)
@@ -138,7 +141,7 @@ class TestClient(unittest.TestCase):
         #We want to remove any preexisting mapping files
         confpath = "sqlite:---push_test.db_map.conf"
         if os.path.exists(confpath):
-            print "DELETING EXISTING CONFIG FILE"
+            print("DELETING EXISTING CONFIG FILE")
             os.remove(confpath)
 
         #Relevant DB strings
@@ -286,10 +289,10 @@ class TestClient(unittest.TestCase):
 
         qry = session.query(models.NodeType).filter_by(id=10).first()
         self.assertTrue(qry)
-        self.assertEquals(qry.name, "ClusterHead CO2")
+        self.assertEqual(qry.name, "ClusterHead CO2")
         qry = session.query(models.NodeType).filter_by(id=11).first()
         self.assertTrue(qry)
-        self.assertEquals(qry.name, "ClusterHead AQ")
+        self.assertEqual(qry.name, "ClusterHead AQ")
 
         #Finally add a new sensor type on the remote server (its a corner case)
         session = self.Session()
@@ -366,11 +369,11 @@ class TestClient(unittest.TestCase):
         qry = session.query(models.SensorType).filter_by(name="Delta Temperature")
         item = qry.first()
         self.assertTrue(item)
-        self.assertEquals(item.id, 1)
+        self.assertEqual(item.id, 1)
         qry = session.query(models.SensorType).filter_by(name="Delta Humidity")
         item = qry.first()
         self.assertTrue(item)
-        self.assertEquals(item.id, 3)
+        self.assertEqual(item.id, 3)
         session.flush()
         session.commit()
         session.close()
@@ -476,7 +479,7 @@ class TestClient(unittest.TestCase):
         #We should now have a room type with a different Id
         qry = session.query(models.RoomType).filter_by(name="More Testing").first()
         self.assertTrue(qry)
-        self.assertEquals(qry.id, 6)
+        self.assertEqual(qry.id, 6)
 
         #We need to also make sure that the mapping is correct
         mappings =  self.pusher.mappedRoomTypes
@@ -880,7 +883,7 @@ class TestClient(unittest.TestCase):
 
         session = self.Session()
         thehouse = session.query(models.House).filter_by(id=1).first()
-        print thehouse
+        print(thehouse)
         lastupdate = self.pusher.get_lastupdate(thehouse)
         expectdate = datetime.datetime(2013, 1, 10, 23, 55, 1)
         #expectdate = None

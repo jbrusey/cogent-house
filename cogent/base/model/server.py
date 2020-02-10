@@ -7,7 +7,7 @@ Class to hold details of servers that have been deployed
 import sqlalchemy
 from sqlalchemy.orm import relationship
 
-import meta
+from . import meta
 
 class Server(meta.Base, meta.InnoDBMix):
     """

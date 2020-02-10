@@ -6,11 +6,10 @@
 import sys
 import os
 sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
-from cogent.node import StateMsg, ConfigMsg, Packets, BootMsg
+from cogent.node import StateMsg, BootMsg
 from tinyos.message import MoteIF 
-import time
-from cogent.base.model import *
-from Queue import Queue, Empty
+from cogent.base.model import Bitset
+from queue import Queue, Empty
 
 
 # Note: MoteIF doesn't currently support coming directly off the serial interface
@@ -40,7 +39,7 @@ class BaseIF(object):
     
 def store_state(msg):
     n = msg.getAddr()
-    print "storing state ",n, msg
+    print(("storing state ",n, msg))
 
 
 if __name__ == '__main__':
@@ -52,19 +51,19 @@ if __name__ == '__main__':
         try:
             msg = bif.get(True, 5)
 
-	    j = 0
+            j = 0
             mask = Bitset(value=msg.get_packed_state_mask())
-            print "State mask size:", msg.totalSizeBits_packed_state_mask()
+            print(("State mask size:", msg.totalSizeBits_packed_state_mask()))
             state = []
             for i in range(msg.totalSizeBits_packed_state_mask()):
                 if mask[i]:
                     try:
                         v = msg.getElement_packed_state(j)
-                    except Exception, e:
+                    except Exception as e:
                         v = "Invalid {!s}".format(e)
-                    print "%s\t%s\t%s" % (j, i, v)
+                    print(("%s\t%s\t%s" % (j, i, v)))
                 j += 1
-            print ""
+            print("")
 
 
             #store_state(msg)

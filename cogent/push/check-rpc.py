@@ -5,7 +5,7 @@ setup at cogentee.
 
 import logging
 import logging.handlers
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import json
 import configobj
 import sys
@@ -142,7 +142,7 @@ class RPC_Engine(object):
                 log.debug("Host has RPC queued {0}".format(command))
                 allcommands.append(command)
 
-        print "== {0}".format(allcommands)
+        print("== {0}".format(allcommands))
         return hostname, allcommands
 
     def processRPC(self, hostname, commands):

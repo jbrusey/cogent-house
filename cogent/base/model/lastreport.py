@@ -7,7 +7,7 @@
 
 from sqlalchemy import Column, String
 
-import meta
+from . import meta
 
 class LastReport(meta.Base, meta.InnoDBMix):
     """

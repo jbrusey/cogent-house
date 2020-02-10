@@ -7,7 +7,7 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
-import meta
+from . import meta
 
 class RoomType(meta.Base, meta.InnoDBMix):
     """The Type of Room  e.g. bedroom or kitchen

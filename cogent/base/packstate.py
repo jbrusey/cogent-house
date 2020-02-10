@@ -1,4 +1,3 @@
-from cogent.node import Packets
 from cogent.base.model import Bitset
 
 class PackState(object):
@@ -15,8 +14,6 @@ class PackState(object):
         j = 0
         for i in range(msg.totalSizeBits_packed_state_mask()):
             if mask[i]:
-                if j >= Packets.SC_PACKED_SIZE:
-                    raise Error("too many values stuffed into packed state")
                 d[i] = msg.getElement_packed_state(j)
                 j = j + 1
 

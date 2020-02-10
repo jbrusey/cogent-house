@@ -45,6 +45,7 @@ PYTHON_TARGET_DIR=../../cogent/node
 PYTHON_TGTS=$(addprefix $(PYTHON_TARGET_DIR)/,StateMsg.py BootMsg.py ConfigMsg.py Packets.py AckMsg.py)
 TOSMAKE_PRE_EXE_DEPS += $(PYTHON_TGTS)
 TOSMAKE_CLEAN_EXTRA = $(PYTHON_TGTS)
+BUILD_EXTRA_DEPS=$(PYTHON_TGTS)
 
 #Configuration
 # turn on leds for debugging?
@@ -163,23 +164,24 @@ CFLAGS += -DSIP_WALL_HUM_THRESH=-1
 CFLAGS += -DSIP_WALL_HUM_ALPHA=0
 CFLAGS += -DSIP_WALL_HUM_BETA=0
 
-TINYOS_ROOT_DIR?=/opt/tinyos-main
-include $(TINYOS_ROOT_DIR)/Makefile.include
+#TINYOS_ROOT_DIR?=/opt/tinyos-main
+#include $(TINYOS_ROOT_DIR)/Makefile.include
+include $(MAKERULES)
 
 $(PYTHON_TARGET_DIR)/StateMsg.py: ../Packets.h
-	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
+	mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< StateMsg -o $@
 
 $(PYTHON_TARGET_DIR)/BootMsg.py: ../Packets.h
-	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
+	mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< BootMsg -o $@
 
 $(PYTHON_TARGET_DIR)/ConfigMsg.py: ../Packets.h
-	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
+	mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< ConfigMsg -o $@
 
 $(PYTHON_TARGET_DIR)/AckMsg.py: ../Packets.h
-	nescc-mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
+	mig python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< AckMsg -o $@
 
 $(PYTHON_TARGET_DIR)/Packets.py: ../Packets.h PackState/packstate.h
-	nescc-ncg python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
+	ncg python $(NESC_PFLAGS) $(CFLAGS) -python-classname=$(notdir $(basename $@)) $< Packets.h -o $@
 
 ../Util/ch4bitle/LinkEstimatorP.nc: ../Util/ch4bitle.patch
 	-rm -rf ../Util/ch4bitle

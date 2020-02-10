@@ -21,7 +21,7 @@ from sqlalchemy import Integer, String, ForeignKey, DateTime, Float, Boolean, Un
 
 
 def upgrade():
-    op.add_column(u'NodeState', sa.Column('seq_num', sa.Integer(), nullable=True))
+    op.add_column('NodeState', sa.Column('seq_num', sa.Integer(), nullable=True))
     ### end Alembic commands ###
 
 

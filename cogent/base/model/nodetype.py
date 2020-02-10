@@ -9,8 +9,8 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 import sqlalchemy.types as types
 
-import meta
-from Bitset import Bitset
+from . import meta
+from .Bitset import Bitset
 
 class BitsetType(types.TypeDecorator):
     impl = types.String

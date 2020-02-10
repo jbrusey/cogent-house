@@ -5,7 +5,7 @@
 
 """
 
-import meta
+from . import meta
 
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime
 

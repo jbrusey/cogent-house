@@ -36,19 +36,19 @@ class DgRunner(runner.DaemonRunner):
 
         try:
             os.kill(pid, signal.SIGTERM)
-        except OSError, exc:
+        except OSError as exc:
             #DG- It may be the case that there is no such process (as we kiled it above)
             #In this case exit as a success
             if exc[0] == 3:
                 log.debug("No Such Process, assuming the SIGINT worked")
                 return 0
             raise runner.DaemonRunnerStopFailureError(
-                u"Failed to terminate %(pid)d: %(exc)s" % vars())
+                "Failed to terminate %(pid)d: %(exc)s" % vars())
 
 #The app class that actually starts and stops the daemon
 class App():
     def __init__(self):
-        print "Initing App"
+        print("Initing App")
         self.stdin_path = '/dev/null'
         self.stdout_path = '/dev/tty'
         self.stderr_path = '/dev/tty'

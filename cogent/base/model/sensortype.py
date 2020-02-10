@@ -9,7 +9,7 @@ Classes and Modules that represent sensor related objects
 from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import relationship
 
-import meta
+from . import meta
 
 class SensorType(meta.Base, meta.InnoDBMix):
     """ Represent Sensor Types

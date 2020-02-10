@@ -5,7 +5,10 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 #SQLA
 import sqlalchemy
@@ -47,7 +50,7 @@ class TestAutoReport(unittest.TestCase):
             self.needsinit = False
             models.populateData.init_data(docalib=False)
             session = self.Session()
-            import populate_testdb
+            from . import populate_testdb
             populate_testdb.cleardb(session) #Remove all the old cruft
             populate_testdb.populatedata(session) #And populate with fresh data
 

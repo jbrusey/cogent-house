@@ -27,7 +27,7 @@ from cogent.node import (AckMsg,
                          Packets)
 from cogent.base.BaseIF import BaseIF
 
-from Queue import Empty
+from queue import Empty
 
 from datetime import datetime, timedelta
 
@@ -177,7 +177,7 @@ class BaseLogger(object):
                 seq_num=seq)
             session.add(node_state)
 
-            for i, value in pack_state.d.iteritems():
+            for i, value in pack_state.d.items():
                 if (msg.get_amType() == Packets.AM_BNMSG and
                     i not in [Packets.SC_VOLTAGE]):
                     type_id = i + BN_OFFSET   # TODO: ideally should be a flag in datbase or something
@@ -254,7 +254,7 @@ if __name__ == '__main__':
     time.sleep(2)
     while True:
         seq = 1
-        print "sending ack"
+        print("sending ack")
         send_ack(bif=bif,
                  seq=seq,
                  dest=19)

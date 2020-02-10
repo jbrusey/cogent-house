@@ -3,32 +3,19 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Dat
 from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 from datetime import datetime, timedelta
-
-#Original Version used this namespace,
-#So I will too.
-#from cogent.base.model.Bitset import Bitset
-
-import cogent
-# try:
-#     import cogent
-# except ImportError:
-#     #Assume we are running from the test directory
-#     print "Unable to Import Cogent Module Appending Path"
-#     import sys
-#     sys.path.append("../")
-
 
 from cogent.base.model import *
 
-#from cogent.base.model.meta import Session, Base
-
 DBURL="sqlite:///:memory:"
 
-import base
+from . import base
 
-@unittest.skip
+#@unittest.skip
 class TestNodeType(base.BaseTestCase):
 
     # @classmethod
@@ -76,7 +63,7 @@ class TestNodeType(base.BaseTestCase):
             session.add(r)
             session.commit()
             self.assertTrue( r.configured[3] and r.configured[13] )
-        except Exception,e:
+        except Exception as e:
             session.rollback()
             raise e
         finally:
@@ -99,7 +86,7 @@ class TestNodeType(base.BaseTestCase):
         try:
             session.add(r)
             session.commit()
-        except Exception,e:
+        except Exception as e:
             session.rollback()
             raise e
         finally:

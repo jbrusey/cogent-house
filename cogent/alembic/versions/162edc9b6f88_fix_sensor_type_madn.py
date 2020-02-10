@@ -52,8 +52,8 @@ reading = sa.sql.table('Reading',
 def upgrade():
     #These have been Renumbered between revisions
 
-    print "WARNING:: THIS EXPECTS THE CORRECT SENSOR TYPES TO BE IN THE READING TABLE"
-    print "USE THE initialise_webinterface_db SCRIPT TO ACHIEVE THIS"
+    print("WARNING:: THIS EXPECTS THE CORRECT SENSOR TYPES TO BE IN THE READING TABLE")
+    print("USE THE initialise_webinterface_db SCRIPT TO ACHIEVE THIS")
 
     #20 was Electricity Pulse -> Delta CO2 (Elec Becomes  ID 40)
     #21 was Temp ADC1 -> Delta VOC  (ADC1 Becoms 41)

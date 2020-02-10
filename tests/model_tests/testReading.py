@@ -40,12 +40,12 @@ class TestReading(base.ModelTestCase):
     def testAdict(self):
         foo = self._serialobj()
         bar = self._dictobj()
-        print
-        print "="*40
-        print "SERIAL {0}".format(foo)
+        print()
+        print("="*40)
+        print("SERIAL {0}".format(foo))
         foo = foo.dict()
-        print "SDICT {0}".format(foo)
-        print "DICT {0}".format(bar)
+        print("SDICT {0}".format(foo))
+        print("DICT {0}".format(bar))
         self.assertEqual(foo,bar)
 
     def testEq(self):

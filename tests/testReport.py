@@ -1,7 +1,7 @@
 
 from sqlalchemy import create_engine
 #from sqlalchemy.orm import sessionmaker
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import time
 import datetime
 
@@ -21,9 +21,12 @@ import cogent
 from cogent.base.model import *
 from cogent.report import *
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
-import base
+from . import base
 
 class TestReport(base.BaseTestCase):
     @classmethod

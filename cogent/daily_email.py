@@ -67,7 +67,7 @@ def run_reports(dry_run=False,
     message = header(you=you, me=me, host=host) + "".join(html) + footer()
 
     if dry_run:
-        print message
+        print(message)
     else:
         # Send the message via local SMTP server.
 

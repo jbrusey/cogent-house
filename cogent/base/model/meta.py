@@ -15,16 +15,6 @@ LOG = logging.getLogger(__name__)
 #Functions provided by from meta import *
 __all__ = ['Base', 'Session']
 
-
-#PYRAMID IMPORTS (COMMENT THESE FOR NON PYRAMID OPERATION)
-# try:
-#     from zope.sqlalchemy import ZopeTransactionExtension
-#     Session = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
-# except ImportError:
-#     #STANDARD IMPORTS
-#     # SQLAlchemy session manager. Updated by model.init_model()
-#     Session = scoped_session(sessionmaker())
-
 # SQLAlchemy session manager. Updated by model.init_model()
 Session = scoped_session(sessionmaker())
 
@@ -37,7 +27,6 @@ import json
 # The declarative Base
 Base = declarative_base()
 
-import warnings
   
 class SerialiseMixin(object):
 
@@ -55,7 +44,7 @@ class SerialiseMixin(object):
             is committed.
         """
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(self, key, value)
 
 
@@ -82,7 +71,7 @@ class SerialiseMixin(object):
 
             try:
                 value = getattr(self, col.name)
-            except AttributeError, e:
+            except AttributeError as e:
                 LOG.warning("Conversion Error {0}".format(e))
 
             #Conversion code for datetime
@@ -113,16 +102,12 @@ class SerialiseMixin(object):
              toDict() will be removed in favor of the dict() method, (prepare for transistion to restAlchmey)
         """
 
-        LOG.warning("toDict Depricated, please use dict() function instead")
+        LOG.warning("toDict Deprecated, please use dict() function instead")
         #Appending a table to the dictionary could help us when unpacking objects
-        warnings.warn("meta.toDict() method has been depricated, please use meta.dict() instead",
+        warnings.warn("meta.toDict() method has been deprecated, please use meta.dict() instead",
                       DeprecationWarning)
 
         return self.dict()
-
-#    def fromDict(self,theDict):
-#        """Update the object given a dictionary of <key>,<value> pairs
-#        """
 
     def from_dict(self,jsonList):
         """Update the object using a dictionary
@@ -190,12 +175,3 @@ class InnoDBMix(SerialiseMixin):
     """
     __table_args__ = {'mysql_engine': 'InnoDB',
                       'mysql_charset':'utf8'}
-
-
-
-
-
-
-
-
-

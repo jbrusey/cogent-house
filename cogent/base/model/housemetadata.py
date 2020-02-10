@@ -7,7 +7,7 @@
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 
-import meta
+from . import meta
 
 class HouseMetadata(meta.Base, meta.InnoDBMix):
     """Table to hold Metadata about houses

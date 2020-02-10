@@ -10,6 +10,7 @@
 DB_STRING = "mysql://chuser@localhost/localCh"
 
 import logging
+from functools import reduce
 connected = False
 
 

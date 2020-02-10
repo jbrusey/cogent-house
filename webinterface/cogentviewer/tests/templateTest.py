@@ -22,7 +22,6 @@ try:
 except:
     import unittest
 
-#@unittest.skip("Base Class, Skip for most purposes")
 class TestStub(base.BaseTestCase):
     """
     Deal with tables in the deployment module

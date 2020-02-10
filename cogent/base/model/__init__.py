@@ -10,44 +10,40 @@ Classes to initialise the SQL and populate with default Sensors
     new tables are created using INNODB
 """
 
-import csv
-import os
+import sys
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapperlib
 
-from meta import *
-
-#Namespace Manginlg the Proper way, (via all)
-#__all__ = ["deployment.*"]
+from . import meta
 
 #Namespace Mangling
-from deployment import *
-from deploymentmetadata import *
-from host import *
-from house import *
-from housemetadata import *
-from lastreport import *
-from location import *
-from node import *
-from nodehistory import *
-from nodestate import *
-from nodetype import *
-from nodeboot import *
-from occupier import *
-from rawmessage import *
-from reading import *
-from room import *
-from roomtype import *
-from sensor import *
-from sensortype import *
-from weather import *
-from event import *
-from timings import *
-from user import *
-from server import *
-from pushstatus import *
-import populateData
+from .Bitset import Bitset
+from .deployment import Deployment
+from .deploymentmetadata import DeploymentMetadata
+from .host import Host
+from .house import House
+from .housemetadata import HouseMetadata
+from .lastreport import LastReport
+from .location import Location
+from .node import Node
+from .nodehistory import NodeHistory
+from .nodestate import NodeState
+from .nodetype import NodeType
+from .nodeboot import NodeBoot
+from .occupier import Occupier
+from .rawmessage import RawMessage
+from .reading import Reading
+from .room import Room
+from .roomtype import RoomType
+from .sensor import Sensor
+from .sensortype import SensorType
+from .weather import Weather
+from .event import Event
+from .timings import Timings
+from .user import User
+from .server import Server
+from .pushstatus import PushStatus
+from . import populateData
 
 import json
 
@@ -63,7 +59,8 @@ def init_model(engine):
 
     DO NOT REMOVE ON MERGE
     """
-    Session.configure(bind=engine)
+    print("called init_model", file=sys.stderr)
+    meta.Session.configure(bind=engine)
     #import pdb; pdb.set_trace()
 
 def initialise_sql(engine, dropTables=False):
@@ -82,12 +79,12 @@ def initialise_sql(engine, dropTables=False):
     """
     log.info("Initialising Database")
     meta.Session.configure(bind = engine)
-    Base.metadata.bind = engine
+    meta.Base.metadata.bind = engine
 
     if dropTables:
-        Base.metadata.drop_all(engine)
+        meta.Base.metadata.drop_all(engine)
 
-    Base.metadata.create_all(engine)
+    meta.Base.metadata.create_all(engine)
 
 def findClass(tableName):
     """Helper method that attempts to find a SQLA class given a tablename
@@ -101,7 +98,7 @@ def findClass(tableName):
         return mappedTable
 
     log.debug("Looking for {0}".format(tableName))
-    for x in mapperlib._mapper_registry.items():
+    for x in list(mapperlib._mapper_registry.items()):
         #mapped table
         log.debug("--> Checking against {0}".format(x))
         checkTable = x[0].mapped_table
@@ -162,7 +159,7 @@ def clsFromJSON(theList):
                }
 
     for item in theList:
-        if type(item) == str or type(item) == unicode:
+        if type(item) == str or type(item) == str:
             item = json.loads(item)
         #Convert to the correct type of object
         theType = item["__table__"]

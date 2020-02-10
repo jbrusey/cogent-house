@@ -1,13 +1,17 @@
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
-from cogent.node import Packets
+#from cogent.node.Packets import Packets
+SC_SIZE = 48
 from cogent.base.packstate import PackState
 from cogent.base.model import Bitset
 
 class Msg(object):
     def __init__(self, d):
-        b = Bitset(size=Packets.SC_SIZE)
-        for i in d.keys():
+        b = Bitset(size=SC_SIZE)
+        for i in list(d.keys()):
             b[i] = True
         self.mask = b.a
         self.p = []
@@ -32,17 +36,14 @@ class TestPackState(unittest.TestCase):
         pack_state = PackState({6:3.0})
         self.assertEqual({6:3.0}, pack_state.d)
 
-    @unittest.skip
     def test___repr__(self):
         pack_state = PackState({5:1.1})
         self.assertEqual("PackState({5: 1.1})", repr(pack_state))
 
-    @unittest.skip
     def test___str__(self):
         pack_state = PackState({5:1.1})
         self.assertEqual('{5: 1.1}', str(pack_state))
 
-    @unittest.skip
     def test_from_message(self):
         msg = Msg({5:1.1, 23:2.0})
         pack_state = PackState.from_message(msg)

@@ -9,7 +9,7 @@ Table to hold details of raw messages
 
 """
 
-import meta
+from . import meta
 
 from sqlalchemy import Column, Integer, String, DateTime
 

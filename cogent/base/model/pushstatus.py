@@ -1,7 +1,7 @@
 import sqlalchemy
 
 #Import Pyramid Meta Data
-import meta
+from . import meta
 import datetime
 import dateutil 
 

@@ -7,7 +7,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-import meta
+from . import meta
 
 class Room(meta.Base, meta.InnoDBMix):
     """

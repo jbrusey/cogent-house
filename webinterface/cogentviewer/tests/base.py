@@ -9,7 +9,10 @@ meaning the DB is consistently initiated in all test cases.
 """
 
 import os
-import unittest2 as unittest #Hax for python 2.6
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 
 import logging
