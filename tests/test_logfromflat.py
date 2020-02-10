@@ -164,16 +164,16 @@ def test_process_dir(process_file):
     import tempfile
     with tempfile.TemporaryDirectory() as tempdir:
         temppath = Path(tempdir)
-        with open(temppath / 'a.log', 'w') as f:
+        with open(str(temppath / 'a.log'), 'w') as f:
             f.write('{"0": 1}')
-        with open(temppath / 'b.log', 'w') as f:
+        with open(str(temppath / 'b.log'), 'w') as f:
             f.write('{"0": 1}')
         lff = LogFromFlat(dbfile=DBURL)
         lff.process_dir(temppath)
         process_file.assert_any_call(temppath / 'a.log')
         process_file.assert_any_call(temppath / 'b.log')
 
-        with open(temppath / 'processed_files.txt') as processed_files:
+        with open(str(temppath / 'processed_files.txt')) as processed_files:
             fileset = []
             for row in processed_files:
                 fileset.append(row.rstrip())

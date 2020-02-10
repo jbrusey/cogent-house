@@ -18,9 +18,9 @@ else :
 
 
 REQUIRES = ['SQLAlchemy',
-            "MySQL-python",
+            "mysqlclient",
             'configobj',
-            "python-dateutil==1.5",
+            "python-dateutil>=1.5",
             "numpy",
             "matplotlib",
             "pyserial",

@@ -201,7 +201,7 @@ class LogFromFlat(object):
         pf = datadir / PROCESSED_FILES
         if pf.exists():
         
-            with open(pf, 'r') as processed_files:
+            with open(str(pf), 'r') as processed_files:
 
                 for row in processed_files:
                     processed_set.add(row.rstrip())
@@ -212,7 +212,7 @@ class LogFromFlat(object):
 
             processed_set.add(logfile.name)
 
-        with open(pf, 'w') as processed_files:
+        with open(str(pf), 'w') as processed_files:
             for entry in processed_set:
                 processed_files.write(entry + '\n')
             
