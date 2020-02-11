@@ -38,7 +38,7 @@ d3.json "http://127.0.0.1:6543/rest/topology/", (json) ->
                     .attr("stroke", '#000')
 
     
-    startdate = new Date(json.startdate) #Fucking 0 based Months !!!!!!
+    startdate = new Date(json.startdate) # 0 based Months !!!!!!
     enddate = new Date(json.enddate)
     console.log("Start ",startdate," End",enddate)
 

@@ -431,7 +431,6 @@ def node_is_battery_powered(node_id):
 
 
 def node_has_co2(session, node_id):
-    #Fuck It
     #co2 is type 8
     qry = session.query(Reading).filter_by(nodeId = node_id,
                                            typeId = 8)

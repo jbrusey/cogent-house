@@ -350,7 +350,7 @@ elecData$Delta <- c(NA,interval(elecData$ts[1:(length(elecData$ts)-1)] ,
 
 elecData$kWh <- (elecData$Delta/60/60)* (elecData$calibValue / 1000)
 
-#We could just show the measured current draw but thats a little shit
+#We could just show the measured current draw but thats a little bad
 #So lets aggregate that into something a little more sensible (Daily Use)
 
 dailyWatts <- ddply(elecData,

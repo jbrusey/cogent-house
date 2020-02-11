@@ -59,7 +59,6 @@ def init_model(engine):
 
     DO NOT REMOVE ON MERGE
     """
-    print("called init_model", file=sys.stderr)
     meta.Session.configure(bind=engine)
     #import pdb; pdb.set_trace()
 

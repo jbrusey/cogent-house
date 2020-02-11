@@ -330,7 +330,7 @@ def populateNodeTypes(session = False):
     (Added due to alembic revision 1f9a02a1b28
     """
 
-    LOG.debug("Populating SensorTypes")
+    LOG.debug("Populating NodeTypes")
 
     if not session:
         session = meta.Session()

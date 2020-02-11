@@ -10,7 +10,7 @@ class Bitset(object):
         if value is not None:
             self.a = value
         else:
-            self.a = [0 for i in range((size + 7)/8)]
+            self.a = [0 for i in range((size + 7) // 8)]
 
     def size(self):
         return len(self.a)
@@ -28,10 +28,10 @@ class Bitset(object):
         return s
 
     def __getitem__(self, i):
-        return (self.a[i / 8] & (1 << (i % 8))) != 0    
+        return (self.a[i // 8] & (1 << (i % 8))) != 0    
 
     def __setitem__(self, i, v):
         if v:
-            self.a[i / 8] |= (1 << (i % 8))
+            self.a[i // 8] |= (1 << (i % 8))
         else:
-            self.a[i / 8] &= ~(1 << (i % 8))
+            self.a[i // 8] &= ~(1 << (i % 8))

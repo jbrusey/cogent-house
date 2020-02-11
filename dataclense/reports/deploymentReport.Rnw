@@ -513,7 +513,7 @@ plt
 @ 
 
 <<dailyElec,include=FALSE>>=
-#But thats a little bit shit so lets have a hourly summary
+#But thats a little bad so lets have a hourly summary
 
 #Calculate kWh
 elecData <- ss[with(ss,order(ts)),] #Order

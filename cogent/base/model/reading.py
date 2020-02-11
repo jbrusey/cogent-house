@@ -58,9 +58,8 @@ class Reading(meta.Base, meta.InnoDBMix):
                         index=True)
 
     value = Column(Float)
-    #Add a compoite Index
-    __table_args__ = (Index('r_1','nodeId','type','locationId'),
-                      )
+    #Add a composite Index
+    #__table_args__ = (Index('r_1', 'nodeId', 'type', 'locationId'))
 
 
     def __eq__(self, other):

@@ -32,7 +32,6 @@ import homepage
 import pandas
 import dateutil.parser
 
-#MAGIC NUMBERS THAT NEED TO BE FUCKED OFF
 PULSE_PER_UNIT = 1000
 VOLUME_FACTOR = 1.022640
 CALORIFIC_FACTOR = 39.3

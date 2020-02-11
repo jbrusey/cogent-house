@@ -81,10 +81,15 @@ class NodeType(meta.Base, meta.InnoDBMix):
 
         return thedict
                 
-                
-    def __cmp__(self,other):
-        if self.id == other.id:
-            return cmp(self.name, other.name)
-        else:
-            return self.id - other.id
-        
+    def __eq__(self, other):
+        return ((self.id, self.name) ==
+                (other.id, other.name))
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __lt__(self, other):
+        return ((self.id, self.name) <
+                (other.id, other.name))
+
+

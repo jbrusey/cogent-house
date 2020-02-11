@@ -48,7 +48,7 @@ Merged Database / Alembic code with the webinterface
 * Added a initialize_cogent_db script to create and populate the initial database
 * Modified setup.py to install setup scripts in {prefix}/share/cogent-house/...  
 * Added default nodetypes (Alembic Revision  1f9a02a1b28) to populate data  
-* Fuck knows what was happeing with with Alembic, "start from scratch" revision.  Removed it and gone back to doing things in a sensible way.
+* Who knows what was happeing with with Alembic, "start from scratch" revision.  Removed it and gone back to doing things in a sensible way.
 * Updated initialise DB script to ensure the most current Alembic version (ie head) is inserted into the DB.
 
 Version 1.1.2

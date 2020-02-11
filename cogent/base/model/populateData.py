@@ -311,7 +311,6 @@ def populateSensorTypes(session = False):
                              code="ws_abs_pressure",
                              units="hpa",
                              c0=0., c1=1., c2=0., c3=0.),
-
                   ]
     
 
