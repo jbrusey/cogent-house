@@ -188,7 +188,6 @@ class LogFromFlat(object):
         """ process a file from JSON into the database """
         with open(jsonfile, "r") as ff:
             for ll in ff:
-                print(ll)
                 msg = json.loads(ll)
                 self.store_state(msg)
 
