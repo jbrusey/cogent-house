@@ -203,8 +203,6 @@ class LogFromFlat(object):
 
         pf = datadir / PROCESSED_FILES
         if pf.exists():
-            # make sure we have write access early on
-            pf.touch() 
             with open(str(pf), 'r') as processed_files:
 
                 for row in processed_files:
@@ -217,11 +215,21 @@ class LogFromFlat(object):
 
             processed_set.add(logfile.name)
 
-        with open(str(pf), 'w') as processed_files:
-            for entry in processed_set:
-                processed_files.write(entry + '\n')
-            
 
+        def write_pf(pf, processed_set):
+            with open(str(pf), 'w') as processed_files:
+                for entry in processed_set:
+                    processed_files.write(entry + '\n')
+            
+        try:
+            write_pf(pf, processed_set)
+        except PermissionError as e:
+            self.log.exception(e)
+            # try writing to the current directory instead
+
+            mypf = Path.cwd() / PROCESSED_FILES
+            write_pf(mypf, processed_set)
+            self.log.info("Couldn't write to {}, so wrote {} instead".format(str(pf), str(mypf)))
             
                 
 if __name__ == '__main__': # pragma: no cover

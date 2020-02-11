@@ -178,6 +178,21 @@ def test_process_dir(process_file):
             assert len(fileset) == 2
             assert 'a.log' in fileset
             assert 'b.log' in fileset
+
+    # check what happens if we don't have write access to processed_files.txt
+    with tempfile.TemporaryDirectory() as tempdir:
+        temppath = Path(tempdir)
+        pf = temppath / 'processed_files.txt'
+        with open(str(pf), 'w') as pfhandle:
+            pfhandle.write('b.log')
+            
+        pf.chmod(0o444) # remove write access
+        
+        with open(str(temppath / 'a.log'), 'w') as f:
+            f.write('{"0": 1}')
+        lff = LogFromFlat(dbfile=DBURL)
+        lff.process_dir(temppath)
+        
                 
         
         
