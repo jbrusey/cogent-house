@@ -31,8 +31,8 @@ import cogent.base.model.meta as meta
 
 LOGGER = logging.getLogger("ch.base")
 
-#DBFILE = "mysql://chuser@localhost/ch"
-DBFILE = "sqlite:///test.db"
+DBFILE = "mysql://chuser@localhost/"
+#DBFILE = "sqlite:///test.db"
 
 PROCESSED_FILES = "processed_files.txt"
 
@@ -207,6 +207,7 @@ class LogFromFlat(object):
 
         for logfile in datadir.glob('*.log'):
             if logfile.name not in processed_set and not logfile.is_dir():
+                self.log.info("Processing {}".format(logfile))
                 self.process_file(logfile)
 
             processed_set.add(logfile.name)
@@ -220,16 +221,22 @@ class LogFromFlat(object):
                 
 if __name__ == '__main__': # pragma: no cover
     parser = OptionParser()
-    parser.add_option("-i", "--input",
-                      help="json file containing sensor readings",
+    parser.add_option("-d", "--dir",
+                      help="directory containing json files containing sensor readings",
                       default=None)
+
+    parser.add_option("--database",
+                      help="database to log to",
+                      default=None)
+
+
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error",
                       default="debug",
                       metavar="LEVEL")
 
     parser.add_option("-f", "--log-file",
-                      help="Log file to use (Default /var/log/ch/Baselogger.log",
+                      help="Log file to use (Default /var/log/ch/LogFromFlat.log",
                       default="/var/log/ch/LogFromFlat.log")
 
     parser.add_option("-t", "--log-terminal",
@@ -268,6 +275,12 @@ if __name__ == '__main__': # pragma: no cover
         logging.getLogger('').addHandler(console)
 
 
+    if options.database is None:
+        parser.error("--database must be specified")
+
+    if options.dir is None:
+        parser.error("--dir must be specified")
 
     logging.info("Starting LogFromFlat with log-level %s" % (options.log_level))
-    lm = LogFromFlat(jsonfile=options.input)
+    lm = LogFromFlat(dbfile=DBFILE + options.database)
+    lm.process_dir(options.dir)
