@@ -18,6 +18,7 @@ import json
 from optparse import OptionParser
 
 from datetime import timedelta, datetime
+from pathlib import Path
 
 #import time
 
@@ -60,7 +61,7 @@ def add_node(session, node_id):
     try:
         session.add(Node(id=node_id,
                          locationId=None,
-            nodeTypeId=(node_id / 4096)))
+                         nodeTypeId=(node_id / 4096)))
         session.commit()
     except Exception:
         session.rollback()
@@ -177,6 +178,8 @@ class LogFromFlat(object):
         except Exception as exc:
             session.rollback()
             self.log.exception("error during storing (reading): " + str(exc))
+            # don't continue if you get an error
+            raise
         finally:
             session.close()
 
@@ -191,6 +194,7 @@ class LogFromFlat(object):
                 msg = json.loads(ll)
                 self.store_state(msg)
 
+                
     def process_dir(self, datadir):
         """process directory containing json log files into the database and
         update the log of files processed"""
@@ -199,7 +203,8 @@ class LogFromFlat(object):
 
         pf = datadir / PROCESSED_FILES
         if pf.exists():
-        
+            # make sure we have write access early on
+            pf.touch() 
             with open(str(pf), 'r') as processed_files:
 
                 for row in processed_files:
@@ -283,4 +288,4 @@ if __name__ == '__main__': # pragma: no cover
 
     logging.info("Starting LogFromFlat with log-level %s" % (options.log_level))
     lm = LogFromFlat(dbfile=DBFILE + options.database)
-    lm.process_dir(options.dir)
+    lm.process_dir(Path(options.dir))
