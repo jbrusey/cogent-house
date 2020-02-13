@@ -24,6 +24,7 @@ from cogent.base.model import (init_model,
                                
 from datetime import datetime
 from pathlib import Path
+import time
 
 DBURL = "sqlite:///:memory:"
 
@@ -121,7 +122,20 @@ def test_store_state():
         dummy_deployment(session)
 
 
-        res = lff.store_state({"0": 10.1361722946167, "1": -1.933643397933338e-05, "2": 95.4524154663086, "3": 0.00018446370086167008, "server_time": 1581266093.331143, "sender": 28710, "6": 2.999267578125, "7": 0.0, "43": 3698.0, "13": 510.0, "parent": 40969, "rssi": -91, "seq": 22, "localtime": 643594668})
+        res = lff.store_state({"0": 10.1361722946167,
+                               "1": -1.933643397933338e-05,
+                               "2": 95.4524154663086,
+                               "3": 0.00018446370086167008,
+                               "server_time": 1581266093.331143,
+                               "sender": 28710,
+                               "6": 2.999267578125,
+                               "7": 0.0,
+                               "43": 3698.0,
+                               "13": 510.0,
+                               "parent": 40969,
+                               "rssi": -91,
+                               "seq": 22,
+                               "localtime": 643594668})
 
         assert res
 
@@ -131,7 +145,7 @@ def test_store_state():
         assert not res
 
         reading = session.query(Reading).filter(
-            and_(Node.id == 28710,
+            and_(Reading.nodeId == 28710,
                  Reading.typeId == 0)).one()
 
         assert reading.locationId is not None
@@ -139,7 +153,7 @@ def test_store_state():
         assert reading.value == 10.1361722946167
 
         reading = session.query(Reading).filter(
-            and_(Node.id == 28710,
+            and_(Reading.nodeId == 28710,
                  Reading.typeId == 1)).one()
 
         assert reading.locationId is not None
@@ -149,6 +163,22 @@ def test_store_state():
         nodestate = session.query(NodeState).filter(Node.id == 28710).one()
 
         assert nodestate.localtime == 643594668
+
+        # test add_node by supplying data for a node not seen yet.
+
+        res = lff.store_state({"0": 1,
+                               "server_time": time.time(),
+                               "sender": 236,
+                               "parent": 28710,
+                               "rssi": -90,
+                               "seq": 22,
+                               "localtime": 1000})
+        assert res
+        reading = session.query(Reading).filter(
+            and_(Reading.nodeId == 236,
+                 Reading.typeId == 0)).one()
+        assert reading.value == 1
+        
     except:
         session.rollback()
         raise
