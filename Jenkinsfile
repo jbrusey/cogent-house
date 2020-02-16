@@ -1,15 +1,15 @@
 pipeline {
-    agent any
+    agent { docker { image 'ch' } }
     stages {
         stage('build') {
             steps {
-	        sh '''
-	    	  . "/home/jamesb/miniconda3/etc/profile.d/conda.sh"
-		  conda activate ch
-		  python -m pytest
-		'''
-
+                sh 'python -m pytest --junit-xml=pytest.xml --ignore tests/test_automated_report.py --ignore tests/test_baselogger.py --ignore tests/test_baseif.py'
             }
+        }
+    }
+    post {
+        always {
+            junit 'pytest.xml'
         }
     }
 }
