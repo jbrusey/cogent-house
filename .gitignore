@@ -27,3 +27,6 @@ pylintrc
 pylint.out
 .coverage
 .eggs
+
+htmlcov
+processed_files.txt
