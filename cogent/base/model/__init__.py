@@ -51,7 +51,7 @@ log.setLevel(logging.WARNING)
 TABLEMAP = {}
 
 from .util import (init_model,
-                   initialize_sql,
+                   initialise_sql,
                    findClass,
                    newClsFromJSON,
                    clsFromJSON)
