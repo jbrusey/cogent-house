@@ -181,18 +181,6 @@ class TestSchema(base.BaseTestCase):
         session.add(h)
         session.commit()
 
-
-        #Add house metadata
-
-        hm = HouseMetadata(houseId=1,
-                                 name="Manual Reading",
-                                 description="Read something",
-                                 units="kwh",
-                                 value="99999")
-        session.add(hm)
-        session.commit()
-
-
         #Add Occupier
 
         occ=Occupier(houseId=1,

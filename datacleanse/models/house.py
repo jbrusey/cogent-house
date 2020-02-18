@@ -29,10 +29,6 @@ class House(Base, meta.InnoDBMix):
     :var DateTime startDate: start of deployment in this House
     :var endDate endDate: end of depoyment in this House
 
-    :var meta: *backref*
-        :class:`cogentviewer.models.housemetadata.HouseMetadata` objects
-        belonging to this House
-
     :var occupiers: *backref*
         :class:`cogentviewer.models.occupier.Occupier` objects belonging
         to this house
@@ -47,9 +43,6 @@ class House(Base, meta.InnoDBMix):
     endDate = Column(DateTime)
 
     #Backrefs
-    meta = relationship("HouseMetadata",
-                        order_by="HouseMetadata.id",
-                        backref="house")
     occupiers = relationship("Occupier", backref="house")
     locations = relationship("Location", backref="house")
 

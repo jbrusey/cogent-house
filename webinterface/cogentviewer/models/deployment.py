@@ -25,10 +25,6 @@ class Deployment(meta.Base, meta.InnoDBMix):
     :var DateTime startDate: deployment start date
     :var DateTime endDate: deployment end date
 
-    :var list meta: *Backref:* all
-        :class:`cogentviewer.models.housemetadata.HouseMetadata` linked to this
-        deployment
-
     :var list houses: *Backref:* all
         :class:`cogentviewer.models.house.House` objects in this deployment
     """
@@ -41,9 +37,6 @@ class Deployment(meta.Base, meta.InnoDBMix):
     startDate = Column(DateTime)
     endDate = Column(DateTime)
 
-    meta = relationship("DeploymentMetadata",
-                        order_by="DeploymentMetadata.id",
-                        backref="deployment")
     houses = relationship("House", order_by="House.id", backref="deployment")
 
 

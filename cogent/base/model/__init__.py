@@ -18,7 +18,6 @@ from .deployment import Deployment
 from .deploymentmetadata import DeploymentMetadata
 from .host import Host
 from .house import House
-from .housemetadata import HouseMetadata
 from .lastreport import LastReport
 from .location import Location
 from .node import Node
