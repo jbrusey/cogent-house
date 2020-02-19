@@ -30,7 +30,8 @@ class NodeBoot(meta.Base, meta.InnoDBMix):
     time = Column(DateTime,
                 primary_key=True)
     nodeId = Column(Integer,
-                    ForeignKey('Node.id'))
+                    ForeignKey('Node.id'),
+                    primary_key=True)
     clustered = Column(Boolean)
     version = Column(String(20))
 

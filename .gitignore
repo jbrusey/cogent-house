@@ -30,3 +30,4 @@ pylint.out
 
 htmlcov
 processed_files.txt
+coverage.xml
