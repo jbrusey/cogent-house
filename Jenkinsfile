@@ -11,6 +11,7 @@ pipeline {
     post {
         always {
             junit 'pytest.xml'
+            cobertura coberturaReportFile: 'coverage.xml'
         }
     }
 }
