@@ -7,7 +7,8 @@ RUN apt-get install wget -qy
 RUN wget -O - http://tinyprod.net/repos/debian/tinyprod.key | apt-key add - 
 # add tinyprod to apt sources
 
-COPY tinyprod.list /etc/apt/sources.list.d/
+RUN echo "deb http://tinyprod.net/repos/debian wheezy main" > /etc/apt/sources.list.d/tinyprod.list
+RUN echo "deb http://tinyprod.net/repos/debian msp430-46 main" >> /etc/apt/sources.list.d/tinyprod.list
 RUN apt-get install software-properties-common -qy
 RUN add-apt-repository ppa:deadsnakes/ppa
 
