@@ -1,7 +1,7 @@
 pipeline {
     agent { dockerfile true }
     stages {
-        state('build') {
+        stage('build') {
 	    steps {
 	        sh 'make all'
 		sh 'python setup.py develop'
