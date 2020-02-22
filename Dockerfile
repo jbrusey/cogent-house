@@ -48,6 +48,7 @@ RUN cd /opt && rm tinyos-2_1_2.tar.gz
 COPY requirements.txt requirements.txt
 RUN wget -q https://bootstrap.pypa.io/get-pip.py && python3.6 get-pip.py
 #RUN python3.6 -m ensurepip --default-pip
+RUN apt-get install mysql-server mysql-client
 RUN python3.6 -m pip install -r requirements.txt
 
 ENV TOSROOT "/opt/tinyos-release-tinyos-2_1_2"
