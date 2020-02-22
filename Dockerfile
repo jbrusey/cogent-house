@@ -46,7 +46,8 @@ RUN cd /opt && rm tinyos-2_1_2.tar.gz
 
 # python
 COPY requirements.txt requirements.txt
-RUN python3.6 -m ensurepip --default-pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.6 get-pip.py
+#RUN python3.6 -m ensurepip --default-pip
 RUN python3.6 -m pip install -r requirements.txt
 
 ENV TOSROOT "/opt/tinyos-release-tinyos-2_1_2"
