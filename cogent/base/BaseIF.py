@@ -9,7 +9,7 @@ sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 from cogent.node import StateMsg, BootMsg
 from tinyos.message import MoteIF 
 from cogent.base.model import Bitset
-from queue import Queue, Empty
+from Queue import Queue, Empty
 
 
 # Note: MoteIF doesn't currently support coming directly off the serial interface
