@@ -52,7 +52,7 @@ RUN apt-get install mysql-server mysql-client -qy
 RUN apt-get install libmysqlclient-dev -qy
 RUN apt-get install python3.6-dev -qy
 RUN python3.6 -m pip install -r requirements.txt
-RUN python2.7 -m pip install -r requirements.txt
+RUN python2.7 get-pip.py && python2.7 -m pip install -r requirements.txt
 
 ENV TOSROOT "/opt/tinyos-release-tinyos-2_1_2"
 ENV TOSDIR "$TOSROOT/tos"
