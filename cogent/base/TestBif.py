@@ -9,7 +9,10 @@ sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 sys.path.append("../..")
 from cogent.node import StateMsg
 # from cogent.base.model import
-from queue import Queue
+try:
+    from queue import Queue
+except:
+    from Queue import Queue
 from cogent.base.BaseLogger import BaseLogger
 import logging
 

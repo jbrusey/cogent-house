@@ -27,7 +27,10 @@ from cogent.node import (AckMsg,
                          Packets)
 from cogent.base.BaseIF import BaseIF
 
-from queue import Empty
+try:
+    from queue import Empty
+except:
+    from Queue import Empty
 
 from datetime import datetime, timedelta
 
