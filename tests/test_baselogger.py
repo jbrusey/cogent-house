@@ -3,7 +3,7 @@ try:
 except:
     import unittest
 import datetime
-from queue import Queue
+from Queue import Queue
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
