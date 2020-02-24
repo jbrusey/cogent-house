@@ -3,7 +3,10 @@ try:
 except:
     import unittest
 import datetime
-from Queue import Queue
+try:
+    from Queue import Queue
+except:
+    from queue import queue
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
