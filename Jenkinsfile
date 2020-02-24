@@ -9,7 +9,7 @@ pipeline {
 	}
         stage('test') {
             steps {
-	    	sh 'python -m unittest -s tests -p "test_base*"'
+	    	sh 'python -m unittest discover -s tests -p "test_base*"'
                 sh 'coverage run -m pytest --junit-xml=pytest.xml --ignore tests/test_automated_report.py --ignore tests/test_baselogger.py --ignore tests/test_baseif.py'
 		sh 'coverage xml'
             }
