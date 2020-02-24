@@ -39,7 +39,7 @@ from datetime import datetime, timedelta
 #import time
 
 from cogent.base.model import (Reading, NodeState, NodeBoot, SensorType,
-                               Base, Session, init_model, Node)
+                               Node)
 
 import cogent.base.model as models
 import cogent.base.model.meta as meta
@@ -141,7 +141,7 @@ class BaseLogger(object):
             raise Exception("Corrupted packet - special is %02x not %02x" %
                             (msg.get_special(), Packets.SPECIAL))
         try:
-            session = Session()
+            session = meta.Session()
             current_time = datetime.utcnow()
             node_id = msg.getAddr()
             clustered = msg.get_clustered()
@@ -179,7 +179,7 @@ class BaseLogger(object):
                             (msg.get_special(), Packets.SPECIAL))
 
         try:
-            session = Session()
+            session = meta.Session()
             current_time = datetime.utcnow()
             node_id = msg.getAddr()
             parent_id = msg.get_ctp_parent_id()
