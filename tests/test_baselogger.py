@@ -16,7 +16,7 @@ import cogent.base.model.Bitset as Bitset
 from cogent.node import StateMsg, ConfigMsg, Packets
 import cogent.base.model as models
 
-from . import base
+import base
 
 #Note: MoteIF doesn't currently support coming directly off the serial
 #interface. So we create a fake BIF

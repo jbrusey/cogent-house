@@ -4,15 +4,12 @@ This really just makes sure all database code is in the same place
 meaning the DB is consistently initiated in all test cases.
 """
 
-import os
 import unittest
-import datetime
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-import json
 
 #from pyramid.config import Configurator
 #from paste.deploy.loadwsgi import appconfig
@@ -27,7 +24,6 @@ import cogent.base.model as models
 import cogent
 import cogent.report
 
-import transaction
 
 def initDatabase():
     """Method to initialise the database"""
