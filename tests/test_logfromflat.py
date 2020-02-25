@@ -37,11 +37,14 @@ def test_process_file(models, create_engine, create_tables):
     file and passes each line to store_state """
 
     with patch('cogent.base.logfromflat.LogFromFlat.store_state') as ss:
-        with patch('cogent.base.logfromflat.open', mock_open(read_data="""{"0": 18, "1": -5, "sender": 235}
-        {"0": 7, "1": 0, "sender": 236}"""
-        )):
+        m = mock_open(read_data='{"0": 18, "1": -5, "sender": 235}\n'
+                             '{"0": 7, "1": 0, "sender": 236}\n')
+        with patch('cogent.base.logfromflat.open',
+                   m):
             lff = LogFromFlat(dbfile=DBURL)
             lff.process_file("x")
+
+        print(m.mock_calls)
 
         ss.assert_any_call({'0': 18, '1': -5, 'sender': 235})
         ss.assert_any_call({'0': 7, '1': 0, 'sender': 236})
