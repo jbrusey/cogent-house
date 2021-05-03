@@ -20,8 +20,6 @@ from optparse import OptionParser
 from datetime import timedelta, datetime
 from pathlib import Path
 
-#import time
-
 from cogent.base.model import (Reading,
                                NodeState,
                                SensorType,
@@ -30,15 +28,16 @@ from cogent.base.model import (Reading,
 import cogent.base.model as models
 import cogent.base.model.meta as meta
 
+from sqlalchemy import create_engine, and_
+import sqlalchemy
+
 LOGGER = logging.getLogger("ch.base")
 
 DBFILE = "mysql://chuser@localhost/"
-#DBFILE = "sqlite:///test.db"
+# DBFILE = "sqlite:///test.db"
 
 PROCESSED_FILES = "processed_files.txt"
 
-from sqlalchemy import create_engine, and_
-import sqlalchemy
 
 def duplicate_packet(session, receipt_time, node_id, localtime):
     """ duplicate packets can occur because in a large network,
@@ -51,9 +50,10 @@ def duplicate_packet(session, receipt_time, node_id, localtime):
     assert isinstance(receipt_time, datetime)
     earliest = receipt_time - timedelta(minutes=1)
     return session.query(NodeState).filter(
-        and_(NodeState.nodeId==node_id,
-             NodeState.localtime==localtime,
+        and_(NodeState.nodeId == node_id,
+             NodeState.localtime == localtime,
              NodeState.time > earliest)).first() is not None
+
 
 def add_node(session, node_id):
     """ add a database entry for a node
@@ -81,7 +81,6 @@ class LogFromFlat(object):
         self.log = logging.getLogger("logfromflat")
         self.create_tables()
 
-        
     def create_tables(self):
         """ create any missing tables using sqlalchemy
         """
@@ -89,14 +88,12 @@ class LogFromFlat(object):
         try:
             models.populateData.init_data(session)
             if session.query(SensorType).get(0) is None:
-                raise Exception("SensorType must be populated by alembic " +
-                                "before starting LogFromFlat")
+                raise Exception("SensorType must be populated by alembic before starting LogFromFlat")
         except:
             session.rollback()
             raise
         finally:
             session.close()
-                             
 
     def store_state(self, msg):
         """ receive and process a message object from the base station
@@ -117,7 +114,6 @@ class LogFromFlat(object):
             else:
                 loc_id = node.locationId
 
-
             if duplicate_packet(session=session,
                                 receipt_time=datetime.utcfromtimestamp(msg['server_time']),
                                 node_id=node_id,
@@ -133,7 +129,7 @@ class LogFromFlat(object):
                                    parent=parent_id,
                                    localtime=msg['localtime'],
                                    seq_num=seq,
-                                   rssi = rssi_val)
+                                   rssi=rssi_val)
             session.add(node_state)
 
             for i, value in list(msg.items()):
@@ -166,14 +162,12 @@ class LogFromFlat(object):
                         self.log.info("Adding new sensortype")
                         session.flush()
                         session.add(r)
-                        session.flush()                            
+                        session.flush()
                     else:
                         self.log.error("Sensor type exists")
 
-
             self.log.debug("reading: {}".format(node_state))
             session.commit()
-
 
         except Exception as exc:
             session.rollback()
@@ -185,8 +179,6 @@ class LogFromFlat(object):
 
         return True
 
-
-
     def process_file(self, jsonfile):
         """ process a file from JSON into the database """
         with open(jsonfile, "r") as ff:
@@ -194,7 +186,6 @@ class LogFromFlat(object):
                 msg = json.loads(ll)
                 self.store_state(msg)
 
-                
     def process_dir(self, datadir):
         """process directory containing json log files into the database and
         update the log of files processed"""
@@ -215,12 +206,11 @@ class LogFromFlat(object):
 
             processed_set.add(logfile.name)
 
-
         def write_pf(pf, processed_set):
             with open(str(pf), 'w') as processed_files:
                 for entry in processed_set:
                     processed_files.write(entry + '\n')
-            
+
         try:
             write_pf(pf, processed_set)
         except PermissionError as e:
@@ -230,9 +220,9 @@ class LogFromFlat(object):
             mypf = Path.cwd() / PROCESSED_FILES
             write_pf(mypf, processed_set)
             self.log.info("Couldn't write to {}, so wrote {} instead".format(str(pf), str(mypf)))
-            
-                
-if __name__ == '__main__': # pragma: no cover
+
+
+if __name__ == '__main__':   # pragma: no cover
     parser = OptionParser()
     parser.add_option("-d", "--dir",
                       help="directory containing json files containing sensor readings",
@@ -241,7 +231,6 @@ if __name__ == '__main__': # pragma: no cover
     parser.add_option("--database",
                       help="database to log to",
                       default=None)
-
 
     parser.add_option("-l", "--log-level",
                       help="Set log level to LEVEL: debug,info,warning,error",
@@ -256,7 +245,6 @@ if __name__ == '__main__': # pragma: no cover
                       help="Echo Logging output to terminal",
                       action="store_true",
                       default=False)
-
 
     (options, args) = parser.parse_args()
     if len(args) != 0:
@@ -278,7 +266,7 @@ if __name__ == '__main__': # pragma: no cover
                         format="%(asctime)s %(levelname)s %(message)s",
                         level=lvlmap[options.log_level])
 
-    #And if we want to echo the output on the terminal
+    # And if we want to echo the output on the terminal
     logterm = options.log_terminal
     if logterm:
         console = logging.StreamHandler()
@@ -286,7 +274,6 @@ if __name__ == '__main__': # pragma: no cover
         formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
-
 
     if options.database is None:
         parser.error("--database must be specified")
