@@ -109,8 +109,9 @@ class FlatLogger(object):
             # move it
             try:
                 os.rename(self.log_fname, "%s/%s"%(OPTIONS.out_dir, self.out_fname))
-            except OSError: # means that we're moving across partitions (IS THIS NEEDED?)
-                os.system('mv %s %s/%s'%(self.log_fname, OPTIONS.out_dir, self.out_fname))
+            except OSError as e: 
+                self.log.exception(e)
+                #os.system('mv %s %s/%s'%(self.log_fname, OPTIONS.out_dir, self.out_fname))
             # ready for next interval
             self.time_count = 0
             # start new file
@@ -126,14 +127,14 @@ class FlatLogger(object):
         pack_state = PackState.from_message(msg)
 
         output = {}
-        for i, value in pack_state.d.iteritems():
-            type_id = i
+        for type_id, value in pack_state.d.iteritems():
             if math.isinf(value) or math.isnan(value):
                 value = None
-            out_type = type_lookup[type_id]
-            output[out_type] = value
+            #out_type = type_lookup[type_id]
+            output[type_id] = value
 
         output['server_time'] = time.time()
+        output['localtime'] = msg.get_timestamp()
         output['sender'] = msg.getAddr()
         output['parent'] = msg.get_ctp_parent_id()
         output['seq'] = msg.get_seq()
@@ -147,19 +148,20 @@ class FlatLogger(object):
         node_file.write(json_str)
         node_file.close()
 
-        graph_file = open('%s/node_%s_gnu.csv'%(OPTIONS.out_dir, output['sender']), 'a')
-        graph_file.write("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%u,%u,%u\n"%(\
-            output['server_time'], output['Temperature'], output['Humidity'],\
-            output['ADC_0'], output['ADC_1'], output['ADC_2'], output['Voltage'],\
-            output['parent'], output['rssi'], output['seq']))
-        graph_file.close()
+        # graph_file = open('%s/node_%s_gnu.csv'%(OPTIONS.out_dir, output['sender']), 'a')
+        # graph_file.write("%.2f,%.2f,%.2f,%.2f,%u,%u,%u\n"%(
+        #     output['server_time'], output['Temperature'], output['Humidity'],
+        #     #output['ADC_0'], #output['ADC_1'], output['ADC_2'],
+        #                                                        #           output['Voltage'],
+        #     output['parent'], output['rssi'], output['seq']))
+        # graph_file.close()
 
         # write to file in /tmp/
         self.tmp_file.write(json_str)
         self.tmp_file.flush()
 
         #send acknowledgement to base station to fwd to node
-        #self.send_ack(seq=output['seq'], dest=output['sender'])
+        self.send_ack(seq=output['seq'], dest=output['sender'])
         return True
 
     def mainloop(self):
@@ -179,8 +181,10 @@ class FlatLogger(object):
                 #status = self.booted_node(msg)
                 pass
             elif msg.get_amType() == Packets.AM_STATEMSG:
+                self.log.debug("received statemsg")
                 status = self.store_state(msg)
             else:
+                self.log.debug("received some other message of type {}".format(msg.get_amType()))
                 status = False
             #Signal the queue that we have finished processing
             self.bif.queue.task_done()

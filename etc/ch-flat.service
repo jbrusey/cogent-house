@@ -1,0 +1,20 @@
+# ch-flat.service
+#
+# flatlogger
+#
+# Part of cogent-house
+#
+[Unit]
+Description=CogentHouse FlatLogger
+After=network.target
+
+[Service]
+ExecStart=/usr/local/sbin/ch-flat.sh
+WorkingDirectory=/home/chuser
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=chuser
+
+[Install]
+WantedBy=multi-user.target
