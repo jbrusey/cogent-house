@@ -5,11 +5,11 @@
 
 import sys
 import os
-sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 from cogent.node import StateMsg, BootMsg
-from tinyos.message import MoteIF 
 from cogent.base.model import Bitset
 from Queue import Queue, Empty
+sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
+from tinyos.message import MoteIF
 
 
 # Note: MoteIF doesn't currently support coming directly off the serial interface
@@ -23,7 +23,7 @@ class BaseIF(object):
         self.queue = Queue()
 
     def get(self, wait=True, timeout=30):
-        #This goes into an infinate loop
+        # This goes into an infinite loop
         if self.source.isDone():
             raise Exception("source is no longer connected")
         return self.queue.get(wait, timeout)
@@ -36,10 +36,11 @@ class BaseIF(object):
 
     def finishAll(self):
         self.mif.finishAll()
-    
+
+
 def store_state(msg):
     n = msg.getAddr()
-    print(("storing state ",n, msg))
+    print(("storing state ", n, msg))
 
 
 if __name__ == '__main__':
@@ -64,9 +65,6 @@ if __name__ == '__main__':
                     print(("%s\t%s\t%s" % (j, i, v)))
                 j += 1
             print("")
-
-
-            #store_state(msg)
+            # store_state(msg)
         except Empty:
             pass
-    

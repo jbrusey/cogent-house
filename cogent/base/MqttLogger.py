@@ -1,56 +1,47 @@
-#
-# BaseLogger
-#
-# log data from mote to a database and also print out
-#
-# J. Brusey, R. Wilkins, April 2011
-# D. Goldsmith, May 2013
+"""MqttLogger - log to mqtt
 
-"""BaseLogger - cogent-house data logging process.
+Revision of BaseLogger that emits mqtt messages instead of storing to a database.
 
-Receives sensor readings from the base station and logs them to the
-database.
-This version also acknowledges logged data once it has been
-successfully written to the database.
+Author
+------
+J. Brusey, R. Wilkins, D. Goldsmith
+
+Date
+----
+May, 2021
 
 """
 
 import logging
 import math
+from datetime import datetime, timedelta
 from optparse import OptionParser
+from queue import Empty
+import paho.mqtt.client as mqtt
+
+import cogent.base.model as models
+import cogent.base.model.meta as meta
+from cogent.base.BaseIF import BaseIF
+from cogent.base.model import Node, NodeBoot, NodeState, Reading, SensorType
+from cogent.base.packstate import PackState
+from cogent.node import AckMsg, Packets
 
 # if "TOSROOT" not in os.environ:
 #     raise Exception("Please source the Tiny OS environment script first")
 # sys.path.append(os.environ["TOSROOT"] + "/support/sdk/python")
 
-from cogent.node import (AckMsg,
-                         Packets)
-from cogent.base.BaseIF import BaseIF
-
-from queue import Empty
-
-from datetime import datetime, timedelta
-
-from cogent.base.model import (Reading, NodeState, NodeBoot, SensorType,
-                               Node)
-
-import cogent.base.model as models
-import cogent.base.model.meta as meta
-from cogent.base.packstate import PackState
-from sqlalchemy import create_engine, and_
-import sqlalchemy
-
-LOGGER = logging.getLogger("ch.base")
-
-DBFILE = "mysql://chuser@localhost/ch"
-# DBFILE = "sqlite:///test.db"
-
+LOGGER = logging.getLogger("ch.mqtt")
 
 QUEUE_TIMEOUT = 10
 
 
+# The callback for when the client receives a CONNACK response from the server.
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code " + str(rc))
+
+
 def duplicate_packet(session, receipt_time, node_id, localtime):
-    """ duplicate packets can occur because in a large network,
+    """duplicate packets can occur because in a large network,
     the duplicate packet cache used is not sufficient. If such
     packets occur, then they will have the same node id, same
     local time and arrive within a few seconds of each other. In
@@ -58,35 +49,44 @@ def duplicate_packet(session, receipt_time, node_id, localtime):
     not dealt with within this code yet.
     """
     earliest = receipt_time - timedelta(minutes=1)
-    return session.query(NodeState).filter(
-        and_(NodeState.nodeId == node_id,
-             NodeState.localtime == localtime,
-             NodeState.time > earliest)).first() is not None
+    return (
+        session.query(NodeState)
+        .filter(
+            and_(
+                NodeState.nodeId == node_id,
+                NodeState.localtime == localtime,
+                NodeState.time > earliest,
+            )
+        )
+        .first()
+        is not None
+    )
 
 
 def add_node(session, node_id):
-    """ add a database entry for a node
-    """
+    """add a database entry for a node"""
     try:
-        session.add(Node(id=node_id,
-                         locationId=None,
-                         nodeTypeId=(node_id / 4096)))
+        session.add(Node(id=node_id, locationId=None, nodeTypeId=(node_id / 4096)))
         session.commit()
     except Exception:
         session.rollback()
         LOGGER.exception("can't add node %d" % node_id)
 
 
-class BaseLogger(object):
-    """ BaseLogger class receives sensor messages and writes them to
-    the database.
+class MqttLogger(object):
+    """MqttLogger class receives sensor messages and writes them to
+    MQTT.
     """
-    def __init__(self, bif=None, dbfile=DBFILE):
-        """ create a new BaseLogger and connect it to the sensor
-        source (bif) and the database (dbfile).
+
+    def __init__(self, bif=None):
+        """create a new MqttLogger and connect it to the sensor
+        source (bif)
         """
-        self.engine = create_engine(dbfile, echo=False)
-        # init_model(self.engine)
+        self.mqtt = mqtt.Client()
+        self.mqtt.on_connect = on_connect
+
+        self.mqtt.connect("localhost", port=1883)
+
         models.initialise_sql(self.engine)
         # self.metadata = Base.metadata
 
@@ -99,8 +99,7 @@ class BaseLogger(object):
         self.running = True
 
     def create_tables(self):
-        """ create any missing tables using sqlalchemy
-        """
+        """create any missing tables using sqlalchemy"""
         # self.metadata.create_all(self.engine)
         # TODO: follow the instructions at url:
         # https://alembic.readthedocs.org/en/latest/tutorial.html#building-an-up-to-date-database-from-scratch
@@ -109,29 +108,28 @@ class BaseLogger(object):
         session = meta.Session()
         models.populateData.init_data(session)
         if session.query(SensorType).get(0) is None:
-            raise Exception("SensorType must be populated by alembic before starting BaseLogger")
+            raise Exception(
+                "SensorType must be populated by alembic before starting MqttLogger"
+            )
         session.close()
 
-    def send_ack(self,
-                 seq=None,
-                 dest=None):
-        """ send acknowledgement message
-        """
+    def send_ack(self, seq=None, dest=None):
+        """send acknowledgement message"""
         ack_msg = AckMsg()
         ack_msg.set_seq(seq)
         ack_msg.set_node_id(dest)
 
         self.bif.sendMsg(ack_msg, dest)
-        self.log.debug("Sending Ack %s to %s" %
-                       (seq, dest))
+        self.log.debug("Sending Ack %s to %s" % (seq, dest))
 
     def booted_node(self, msg):
-        """Receieve and process a boot message object from the base station
-        """
+        """Receieve and process a boot message object from the base station"""
 
         if msg.get_special() != Packets.SPECIAL:
-            raise Exception("Corrupted packet - special is %02x not %02x" %
-                            (msg.get_special(), Packets.SPECIAL))
+            raise Exception(
+                "Corrupted packet - special is %02x not %02x"
+                % (msg.get_special(), Packets.SPECIAL)
+            )
         try:
             session = meta.Session()
             current_time = datetime.utcnow()
@@ -144,13 +142,14 @@ class BaseLogger(object):
             if node is None:
                 add_node(session, node_id)
 
-            b = NodeBoot(time=current_time,
-                         nodeId=node_id,
-                         clustered=clustered,
-                         version=version)
+            b = NodeBoot(
+                time=current_time, nodeId=node_id, clustered=clustered, version=version
+            )
             session.add(b)
             session.flush()
-            self.log.debug("boot: %s %s, %s, %s" % (current_time, node_id, clustered, version))
+            self.log.debug(
+                "boot: %s %s, %s, %s" % (current_time, node_id, clustered, version)
+            )
             session.commit()
         except Exception as exc:
             session.rollback()
@@ -161,11 +160,12 @@ class BaseLogger(object):
         return True
 
     def store_state(self, msg):
-        """ receive and process a message object from the base station
-        """
+        """receive and process a message object from the base station"""
         if msg.get_special() != Packets.SPECIAL:
-            raise Exception("Corrupted packet - special is %02x not %02x" %
-                            (msg.get_special(), Packets.SPECIAL))
+            raise Exception(
+                "Corrupted packet - special is %02x not %02x"
+                % (msg.get_special(), Packets.SPECIAL)
+            )
 
         try:
             session = meta.Session()
@@ -184,22 +184,28 @@ class BaseLogger(object):
 
             pack_state = PackState.from_message(msg)
 
-            if duplicate_packet(session=session,
-                                receipt_time=current_time,
-                                node_id=node_id,
-                                localtime=msg.get_timestamp()):
-                LOGGER.info("duplicate packet %d->%d, %d %s" %
-                            (node_id, parent_id, msg.get_timestamp(), str(msg)))
+            if duplicate_packet(
+                session=session,
+                receipt_time=current_time,
+                node_id=node_id,
+                localtime=msg.get_timestamp(),
+            ):
+                LOGGER.info(
+                    "duplicate packet %d->%d, %d %s"
+                    % (node_id, parent_id, msg.get_timestamp(), str(msg))
+                )
 
                 return False
 
             # write a node state row
-            node_state = NodeState(time=current_time,
-                                   nodeId=node_id,
-                                   parent=parent_id,
-                                   localtime=msg.get_timestamp(),
-                                   seq_num=seq,
-                                   rssi=rssi_val)
+            node_state = NodeState(
+                time=current_time,
+                nodeId=node_id,
+                parent=parent_id,
+                localtime=msg.get_timestamp(),
+                seq_num=seq,
+                rssi=rssi_val,
+            )
             session.add(node_state)
 
             for i, value in list(pack_state.d.items()):
@@ -207,17 +213,21 @@ class BaseLogger(object):
                 if math.isinf(value) or math.isnan(value):
                     value = None
 
-                r = Reading(time=current_time,
-                            nodeId=node_id,
-                            typeId=type_id,
-                            locationId=loc_id,
-                            value=value)
+                r = Reading(
+                    time=current_time,
+                    nodeId=node_id,
+                    typeId=type_id,
+                    locationId=loc_id,
+                    value=value,
+                )
                 try:
                     session.add(r)
                     session.flush()
 
                 except sqlalchemy.exc.IntegrityError as e:
-                    self.log.error("Unable to store reading, checking if node type exists")
+                    self.log.error(
+                        "Unable to store reading, checking if node type exists"
+                    )
                     self.log.error(e)
                     session.rollback()
                     s = session.query(SensorType).filter_by(id=i).first()
@@ -235,8 +245,7 @@ class BaseLogger(object):
             session.commit()
 
             # send acknowledgement to base station to fwd to node
-            self.send_ack(seq=seq,
-                          dest=node_id)
+            self.send_ack(seq=seq, dest=node_id)
 
         except Exception as exc:
             session.rollback()
@@ -277,7 +286,7 @@ class BaseLogger(object):
             self.log.exception("during receiving or storing msg: " + str(e))
 
     def run(self):
-        """ run - main loop
+        """run - main loop
 
         At the moment this is just receiving from the sensor message
         queue and processing the message.
@@ -286,43 +295,57 @@ class BaseLogger(object):
 
         while self.running:
             self.mainloop()
+            self.mqtt.loop()
 
 
 def main():
     parser = OptionParser()
-    parser.add_option("-l", "--log-level",
-                      help="Set log level to LEVEL: debug,info,warning,error",
-                      default="debug",
-                      metavar="LEVEL")
+    parser.add_option(
+        "-l",
+        "--log-level",
+        help="Set log level to LEVEL: debug,info,warning,error",
+        default="debug",
+        metavar="LEVEL",
+    )
 
-    parser.add_option("-f", "--log-file",
-                      help="Log file to use (Default /var/log/ch/Baselogger.log",
-                      default="/var/log/ch/BaseLogger.log")
+    parser.add_option(
+        "-f",
+        "--log-file",
+        help="Log file to use (Default /var/log/ch/Mqttlogger.log",
+        default="/var/log/ch/MqttLogger.log",
+    )
 
-    parser.add_option("-t", "--log-terminal",
-                      help="Echo Logging output to terminal",
-                      action="store_true",
-                      default=False)
+    parser.add_option(
+        "-t",
+        "--log-terminal",
+        help="Echo Logging output to terminal",
+        action="store_true",
+        default=False,
+    )
 
     (options, args) = parser.parse_args()
     if len(args) != 0:
         parser.error("incorrect number of arguments")
 
-    lvlmap = {"debug": logging.DEBUG,
-              "info": logging.INFO,
-              "warning": logging.WARNING,
-              "error": logging.ERROR,
-              "critical": logging.CRITICAL}
+    lvlmap = {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+        "critical": logging.CRITICAL,
+    }
 
     if options.log_level not in lvlmap:
         parser.error("invalid LEVEL: " + options.log_level)
 
     logfile = options.log_file
 
-    logging.basicConfig(filename=logfile,
-                        filemode="a",
-                        format="%(asctime)s %(levelname)s %(message)s",
-                        level=lvlmap[options.log_level])
+    logging.basicConfig(
+        filename=logfile,
+        filemode="a",
+        format="%(asctime)s %(levelname)s %(message)s",
+        level=lvlmap[options.log_level],
+    )
 
     logterm = options.log_terminal
     if logterm:
@@ -330,13 +353,13 @@ def main():
         console.setLevel(lvlmap[options.log_level])
         formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
         console.setFormatter(formatter)
-        logging.getLogger('').addHandler(console)
+        logging.getLogger("").addHandler(console)
 
-    logging.info("Starting BaseLogger with log-level %s" % (options.log_level))
-    lm = BaseLogger()
+    logging.info("Starting MqttLogger with log-level %s" % (options.log_level))
+    lm = MqttLogger()
     lm.create_tables()
     lm.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
