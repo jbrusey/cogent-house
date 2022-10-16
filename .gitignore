@@ -24,3 +24,5 @@ pylint.out
 .coverage
 .eggs
 .Rproj.user
+/htmlcov/
+/coverage.xml

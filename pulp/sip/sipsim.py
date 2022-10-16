@@ -499,7 +499,7 @@ def flat(ilist):
     """ flatten a list of tuples within tuples """
     rlist = []
     for item in ilist:
-        if type(item) is types.TupleType:
+        if type(item) is tuple:
             rlist.extend(flat(item))
         else:
             rlist.append(item)
@@ -530,8 +530,8 @@ def test():
         if i > 100000:
             break
 
-    print >>sys.stderr, ("rmse in spline = {}, rmse in linear interp = {}"
-                         .format(sqrt(sse/i), sqrt(sse2/i)))
+    print(("rmse in spline = {}, rmse in linear interp = {}"
+                         .format(sqrt(sse/i), sqrt(sse2/i))), file=sys.stderr)
 
 
 if __name__ == "__main__":
