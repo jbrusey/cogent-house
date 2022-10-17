@@ -50,11 +50,11 @@ if __name__ == "__main__":
         push_log.write("%s,%s\n" % (push_time,server))
         push_log.close()
 
-        print zip_file
+        print(zip_file)
         try:
             zfile = zipfile.ZipFile(zip_file, mode='r')
             for f in zfile.namelist():
-                print f
+                print(f)
                 zfile.extract(f, path=args.in_dir)
                 # move files to output directory
                 year,doy = f.split('_')[0:2]
@@ -85,8 +85,8 @@ if __name__ == "__main__":
 
                                     
                     except KeyError:
-                        print output.keys()
-                        print "bad zip file contents %s"%f
+                        print(list(output.keys()))
+                        print("bad zip file contents %s"%f)
                         graph_file.close()
                         keep_file = True
                         break # stop processing the file
@@ -98,7 +98,7 @@ if __name__ == "__main__":
                 keep_file = False # reset it
 
         except zipfile.BadZipfile:
-            print "Bad zipfile - cannot import"
+            print("Bad zipfile - cannot import")
             """
             move_fname = "%s/bad/%s"%(args.out_dir, zip_file)
             try:
