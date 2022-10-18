@@ -16,11 +16,13 @@ else:
 
 REQUIRES = [
     "configobj",
-    "python-dateutil==1.5",
+    "python-dateutil>=1.5",
     "numpy",
     "matplotlib",
+    "paho-mqtt",
     "pyserial",
     "requests",
+    "tinyos3",
     "transaction",
 ]
 

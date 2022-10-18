@@ -1,0 +1,14 @@
+#+title: Cogent-House
+
+* Installation
+
+First, ensure that all sub-modules have been cloned:
+#+BEGIN_SRC sh
+git submodule --init --recursive
+#+END_SRC
+
+Then install using =pip=:
+#+BEGIN_SRC sh
+(cd tinyos3 && pip install -e .)
+pip install -e .
+#+END_SRC
