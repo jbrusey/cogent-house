@@ -26,12 +26,12 @@ def pretty_print_POST(req):
     this function because it is programmed to be pretty 
     printed and may differ from the actual request.
     """
-    print('{}\n{}\n{}\n\n{}'.format(
+    print(('{}\n{}\n{}\n\n{}'.format(
         '-----------START-----------',
         req.method + ' ' + req.url,
-        '\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
+        '\n'.join('{}: {}'.format(k, v) for k, v in list(req.headers.items())),
         req.body,
-    ))
+    )))
 
 def hashfile(afile, hasher, blocksize=65536):
     buf = afile.read(blocksize)
@@ -51,7 +51,7 @@ def send_file(fname, url, timeout=20.0):
     try:
         r = requests.post(url, files=files, timeout=timeout)
     except requests.exceptions.Timeout as e:
-        print e
+        print(e)
         return False
 
     if "Upload failed" in r.text:
@@ -98,11 +98,11 @@ if __name__ == "__main__":
 
 
     if args.url == None:
-        print "You must supply a URL!"
+        print("You must supply a URL!")
         sys.exit()
 
     if args.in_dir == args.out_dir:
-        print "Input and output directory cannot be the same"
+        print("Input and output directory cannot be the same")
         sys.exit()
 
     # program flow:
@@ -133,13 +133,13 @@ if __name__ == "__main__":
         for f in ziplist:
             retval = False
             while retval == False and rtx_count < int(args.retries):
-                print "Sending %s"%f
+                print("Sending %s"%f)
                 retval = send_file(f, args.url, timeout=float(args.timeout))
                 if retval == True:
-                    print "Success!"
+                    print("Success!")
                     os.remove(f)
                     if rtx_count > 0:
                         rtx_count -= 1
                 else:
-                    print "Send failed! %d tries %d max"%(rtx_count+1, int(args.retries))
+                    print("Send failed! %d tries %d max"%(rtx_count+1, int(args.retries)))
                     rtx_count += 1

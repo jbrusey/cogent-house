@@ -1,61 +1,53 @@
 """
 unit tests that can be done offline
 """
-import sys
 
-import math
 import random
-
-from numpy import array
+from pytest import approx
 
 from dewma import Ewma
 
-import unittest
 
-class KalmanTest(unittest.TestCase):
-    def setUp(self):
-        self.DEWMA = Ewma()
+def testKalmanDelta():
+    DEWMA = Ewma(x_init=10.0, x_dinit=1 / 64.0)
+    sse = 0.0
+    for i in range(1, 2001):
+        z = (i / 64.0) + 10.0
+        v = DEWMA.filter(z, i * 1024)
+        err = v[0] - z
+        sse += err * err
 
-    def testKalmanDelta(self):
-        self.DEWMA = Ewma(x_init=10.,x_dinit=1/64.)
-        sse = 0.
-        for i in xrange(1,2001):
-            z = ((i / 64.) + 10.)
-            v = self.DEWMA.filter(z, i*1024)
-            err = v[0] - z            
-            sse += err * err
-            
-        print v[0]
-        print v[1]
-        print sse
-        
-        self.assertEquals(v[0], 10.+2000./64.)
-        self.assertEquals(v[1], 1./64.)
-        self.assertEquals(sse,0.)
- 
-    def testKalmanDelta2(self):
-        self.DEWMA = Ewma(x_init=10.,x_dinit=1/64., alpha=0.01, beta=0.001)
-        sse = 0.
-        sse2 = 0.
-        for i in xrange(1,6001):
-            z = ((i / 64.) + 10.) + random.gauss(0,1.)
-            v = self.DEWMA.filter(z, i*1024)
-            err = v[0] - z
-            err2 = v[1] - 1/64.
-            sse += err * err
-            sse2 += err2*err2
-            
-        print v[0]
-        print v[1]
-        print sse
-        print sse2
-        
-        self.assertEquals(v[0], 10.+6000./64.)
-        self.assertEquals(v[1], 1./64.)
-        self.assertEquals(sse,0.)
- 
- 
- 
+    print(v[0])
+    print(v[1])
+    print(sse)
+
+    assert v[0] == 10.0 + 2000.0 / 64.0
+    assert v[1] == 1.0 / 64.0
+    assert sse == 0.0
+
+
+def testKalmanDelta2():
+    DEWMA = Ewma(x_init=10.0, x_dinit=1 / 64.0, alpha=0.01, beta=0.001)
+    sse = 0.0
+    sse2 = 0.0
+    for i in range(1, 6001):
+        z = ((i / 64.0) + 10.0) + random.gauss(0, 1.0)
+        v = DEWMA.filter(z, i * 1024)
+        err = v[0] - z
+        err2 = v[1] - 1 / 64.0
+        sse += err * err
+        sse2 += err2 * err2
+
+    print(v[0])
+    print(v[1])
+    print(sse)
+    print(sse2)
+
+    assert v[0] == approx(10.0 + 6000.0 / 64.0, abs=0.5)
+    assert v[1] == approx(1.0 / 64.0, rel=0.01)
+    assert sse < 6000
+
+
 """       
     def testKalmanDeltaNoise(self):
 
@@ -137,7 +129,3 @@ class KalmanTest(unittest.TestCase):
         #print sse / 2001.
         self.assertAlmostEquals(sse / 2001., 0, 2)
 """
-
-        
-if __name__ == '__main__':
-    unittest.main()
