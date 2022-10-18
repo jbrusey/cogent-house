@@ -1,3 +1,3 @@
 [submodule "tinyos3"]
 	path = tinyos3
-	url = git@github.com:jbrusey/tinyos3.git
+	url = https://github.com/jbrusey/tinyos3.git
