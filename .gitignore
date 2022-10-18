@@ -7,8 +7,6 @@ tos/Node/*/build
 tos/Root/build
 tos/Root/*/build
 tos/Util/ch4bitle
-pulp/node/Packets.py
-pulp/node/*Msg.py
 ch_base.egg-info/
 build/
 dist/
