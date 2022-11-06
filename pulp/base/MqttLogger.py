@@ -21,6 +21,7 @@ should not be held up by delays in sending MQTT messages.
 
 import logging
 import math
+import pickle
 from optparse import OptionParser
 
 import paho.mqtt.client as mqtt
@@ -147,6 +148,12 @@ def main():
     command_line_arguments.add_option(
         "-P", "--password", default=None, help="Password for mqtt"
     )
+    command_line_arguments.add_option(
+        "-A",
+        "--authpickle",
+        default=None,
+        help="Filename for pickle containing credentials",
+    )
 
     command_line_arguments.add_option(
         "-t",
@@ -184,6 +191,22 @@ def main():
 
     LOGGER.info("Starting MqttLogger with log-level %s" % (options.log_level))
 
+    if options.authfile is not None and (
+        options.username is not None or options.password is not None
+    ):
+        print("Error: cannot give both authfile and username / password")
+        command_line_arguments.print_help()
+        return
+
+    (username, password) = (options.username, options.password)
+    if (
+        options.username is None
+        and options.password is None
+        and options.authfile is not None
+    ):
+        with open(options.authfile, "rb") as f:
+            (username, password) = pickle.load(f)
+
     mqttlogger = MqttLogger(
         tmp_dir=options.tmp_dir,
         duration=options.duration,
@@ -192,8 +215,8 @@ def main():
         mqttport=options.port,
         mqttkeepalive=options.keepalive,
         topic=options.topic,
-        username=options.username,
-        password=options.password,
+        username=username,
+        password=password,
     )
     if options.test_connection:
         mqttlogger.test_connection()
