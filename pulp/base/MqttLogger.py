@@ -206,10 +206,10 @@ def main():
 
     LOGGER.info("Starting MqttLogger with log-level %s" % (options.log_level))
 
-    if options.authfile is not None and (
+    if options.authpickle is not None and (
         options.username is not None or options.password is not None
     ):
-        print("Error: cannot give both authfile and username / password")
+        print("Error: cannot give both authpickle and username / password")
         command_line_arguments.print_help()
         return
 
@@ -217,9 +217,9 @@ def main():
     if (
         options.username is None
         and options.password is None
-        and options.authfile is not None
+        and options.authpickle is not None
     ):
-        with open(options.authfile, "rb") as f:
+        with open(options.authpickle, "rb") as f:
             (username, password) = pickle.load(f)
 
     mqttlogger = MqttLogger(
