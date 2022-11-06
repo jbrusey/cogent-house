@@ -97,7 +97,6 @@ def main():
         help="Output directory for files (default .)",
     )
     command_line_arguments.add_option(
-        "-t",
         "--tmp-dir",
         metavar="DIR",
         default=".",
@@ -150,6 +149,13 @@ def main():
     )
 
     command_line_arguments.add_option(
+        "-t",
+        "--topic",
+        default="null",
+        help="Topic for logging mqtt messages (default: null)",
+    )
+
+    command_line_arguments.add_option(
         "--test-connection",
         default=False,
         action="store_true",
@@ -185,6 +191,7 @@ def main():
         mqtthost=options.host,
         mqttport=options.port,
         mqttkeepalive=options.keepalive,
+        topic=options.topic,
         username=options.username,
         password=options.password,
     )
