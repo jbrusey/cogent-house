@@ -51,6 +51,7 @@ class MqttLogger(object):
         password=None,
     ):
         self.bif = bif
+        self.running = True
 
         self.topic = topic
         self.client = mqtt.Client()
