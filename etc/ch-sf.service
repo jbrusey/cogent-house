@@ -1,0 +1,20 @@
+# ch-sf.service
+#
+# serialforwarder
+#
+# Part of cogent-house
+#
+[Unit]
+Description=TinyOS SerialForwarder
+After=network.target
+
+[Service]
+ExecStart=/usr/local/sbin/ch-sf.sh
+WorkingDirectory=/home/chuser
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=chuser
+
+[Install]
+WantedBy=multi-user.target
