@@ -1,0 +1,25 @@
+# ch-mqtt.service
+#
+# mqttlogger
+#
+# Part of cogent-house
+#
+[Unit]
+Description=CogentHouse MqttLogger
+After=network.target ch-sf.service
+
+[Service]
+ExecStart=/usr/bin/python3 -m pulp.base.MqttLogger \
+			   --log-level=debug\
+			   --host=localhost\
+			   --port=1883\
+			   --topic=silicon\
+			   --authpickle=/home/pi/mqtt.auth
+WorkingDirectory=/home/chuser
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=chuser
+
+[Install]
+WantedBy=multi-user.target
