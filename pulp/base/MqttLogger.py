@@ -151,11 +151,13 @@ def main():
         "-p",
         "--port",
         default=1883,
+        type=int,
         help="Port number for mqtt logging (default: 1883)",
     )
     command_line_arguments.add_option(
         "--keepalive",
         default=60,
+        type=int,
         help="Keepalive time (default: 60)",
     )
     command_line_arguments.add_option(
