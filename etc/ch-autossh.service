@@ -1,0 +1,20 @@
+# ch-autossh.service
+#
+# autossh service for mqtt
+#
+# Part of cogent-house
+#
+[Unit]
+Description=CogentHouse MQTT autossh
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/autossh -L 1883:localhost:1883 cogentee.coventry.ac.uk
+WorkingDirectory=/home/pi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
