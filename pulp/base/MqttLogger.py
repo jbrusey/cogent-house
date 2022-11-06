@@ -98,6 +98,7 @@ def main():
         help="Output directory for files (default .)",
     )
     command_line_arguments.add_option(
+        "-t",
         "--tmp-dir",
         metavar="DIR",
         default=".",
@@ -156,7 +157,6 @@ def main():
     )
 
     command_line_arguments.add_option(
-        "-t",
         "--topic",
         default="null",
         help="Topic for logging mqtt messages (default: null)",
