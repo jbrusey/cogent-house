@@ -143,7 +143,6 @@ def main():
 
     # mqtt arguments
     command_line_arguments.add_option(
-        "-h",
         "--host",
         default="localhost",
         help="Host for logging mqtt messages (default: localhost)",

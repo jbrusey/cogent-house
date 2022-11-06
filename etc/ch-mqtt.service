@@ -9,12 +9,7 @@ Description=CogentHouse MqttLogger
 After=network.target ch-sf.service
 
 [Service]
-ExecStart=/usr/bin/python3 -m pulp.base.MqttLogger \
-			   --log-level=debug\
-			   --host=localhost\
-			   --port=1883\
-			   --topic=silicon\
-			   --authpickle=/home/pi/mqtt.auth
+ExecStart=/usr/local/sbin/ch-mqtt.sh
 WorkingDirectory=/home/chuser
 StandardOutput=inherit
 StandardError=inherit
