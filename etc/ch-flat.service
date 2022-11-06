@@ -6,7 +6,7 @@
 #
 [Unit]
 Description=CogentHouse FlatLogger
-After=network.target
+After=network.target ch-sf.service
 
 [Service]
 ExecStart=/usr/local/sbin/ch-flat.sh
