@@ -27,6 +27,7 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "pulp.base"
 
 from .packstate import PackState
+from .BaseIF import BaseIF
 
 LOGGER = logging.getLogger(__name__)
 QUEUE_TIMEOUT = 10
@@ -51,7 +52,11 @@ class MqttLogger(object):
         username=None,
         password=None,
     ):
-        self.bif = bif
+        if bif is None:
+            self.bif = BaseIF("sf@localhost:9002")
+        else:
+            self.bif = bif
+
         self.running = True
 
         self.topic = topic
