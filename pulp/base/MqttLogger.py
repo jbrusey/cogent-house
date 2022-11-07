@@ -15,6 +15,7 @@ paho mqtt publish messages.
 
 import logging
 import math
+import datetime
 import pickle
 from queue import Empty
 from optparse import OptionParser
@@ -63,10 +64,12 @@ class MqttLogger(object):
         self.client.loop_start()
 
     def publish(self, sender=None, type_id=None, value=None):
-        self.client.publish(f"{self.topic}/{sender}/{type_id}", value)
+        minfo = self.client.publish(f"{self.topic}/{sender}/{type_id}", value)
+        LOGGER.debug(
+            f"publish('{self.topic}/{sender}/{type_id}', {value}) -> {minfo.rc}, {minfo.mid}"
+        )
 
     def store_state(self, msg):
-
         pack_state = PackState.from_message(msg)
 
         for type_id, value in pack_state.d.items():
@@ -78,7 +81,12 @@ class MqttLogger(object):
         return True
 
     def test_connection(self):
-        self.client.publish(f"{self.topic}/test", 1)
+        payload = repr(datetime.datetime.now())
+        minfo = self.client.publish(f"{self.topic}/test", payload=payload, qos=1)
+        minfo.wait_for_publish()
+        LOGGER.debug(
+            f"publish('{self.topic}/test', payload='{payload}', qos=1) -> rc={minfo.rc}, mid={minfo.mid} pub? {minfo.is_published()}"
+        )
 
     def mainloop(self):
         """Break out run into a single 'mainloop' function
