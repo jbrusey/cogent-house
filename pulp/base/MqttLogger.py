@@ -104,7 +104,7 @@ class MqttLogger(object):
         """
         status = False
         try:
-            msg = self.bif.queue.get(True, QUEUE_TIMEOUT)
+            msg = self.bif.get(True, QUEUE_TIMEOUT)
             if msg.get_amType() == Packets.AM_BOOTMSG:
                 # Log node boot
                 # status = self.booted_node(msg)
@@ -123,8 +123,6 @@ class MqttLogger(object):
         except KeyboardInterrupt:
             print("KEYB IRR")
             self.running = False
-        except Exception as excepterr:
-            LOGGER.exception("during receiving or storing msg: " + str(excepterr))
         return False
 
     def run(self):
