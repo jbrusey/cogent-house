@@ -48,6 +48,6 @@ if __name__ == "__main__":
     while True:
         try:
             msg = bif.get(True, 5)
-            print(msg.get_amType())
+            store_state(msg)
         except Empty:
             pass
