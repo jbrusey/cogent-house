@@ -24,6 +24,9 @@ class SimpleBif(object):
     def __init__(self):
         self.queue = Queue()
 
+    def get(self, wait=True, timeout=30):
+        return self.queue.get(wait, timeout)
+
     def receive(self, msg):
         """receive a single state message - in this case, will be
         called by test code to add it to the queue.
