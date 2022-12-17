@@ -69,4 +69,4 @@ def test_mainloop():
     with patch("pulp.base.MqttLogger.mqtt.Client") as c:
         flat = MqttLogger(bif=testbif, topic="topic")
         assert flat.mainloop()
-        flat.client.publish.assert_called_with("topic/22/0", 25.5)
+        flat.client.publish.assert_called_with("topic/22", {"temperature": 25.5})

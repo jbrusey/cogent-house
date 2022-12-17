@@ -13,24 +13,61 @@ paho mqtt publish messages.
 
 """
 
+import datetime
 import logging
 import math
-import datetime
 import pickle
-from queue import Empty
 from optparse import OptionParser
-from pulp.node import Packets
+from queue import Empty
 
 import paho.mqtt.client as mqtt
+from pulp.node import Packets
 
 if __name__ == "__main__" and __package__ is None:
     __package__ = "pulp.base"
 
-from .packstate import PackState
 from .BaseIF import BaseIF
+from .packstate import PackState
 
 LOGGER = logging.getLogger(__name__)
 QUEUE_TIMEOUT = 10
+TYPES = {
+    0: "temperature",
+    1: "d_temperature",
+    2: "humidity",
+    3: "d_humidity",
+    4: "par",
+    5: "tsr",
+    6: "voltage",
+    7: "d_voltage",
+    8: "co2",
+    9: "aq",
+    10: "voc",
+    11: "power",
+    12: "heat",
+    13: "duty_time",
+    14: "errno",
+    15: "power_min",
+    16: "power_max",
+    17: "power_kwh",
+    18: "heat_energy",
+    19: "heat_volume",
+    20: "d_co2",
+    21: "d_voc",
+    22: "d_aq",
+    23: "wall_temp",
+    24: "d_wall_temp",
+    25: "wall_hum",
+    26: "d_wall_hum",
+    40: "opti",
+    41: "tempadc1",
+    42: "d_tempadc1",
+    43: "gas",
+    44: "d_opti",
+    45: "window",
+    46: "bb",
+    47: "d_bb",
+}
 
 
 def on_connect(client, userdata, flags, rc):
@@ -68,21 +105,26 @@ class MqttLogger(object):
         # background async loop
         self.client.loop_start()
 
-    def publish(self, sender=None, type_id=None, value=None):
-        minfo = self.client.publish(f"{self.topic}/{sender}/{type_id}", value)
+    def publish(self, sender=None, payload=None):
+        minfo = self.client.publish(f"{self.topic}/{sender}", payload)
         LOGGER.debug(
-            f"publish('{self.topic}/{sender}/{type_id}', {value}) -> {minfo.rc}, {minfo.mid}"
+            f"publish('{self.topic}/{sender}', {payload}) -> {minfo.rc}, {minfo.mid}"
         )
 
     def store_state(self, msg):
         pack_state = PackState.from_message(msg)
 
+        payload = {}
         for type_id, value in pack_state.d.items():
             if math.isinf(value) or math.isnan(value):
                 value = None
 
             if value is not None:
-                self.publish(sender=msg.getAddr(), type_id=type_id, value=value)
+                if type_id not in TYPES:
+                    payload[f"{type_id}"] = value
+                else:
+                    payload[TYPES[type_id]] = value
+        self.publish(sender=msg.getAddr(), payload=payload)
         return True
 
     def test_connection(self):
