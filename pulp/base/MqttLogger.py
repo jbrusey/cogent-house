@@ -119,9 +119,10 @@ class MqttLogger(object):
         with open(location_file, "r") as lf:
             reader = csv.reader(lf)
             for row in reader:
-                id = int(row[0])
-                room = row[1]
-                location[id] = room
+                if len(row) >= 2:
+                    id = int(row[0])
+                    room = row[1]
+                    location[id] = room
         return location
 
     def publish(self, sender=None, subtopic=None, payload=None):

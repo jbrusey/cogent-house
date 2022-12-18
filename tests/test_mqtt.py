@@ -75,7 +75,7 @@ def test_mainloop():
     testbif.receive(s_msg)
     with patch("pulp.base.MqttLogger.mqtt.Client") as c:
         with patch(
-            "pulp.base.MqttLogger.open", mock_open(read_data="22,front-room")
+            "pulp.base.MqttLogger.open", mock_open(read_data="22,front-room\n\n")
         ) as m:
             flat = MqttLogger(
                 bif=testbif, topic="topic", location_file="/tmp/locationfile"
