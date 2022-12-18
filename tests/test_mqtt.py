@@ -7,7 +7,7 @@ J. Brusey, May 2011
 import logging
 import re
 from queue import Queue
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, mock_open
 
 from pulp.base.MqttLogger import MqttLogger, mqtt
 
@@ -69,4 +69,16 @@ def test_mainloop():
     with patch("pulp.base.MqttLogger.mqtt.Client") as c:
         flat = MqttLogger(bif=testbif, topic="topic")
         assert flat.mainloop()
-        flat.client.publish.assert_called_with("topic/22", {"temperature": 25.5})
+        flat.client.publish.assert_called_with("topic/22/temperature", 25.5)
+
+    testbif = SimpleBif()
+    testbif.receive(s_msg)
+    with patch("pulp.base.MqttLogger.mqtt.Client") as c:
+        with patch(
+            "pulp.base.MqttLogger.open", mock_open(read_data="22,front-room")
+        ) as m:
+            flat = MqttLogger(
+                bif=testbif, topic="topic", location_file="/tmp/locationfile"
+            )
+            assert flat.mainloop()
+            flat.client.publish.assert_called_with("topic/front-room/temperature", 25.5)

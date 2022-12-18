@@ -13,6 +13,7 @@ paho mqtt publish messages.
 
 """
 
+import csv
 import datetime
 import logging
 import math
@@ -88,6 +89,7 @@ class MqttLogger(object):
         keepalive=60,
         username=None,
         password=None,
+        location_file=None,
     ):
         if bif is None:
             self.bif = BaseIF("sf@localhost:9002")
@@ -95,6 +97,11 @@ class MqttLogger(object):
             self.bif = bif
 
         self.running = True
+
+        if location_file is not None:
+            self.location = self.read_location_file(location_file)
+        else:
+            self.location = None
 
         self.topic = topic
         self.client = mqtt.Client()
@@ -105,26 +112,42 @@ class MqttLogger(object):
         # background async loop
         self.client.loop_start()
 
-    def publish(self, sender=None, payload=None):
-        minfo = self.client.publish(f"{self.topic}/{sender}", payload)
+    def read_location_file(self, location_file: str) -> dict:
+        """The location file allows translation of the location
+        numbers to location names for the mqtt message"""
+        location = {}
+        with open(location_file, "r") as lf:
+            reader = csv.reader(lf)
+            for row in reader:
+                id = int(row[0])
+                room = row[1]
+                location[id] = room
+        return location
+
+    def publish(self, sender=None, subtopic=None, payload=None):
+        minfo = self.client.publish(f"{self.topic}/{sender}/{subtopic}", payload)
         LOGGER.debug(
-            f"publish('{self.topic}/{sender}', {payload}) -> {minfo.rc}, {minfo.mid}"
+            f"publish('{self.topic}/{sender}/{subtopic}', {payload}) -> {minfo.rc}, {minfo.mid}"
         )
 
     def store_state(self, msg):
         pack_state = PackState.from_message(msg)
 
-        payload = {}
+        sender = msg.getAddr()
+        if self.location is not None and int(sender) in self.location:
+            sender = self.location[int(sender)]
+
         for type_id, value in pack_state.d.items():
             if math.isinf(value) or math.isnan(value):
                 value = None
 
             if value is not None:
                 if type_id not in TYPES:
-                    payload[f"{type_id}"] = value
+                    subtopic = f"{type_id}"
                 else:
-                    payload[TYPES[type_id]] = value
-        self.publish(sender=msg.getAddr(), payload=payload)
+                    subtopic = TYPES[type_id]
+                self.publish(sender=sender, subtopic=subtopic, payload=value)
+
         return True
 
     def test_connection(self):
@@ -234,6 +257,14 @@ def main():
     )
 
     command_line_arguments.add_option(
+        "--location-file",
+        default=None,
+        help="""csv file containing mapping from location number to name.
+        The csv file should be formatted as <num>, <name> with one row for each
+        location and no header.""",
+    )
+
+    command_line_arguments.add_option(
         "--test-connection",
         default=False,
         action="store_true",
@@ -285,6 +316,7 @@ def main():
         topic=options.topic,
         username=username,
         password=password,
+        location_file=options.location_file,
     )
     if options.test_connection:
         mqttlogger.test_connection()
