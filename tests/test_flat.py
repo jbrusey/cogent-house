@@ -3,6 +3,8 @@ Test code for feeding BaseLogger with some packets.
 
 J. Brusey, May 2011
 """
+import pytest
+pytest.skip("Requires TinyOS message support", allow_module_level=True)
 
 import logging
 import re
