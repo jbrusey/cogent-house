@@ -19,6 +19,7 @@ import os
 import math
 import time
 from optparse import OptionParser
+from tinyos3.message import MoteIF
 from pulp.node import AckMsg, Packets
 from pulp.base.BaseIF import BaseIF
 from queue import Empty
@@ -235,6 +236,11 @@ def main():
         format="%(asctime)s %(levelname)s %(message)s",
         level=LVLMAP[options.log_level],
     )
+
+    try:
+        MoteIF.set_debug_level(LVLMAP[options.log_level])
+    except Exception as e:
+        LOGGER.warning(f"Could not set MoteIF debug level: {e}")
 
     LOGGER.info("Starting FlatLogger with log-level %s" % (options.log_level))
     flatlog = FlatLogger(
