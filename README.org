@@ -1,14 +1,23 @@
 #+title: Cogent-House
 
-* Installation
 
-First, ensure that all sub-modules have been cloned:
-#+BEGIN_SRC sh
-git submodule --init --recursive
-#+END_SRC
+* Install instructions
 
-Then install using =pip=:
+** Clone submodules
+
+={sh} git submodule update --init --recursive=
+
+*** Create and activate a virtual environment (using python3.13 if available)
+
+={sh} python3.13 -m venv venv source venv/bin/activate=
+
+*** Install dependencies
 #+BEGIN_SRC sh
-(cd tinyos3 && pip install -e .)
+pip install -e tinyos3
 pip install -e .
 #+END_SRC
+
+
+*** Run tests
+={sh} PYTHONPATH=$(pwd) pytest -q=
+
