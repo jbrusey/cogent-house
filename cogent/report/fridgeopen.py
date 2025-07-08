@@ -1,11 +1,8 @@
-"""Pantry should have a humidity less than some maximum
-
-Modifications
-1. 10/1/21 jpb change threshold 78 to 79
+"""Fridge should be less than 10 degrees
 
 """
 
-THRESHOLD=79
+THRESHOLD = 10
 
 from sqlalchemy import and_, or_, func
 from datetime import datetime, timedelta
@@ -16,27 +13,26 @@ from cogent.base.model import (Node,
                                LastReport
                                )
 
-def pantry_humid(session,
-                 end_t=datetime.utcnow(),
-                 start_t=(datetime.utcnow() - timedelta(hours=24))):
+def fridge_open(session,
+                end_t=datetime.utcnow(),
+                start_t=(datetime.utcnow() - timedelta(hours=4))):
     html = []
 
-    pantry_humidity = (session.query(Reading.time, Reading.value)
+    fridge_temperature = (session.query(Reading.time, Reading.value)
                        .join(Location, Node, Room)
                        .filter(and_(Reading.time >= start_t,
                                     Reading.time <= end_t,
-                                    Reading.typeId == 2,
-                                    Room.name == "pantry"
+                                    Reading.typeId == 0,
+                                    Room.name == "fridge"
                        ))
                        .order_by(Reading.time.desc())
                        .first())
 
-    if pantry_humidity is not None:
-        (qt, qv) = pantry_humidity
+    if fridge_temperature is not None:
+        (qt, qv) = fridge_temperature
         if qv > THRESHOLD:
-            html.append('<p><b>Pantry humidity is {} at {}</b></p>'
+            html.append('<p><b>Fridge temperature is {} at {}</b></p>'
                         .format(qv, qt))
     else:
-        html.append('<p><b>Pantry reading not found</b></p>')
-
+        html.append('<p><b>Missing fridge temperature reading </b></p>')
     return html

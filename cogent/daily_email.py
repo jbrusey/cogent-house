@@ -10,6 +10,7 @@
 #
 # Report query methods can be found in cogent/report/*
 #
+# TODO fix bug where email is empty
 # ------------------------------------------------------------
 
 
@@ -23,17 +24,54 @@ import platform
 import smtplib
 import time
 
+
+import smtplib
+import pickle
+
+TIMEOUT=2*60 # 2 minutes
+
 DBURL = "mysql://{user}@localhost/{database}?connect_timeout=1"
+
+AUTH="/home/chuser/auth2.pickle"
+
+def mail(serverURL=None, sender='', to='', text='', login='', passwd='', debug=False, port=587):
+    """
+    Usage:
+        mail('somemailserver.com', 'me@example.com', 'someone@example.com', 'test', 'This is a test')
+    """
+#    headers = "From: {}\r\nTo: {}\r\nSubject: {}\r\n\r\n".format(sender, to, subject)
+#    message = headers + text
+    mailServer = smtplib.SMTP(serverURL, port=port, timeout=TIMEOUT)
+    mailServer.starttls()
+    if debug:
+        mailServer.set_debuglevel(True)
+    if login != '':
+        mailServer.login(login, passwd);
+    mailServer.sendmail(sender, to, text)
+    mailServer.quit()
+
+
+
+def mail_string_list_to_gmail(to, error_list):
+
+    auth = pickle.load(open(AUTH, "rb"))
+    if len(error_list) > 0:
+        #text = '\n\n'.join(error_list)
+        mail(serverURL='smtp.gmail.com',
+             sender=auth[0],
+             login=auth[0],
+             passwd=auth[1],
+             to=to,
+             text=error_list)
+    
+
+
+
 
 def header(you=None,
            me=None,
            host=None):
-    return """From: """+host+"""<"""+me+""">
-To: """+you+"""
-MIME-Version: 1.0
-Content-type: text/html
-Subject: cogent-house status for """+host+"""
-<html><head></head><body>"""
+    return "From: {host}<{me}>\r\nTo: {you}\r\nMIME-Version: 1.0\r\nContent-type: text/html\r\nSubject: cogent-house status for {host}\r\n\r\n<html><head></head><body>".format(host=host, me=me, you=you)
 
 def footer():
     return "</body></html>"
@@ -75,8 +113,9 @@ def run_reports(dry_run=False,
         # Send the message via local SMTP server.
 
         if len(html) > 0:
-            s = smtplib.SMTP('localhost')
-            s.sendmail(me, you, message)
+            mail_string_list_to_gmail(you, message)
+#            s = smtplib.SMTP('localhost')
+#            s.sendmail(me, you, message)
 
 if __name__ == "__main__":
     from optparse import OptionParser

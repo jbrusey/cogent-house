@@ -20,7 +20,7 @@ else :
 REQUIRES = ['SQLAlchemy',
             "MySQL-python",
             'configobj',
-            "python-dateutil==1.5",
+            "python-dateutil>=1.5",
             "numpy",
             "matplotlib",
             "pyserial",
