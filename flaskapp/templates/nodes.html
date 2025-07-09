@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<ul>
+    {% for node in nodes %}
+        <li>Node {{ node.id }}</li>
+    {% else %}
+        <li>No nodes found.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
