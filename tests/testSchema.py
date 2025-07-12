@@ -3,7 +3,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Dat
 from sqlalchemy.orm import relationship, backref
 import sqlalchemy.types as types
 
-import unittest2 as unittest
+import unittest
 from datetime import datetime, timedelta
 
 #Original Version used this namespace,
@@ -26,7 +26,7 @@ from cogent.base.model import *
 
 DBURL="sqlite:///:memory:"
 
-import base
+from . import base
 
 @unittest.skip
 class TestNodeType(base.BaseTestCase):
@@ -76,7 +76,7 @@ class TestNodeType(base.BaseTestCase):
             session.add(r)
             session.commit()
             self.assertTrue( r.configured[3] and r.configured[13] )
-        except Exception,e:
+        except Exception as e:
             session.rollback()
             raise e
         finally:
@@ -99,7 +99,7 @@ class TestNodeType(base.BaseTestCase):
         try:
             session.add(r)
             session.commit()
-        except Exception,e:
+        except Exception as e:
             session.rollback()
             raise e
         finally:
