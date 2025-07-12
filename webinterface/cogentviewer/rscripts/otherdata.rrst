@@ -1,6 +1,0 @@
-OtherData
-----------
-
-.. {r otherTable, echo=FALSE,results='asis'}
-   pandoc.table(summary,style="grid",caption="Other Data Summary")
-.. ..
