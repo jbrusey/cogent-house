@@ -1,4 +1,4 @@
-import unittest2 as unittest
+import unittest
 
 from cogent.node import Packets
 from cogent.base.packstate import PackState
@@ -7,7 +7,7 @@ from cogent.base.model import Bitset
 class Msg(object):
     def __init__(self, d):
         b = Bitset(size=Packets.SC_SIZE)
-        for i in d.keys():
+        for i in list(d.keys()):
             b[i] = True
         self.mask = b.a
         self.p = []

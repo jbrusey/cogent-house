@@ -1,6 +1,6 @@
-import unittest2 as unittest
+import unittest
 import datetime
-from Queue import Queue
+from queue import Queue
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -10,7 +10,7 @@ import cogent.base.model.Bitset as Bitset
 from cogent.node import StateMsg, ConfigMsg, Packets
 import cogent.base.model as models
 
-import base
+from . import base
 
 #Note: MoteIF doesn't currently support coming directly off the serial
 #interface. So we create a fake BIF

@@ -5,7 +5,7 @@ meaning the DB is consistently initiated in all test cases.
 """
 
 import os
-import unittest2 as unittest
+import unittest
 import datetime
 
 import logging

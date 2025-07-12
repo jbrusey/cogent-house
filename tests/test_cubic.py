@@ -12,7 +12,7 @@ class TestCubic(unittest.TestCase):
                     0]
 
         for i in range(len(testpoly)):
-            self.assertAlmostEquals( spline.poly[i], testpoly[i] )
+            self.assertAlmostEqual( spline.poly[i], testpoly[i] )
 
 if __name__ == "__main__":
     unittest.main()

@@ -37,14 +37,14 @@ class TestSipPhenom(unittest.TestCase):
             last_dt = ptup.dt
             count += 1
 
-        self.assertEquals(21, count)
+        self.assertEqual(21, count)
 
     def test2(self):
         """ from a single data element, only one row should be
         generated """
         data = [(datetime.utcnow(), 1, 0, 3)]
 
-        self.assertEquals(1, len(list(SipPhenom(src=data))))
+        self.assertEqual(1, len(list(SipPhenom(src=data))))
 
     def test3(self):
         """ from two data elements that are at consecutive five min
@@ -52,7 +52,7 @@ class TestSipPhenom(unittest.TestCase):
 
         db1 = [(datetime.utcnow(), 1, 0, 4),
               (datetime.utcnow() + timedelta(minutes=5), 2, 0, 5)]
-        self.assertEquals(2, len(list(SipPhenom(src=db1))))
+        self.assertEqual(2, len(list(SipPhenom(src=db1))))
 
 
     def test4(self):
@@ -88,7 +88,7 @@ class TestSipPhenom(unittest.TestCase):
             last_dt = ptup.dt
             count += 1
 
-        self.assertEquals(21, count)
+        self.assertEqual(21, count)
 
     def test5(self):
         """ test that sipphenom puts dashed indicators in the right
@@ -125,7 +125,7 @@ class TestSipPhenom(unittest.TestCase):
             last_dt = ptup.dt
             count += 1
 
-        self.assertEquals(26, count)
+        self.assertEqual(26, count)
 
 
 if __name__ == "__main__":

@@ -29,13 +29,13 @@ class TestSipSpline(unittest.TestCase):
             intvl = int(my_total_seconds((ptup.dt - now)) /
                         my_total_seconds(timedelta(minutes=1)))
             if intvl >= 7 and intvl <= 20:
-                self.assertEquals(ptup.sp, 3)
+                self.assertEqual(ptup.sp, 3)
             if intvl > 20 and intvl <= 25:
-                self.assertEquals(ptup.sp, (intvl - 20) * (1.-3.)/(24-20) + 3)
+                self.assertEqual(ptup.sp, (intvl - 20) * (1.-3.)/(24-20) + 3)
 
 
         for i, ptup in enumerate(result):
             intvl = int(my_total_seconds((ptup.dt - now)) /
                         my_total_seconds(timedelta(minutes=1)))
-            self.assertEquals(i, intvl)
+            self.assertEqual(i, intvl)
 
