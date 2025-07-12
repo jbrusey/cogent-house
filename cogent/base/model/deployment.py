@@ -14,7 +14,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
 #Import Pyramid Meta Data
-import meta
+from . import meta
 
 class Deployment(meta.Base, meta.InnoDBMix):
     """Table to hold information about deployments.

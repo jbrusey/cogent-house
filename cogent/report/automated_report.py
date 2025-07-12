@@ -475,7 +475,7 @@ if __name__ == "__main__": # pragma: no cover
         fd.close()
     elif args.term:
 
-        print output
+        print(output)
 
     if args.email:
         addresses = args.email.split(",")

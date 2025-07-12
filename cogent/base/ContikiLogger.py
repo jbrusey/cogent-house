@@ -159,12 +159,12 @@ class SerialListner(object):
                 session.commit()
 
                 #Now neighbor table info
-                print pktdata
+                print(pktdata)
                 if len(pktdata) > 2:
                     neighinfo = pktdata[2:]
                     log.info("Neighbor Table is {0}".format(neighinfo))
                     for idx,item in enumerate(neighinfo):
-                        print item, idx
+                        print(item, idx)
                         vals = item.split(",")
                         rdg = models.Reading(time=now,
                                              nodeId = nodeid,

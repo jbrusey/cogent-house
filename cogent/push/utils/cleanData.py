@@ -63,11 +63,11 @@ class Cleaner(object):
                 session.delete(item)
         
         session.commit()
-        print "Locations without any Readings:"
+        print("Locations without any Readings:")
         #for item in badLocs:
         #    print item
         locIds = [x.id for x in badLocs]
-        print "SELECT * FROM Location WHERE id IN {0}".format(locIds)
+        print("SELECT * FROM Location WHERE id IN {0}".format(locIds))
         
                 
 
@@ -86,7 +86,7 @@ class Cleaner(object):
             if item.rooms is None:
                 log.debug("--> Room type without any Rooms {0}".format(item))
 
-        for key,value in dupTypes.iteritems():
+        for key,value in dupTypes.items():
             if len(value) > 1:
                 log.debug("--> Duplicate Room Type {0} {1}".format(key,value))
                 #firstType = value[0]
@@ -107,12 +107,12 @@ class Cleaner(object):
 
         log.debug("===== CHECKING FOR DUPLICATE ROOMS ====")
 
-        for key,value in dupTypes.iteritems():
+        for key,value in dupTypes.items():
             if len(value) > 1:
                 log.debug("Duplicate Room {0}".format(key))
                 badLocs = []
                 firstRoom = value[0]
-                print "First Room Is {0}".format(firstRoom)
+                print("First Room Is {0}".format(firstRoom))
                 for item in value:
                     log.debug("--> Room {0}".format(item))
                     if item.location:
@@ -124,17 +124,17 @@ class Cleaner(object):
                         session.flush()
                 session.commit()
                 
-                print "Locations"
+                print("Locations")
                 if len(badLocs) == 0:
                     continue
-                print "Bad Locations"
+                print("Bad Locations")
                 firstLoc = badLocs[0]
-                print "First Location {0}".format(firstLoc)
+                print("First Location {0}".format(firstLoc))
                 for item in set(badLocs[1:]):
                     #print "Loc: ",item
                     #So we Want to fetch the readings
                     rdg = item.filtReadings.first()
-                    print "First Reading {0}".format(rdg)
+                    print("First Reading {0}".format(rdg))
                     theQry = session.query(models.Reading).filter_by(locationId = item.id)
                     #for item in theQry:
                     #    item.locationId = firstLoc.id
@@ -142,7 +142,7 @@ class Cleaner(object):
                     # #print theQry
                     # print firstLoc.id
                     out = theQry.update({"locationId" : firstLoc.id})
-                    print "{0} Samples moved from {1} to {2}".format(out,rdg,firstLoc.id)
+                    print("{0} Samples moved from {1} to {2}".format(out,rdg,firstLoc.id))
                     session.flush()
                     session.commit()
                     session.delete(item)                    

@@ -13,7 +13,7 @@ import logging
 LOG = logging.getLogger("Timings")
 LOG.setLevel(logging.DEBUG)
 
-import meta
+from . import meta
 
 import time
 

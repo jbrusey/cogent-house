@@ -55,7 +55,7 @@ class SerialiseMixin(object):
             is committed.
         """
 
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(self, key, value)
 
 
@@ -82,7 +82,7 @@ class SerialiseMixin(object):
 
             try:
                 value = getattr(self, col.name)
-            except AttributeError, e:
+            except AttributeError as e:
                 LOG.warning("Conversion Error {0}".format(e))
 
             #Conversion code for datetime

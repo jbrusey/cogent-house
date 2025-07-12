@@ -11,7 +11,7 @@ import sqlalchemy
 import sqlalchemy.orm
 
 #Import Pyramid Meta Data
-import meta
+from . import meta
 
 class User(meta.Base, meta.InnoDBMix):
     """Table to hold information about users of the database

@@ -16,38 +16,38 @@ import os
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapperlib
 
-from meta import *
+from .meta import *
 
 #Namespace Manginlg the Proper way, (via all)
 #__all__ = ["deployment.*"]
 
 #Namespace Mangling
-from deployment import *
-from deploymentmetadata import *
-from host import *
-from house import *
-from housemetadata import *
-from lastreport import *
-from location import *
-from node import *
-from nodehistory import *
-from nodestate import *
-from nodetype import *
-from nodeboot import *
-from occupier import *
-from rawmessage import *
-from reading import *
-from room import *
-from roomtype import *
-from sensor import *
-from sensortype import *
-from weather import *
-from event import *
-from timings import *
-from user import *
-from server import *
-from pushstatus import *
-import populateData
+from .deployment import *
+from .deploymentmetadata import *
+from .host import *
+from .house import *
+from .housemetadata import *
+from .lastreport import *
+from .location import *
+from .node import *
+from .nodehistory import *
+from .nodestate import *
+from .nodetype import *
+from .nodeboot import *
+from .occupier import *
+from .rawmessage import *
+from .reading import *
+from .room import *
+from .roomtype import *
+from .sensor import *
+from .sensortype import *
+from .weather import *
+from .event import *
+from .timings import *
+from .user import *
+from .server import *
+from .pushstatus import *
+from . import populateData
 
 import json
 
@@ -101,7 +101,7 @@ def findClass(tableName):
         return mappedTable
 
     log.debug("Looking for {0}".format(tableName))
-    for x in mapperlib._mapper_registry.items():
+    for x in list(mapperlib._mapper_registry.items()):
         #mapped table
         log.debug("--> Checking against {0}".format(x))
         checkTable = x[0].mapped_table
@@ -162,7 +162,7 @@ def clsFromJSON(theList):
                }
 
     for item in theList:
-        if type(item) == str or type(item) == unicode:
+        if type(item) == str or type(item) == str:
             item = json.loads(item)
         #Convert to the correct type of object
         theType = item["__table__"]

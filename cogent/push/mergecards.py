@@ -3,12 +3,12 @@ Like the push script but much more detailed
 """
 
 import logging
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import json
 import zlib
 import os
 import sys
-import urlparse
+import urllib.parse
 
 import sqlalchemy
 import requests
@@ -443,7 +443,7 @@ class RestDBMerge(DBMerge):
         log.debug("--> House {0}".format(thehouse))
         log.debug("--> Room {0}".format(theroom))
 
-        params = urllib.urlencode({"address" : thehouse.address})
+        params = urllib.parse.urlencode({"address" : thehouse.address})
         houseurl = "{0}house/?{1}".format(self.resturl, params)
         restqry = requests.get(houseurl)
 
@@ -453,7 +453,7 @@ class RestDBMerge(DBMerge):
             log.warning("-->--> No House {0} on Main Database".format(thehouse))
 
         #Work out the Room
-        params = urllib.urlencode({"name" : theroom.name})
+        params = urllib.parse.urlencode({"name" : theroom.name})
         roomurl = "{0}room/?{1}".format(self.resturl, params)
         restqry = requests.get(roomurl)
         mainroom = restqry.json()
@@ -467,7 +467,7 @@ class RestDBMerge(DBMerge):
 
 
         #We can now workout the locationId
-        params = urllib.urlencode({"houseId" : mainhouse[0]["id"],
+        params = urllib.parse.urlencode({"houseId" : mainhouse[0]["id"],
                                    "roomId" : mainroom[0]["id"]})
         locurl = "{0}location/?{1}".format(self.resturl, params)
         restqry = requests.get(locurl)

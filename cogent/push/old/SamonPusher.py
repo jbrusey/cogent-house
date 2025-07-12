@@ -67,7 +67,7 @@ import dateutil.parser
 
 import restful_lib
 import json
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import RestPusher
 
@@ -237,7 +237,7 @@ class SampsonPusher(RestPusher.Pusher):
         
         mappingConfig = self.mappingConfig
         configLoc = mappingConfig.get("location",{})
-        mappedLocations.update(dict([(int(k),v) for k,v in configLoc.iteritems()]))
+        mappedLocations.update(dict([(int(k),v) for k,v in configLoc.items()]))
         #theMap = {}
 
         # for item in theQry:
@@ -298,7 +298,7 @@ class SampsonPusher(RestPusher.Pusher):
             #log.debug(item)
             #We need to make sure the deployment is mapped correctly
             params = {"id":item.id}
-            theUrl = "node/?{0}".format(urllib.urlencode(params))                            
+            theUrl = "node/?{0}".format(urllib.parse.urlencode(params))                            
             
             log.debug("Node {0} = HouseId {1} Room Id {2}".format(item.id,item.houseId,item.roomId))
 
@@ -329,7 +329,7 @@ class SampsonPusher(RestPusher.Pusher):
                 #The Query should now hold the Id of the item on the remote DB
                 log.debug(restQry)
                 theItem = json.loads(restQry["body"])
-                print theItem
+                print(theItem)
                 locMap[item.id] = theItem[0]['id']
             else:
                 log.debug("--> Mapping Location {0}".format(item))
@@ -468,6 +468,6 @@ class SampsonPusher(RestPusher.Pusher):
 
 
 if __name__ == "__main__":
-    print "Processing"
+    print("Processing")
     foo = PushServer(dbString)
     foo.sync()

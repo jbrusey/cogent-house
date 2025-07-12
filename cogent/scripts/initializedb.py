@@ -66,8 +66,8 @@ import transaction
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri>\n'
-          '(example: "%s development.ini")' % (cmd, cmd)) 
+    print(('usage: %s <config_uri>\n'
+          '(example: "%s development.ini")' % (cmd, cmd))) 
     sys.exit(1)
 
 def populateUser():
@@ -76,17 +76,17 @@ def populateUser():
     
     hasUser = session.query(user.User).first()
     if hasUser is None:
-        print "Warning:  No users setup on the system"
-        print "  Creating Root User"
-        newUser = raw_input("Login Name: ")
-        userEmail = raw_input("User Email: ")
+        print("Warning:  No users setup on the system")
+        print("  Creating Root User")
+        newUser = input("Login Name: ")
+        userEmail = input("User Email: ")
         passOne = "FOO"
         passTwo = "BAR"
         while passOne != passTwo:
             passOne = getpass.getpass()
             passTwo = getpass.getpass("Repeat Password: ")
             if passOne != passTwo:
-                print "Passwords do not match"
+                print("Passwords do not match")
         
         #Setup a new User
         thisUser = user.User(username=newUser,
