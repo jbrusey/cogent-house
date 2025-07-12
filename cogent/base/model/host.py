@@ -14,7 +14,7 @@
 
 import sqlalchemy
 
-import meta
+from . import meta
 
 class Host(meta.Base, meta.InnoDBMix):
     """

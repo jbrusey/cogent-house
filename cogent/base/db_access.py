@@ -99,20 +99,20 @@ def get_calibration_db(session, node_id, reading_type):
 # Calibrate data.
 def calibrate(session, data, node_id = None, reading_type = None, cal_func = get_calibration):
     if node_id != None or reading_type != None:
-        print >> sys.stderr, "[db_access.calibrate] Use of the node_id and reading_type parameters is deprecated."
+        print("[db_access.calibrate] Use of the node_id and reading_type parameters is deprecated.", file=sys.stderr)
 
     if reading_type == None:
         if type(data) == ReadingList:
             reading_type = data.get_meta_data('reading_type')
         else:
-            print >> sys.stderr, "No reading type specified for calibration."
+            print("No reading type specified for calibration.", file=sys.stderr)
             exit(1)
     
     if node_id == None:
         if type(data) == ReadingList:
             node_id = data.get_meta_data('node_id')
         else:
-            print >> sys.stderr, "No node_id specified for calibration."
+            print("No node_id specified for calibration.", file=sys.stderr)
             exit(1)
     
     # Until the copy is transparent
@@ -279,7 +279,7 @@ def get_node_locations_by_house(session, house_id, include_external=True):
 
 def get_data_by_type(session, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
-        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+        print("Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type, file=sys.stderr)
 
     if with_deltas:
         delta_rows = _query_by_type(session, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
@@ -305,7 +305,7 @@ def get_data_by_type(session, reading_type, start_time = datetime.datetime.fromt
             data[node_id].append((row.time, row.value))
     
     if postprocess:
-        for node_id,values in data.iteritems():
+        for node_id,values in data.items():
             data[node_id] = calibrate(session, values, cal_func = cal_func)
         data = clean_data(session, data)
     
@@ -314,7 +314,7 @@ def get_data_by_type(session, reading_type, start_time = datetime.datetime.fromt
 
 def get_data_by_node_and_type(session, node_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, cal_func=get_calibration, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
-        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+        print("Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type, file=sys.stderr)
      
     if with_deltas:
         delta_rows = _query_by_node_and_type(session, node_id, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
@@ -349,7 +349,7 @@ def clean_data(session, data, reading_type = None):
         return _clean_data(session, data, reading_type)
     elif type(data) == dict:
         cleaned = {}
-        for key,value in data.iteritems():
+        for key,value in data.items():
             cd = clean_data(session, value, reading_type)
             if len(cd) > 0: cleaned[key] = cd
         return cleaned
@@ -357,7 +357,7 @@ def clean_data(session, data, reading_type = None):
         clean_data(session, data.all(), reading_type)
     else:
         import sys
-        print >> sys.stderr, "Bad data for cleaning:", type(data)
+        print("Bad data for cleaning:", type(data), file=sys.stderr)
         exit(1)
 
 def _clean_data(session, data, reading_type = None):
@@ -365,17 +365,17 @@ def _clean_data(session, data, reading_type = None):
     md = data.meta_data
     
     if reading_type != None:
-        print >> sys.stderr, "[db_access._clean_data] Use of the reading_type parameter is deprecated."
+        print("[db_access._clean_data] Use of the reading_type parameter is deprecated.", file=sys.stderr)
 
     if type(data) == ReadingList and reading_type == None:
         reading_type = data.get_meta_data('reading_type')
 
     if reading_type != None and reading_type in reading_limits:
         lt, ut = reading_limits[reading_type]
-        data = filter(lambda x: x[1] >= lt and x[1] <= ut, data)
+        data = [x for x in data if x[1] >= lt and x[1] <= ut]
 
     ub, lb = _get_outlier_thresholds([x[1] for x in data])
-    data = filter(lambda x: x[1] >= lb and x[1] <= ub, data)
+    data = [x for x in data if x[1] >= lb and x[1] <= ub]
 
     # Until the copy is transparent
     data = ReadingList(data)

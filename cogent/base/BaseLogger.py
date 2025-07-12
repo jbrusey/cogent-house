@@ -29,7 +29,7 @@ from cogent.node import (AckMsg,
                          Packets)
 from cogent.base.BaseIF import BaseIF
 
-from Queue import Empty
+from queue import Empty
 
 from datetime import datetime, timedelta
 
@@ -211,7 +211,7 @@ class BaseLogger(object):
                 rssi = rssi_val)
             session.add(node_state)
 
-            for i, value in pack_state.d.iteritems():
+            for i, value in pack_state.d.items():
                 type_id = i
                 if math.isinf(value) or math.isnan(value):
                     value = None
@@ -225,7 +225,7 @@ class BaseLogger(object):
                     session.add(r)
                     session.flush()
 
-                except sqlalchemy.exc.IntegrityError, e:
+                except sqlalchemy.exc.IntegrityError as e:
                     self.log.error("Unable to store reading, checking if node type exists")
                     self.log.error(e)
                     session.rollback()
@@ -284,7 +284,7 @@ class BaseLogger(object):
             #self.log.debug("Empty Queue")
             return False
         except KeyboardInterrupt:
-            print "KEYB IRR"
+            print("KEYB IRR")
             self.running = False
         except Exception as e:
             self.log.exception("during receiving or storing msg: " + str(e))

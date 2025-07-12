@@ -8,7 +8,7 @@
 import logging
 LOG = logging.getLogger(__name__)
 
-import meta
+from . import meta
 
 
 from sqlalchemy import Column, Integer, ForeignKey
@@ -55,7 +55,7 @@ class Node(meta.Base, meta.InnoDBMix):
 
     def update(self, **kwargs):
         """ Function to update based on a dictionary"""
-        for key,value in kwargs.iteritems():
+        for key,value in kwargs.items():
             setattr(self, key, value)
 
     def __eq__(self, other):

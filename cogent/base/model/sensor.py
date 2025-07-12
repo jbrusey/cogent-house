@@ -6,7 +6,7 @@ Classes and Modules that represent sensor related objects
 .. codeauthor::  Daniel Goldsmith <djgoldsmith@googlemail.com>
 """
 
-import meta
+from . import meta
 
 
 from sqlalchemy import Column, Integer, ForeignKey, Float

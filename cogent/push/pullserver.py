@@ -30,7 +30,7 @@ FH.setFormatter(FMT)
 import sqlalchemy
 import dateutil.parser
 import json
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import requests
 import configobj
 import time
@@ -202,7 +202,7 @@ class PullServer(object):
                 hstr = screen.getstr()
                 curses.noecho()
                 self.download_house(hstr)
-                print hstr
+                print(hstr)
 
                 return
 
@@ -233,7 +233,7 @@ class PullServer(object):
             return
         else:
 
-            thehouse = models.clsFromJSON(jsonhouse).next()
+            thehouse = next(models.clsFromJSON(jsonhouse))
             originalid = thehouse.id
             qry = session.query(models.House).filter_by(address = thehouse.address).first()
             if qry is None:
@@ -255,7 +255,7 @@ class PullServer(object):
             theurl="{0}deployment/{1}".format(self.resturl, thehouse.deploymentId)
             therequest = requests.get(theurl)
             jsondep = therequest.json()
-            thedeployment = models.clsFromJSON(jsondep).next()
+            thedeployment = next(models.clsFromJSON(jsondep))
             
             #Check mappings for this
             qry = session.query(models.Deployment).filter_by(name=thedeployment.name).first()
@@ -278,7 +278,7 @@ class PullServer(object):
             subwin.addstr(5, 1, "Deployment: {0}  (Local) {1} {2}".format(thedeployment.name, thedeployment.id, thedeployment.name))
 
         #Fetch Locations
-        params = urllib.urlencode({"houseId" : originalid})
+        params = urllib.parse.urlencode({"houseId" : originalid})
         houseurl = "{0}location/?{1}".format(self.resturl, params)
         restqry = requests.get(houseurl)
         jsonstr = restqry.json()
@@ -300,7 +300,7 @@ class PullServer(object):
         for item in locations:
             roomqry = session.query(models.Room).filter_by(name = rooms[item.roomId].name).first()
             if roomqry is None:
-                print "NEW ROOM {0}".format(item)
+                print("NEW ROOM {0}".format(item))
                 #Add a Room (But these should have been synched)
             locqry = session.query(models.Location).filter_by(houseId = thehouse.id,
                                                               roomId = roomqry.id).first()
@@ -317,7 +317,7 @@ class PullServer(object):
                 mappedloc = locqry                
             
             #Work out nodes
-            params = urllib.urlencode({"locationId": item.id})
+            params = urllib.parse.urlencode({"locationId": item.id})
             nodeurl = "{0}node/?{1}".format(self.resturl, params)
             nodeqry = requests.get(nodeurl)
             nodestr = nodeqry.json()
@@ -349,12 +349,12 @@ class PullServer(object):
         while True:
             event = screen.getch()
             if event == ord("y"):
-                print "SAVING"
+                print("SAVING")
                 session.flush()
                 session.commit()
                 return
             elif event == ord("n"):
-                print "EXITING"
+                print("EXITING")
                 return
 
 
@@ -371,7 +371,7 @@ class PullServer(object):
                                                               item.get("address","None")))
                 screenidx += 1
             else:
-                print "ERROR WITH ITEM ",item
+                print("ERROR WITH ITEM ",item)
             #allowedinput.append(ord(str(item["id"])))
         subwin.refresh()
 
@@ -448,9 +448,9 @@ class PullServer(object):
                     session.add(item)
                     outstr.append("Item {0} Successfully Added".format(item))
                 else:
-                    print "ID MISMATCH"
+                    print("ID MISMATCH")
                     item.id = None
-                    print item
+                    print(item)
                     session.add(item)
                     outstr.append("Item {0} added with new Id".format(item))
 
@@ -491,7 +491,7 @@ class PullServer(object):
         screen = self.screen
         subwin = self.subwin
 
-        params = urllib.urlencode({"deploymentId" : remoteid})
+        params = urllib.parse.urlencode({"deploymentId" : remoteid})
         houseurl = "{0}house/?{1}".format(self.resturl, params)
         restqry = requests.get(houseurl)
         jsonstr = restqry.json()
@@ -539,7 +539,7 @@ class PullServer(object):
     def add_locations(self,houseid):
         """Add the relevant locations to the database"""
 
-        params = urllib.urlencode({"houseId" : houseid})
+        params = urllib.parse.urlencode({"houseId" : houseid})
         houseurl = "{0}location/?{1}".format(self.resturl, params)
         restqry = requests.get(houseurl)
         jsonstr = restqry.json()
@@ -555,7 +555,7 @@ class PullServer(object):
                 pass
 
             #And Check for the Node
-            nodeparams = urllib.urlencode({"locationId": item.id})
+            nodeparams = urllib.parse.urlencode({"locationId": item.id})
             nodeurl = "{0}node/?{1}".format(self.resturl, nodeparams)
             nodeqry = requests.get(nodeurl)
             restnodes = models.clsFromJSON(nodeqry.json())

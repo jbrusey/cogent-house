@@ -8,7 +8,7 @@
 import logging
 LOG = logging.getLogger(__name__)
 
-import meta
+from . import meta
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime, BigInteger, Index, Boolean
 
@@ -52,7 +52,7 @@ class NodeBoot(meta.Base, meta.InnoDBMix):
             val = (self.time - other.time).seconds
             val += self.nodeId - other.nodeId
             return val
-        except TypeError, e:
+        except TypeError as e:
             LOG.warning("Unable to Compare {0} {1} \n{2}".format(self, other, e))
 
 

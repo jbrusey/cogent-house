@@ -10,7 +10,7 @@ Classes and Modules that represent house related objects
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 
-import meta
+from . import meta
 
 
 class House(meta.Base, meta.InnoDBMix):

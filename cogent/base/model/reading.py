@@ -12,8 +12,8 @@ import dateutil
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Index
 #from sqlalchemy.orm import relationship, backref
 
-import meta
-import sensor
+from . import meta
+from . import sensor
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -195,7 +195,7 @@ class Reading(meta.Base, meta.InnoDBMix):
                     value = getattr(self,"typeId")
                 else:
                     value = getattr(self, col.name)
-            except AttributeError, e:
+            except AttributeError as e:
                 LOG.warning(e)
 
             #Conversion code for datetime

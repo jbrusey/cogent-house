@@ -25,7 +25,7 @@ def scan():
             pass
 
     if(os.name == "posix"):
-        print "Linux"
+        print("Linux")
         for dev in os.listdir("/dev"):
             if(dev[0:6] == "ttyACM"):
                 n += 1
@@ -36,6 +36,6 @@ def scan():
     return available
 
 if __name__=='__main__':
-    print "Found ports:"
+    print("Found ports:")
     for n,s in scan():
-        print "(%d) %s" % (n,s)
+        print("(%d) %s" % (n,s))

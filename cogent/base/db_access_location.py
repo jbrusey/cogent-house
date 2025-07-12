@@ -221,7 +221,7 @@ def get_nodeId_by_location(session, loc_id, start_time, end_time, type_id=0):
 
 def get_data_by_location_and_type(session, loc_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, cal_func=get_calibration, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
-        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+        print("Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type, file=sys.stderr)
      
     if with_deltas:
         delta_rows = _query_by_location_and_type(session, loc_id, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
@@ -264,7 +264,7 @@ def get_location_types(session, loc_id, start_time = datetime.datetime.fromtimes
 
 def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
-        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+        print("Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type, file=sys.stderr)
      
     battery_rows = _query_by_location_and_type(session, loc_id, "battery", start_time, end_time, filter_values = False,calib=False).with_labels().subquery()
     rows = _query_by_location_and_type_with_join_target(session, loc_id, reading_type, start_time, end_time, battery_rows, filter_values = False,calib=False)
@@ -287,7 +287,7 @@ def get_data_by_location_and_type_with_battery(session, loc_id, reading_type, st
 
 def get_data_by_type_location(session, reading_type, start_time = datetime.datetime.fromtimestamp(0), end_time = datetime.datetime.utcnow(), postprocess=True, with_deltas=False):
     if reading_type in ['d_temperature', 'd_humidity', 'd_battery', 'cc', 'duty', 'error', 'size_v1', 'cc_min', 'cc_max', 'cc_kwh'] and postprocess:
-        print >> sys.stderr, "Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type
+        print("Cleaning is being applied to reading type %s, this is not generally wanted. Check your code!" % reading_type, file=sys.stderr)
 
     if with_deltas:
         delta_rows = _query_by_type(session, 'd_' + reading_type, start_time, end_time, filter_values = False).with_labels().subquery()
@@ -324,7 +324,7 @@ def clean_data(session, data, reading_type = None):
         return _clean_data(session, data, reading_type)
     elif type(data) == dict:
         cleaned = {}
-        for key,value in data.iteritems():
+        for key,value in data.items():
             cd = clean_data(session, value, reading_type)
             if len(cd) > 0: cleaned[key] = cd
         return cleaned
@@ -332,7 +332,7 @@ def clean_data(session, data, reading_type = None):
         clean_data(session, data.all(), reading_type)
     else:
         import sys
-        print >> sys.stderr, "Bad data for cleaning:", type(data)
+        print("Bad data for cleaning:", type(data), file=sys.stderr)
         exit(1)
 
 def _clean_data(session, data, reading_type = None):
@@ -340,17 +340,17 @@ def _clean_data(session, data, reading_type = None):
     md = data.meta_data
     
     if reading_type != None:
-        print >> sys.stderr, "[db_access._clean_data] Use of the reading_type parameter is deprecated."
+        print("[db_access._clean_data] Use of the reading_type parameter is deprecated.", file=sys.stderr)
 
     if type(data) == ReadingList and reading_type == None:
         reading_type = data.get_meta_data('reading_type')
 
     if reading_type != None and reading_type in reading_limits:
         lt, ut = reading_limits[reading_type]
-        data = filter(lambda x: x[1] >= lt and x[1] <= ut, data)
+        data = [x for x in data if x[1] >= lt and x[1] <= ut]
 
     ub, lb = _get_outlier_thresholds([x[1] for x in data])
-    data = filter(lambda x: x[1] >= lb and x[1] <= ub, data)
+    data = [x for x in data if x[1] >= lb and x[1] <= ub]
 
     # Until the copy is transparent
     data = ReadingList(data)
@@ -397,7 +397,7 @@ def get_yield_by_nodes_and_date(session, hnum, reading_type, start_time = dateti
     
 
     
-    for room,lid in locations.iteritems():
+    for room,lid in locations.items():
         start = start_time
         plus_one = start_time + d
       	while start < end_time:

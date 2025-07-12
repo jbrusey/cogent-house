@@ -83,13 +83,13 @@ class RRDStore(object):
         self.rrd.update()
 
     def getInfo(self):
-        print self.rrd.info()
+        print(self.rrd.info())
 
 
 if __name__ == "__main__":
     if not os.path.exists(RRDPATH):
-        print "Attemptoing to create directory"
-        print os.makedirs(RRDPATH)
+        print("Attemptoing to create directory")
+        print(os.makedirs(RRDPATH))
 
     foo = RRDStore(1000,1000,1000)
     #print foo

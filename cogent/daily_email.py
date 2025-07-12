@@ -106,9 +106,9 @@ def run_reports(dry_run=False,
 
     if dry_run:
         if len(html) == 0:
-            print "Dry run: no email will be sent"
+            print("Dry run: no email will be sent")
         else:
-            print message
+            print(message)
     else:
         # Send the message via local SMTP server.
 

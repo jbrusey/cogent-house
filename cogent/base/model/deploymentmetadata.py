@@ -10,7 +10,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Float
 #And Backrefs and Relations.
 
 #Import Pyramid Meta Data
-import meta
+from . import meta
 
 class DeploymentMetadata(meta.Base, meta.InnoDBMix):
     """

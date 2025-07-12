@@ -41,7 +41,7 @@ FH.setFormatter(FMT)
 import sqlalchemy
 import dateutil.parser
 import json
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import requests
 import configobj
 import time
@@ -69,8 +69,8 @@ def get_version_string():
     import platform
     try:
         version = pkg_resources.require("ch-base")[0].version
-    except pkg_resources.DistributionNotFound, e:
-        print "Version Error {0}".format(e)
+    except pkg_resources.DistributionNotFound as e:
+        print("Version Error {0}".format(e))
         version = 0.0
 
     plat = platform.uname()[2]
@@ -340,7 +340,7 @@ class Pusher(object):
         theurl = "{0}pushstatus/".format(self.restUrl)
 
         restQry = requests.post(theurl, data = json.dumps(theitem))
-        print restQry
+        print(restQry)
         jsonBody = restQry.json()
         log.debug(jsonBody)
 
@@ -404,24 +404,24 @@ class Pusher(object):
         deployments = mappingConfig["deployment"]
         self.mappedDeployments = dict([(int(k), int(v))
                                        for k, v in
-                                       deployments.iteritems()])
+                                       deployments.items()])
 
         log.debug("Loading Houses")
         houses = mappingConfig["house"]
         self.mappedHouses = dict([(int(k), int(v))
                                        for k, v in
-                                       houses.iteritems()])
+                                       houses.items()])
 
         log.debug("Loading Locations")
         locations = mappingConfig["location"]
         self.mappedLocations = dict([(int(k), int(v))
                                        for k, v in
-                                       locations.iteritems()])
+                                       locations.items()])
         log.debug("Loading Rooms")
         rooms = mappingConfig["room"]
         self.mappedRooms = dict([(int(k), int(v))
                                        for k, v in
-                                       rooms.iteritems()])
+                                       rooms.items()])
         #return
 
         #self.mapDeployments()
@@ -435,19 +435,19 @@ class Pusher(object):
 
         mappingConfig["deployment"] = dict([(str(k), v)
                                             for k, v in
-                                            self.mappedDeployments.iteritems()])
+                                            self.mappedDeployments.items()])
 
         mappingConfig["house"] = dict([(str(k), v)
                                        for k, v in
-                                       self.mappedHouses.iteritems()])
+                                       self.mappedHouses.items()])
 
         mappingConfig["location"] = dict([(str(k), v)
                                           for k, v in
-                                          self.mappedLocations.iteritems()])
+                                          self.mappedLocations.items()])
 
         mappingConfig["room"] = dict([(str(k), v)
                                       for k, v in
-                                      self.mappedRooms.iteritems()])
+                                      self.mappedRooms.items()])
 
         self.dbConfig[self.restUrl] = self.mappingConfig
         self.dbConfig.write()
@@ -477,7 +477,7 @@ class Pusher(object):
             jsonBody = restQry.json()
             log.debug(jsonBody)
 
-        restItem = self.unpackJSON(jsonBody).next()
+        restItem = next(self.unpackJSON(jsonBody))
         log.debug(restItem)
 
         return restItem
@@ -705,8 +705,7 @@ class Pusher(object):
                 log.warning("--> {0}".format(item))
             #log.warning("Remote is {0}".format(remoteTypes[changedItems[0]]))
             #log.warning("local is {0}".format(localTypes[changedItems[1]]))
-            raise(MappingError(changedItems,
-                               "Diffrent Node Types with Same ID"))
+            raise MappingError
 
         #Deal with items that are not on the local database
         for item in newItems:
@@ -735,7 +734,7 @@ class Pusher(object):
         log.debug("Updating Mapping Dictionary")
         #Update the Mapping Dictionary
         newTypes = {}
-        for key, value in localTypes.iteritems():
+        for key, value in localTypes.items():
             newTypes[key] = value.id
 
         self.mappedNodeTypes = newTypes
@@ -787,8 +786,7 @@ class Pusher(object):
                 log.warning("--> {0}".format(item))
             #log.warning("Remote is {0}".format(remoteTypes[changedItems[0]]))
             #log.warning("local is {0}".format(localTypes[changedItems[1]]))
-            raise(MappingError(changedItems,
-                               "Diffrent Sensor Types with Same ID"))
+            raise MappingError
 
         #Deal with items that are not on the local database
         for item in newItems:
@@ -817,7 +815,7 @@ class Pusher(object):
         log.debug("Updating Mapping Dictionary")
         #Update the Mapping Dictionary
         newTypes = {}
-        for key, value in localTypes.iteritems():
+        for key, value in localTypes.items():
             newTypes[key] = value.id
 
         self.mappedSensorTypes = newTypes
@@ -901,7 +899,7 @@ class Pusher(object):
             params = {"address":item.address,
                       "deploymentId":mapDep}
             theUrl = "{0}house/?{1}".format(self.restUrl,
-                                            urllib.urlencode(params))
+                                            urllib.parse.urlencode(params))
             # #Look for the item
             theBody = item.dict()
             theBody["deploymentId"] = mapDep
@@ -950,7 +948,7 @@ class Pusher(object):
             params = {"houseId":hId,
                       "roomId":rId}
             theUrl = "{0}location/?{1}".format(self.restUrl,
-                                               urllib.urlencode(params))
+                                               urllib.parse.urlencode(params))
             #Look for the item
             theBody = item.dict()
             theBody["houseId"] = hId
@@ -967,7 +965,7 @@ class Pusher(object):
         self.mappedLocations = mappedLocations
 
         #And sort out the backmapping
-        for key, value in mappedLocations.iteritems():
+        for key, value in mappedLocations.items():
             backmappedLocations[value] = key
 
         self.backmappedLocations = backmappedLocations
@@ -1067,7 +1065,7 @@ class Pusher(object):
                                  params = {"id": litem.id},
                                  data = json.dumps(dictitem))
                 log.debug(r)
-                print r.json
+                print(r.json)
 
 
     def sync_nodeLocations(self, thehouse, lastupdate = None):
@@ -1137,7 +1135,7 @@ class Pusher(object):
                                      params={"id": nid},
                                      data = json.dumps(dictitem))
                     log.debug(r)
-                    print r.json
+                    print(r.json)
 
 
     def upload_nodestate(self, thehouse, lastupdate):
