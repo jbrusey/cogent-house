@@ -23,5 +23,5 @@ runs a MySQL server alongside it via Docker Compose.
    docker compose down
    ```
 
-The MySQL data is stored in a named Docker volume `dbdata` so that data is
-preserved between restarts.
+The MySQL data is stored in the `./dbdata` directory on the host so that data
+is preserved between restarts.
