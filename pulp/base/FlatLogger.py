@@ -53,12 +53,56 @@ class FlatLogger(object):
         self.log = logging.getLogger("flatlogger")
         self.running = True
         self.first = True
+
+        # Recover any files left in the temporary directory from previous runs.
+        self._process_tmp_dir()
+
         time_string = time.strftime("%Y_%j_%H-%M", time.gmtime())
         self.out_fname = "%s_%s.log" % (time_string, HOST_NAME)
         self.log_fname = "%s/%s" % (self.tmp_dir, self.out_fname)
         self.log.debug("Logging directory %s" % (self.log_fname))
         print(f"opening {self.log_fname}")
         self.tmp_file = open(self.log_fname, "w")
+
+    def _process_tmp_dir(self):
+        """Handle any files left in the temporary directory from a previous run."""
+        try:
+            for entry in os.scandir(self.tmp_dir):
+                if not entry.is_file():
+                    continue
+                valid = True
+                try:
+                    with open(entry.path, "r") as fh:
+                        for line in fh:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            try:
+                                json.loads(line)
+                            except Exception:
+                                valid = False
+                                break
+                except OSError as e:
+                    self.log.exception(e)
+                    continue
+
+                if valid:
+                    try:
+                        os.rename(entry.path, os.path.join(self.out_dir, entry.name))
+                        self.log.info(
+                            "Recovered temporary log %s", entry.name
+                        )
+                    except OSError as e:
+                        self.log.exception(e)
+                else:
+                    self.log.warning("Removing corrupt temp file %s", entry.name)
+                    try:
+                        os.remove(entry.path)
+                    except OSError as e:
+                        self.log.exception(e)
+        except FileNotFoundError:
+            # tmp_dir may not exist yet; nothing to recover
+            pass
 
     def send_ack(self, seq=None, dest=None):
         """send acknowledgement message"""
