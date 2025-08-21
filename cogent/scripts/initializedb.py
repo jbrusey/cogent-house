@@ -40,7 +40,6 @@ from ..base.model import (
     deploymentmetadata,
     host,
     house,
-    housemetadata,
     lastreport,
     location,
     node,
