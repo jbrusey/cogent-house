@@ -11,15 +11,15 @@
 
 *** Create and activate a virtual environment (using python3.13 if available)
 
-={sh} python3.13 -m venv venv source venv/bin/activate=
+={sh} uv venv --python 3.13 .venv source .venv/bin/activate=
 
 *** Install dependencies
 #+BEGIN_SRC sh
-pip install -e tinyos3
-pip install -e .
+uv pip install --editable tinyos3
+uv pip install --editable .
 #+END_SRC
 
 
 *** Run tests
-={sh} PYTHONPATH=$(pwd) pytest -q=
+={sh} uv run pytest -q=
 
