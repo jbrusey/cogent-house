@@ -1,5 +1,7 @@
 #+title: Cogent-House
 
+* Now redundant - do not use
+- please refer to cogent-house-mqtt or cogent-house-web 
 
 * Install instructions
 
